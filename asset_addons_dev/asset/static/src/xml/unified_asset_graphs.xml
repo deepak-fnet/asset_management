@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="asset.UnifiedAssetKanbanView" t-inherit="web.KanbanView" t-inherit-mode="primary">
+        <xpath expr="//Layout" position="inside">
+            <div class="unified-graphs-wrapper">
+                <t t-foreach="unifiedGraphs" t-as="graph" t-key="graph.resModel">
+                    <div class="single_graph_box">
+                        <h4 class="single_graph_title" t-esc="graph.title"/>
+                        <div class="single_graph_view">
+                            <View
+                                resModel="graph.resModel"
+                                type="'graph'"
+                                searchMenuTypes="[]"
+                                display="{ controlPanel: false }"
+                            />
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </xpath>
+    </t>
+
+</templates>

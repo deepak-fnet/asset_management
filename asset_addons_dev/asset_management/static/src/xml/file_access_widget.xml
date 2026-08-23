@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+<t t-name="asset_management.FileAccessWidget" owl="1">
+<div class="faw_wrapper">
+
+  <div class="faw_dashboard_section">
+
+
+
+    <div class="row g-3">
+
+
+      <!-- ── FILE EXPLORER ──────────────────────────────────────────────── -->
+        <div class="col-12 mb-2" id="faw_section_explorer">
+        <div class="faw_table_container pb-2">
+
+          <div class="faw_table_header">
+            <div class="faw_table_title">
+              <div class="faw_icon_circle bg-light-blue">
+                <i class="fa fa-folder-open text-primary"/>
+              </div>
+                <div>
+                <h5>FILE EXPLORER</h5>
+                    <p>Click folders to navigate · Back button to go up · Metadata-only</p>
+              </div>
+            </div>
+              <div class="faw_header_center">
+              <div class="faw_search_box">
+                <i class="fa fa-search"/>
+                  <input type="text" placeholder="Search in current folder..."
+                         t-on-input="(ev) => this.setSearch(ev)" t-att-value="state.searchQuery"/>
+              </div>
+            </div>
+
+              <div class="faw_header_right">
+              <div class="faw_sync_container">
+                <div class="faw_sync_label text-end">LAST SYNC</div>
+                  <div class="faw_sync_time text-end" t-esc="formattedLastSync"/>
+              </div>
+                  <button class="btn btn-outline-primary btn-sm rounded-pill px-3"
+                          t-on-click="() => this.loadData()" title="Refresh from database">
+                <i class="fa fa-refresh"/>
+              </button>
+            </div>
+          </div>
+
+            <!-- Folder Tabs + Online badge row -->
+            <div class="p-2 border-bottom faw_filter_pills_container d-flex justify-content-between align-items-center">
+            <div class="faw_filter_pills px-2">
+              <span t-attf-class="faw_pill #{state.activeFolder === 'Desktop' ? 'faw_pill_active' : ''}"
+                    t-on-click="() => this.onClickDesktop()">Desktop</span>
+                <span t-attf-class="faw_pill #{state.activeFolder === 'Documents' ? 'faw_pill_active' : ''}"
+                      t-on-click="() => this.onClickDocuments()">Documents</span>
+                <span t-attf-class="faw_pill #{state.activeFolder === 'Downloads' ? 'faw_pill_active' : ''}"
+                      t-on-click="() => this.onClickDownloads()">Downloads</span>
+                <span t-attf-class="faw_pill #{state.activeFolder === 'Pictures' ? 'faw_pill_active' : ''}"
+                      t-on-click="() => this.onClickPictures()">Pictures</span>
+                <span t-attf-class="faw_pill #{state.activeFolder === 'Trash' ? 'faw_pill_active' : ''}"
+                      t-on-click="() => this.onClickTrash()">Trash</span>
+                <span t-attf-class="faw_pill faw_pill_locked #{state.activeFolder === 'Locked' ? 'faw_pill_locked_active' : ''}"
+                      t-on-click="() => this.onClickLocked()">
+                <i class="fa fa-lock me-1"/>Locked
+                    <t t-if="state.isOnline and state.lockedRecords.length">
+                  <span class="faw_locked_count_badge" t-esc="state.lockedRecords.length"/>
+                </t>
+              </span>
+                <span t-attf-class="faw_pill faw_pill_violations #{state.activeFolder === 'Violations' ? 'faw_pill_violations_active' : ''}"
+                      t-on-click="() => this.onClickViolations()">
+                <i class="fa fa-warning me-1"/>Violations
+                    <t t-if="state.isOnline and state.violations.length">
+                  <span class="faw_violations_count_badge" t-esc="state.violations.length"/>
+                </t>
+              </span>
+            </div>
+
+          </div>
+
+            <!-- Breadcrumb + Back button (hidden in Locked / Violations view) -->
+            <div t-if="state.activeFolder !== 'Locked' and state.activeFolder !== 'Violations'"
+                 class="d-flex align-items-center gap-2 px-3 py-2 border-bottom bg-light"
+                 style="min-height:40px;">
+            <button t-if="canGoBack"
+                    class="btn btn-sm btn-outline-secondary rounded-pill px-3"
+                    t-on-click="() => this.navigateBack()"
+                    style="font-size:0.8rem;font-weight:700;">
+              <i class="fa fa-arrow-left me-1"/>Back
+            </button>
+
+                <div class="d-flex align-items-center gap-1 flex-wrap" style="font-size:0.8rem;">
+              <t t-foreach="breadcrumbs" t-as="bc" t-key="bc_index">
+                <t t-if="!bc.isCurrent">
+                  <span class="text-muted" t-esc="bc.label"/>
+                    <i class="fa fa-chevron-right text-muted mx-1" style="font-size:0.65rem;"/>
+                </t>
+                  <t t-else="">
+                  <span class="fw-bold text-primary" t-esc="bc.label"/>
+                </t>
+              </t>
+            </div>
+          </div>
+
+            <!-- File / Folder Table -->
+            <div class="faw_table_scroll">
+            <!-- OFFLINE EMPTY STATE -->
+                <t t-if="!state.isOnline and !state.loading">
+              <div class="faw_offline_empty_state">
+                <div class="faw_offline_icon_wrap">
+                  <i class="fa fa-chain-broken"/>
+                </div>
+                  <h5 class="faw_offline_title">Agent Offline</h5>
+                  <p class="faw_offline_subtitle">
+                  File data is not available while the agent is disconnected.
+                  <br/>Reconnect the agent to browse files.
+                </p>
+                  <span class="badge faw_offline_badge">
+                  <i class="fa fa-circle me-1"/>OFFLINE
+                </span>
+              </div>
+            </t>
+
+                <!-- VIOLATIONS TABLE (shown only when Violations tab is active) -->
+                <t t-elif="state.activeFolder === 'Violations'">
+              <table class="faw_modern_table">
+                <thead>
+                  <tr>
+                    <th>FILE</th>
+                      <th>PATH</th>
+                      <th>FOLDER</th>
+                      <th>VIOLATION TYPE</th>
+                      <th>TIME</th>
+                  </tr>
+                </thead>
+                  <tbody>
+                  <t t-if="state.loading">
+                    <tr><td colspan="5" class="text-center py-4 text-muted">
+                      <i class="fa fa-circle-o-notch fa-spin me-2"/>Loading…
+                    </td></tr>
+                  </t>
+                      <t t-elif="state.violations.length === 0">
+                    <tr><td colspan="5" class="faw_empty_row">
+                      <i class="fa fa-check-circle me-2 text-success"/>No violations recorded — clean history.
+                    </td></tr>
+                  </t>
+                      <t t-foreach="state.violations" t-as="v" t-key="v.id">
+                    <tr class="faw_row faw_violation_row">
+                      <td class="faw_cell_bold">
+                        <i class="fa fa-warning text-warning me-2"/>
+                          <span t-esc="v.filename or 'System'"/>
+                      </td>
+                        <td class="faw_path_cell" t-esc="v.path or '--'"/>
+                        <td>
+                        <span t-attf-class="faw_folder_tag faw_tag_#{(v.folder or '').toLowerCase() || 'gray'}"
+                              t-esc="v.folder or '--'"/>
+                      </td>
+                        <td>
+                        <span class="badge bg-danger" style="font-size:0.7rem;" t-esc="v.action_taken or 'BLOCKED'"/>
+                      </td>
+                        <td class="text-muted" style="font-size:0.78rem;"
+                            t-esc="formatDateTime(v.violation_time) or '--'"/>
+                    </tr>
+                  </t>
+                </tbody>
+              </table>
+            </t>
+
+                <!-- STANDARD FILE TABLE (Desktop / Documents / Downloads / Locked) -->
+                <t t-else="">
+              <table class="faw_modern_table">
+                <thead>
+                  <tr>
+                    <th>NAME</th>
+                      <th>PATH</th>
+                      <t t-if="state.activeFolder === 'Locked'">
+                      <th>FOLDER</th>
+                    </t>
+                      <th>SIZE</th>
+                      <th class="text-right">LOCK</th>
+                  </tr>
+                </thead>
+                  <tbody>
+                  <t t-if="state.loading">
+                    <tr>
+                      <td colspan="4" class="text-center py-4 text-muted">
+                        <i class="fa fa-circle-o-notch fa-spin me-2"/>Loading…
+                      </td>
+                    </tr>
+                  </t>
+                      <t t-elif="state.errorMessage">
+                    <tr>
+                      <td colspan="4" class="faw_empty_row text-danger">
+                        <i class="fa fa-exclamation-circle me-2"/>
+                          <t t-esc="state.errorMessage"/>
+                      </td>
+                    </tr>
+                  </t>
+                      <t t-elif="filteredRecords.length === 0">
+                    <tr>
+                      <td colspan="4" class="faw_empty_row">
+                        <t t-if="state.activeFolder === 'Locked'">
+                          <i class="fa fa-unlock-alt me-2"/>No locked files or folders found.
+                        </t>
+                          <t t-elif="state.lastScanTime">
+                          No items found in <strong t-esc="currentLabel"/>.
+                        </t>
+                          <t t-else="">
+                          No data yet — waiting for the agent to push its first scan.
+                        </t>
+                      </td>
+                    </tr>
+                  </t>
+                      <t t-foreach="filteredRecords" t-as="rec" t-key="rec.id">
+                    <tr t-att-class="'faw_row' + (rec.is_blocked ? ' faw_locked_row' : '') + (isFolder(rec) ? ' faw_folder_row' : '')"
+                        t-att-style="isFolder(rec) ? 'cursor:pointer;' : ''"
+                        t-att-title="isFolder(rec) ? 'Click to open folder' : ''"
+                        t-on-click="() => this.onRowClick(rec)">
+                      <td class="faw_cell_bold">
+                        <i t-attf-class="fa #{typeIcon(rec)} me-2 #{rec.is_blocked ? 'text-danger' : (isFolder(rec) ? 'text-warning' : 'text-primary')}"/>
+                          <span t-esc="rec.name"/>
+                          <i t-if="isFolder(rec) and state.activeFolder !== 'Locked'"
+                             class="fa fa-chevron-right text-muted ms-2"
+                             style="font-size:0.7rem;"/>
+                      </td>
+                        <td class="faw_path_cell" t-esc="rec.path"/>
+                        <t t-if="state.activeFolder === 'Locked'">
+                        <td>
+                          <span t-attf-class="faw_folder_tag faw_tag_#{(rec.parent_folder or '').toLowerCase() || 'gray'}"
+                                t-esc="rec.parent_folder or '--'"/>
+                        </td>
+                      </t>
+                        <td t-esc="formatSize(rec.size_kb, rec.record_type || rec.type)"/>
+                        <td class="text-right" t-on-click.stop="">
+                         <i t-attf-class="fa fa-2x #{rec.is_blocked ? 'fa-lock text-danger' : 'fa-unlock text-success'} faw_lock_icon"
+                            t-on-click="() => this.onToggleLockRecord(rec)"
+                            title="Toggle Access Lock"/>
+                      </td>
+                    </tr>
+                  </t>
+                </tbody>
+              </table>
+            </t>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</t>
+</templates>

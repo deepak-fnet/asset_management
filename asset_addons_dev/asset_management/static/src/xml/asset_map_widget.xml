@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- Asset Map Widget Template -->
+    <t t-name="asset_management.AssetMapWidget" owl="1">
+        <div class="asset_map_widget" style="width: 100%; height: 100%; display: flex; flex-direction: column;">
+            <t t-if="hasValidCoordinates">
+                <!-- Map Container -->
+                <div t-ref="mapContainer" class="asset_map_container"
+                     style="width: 100%; height: 520px; min-height: 520px; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; flex: 1;"/>
+
+                <!-- Map Actions -->
+                <div class="asset_map_actions" style="display: flex; gap: 8px; margin-top: 8px;">
+                    <button type="button"
+                            class="btn btn-sm btn-outline-primary"
+                            t-on-click="() => this.openInGoogleMaps()"
+                            style="flex: 1; font-size: 11px;">
+                        <i class="fa fa-external-link me-1"/>
+                        Google Maps
+                    </button>
+                    <button type="button"
+                            class="btn btn-sm btn-outline-secondary"
+                            t-on-click="() => this.openInOpenStreetMap()"
+                            style="flex: 1; font-size: 11px;">
+                        <i class="fa fa-map me-1"/>
+                        OpenStreetMap
+                    </button>
+                </div>
+            </t>
+            <t t-else="">
+                <div class="text-center text-muted p-4" style="background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1; height: 520px; min-height: 520px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <i class="fa fa-map-marker fa-2x mb-2" style="color: #94a3b8;"/>
+                    <p class="mb-0" style="font-size: 12px;">No location data available</p>
+                    <p class="mb-0" style="font-size: 11px; color: #94a3b8;">Click "Update Exact Location" to capture GPS coordinates</p>
+                </div>
+            </t>
+        </div>
+    </t>
+
+</templates>

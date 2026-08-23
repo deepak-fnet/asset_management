@@ -1,0 +1,972 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        
+         -->
+
+        <!-- =====================================================
+             ANTIVIRUS ASSETS - WINDOWS LIST VIEW
+             ===================================================== -->
+        <record id="view_antivirus_assets_windows_list" model="ir.ui.view">
+            <field name="name">antivirus.assets.windows.list</field>
+            <field name="model">asset.asset</field>
+            <field name="priority">99</field>
+            <field name="arch" type="xml">
+                <list string="Windows Assets - Antivirus" edit="0" create="0" delete="0" duplicate="0">
+                    <field name="asset_code"/>
+                    <field name="asset_name" string="Device Name"/>
+                    <field name="serial_number"/>
+                    <field name="agent_status" widget="badge"
+                           decoration-success="agent_status == 'online' or agent_status == 'idle'"
+                           decoration-danger="agent_status == 'offline'"
+                           decoration-muted="agent_status == 'never'"/>
+                    <field name="antivirus_status" widget="badge"
+                           decoration-success="antivirus_status == 'protected'"
+                           decoration-danger="antivirus_status in ['unprotected', 'expired']"
+                           decoration-warning="antivirus_status == 'pending'"
+                           decoration-muted="antivirus_status == 'n/a' or not antivirus_status"/>
+                    <button name="action_deploy_antivirus" type="object" string="Deploy" class="btn-av-action btn-av-deploy" icon="fa-shield" title="Deploy Antivirus"
+                            invisible="antivirus_status == 'protected'"/>
+                    <button name="action_remove_antivirus" type="object" string="Remove" class="btn-av-action btn-av-remove" icon="fa-trash" title="Remove Antivirus"
+                            invisible="antivirus_status == 'unprotected'"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- =====================================================
+             ANTIVIRUS ASSETS - LINUX LIST VIEW
+             ===================================================== -->
+        <record id="view_antivirus_assets_linux_list" model="ir.ui.view">
+            <field name="name">antivirus.assets.linux.list</field>
+            <field name="model">asset.asset</field>
+            <field name="priority">99</field>
+            <field name="arch" type="xml">
+                <list string="Linux Assets - Antivirus" edit="0" create="0" delete="0" duplicate="0">
+                    <field name="asset_code"/>
+                    <field name="asset_name" string="Device Name"/>
+                    <field name="serial_number"/>
+                    <field name="agent_status" widget="badge"
+                           decoration-success="agent_status == 'online' or agent_status == 'idle'"
+                           decoration-danger="agent_status == 'offline'"
+                           decoration-muted="agent_status == 'never'"/>
+                    <field name="antivirus_status" widget="badge"
+                           decoration-success="antivirus_status == 'protected'"
+                           decoration-danger="antivirus_status in ['unprotected', 'expired']"
+                           decoration-warning="antivirus_status == 'pending'"
+                           decoration-muted="antivirus_status == 'n/a' or not antivirus_status"/>
+                    <button name="action_deploy_antivirus" type="object" string="Deploy" class="btn-av-action btn-av-deploy" icon="fa-shield" title="Deploy Antivirus"
+                            invisible="antivirus_status == 'protected'"/>
+                    <button name="action_remove_antivirus" type="object" string="Remove" class="btn-av-action btn-av-remove" icon="fa-trash" title="Remove Antivirus"
+                            invisible="antivirus_status == 'unprotected'"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- =====================================================
+             ANTIVIRUS ASSETS - MACOS LIST VIEW
+             ===================================================== -->
+        <record id="view_antivirus_assets_macos_list" model="ir.ui.view">
+            <field name="name">antivirus.assets.macos.list</field>
+            <field name="model">asset.asset</field>
+            <field name="priority">99</field>
+            <field name="arch" type="xml">
+                <list string="macOS Assets - Antivirus" edit="0" create="0" delete="0" duplicate="0">
+                    <field name="asset_code"/>
+                    <field name="asset_name" string="Device Name"/>
+                    <field name="serial_number"/>
+                    <field name="agent_status" widget="badge"
+                           decoration-success="agent_status == 'online' or agent_status == 'idle'"
+                           decoration-danger="agent_status == 'offline'"
+                           decoration-muted="agent_status == 'never'"/>
+                    <field name="antivirus_status" widget="badge"
+                           decoration-success="antivirus_status == 'protected'"
+                           decoration-danger="antivirus_status in ['unprotected', 'expired']"
+                           decoration-warning="antivirus_status == 'pending'"
+                           decoration-muted="antivirus_status == 'n/a' or not antivirus_status"/>
+                    <button name="action_deploy_antivirus" type="object" string="Deploy" class="btn-av-action btn-av-deploy" icon="fa-shield" title="Deploy Antivirus"
+                            invisible="antivirus_status == 'protected'"/>
+                    <button name="action_remove_antivirus" type="object" string="Remove" class="btn-av-action btn-av-remove" icon="fa-trash" title="Remove Antivirus"
+                            invisible="antivirus_status == 'unprotected'"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- =====================================================
+             ACTIONS: OS-filtered, list-only, with search view
+             ===================================================== -->
+
+        <!-- Windows Antivirus Assets Action -->
+        <record id="action_antivirus_assets_windows" model="ir.actions.act_window">
+            <field name="name">Windows Assets</field>
+            <field name="res_model">asset.asset</field>
+            <field name="view_mode">list</field>
+            <field name="domain">[('os_platform', '=', 'windows')]</field>
+            <field name="context">{'default_os_platform': 'windows', 'antivirus_assets_view': True}</field>
+            <!-- Search view disabled for Odoo 19 -->
+<field name="views" eval="[(ref('view_antivirus_assets_windows_list'), 'list'), (False, 'form')]"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No Windows assets found
+                </p>
+                <p>
+                    Windows assets registered in the system will appear here for antivirus management.
+                </p>
+            </field>
+        </record>
+
+        <!-- Linux Antivirus Assets Action -->
+        <record id="action_antivirus_assets_linux" model="ir.actions.act_window">
+            <field name="name">Linux Assets</field>
+            <field name="res_model">asset.asset</field>
+            <field name="view_mode">list</field>
+            <field name="domain">[('os_platform', '=', 'linux')]</field>
+            <field name="context">{'default_os_platform': 'linux', 'antivirus_assets_view': True}</field>
+            <!-- Search view disabled for Odoo 19 -->
+<field name="views" eval="[(ref('view_antivirus_assets_linux_list'), 'list'), (False, 'form')]"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No Linux assets found
+                </p>
+                <p>
+                    Linux assets registered in the system will appear here for antivirus management.
+                </p>
+            </field>
+        </record>
+
+        <!-- macOS Antivirus Assets Action -->
+        <record id="action_antivirus_assets_macos" model="ir.actions.act_window">
+            <field name="name">macOS Assets</field>
+            <field name="res_model">asset.asset</field>
+            <field name="view_mode">list</field>
+            <field name="domain">[('os_platform', '=', 'macos')]</field>
+            <field name="context">{'default_os_platform': 'macos', 'antivirus_assets_view': True}</field>
+            <!-- Search view disabled for Odoo 19 -->
+<field name="views" eval="[(ref('view_antivirus_assets_macos_list'), 'list'), (False, 'form')]"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No macOS assets found
+                </p>
+                <p>
+                    macOS assets registered in the system will appear here for antivirus management.
+                </p>
+            </field>
+        </record>
+
+        <!-- Antivirus Assets Unified Entry Point - with Configuration -->
+        <record id="action_antivirus_assets_tabbed" model="ir.actions.act_window">
+            <field name="name">Antivirus Assets</field>
+            <field name="res_model">asset.asset</field>
+            <field name="view_mode">list</field>
+            <field name="domain">[('os_platform', '=', 'windows')]</field>
+            <field name="context">{'default_os_platform': 'windows', 'antivirus_assets_view': True}</field>
+            <!-- Search view disabled for Odoo 19 -->
+<field name="view_id" ref="view_antivirus_assets_windows_list"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No Antivirus Assets found
+                </p>
+                <p>
+                    Assets registered in the system will appear here for antivirus management.
+                </p>
+            </field>
+        </record>
+
+        <!-- =====================================================
+             ANTIVIRUS THREAT VIEWS
+             ===================================================== -->
+
+        <!-- Antivirus Threat List View -->
+        <record id="view_antivirus_threat_tree" model="ir.ui.view">
+            <field name="name">antivirus.threat.list</field>
+            <field name="model">antivirus.threat</field>
+            <field name="arch" type="xml">
+                <list string="Antivirus Threats">
+                    <field name="name"/>
+                    <field name="threat_name"/>
+                    <field name="asset_id"/>
+                    <field name="threat_type"/>
+                    <field name="severity"/>
+                    <field name="status"/>
+                    <field name="detected_date"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Antivirus Threat Form View -->
+        <record id="view_antivirus_threat_form" model="ir.ui.view">
+            <field name="name">antivirus.threat.form</field>
+            <field name="model">antivirus.threat</field>
+            <field name="arch" type="xml">
+                <form string="Antivirus Threat">
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="write" type="object" class="oe_stat_button" icon="fa-lock" string="Quarantine" context="{'default_status': 'quarantined'}" invisible="status == 'quarantined'"/>
+                        </div>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" placeholder="Threat Name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="threat_name"/>
+                                <field name="threat_type"/>
+                                <field name="severity"/>
+                            </group>
+                            <group>
+                                <field name="asset_id"/>
+                                <field name="status"/>
+                                <field name="detected_date"/>
+                                <field name="quarantined_date"/>
+                            </group>
+                        </group>
+                        <field name="summary" placeholder="Threat details..."/>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Antivirus Threat Action -->
+        <record id="action_antivirus_threat" model="ir.actions.act_window">
+            <field name="name">All Antivirus Threats</field>
+            <field name="res_model">antivirus.threat</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No threats detected
+                </p>
+                <p>
+                    All detected threats will appear here
+                </p>
+            </field>
+        </record>
+
+        <!-- Windows Antivirus Threats Action -->
+        <record id="action_antivirus_threat_windows" model="ir.actions.act_window">
+            <field name="name">Windows Antivirus Threats</field>
+            <field name="res_model">antivirus.threat</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('os_platform', '=', 'windows')]</field>
+            <field name="context">{'search_default_os_platform': 'windows'}</field>
+        </record>
+
+        <!-- Linux Antivirus Threats Action -->
+        <record id="action_antivirus_threat_linux" model="ir.actions.act_window">
+            <field name="name">Linux Antivirus Threats</field>
+            <field name="res_model">antivirus.threat</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('os_platform', '=', 'linux')]</field>
+            <field name="context">{'search_default_os_platform': 'linux'}</field>
+        </record>
+
+        <!-- macOS Antivirus Threats Action -->
+        <record id="action_antivirus_threat_macos" model="ir.actions.act_window">
+            <field name="name">macOS Antivirus Threats</field>
+            <field name="res_model">antivirus.threat</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('os_platform', '=', 'macos')]</field>
+            <field name="context">{'search_default_os_platform': 'macos'}</field>
+        </record>
+
+        <!-- =====================================================
+             ANTIVIRUS SCAN LOG VIEWS
+             ===================================================== -->
+
+        <!-- Antivirus Scan Log List View -->
+        <record id="view_antivirus_scan_log_tree" model="ir.ui.view">
+            <field name="name">antivirus.scan.log.list</field>
+            <field name="model">antivirus.scan.log</field>
+            <field name="arch" type="xml">
+                <list string="Scan Logs">
+                    <field name="asset_id"/>
+                    <field name="scan_time"/>
+                    <field name="scan_type"/>
+                    <field name="result"/>
+                    <field name="threats_detected"/>
+                    <field name="files_scanned"/>
+                    <field name="duration"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Antivirus Scan Log Form View -->
+        <record id="view_antivirus_scan_log_form" model="ir.ui.view">
+            <field name="name">antivirus.scan.log.form</field>
+            <field name="model">antivirus.scan.log</field>
+            <field name="arch" type="xml">
+                <form string="Scan Log">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="asset_id" placeholder="Device"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="scan_time"/>
+                                <field name="scan_type"/>
+                                <field name="result"/>
+                            </group>
+                            <group>
+                                <field name="threats_detected"/>
+                                <field name="files_scanned"/>
+                                <field name="duration"/>
+                            </group>
+                        </group>
+                        <field name="summary" placeholder="Scan summary..."/>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Antivirus Scan Log Action -->
+        <record id="action_antivirus_scan_log" model="ir.actions.act_window">
+            <field name="name">All Antivirus Scan Logs</field>
+            <field name="res_model">antivirus.scan.log</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No scan logs found
+                </p>
+                <p>
+                    Scan history will appear here
+                </p>
+            </field>
+        </record>
+
+        <!-- Windows Antivirus Scan Logs Action -->
+        <record id="action_antivirus_scan_log_windows" model="ir.actions.act_window">
+            <field name="name">Windows Antivirus Scan Logs</field>
+            <field name="res_model">antivirus.scan.log</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('os_platform', '=', 'windows')]</field>
+            <field name="context">{'search_default_os_platform': 'windows'}</field>
+        </record>
+
+        <!-- Linux Antivirus Scan Logs Action -->
+        <record id="action_antivirus_scan_log_linux" model="ir.actions.act_window">
+            <field name="name">Linux Antivirus Scan Logs</field>
+            <field name="res_model">antivirus.scan.log</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('os_platform', '=', 'linux')]</field>
+            <field name="context">{'search_default_os_platform': 'linux'}</field>
+        </record>
+
+        <!-- macOS Antivirus Scan Logs Action -->
+        <record id="action_antivirus_scan_log_macos" model="ir.actions.act_window">
+            <field name="name">macOS Antivirus Scan Logs</field>
+            <field name="res_model">antivirus.scan.log</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('os_platform', '=', 'macos')]</field>
+            <field name="context">{'search_default_os_platform': 'macos'}</field>
+        </record>
+
+        <!-- =====================================================
+             ANTIVIRUS LICENSE VIEWS
+             ===================================================== -->
+
+        <!-- Antivirus License Form View -->
+        <record id="view_antivirus_license_form" model="ir.ui.view">
+            <field name="name">antivirus.license.form</field>
+            <field name="model">antivirus.license</field>
+            <field name="arch" type="xml">
+                <form string="Antivirus License">
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="write" type="object" class="oe_stat_button" icon="fa-key" string="Activate" context="{'default_status': 'active'}" invisible="status == 'active'"/>
+                        </div>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" placeholder="License Name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="license_key"/>
+                                <field name="total_licenses"/>
+                                <field name="used_licenses"/>
+                            </group>
+                            <group>
+                                <field name="available_licenses"/>
+                                <field name="expiry_date"/>
+                                <field name="status"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Antivirus License Action -->
+        <record id="action_antivirus_license" model="ir.actions.act_window">
+            <field name="name">Antivirus License</field>
+            <field name="res_model">antivirus.license</field>
+            <field name="view_mode">form</field>
+            <field name="target">current</field>
+        </record>
+
+        <!-- =====================================================
+             ANTIVIRUS CONFIG VIEWS
+             ===================================================== -->
+
+        <!-- Antivirus Config Form View - Unified with Assets -->
+        <record id="view_antivirus_config_form" model="ir.ui.view">
+            <field name="name">antivirus.config.form</field>
+            <field name="model">antivirus.config</field>
+            <field name="arch" type="xml">
+                <form string="Antivirus Installer Configuration" create="false">
+                    <sheet>
+                        <notebook>
+                            <!-- Configuration Tab -->
+                            <page string="Configuration" name="config_tab">
+                                <div class="o_antivirus_installers">
+                                    <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+                                <!-- Windows Installer Card -->
+                                <div style="flex: 1; min-width: 300px; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(33, 150, 243, 0.12); border: 1px solid rgba(33, 150, 243, 0.1);">
+                                    <div style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); padding: 24px 20px; text-align: center; position: relative; overflow: hidden;">
+                                        <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%;"/>
+                                        <div style="position: absolute; bottom: -10px; left: -10px; width: 60px; height: 60px; background: rgba(255,255,255,0.08); border-radius: 50%;"/>
+                                        <span style="font-size: 48px; display: block; margin-bottom: 10px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2)); position: relative; z-index: 1;">🪟</span>
+                                        <h3 style="color: white; font-weight: 700; margin: 0; font-size: 18px; letter-spacing: -0.3px; position: relative; z-index: 1;">Windows Installer</h3>
+                                        <p style="color: rgba(255,255,255,0.85); font-size: 13px; margin: 6px 0 0 0; position: relative; z-index: 1;">.exe or .msi package</p>
+                                    </div>
+                                    <div style="padding: 24px 20px;">
+                                        <div style="margin-bottom: 20px;">
+                                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                                                <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #2196f3, #1976d2); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fa fa-link" style="color: white; font-size: 14px;"/>
+                                                </div>
+                                                <div>
+                                                    <div style="font-size: 13px; font-weight: 700; color: #333; margin: 0;">Installer URL</div>
+                                                    <div style="font-size: 11px; color: #888; margin: 2px 0 0 0;">Direct download link</div>
+                                                </div>
+                                            </div>
+                                            <field name="installer_windows" class="form-control" placeholder="https://server.com/installers/kaspersky_win.exe" style="width: 100%; border: 2px solid #e0e0e0; border-radius: 10px; padding: 12px 16px; font-size: 14px; transition: all 0.3s;"/>
+                                        </div>
+                                        <div style="background: linear-gradient(135deg, rgba(33, 150, 243, 0.05), rgba(25, 118, 210, 0.08)); border-radius: 12px; padding: 16px; border: 1px solid rgba(33, 150, 243, 0.15);">
+                                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                                <i class="fa fa-info-circle" style="color: #2196f3; font-size: 14px;"/>
+                                                <span style="font-size: 12px; font-weight: 600; color: #555;">Supported Formats</span>
+                                            </div>
+                                            <div style="font-size: 11px; color: #666; line-height: 1.6;">
+                                                <span style="background: rgba(33, 150, 243, 0.1); color: #1976d2; padding: 3px 8px; border-radius: 4px; font-weight: 600; margin-right: 6px;">.EXE</span>
+                                                <span style="background: rgba(33, 150, 243, 0.1); color: #1976d2; padding: 3px 8px; border-radius: 4px; font-weight: 600;">.MSI</span>
+                                            </div>
+                                        </div>
+                                        <div style="margin-top: 20px; text-align: center;">
+                                            <button name="action_save_windows_config" type="object" string="Save Windows Configuration" class="btn btn-primary" style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); border: none; padding: 12px 36px; font-size: 13px; font-weight: 700; border-radius: 10px; box-shadow: 0 4px 12px rgba(33, 150, 243, 0.35); transition: all 0.3s ease; color: white;"/>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Linux Installer Card -->
+                                <div style="flex: 1; min-width: 300px; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(255, 152, 0, 0.12); border: 1px solid rgba(255, 152, 0, 0.1);">
+                                    <div style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); padding: 24px 20px; text-align: center; position: relative; overflow: hidden;">
+                                        <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%;"/>
+                                        <div style="position: absolute; bottom: -10px; left: -10px; width: 60px; height: 60px; background: rgba(255,255,255,0.08); border-radius: 50%;"/>
+                                        <span style="font-size: 48px; display: block; margin-bottom: 10px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2)); position: relative; z-index: 1;">🐧</span>
+                                        <h3 style="color: white; font-weight: 700; margin: 0; font-size: 18px; letter-spacing: -0.3px; position: relative; z-index: 1;">Linux Installer</h3>
+                                        <p style="color: rgba(255,255,255,0.85); font-size: 13px; margin: 6px 0 0 0; position: relative; z-index: 1;">Ubuntu &amp; RHEL based</p>
+                                    </div>
+                                    <div style="padding: 24px 20px;">
+                                        <div style="margin-bottom: 20px;">
+                                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                                                <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #ff9800, #f57c00); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fa fa-link" style="color: white; font-size: 14px;"/>
+                                                </div>
+                                                <div>
+                                                    <div style="font-size: 13px; font-weight: 700; color: #333; margin: 0;">Installer URL</div>
+                                                    <div style="font-size: 11px; color: #888; margin: 2px 0 0 0;">Direct download link</div>
+                                                </div>
+                                            </div>
+                                            <field name="installer_linux" class="form-control" placeholder="https://server.com/installers/kaspersky_linux.deb" style="width: 100%; border: 2px solid #e0e0e0; border-radius: 10px; padding: 12px 16px; font-size: 14px; transition: all 0.3s;"/>
+                                        </div>
+                                        <div style="background: linear-gradient(135deg, rgba(255, 152, 0, 0.05), rgba(245, 124, 0, 0.08)); border-radius: 12px; padding: 16px; border: 1px solid rgba(255, 152, 0, 0.15);">
+                                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                                <i class="fa fa-info-circle" style="color: #ff9800; font-size: 14px;"/>
+                                                <span style="font-size: 12px; font-weight: 600; color: #555;">Supported Formats</span>
+                                            </div>
+                                            <div style="font-size: 11px; color: #666; line-height: 1.6;">
+                                                <span style="background: rgba(255, 152, 0, 0.1); color: #e65100; padding: 3px 8px; border-radius: 4px; font-weight: 600; margin-right: 6px;">.DEB</span>
+                                                <span style="background: rgba(255, 152, 0, 0.1); color: #e65100; padding: 3px 8px; border-radius: 4px; font-weight: 600;">.RPM</span>
+                                            </div>
+                                        </div>
+                                        <div style="margin-top: 20px; text-align: center;">
+                                            <button name="action_save_linux_config" type="object" string="Save Linux Configuration" class="btn btn-primary" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); border: none; padding: 12px 36px; font-size: 13px; font-weight: 700; border-radius: 10px; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.35); transition: all 0.3s ease; color: white;"/>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- macOS Installer Card -->
+                                <div style="flex: 1; min-width: 300px; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(96, 125, 139, 0.12); border: 1px solid rgba(96, 125, 139, 0.1);">
+                                    <div style="background: linear-gradient(135deg, #607d8b 0%, #455a64 100%); padding: 24px 20px; text-align: center; position: relative; overflow: hidden;">
+                                        <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%;"/>
+                                        <div style="position: absolute; bottom: -10px; left: -10px; width: 60px; height: 60px; background: rgba(255,255,255,0.08); border-radius: 50%;"/>
+                                        <span style="font-size: 48px; display: block; margin-bottom: 10px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2)); position: relative; z-index: 1;">🍎</span>
+                                        <h3 style="color: white; font-weight: 700; margin: 0; font-size: 18px; letter-spacing: -0.3px; position: relative; z-index: 1;">macOS Installer</h3>
+                                        <p style="color: rgba(255,255,255,0.85); font-size: 13px; margin: 6px 0 0 0; position: relative; z-index: 1;">Apple Silicon &amp; Intel</p>
+                                    </div>
+                                    <div style="padding: 24px 20px;">
+                                        <div style="margin-bottom: 20px;">
+                                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                                                <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #607d8b, #455a64); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fa fa-link" style="color: white; font-size: 14px;"/>
+                                                </div>
+                                                <div>
+                                                    <div style="font-size: 13px; font-weight: 700; color: #333; margin: 0;">Installer URL</div>
+                                                    <div style="font-size: 11px; color: #888; margin: 2px 0 0 0;">Direct download link</div>
+                                                </div>
+                                            </div>
+                                            <field name="installer_macos" class="form-control" placeholder="https://server.com/installers/kaspersky_mac.pkg" style="width: 100%; border: 2px solid #e0e0e0; border-radius: 10px; padding: 12px 16px; font-size: 14px; transition: all 0.3s;"/>
+                                        </div>
+                                        <div style="background: linear-gradient(135deg, rgba(96, 125, 139, 0.05), rgba(69, 90, 100, 0.08)); border-radius: 12px; padding: 16px; border: 1px solid rgba(96, 125, 139, 0.15);">
+                                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                                <i class="fa fa-info-circle" style="color: #607d8b; font-size: 14px;"/>
+                                                <span style="font-size: 12px; font-weight: 600; color: #555;">Supported Formats</span>
+                                            </div>
+                                            <div style="font-size: 11px; color: #666; line-height: 1.6;">
+                                                <span style="background: rgba(96, 125, 139, 0.1); color: #37474f; padding: 3px 8px; border-radius: 4px; font-weight: 600; margin-right: 6px;">.DMG</span>
+                                                <span style="background: rgba(96, 125, 139, 0.1); color: #37474f; padding: 3px 8px; border-radius: 4px; font-weight: 600;">.PKG</span>
+                                            </div>
+                                        </div>
+                                        <div style="margin-top: 20px; text-align: center;">
+                                            <button name="action_save_macos_config" type="object" string="Save macOS Configuration" class="btn btn-primary" style="background: linear-gradient(135deg, #607d8b 0%, #455a64 100%); border: none; padding: 12px 36px; font-size: 13px; font-weight: 700; border-radius: 10px; box-shadow: 0 4px 12px rgba(96, 125, 139, 0.35); transition: all 0.3s ease; color: white;"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                            </page>
+
+                            <!-- Assets Tab -->
+                            <page string="Assets" name="assets_tab">
+                                <div class="o_antivirus_assets" style="margin-top: 16px;">
+                                    <field name="id" invisible="1"/>
+                                    <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 12px; margin-bottom: 16px;">
+                                        <i class="fa fa-desktop" style="font-size: 48px; color: #667eea; margin-bottom: 16px; display: block;"/>
+                                        <h4 style="color: #333; margin-bottom: 8px;">Manage Antivirus Assets</h4>
+                                        <p style="color: #666; margin-bottom: 20px;">View and manage antivirus deployment across all your devices</p>
+                                        <button name="%(action_antivirus_assets_tabbed)d" type="action" string="Open Assets Management" class="btn btn-primary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 12px 36px; font-size: 14px; font-weight: 600; border-radius: 10px; color: white;"/>
+                                    </div>
+                                </div>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Antivirus Config Unified View (Configuration + Assets List in one page) -->
+        <record id="view_antivirus_config_unified" model="ir.ui.view">
+            <field name="name">antivirus.config.unified</field>
+            <field name="model">antivirus.config</field>
+            <field name="arch" type="xml">
+                <form string="Antivirus Management" create="false">
+                    <sheet>
+                        <!-- Configuration Section -->
+                        <div style="margin-bottom: 32px;">
+                            <div class="o_antivirus_installers">
+                                <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+                                    <!-- Windows Installer Card -->
+                                    <div style="flex: 1; min-width: 300px; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(33, 150, 243, 0.12); border: 1px solid rgba(33, 150, 243, 0.1);">
+                                        <div style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); padding: 24px 20px; text-align: center;">
+                                            <span style="font-size: 48px; display: block; margin-bottom: 10px;">🪟</span>
+                                            <h3 style="color: white; font-weight: 700; margin: 0; font-size: 18px;">Windows Installer</h3>
+                                            <p style="color: rgba(255,255,255,0.85); font-size: 13px; margin: 4px 0 0 0;">.exe or .msi package</p>
+                                        </div>
+                                        <div style="padding: 24px 20px;">
+                                            <div style="margin-bottom: 20px;">
+                                                <div style="font-size: 13px; font-weight: 700; color: #333; margin-bottom: 8px;">Installer URL</div>
+                                                <field name="installer_windows" class="form-control" placeholder="https://server.com/installers/kaspersky_win.exe" style="width: 100%;"/>
+                                            </div>
+                                            <div style="text-align: center;">
+                                                <button name="action_save_windows_config" type="object" string="Save Windows" class="btn btn-primary" style="background: linear-gradient(135deg, #2196f3, #1976d2); border: none; padding: 10px 28px; color: white; font-weight: 600; border-radius: 8px;"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Linux Installer Card -->
+                                    <div style="flex: 1; min-width: 300px; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(255, 152, 0, 0.12); border: 1px solid rgba(255, 152, 0, 0.1);">
+                                        <div style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); padding: 24px 20px; text-align: center;">
+                                            <span style="font-size: 48px; display: block; margin-bottom: 10px;">🐧</span>
+                                            <h3 style="color: white; font-weight: 700; margin: 0; font-size: 18px;">Linux Installer</h3>
+                                            <p style="color: rgba(255,255,255,0.85); font-size: 13px; margin: 4px 0 0 0;">.deb or .rpm package</p>
+                                        </div>
+                                        <div style="padding: 24px 20px;">
+                                            <div style="margin-bottom: 20px;">
+                                                <div style="font-size: 13px; font-weight: 700; color: #333; margin-bottom: 8px;">Installer URL</div>
+                                                <field name="installer_linux" class="form-control" placeholder="https://server.com/installers/kaspersky_linux.deb" style="width: 100%;"/>
+                                            </div>
+                                            <div style="text-align: center;">
+                                                <button name="action_save_linux_config" type="object" string="Save Linux" class="btn btn-primary" style="background: linear-gradient(135deg, #ff9800, #f57c00); border: none; padding: 10px 28px; color: white; font-weight: 600; border-radius: 8px;"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- macOS Installer Card -->
+                                    <div style="flex: 1; min-width: 300px; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(96, 125, 139, 0.12); border: 1px solid rgba(96, 125, 139, 0.1);">
+                                        <div style="background: linear-gradient(135deg, #607d8b 0%, #455a64 100%); padding: 24px 20px; text-align: center;">
+                                            <span style="font-size: 48px; display: block; margin-bottom: 10px;">🍎</span>
+                                            <h3 style="color: white; font-weight: 700; margin: 0; font-size: 18px;">macOS Installer</h3>
+                                            <p style="color: rgba(255,255,255,0.85); font-size: 13px; margin: 4px 0 0 0;">.dmg or .pkg package</p>
+                                        </div>
+                                        <div style="padding: 24px 20px;">
+                                            <div style="margin-bottom: 20px;">
+                                                <div style="font-size: 13px; font-weight: 700; color: #333; margin-bottom: 8px;">Installer URL</div>
+                                                <field name="installer_macos" class="form-control" placeholder="https://server.com/installers/kaspersky_mac.pkg" style="width: 100%;"/>
+                                            </div>
+                                            <div style="text-align: center;">
+                                                <button name="action_save_macos_config" type="object" string="Save macOS" class="btn btn-primary" style="background: linear-gradient(135deg, #607d8b, #455a64); border: none; padding: 10px 28px; color: white; font-weight: 600; border-radius: 8px;"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Assets List Section - Embedded -->
+                        <div style="margin-top: 24px;">
+                            <h2 style="font-size: 18px; font-weight: 700; color: #333; margin-bottom: 16px;">
+                                <i class="fa fa-desktop" style="color: #667eea; margin-right: 8px;"/>
+                                Antivirus Assets
+                            </h2>
+                            <div style="text-align: center; padding: 32px; background: #f8f9fa; border-radius: 12px;">
+                                <i class="fa fa-shield" style="font-size: 48px; color: #667eea; margin-bottom: 16px; display: block;"/>
+                                <h4 style="color: #333; margin-bottom: 8px;">Manage Your Antivirus Assets</h4>
+                                <p style="color: #666; margin-bottom: 20px;">Deploy and manage antivirus across all your devices</p>
+                                <button name="%(action_antivirus_assets_tabbed)d" type="action" string="Open Assets Management" class="btn btn-primary" style="background: linear-gradient(135deg, #667eea, #764ba2); border: none; padding: 12px 36px; color: white; font-weight: 600; border-radius: 10px; font-size: 14px;"/>
+                            </div>
+                        </div>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="view_antivirus_config_tree" model="ir.ui.view">
+            <field name="name">antivirus.config.list</field>
+            <field name="model">antivirus.config</field>
+            <field name="arch" type="xml">
+                <list string="Antivirus Configurations">
+                    <field name="name"/>
+                    <field name="antivirus_product"/>
+                    <field name="installer_version"/>
+                    <field name="is_default" widget="boolean_toggle"/>
+                    <field name="active" widget="boolean_toggle"/>
+                    <field name="updated_at"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Antivirus Config Search View -->
+
+        <!-- Antivirus Config Action -->
+        <record id="action_antivirus_config" model="ir.actions.act_window">
+            <field name="name">Antivirus Configuration</field>
+            <field name="res_model">antivirus.config</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_antivirus_config_form"/>
+            <field name="target">current</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No configuration yet
+                </p>
+                <p>
+                    Configure your antivirus installer URLs and deployment settings
+                </p>
+            </field>
+        </record>
+
+        <!-- Antivirus Unified Management Action (Config + Assets) -->
+        <record id="action_antivirus_unified" model="ir.actions.act_window">
+            <field name="name">Antivirus Management</field>
+            <field name="res_model">asset.asset</field>
+            <field name="view_mode">list</field>
+            <field name="domain">[('os_platform', '=', 'windows')]</field>
+            <field name="context">{'default_os_platform': 'windows', 'antivirus_assets_view': True}</field>
+            <!-- Search view disabled for Odoo 19 -->
+<field name="view_id" ref="view_antivirus_assets_windows_list"/>
+            <field name="target">current</field>
+        </record>
+
+        <record id="action_antivirus_unified_dashboard" model="ir.actions.client">
+            <field name="name">Antivirus Management</field>
+            <field name="tag">antivirus_unified_dashboard</field>
+            <field name="target">current</field>
+        </record>
+
+        <!-- Windows Antivirus Unified Dashboard -->
+        <record id="action_antivirus_windows_unified" model="ir.actions.client">
+            <field name="name">Windows Antivirus</field>
+            <field name="tag">antivirus_unified_dashboard</field>
+            <field name="context">{'default_os_platform': 'windows'}</field>
+            <field name="target">current</field>
+        </record>
+
+        <!-- Linux Antivirus Unified Dashboard -->
+        <record id="action_antivirus_linux_unified" model="ir.actions.client">
+            <field name="name">Linux Antivirus</field>
+            <field name="tag">antivirus_unified_dashboard</field>
+            <field name="context">{'default_os_platform': 'linux'}</field>
+            <field name="target">current</field>
+        </record>
+
+        <!-- macOS Antivirus Unified Dashboard -->
+        <record id="action_antivirus_macos_unified" model="ir.actions.client">
+            <field name="name">macOS Antivirus</field>
+            <field name="tag">antivirus_unified_dashboard</field>
+            <field name="context">{'default_os_platform': 'macos'}</field>
+            <field name="target">current</field>
+        </record>
+
+        <!-- Antivirus Management Dashboard - Unified View -->
+        <record id="action_antivirus_dashboard_unified" model="ir.actions.act_window">
+            <field name="name">Antivirus Management</field>
+            <field name="res_model">asset.asset</field>
+            <field name="view_mode">list</field>
+            <field name="domain">[('os_platform', '=', 'windows')]</field>
+            <field name="context">{'default_os_platform': 'windows', 'antivirus_assets_view': True}</field>
+            <!-- Search view disabled for Odoo 19 -->
+<field name="view_id" ref="view_antivirus_assets_windows_list"/>
+            <field name="target">current</field>
+        </record>
+
+        <!-- Antivirus Config Dashboard Action -->
+        <record id="action_antivirus_config_dashboard" model="ir.actions.act_window">
+            <field name="name">Antivirus Configuration</field>
+            <field name="res_model">antivirus.config</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_antivirus_config_form"/>
+            <field name="target">current</field>
+        </record>
+
+        <!-- =====================================================
+             ANTIVIRUS DASHBOARD ACTION
+             ===================================================== -->
+
+        <!-- Antivirus Management Dashboard Action -->
+        <record id="action_antivirus_dashboard" model="ir.actions.client">
+            <field name="name">Antivirus Dashboard</field>
+            <field name="tag">antivirus_dashboard</field>
+            <field name="target">current</field>
+        </record>
+
+        <!-- =====================================================
+             ANTIVIRUS THREAT TRACKING DASHBOARD ACTIONS
+             ===================================================== -->
+
+        <!-- Antivirus Threat Tracking Dashboard (Unified) -->
+        <record id="action_antivirus_tracking_dashboard" model="ir.actions.client">
+            <field name="name">Antivirus Threat Tracking</field>
+            <field name="tag">antivirus_tracking_dashboard</field>
+            <field name="target">current</field>
+        </record>
+
+        <!-- Windows Antivirus Threat Tracking -->
+        <record id="action_antivirus_tracking_windows" model="ir.actions.client">
+            <field name="name">Windows Threat Tracking</field>
+            <field name="tag">antivirus_tracking_dashboard</field>
+            <field name="context">{'default_os_platform': 'windows'}</field>
+            <field name="target">current</field>
+        </record>
+
+        <!-- Linux Antivirus Threat Tracking -->
+        <record id="action_antivirus_tracking_linux" model="ir.actions.client">
+            <field name="name">Linux Threat Tracking</field>
+            <field name="tag">antivirus_tracking_dashboard</field>
+            <field name="context">{'default_os_platform': 'linux'}</field>
+            <field name="target">current</field>
+        </record>
+
+        <!-- macOS Antivirus Threat Tracking -->
+        <record id="action_antivirus_tracking_macos" model="ir.actions.client">
+            <field name="name">macOS Threat Tracking</field>
+            <field name="tag">antivirus_tracking_dashboard</field>
+            <field name="context">{'default_os_platform': 'macos'}</field>
+            <field name="target">current</field>
+        </record>
+
+        <!-- =====================================================
+             WINDOWS ANTIVIRUS - SEPARATE VIEW WITH BLUE CARD
+             ===================================================== -->
+
+        <!-- Windows Antivirus Assets List View -->
+        <record id="view_antivirus_windows_assets_list" model="ir.ui.view">
+            <field name="name">antivirus.windows.assets.list</field>
+            <field name="model">asset.asset</field>
+            <field name="priority">100</field>
+            <field name="arch" type="xml">
+                <list edit="0" create="0" delete="0" duplicate="0">
+                    <field name="asset_code"/>
+                    <field name="asset_name" string="Device Name"/>
+                    <field name="serial_number"/>
+                    <field name="agent_status" widget="badge"
+                           decoration-success="agent_status == 'online' or agent_status == 'idle'"
+                           decoration-danger="agent_status == 'offline'"
+                           decoration-muted="agent_status == 'never'"/>
+                    <field name="antivirus_status" widget="badge"
+                           decoration-success="antivirus_status == 'protected'"
+                           decoration-danger="antivirus_status in ['unprotected', 'expired']"
+                           decoration-warning="antivirus_status == 'pending'"
+                           decoration-muted="antivirus_status == 'n/a' or not antivirus_status"/>
+                    <button name="action_deploy_antivirus" type="object" string="Deploy" icon="fa-shield"
+                            invisible="antivirus_status == 'protected'" class="btn-success"/>
+                    <button name="action_remove_antivirus" type="object" string="Remove" icon="fa-trash"
+                            invisible="antivirus_status == 'unprotected'" class="btn-danger"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Windows Antivirus Search View -->
+
+        <!-- Windows Antivirus Action -->
+        <record id="action_antivirus_windows" model="ir.actions.act_window">
+            <field name="name">Windows Antivirus</field>
+            <field name="res_model">asset.asset</field>
+            <field name="view_mode">list</field>
+            <field name="domain">[('os_platform', '=', 'windows')]</field>
+            <field name="context">{'default_os_platform': 'windows', 'search_default_av_os_windows': 1}</field>
+            <!-- Search view disabled for Odoo 19 -->
+<field name="views" eval="[(ref('view_antivirus_windows_assets_list'), 'list')]"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No Windows assets found
+                </p>
+                <p>
+                    Windows assets registered in the system will appear here for antivirus management.
+                </p>
+            </field>
+        </record>
+
+        <!-- =====================================================
+             LINUX ANTIVIRUS - SEPARATE VIEW WITH ORANGE CARD
+             ===================================================== -->
+
+        <!-- Linux Antivirus Assets List View -->
+        <record id="view_antivirus_linux_assets_list" model="ir.ui.view">
+            <field name="name">antivirus.linux.assets.list</field>
+            <field name="model">asset.asset</field>
+            <field name="priority">100</field>
+            <field name="arch" type="xml">
+                <list edit="0" create="0" delete="0" duplicate="0">
+                    <field name="asset_code"/>
+                    <field name="asset_name" string="Device Name"/>
+                    <field name="serial_number"/>
+                    <field name="agent_status" widget="badge"
+                           decoration-success="agent_status == 'online' or agent_status == 'idle'"
+                           decoration-danger="agent_status == 'offline'"
+                           decoration-muted="agent_status == 'never'"/>
+                    <field name="antivirus_status" widget="badge"
+                           decoration-success="antivirus_status == 'protected'"
+                           decoration-danger="antivirus_status in ['unprotected', 'expired']"
+                           decoration-warning="antivirus_status == 'pending'"
+                           decoration-muted="antivirus_status == 'n/a' or not antivirus_status"/>
+                    <button name="action_deploy_antivirus" type="object" string="Deploy" icon="fa-shield"
+                            invisible="antivirus_status == 'protected'" class="btn-success"/>
+                    <button name="action_remove_antivirus" type="object" string="Remove" icon="fa-trash"
+                            invisible="antivirus_status == 'unprotected'" class="btn-danger"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Linux Antivirus Search View -->
+
+        <!-- Linux Antivirus Action -->
+        <record id="action_antivirus_linux" model="ir.actions.act_window">
+            <field name="name">Linux Antivirus</field>
+            <field name="res_model">asset.asset</field>
+            <field name="view_mode">list</field>
+            <field name="domain">[('os_platform', '=', 'linux')]</field>
+            <field name="context">{'default_os_platform': 'linux', 'search_default_av_os_linux': 1}</field>
+            <!-- Search view disabled for Odoo 19 -->
+<field name="views" eval="[(ref('view_antivirus_linux_assets_list'), 'list')]"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No Linux assets found
+                </p>
+                <p>
+                    Linux assets registered in the system will appear here for antivirus management.
+                </p>
+            </field>
+        </record>
+
+        <!-- =====================================================
+             MACOS ANTIVIRUS - SEPARATE VIEW WITH GREY CARD
+             ===================================================== -->
+
+        <!-- macOS Antivirus Assets List View -->
+        <record id="view_antivirus_macos_assets_list" model="ir.ui.view">
+            <field name="name">antivirus.macos.assets.list</field>
+            <field name="model">asset.asset</field>
+            <field name="priority">100</field>
+            <field name="arch" type="xml">
+                <list edit="0" create="0" delete="0" duplicate="0">
+                    <field name="asset_code"/>
+                    <field name="asset_name" string="Device Name"/>
+                    <field name="serial_number"/>
+                    <field name="agent_status" widget="badge"
+                           decoration-success="agent_status == 'online' or agent_status == 'idle'"
+                           decoration-danger="agent_status == 'offline'"
+                           decoration-muted="agent_status == 'never'"/>
+                    <field name="antivirus_status" widget="badge"
+                           decoration-success="antivirus_status == 'protected'"
+                           decoration-danger="antivirus_status in ['unprotected', 'expired']"
+                           decoration-warning="antivirus_status == 'pending'"
+                           decoration-muted="antivirus_status == 'n/a' or not antivirus_status"/>
+                    <button name="action_deploy_antivirus" type="object" string="Deploy" icon="fa-shield"
+                            invisible="antivirus_status == 'protected'" class="btn-success"/>
+                    <button name="action_remove_antivirus" type="object" string="Remove" icon="fa-trash"
+                            invisible="antivirus_status == 'unprotected'" class="btn-danger"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- macOS Antivirus Search View -->
+
+        <!-- macOS Antivirus Action -->
+        <record id="action_antivirus_macos" model="ir.actions.act_window">
+            <field name="name">macOS Antivirus</field>
+            <field name="res_model">asset.asset</field>
+            <field name="view_mode">list</field>
+            <field name="domain">[('os_platform', '=', 'macos')]</field>
+            <field name="context">{'default_os_platform': 'macos', 'search_default_av_os_macos': 1}</field>
+            <!-- Search view disabled for Odoo 19 -->
+<field name="views" eval="[(ref('view_antivirus_macos_assets_list'), 'list')]"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No macOS assets found
+                </p>
+                <p>
+                    macOS assets registered in the system will appear here for antivirus management.
+                </p>
+            </field>
+        </record>
+
+        <!-- =====================================================
+             WINDOWS-STYLE ANTIVIRUS DASHBOARD ACTION
+             ===================================================== -->
+        <record id="action_windows_antivirus_dashboard" model="ir.actions.client">
+            <field name="name">Windows Antivirus Dashboard</field>
+            <field name="tag">antivirus_management.windows_dashboard</field>
+            <field name="target">current</field>
+            <field name="context">{'default_os_platform': 'windows'}</field>
+        </record>
+
+        <!-- =====================================================
+             LINUX ANTIVIRUS DASHBOARD ACTION
+             ===================================================== -->
+        <record id="action_linux_antivirus_dashboard" model="ir.actions.client">
+            <field name="name">Linux Antivirus Dashboard</field>
+            <field name="tag">antivirus_management.linux_dashboard</field>
+            <field name="target">current</field>
+            <field name="context">{'default_os_platform': 'linux'}</field>
+        </record>
+
+        <!-- =====================================================
+             MACOS ANTIVIRUS DASHBOARD ACTION
+             ===================================================== -->
+        <record id="action_macos_antivirus_dashboard" model="ir.actions.client">
+            <field name="name">macOS Antivirus Dashboard</field>
+            <field name="tag">antivirus_management.macos_dashboard</field>
+            <field name="target">current</field>
+            <field name="context">{'default_os_platform': 'macos'}</field>
+        </record>
+
+    </data>
+</odoo>

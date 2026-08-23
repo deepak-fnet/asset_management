@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_asset_asset_form_remote" model="ir.ui.view">
+        <field name="name">asset.asset.form.remote</field>
+        <field name="model">asset.asset</field>
+        <field name="inherit_id" ref="view_asset_asset_form"/>
+        <field name="arch" type="xml">
+            <!-- Header button -->
+            <xpath expr="//button[@name='action_view_agent_logs']"
+                   position="after">
+                <button name="action_request_remote" type="object"
+                        string="Connect Remote" class="btn-primary"
+                        icon="fa-desktop"
+                        confirm="Send a remote-assistance request to this machine? The user will be asked to accept on their screen."/>
+            </xpath>
+            <!-- Smart button -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_remote_sessions" type="object"
+                        class="oe_stat_button" icon="fa-desktop">
+                    <field name="remote_session_count" widget="statinfo"
+                           string="Remote"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

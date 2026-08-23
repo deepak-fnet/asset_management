@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         Add the peripheral flag + code fields to the category form.
+         (code existed on the model already but was never shown.)
+         ══════════════════════════════════════════════════════════════════ -->
+    <record id="view_asset_category_form_peripheral" model="ir.ui.view">
+        <field name="name">asset.category.form.peripheral</field>
+        <field name="model">asset.category</field>
+        <field name="inherit_id" ref="asset_management.view_asset_category_form"/>
+        <field name="arch" type="xml">
+            <group name="config_group" position="inside">
+                <field name="code" placeholder="e.g. MS, KB, MON"/>
+                <field name="is_peripheral"/>
+                <field name="sequence_id" readonly="1" invisible="not sequence_id"/>
+            </group>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         PERIPHERAL ASSET: standalone, deliberately minimal form.
+
+         This is a plain new view, not an inherit of the big laptop form -
+         that form has Hardware Specs / Agent Sync / Update Center /
+         Vulnerability Report / File Access tabs that assume an agent is
+         reporting in, none of which apply to a mouse. Reusing it and hiding
+         pieces would mean fighting conditions scattered across a very large
+         file; a dedicated view is simpler and cannot accidentally show an
+         irrelevant tab.
+         ══════════════════════════════════════════════════════════════════ -->
+    <record id="view_asset_peripheral_form" model="ir.ui.view">
+        <field name="name">asset.asset.peripheral.form</field>
+        <field name="model">asset.asset</field>
+        <field name="arch" type="xml">
+            <form string="Peripheral Asset">
+                <header>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box"/>
+                    <field name="image_1920" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <label for="asset_name" string="Name"/>
+                        <h1>
+                            <field name="asset_name" placeholder="e.g. Wireless Mouse #4"/>
+                        </h1>
+                        <field name="asset_code" readonly="1" class="text-muted"/>
+                    </div>
+
+                    <group>
+                        <group string="Identification">
+                            <field name="category_id"
+                                   domain="[('is_peripheral', '=', True)]"
+                                   required="1"
+                                   options="{'no_create': True}"/>
+                            <field name="serial_number"
+                                   placeholder="Leave blank to use the asset code"/>
+                            <field name="state"/>
+                        </group>
+                        <group string="Assignment">
+                            <field name="assigned_employee_id"/>
+                            <field name="department_id" readonly="1"/>
+                            <field name="location_id"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group string="Procurement">
+                            <field name="acquisition_type"/>
+                            <field name="purchase_date"/>
+                            <field name="purchase_cost"/>
+                            <field name="procurement_vendor_id"/>
+                            <field name="invoice_ref"/>
+                        </group>
+                        <group string="Warranty (if applicable)">
+                            <field name="warranty_period_months"/>
+                            <field name="warranty_start_date"/>
+                            <field name="warranty_end_date"/>
+                            <field name="warranty_status" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Assignment History" name="assignment_history">
+                            <field name="assignment_history_ids" readonly="1">
+                                <list>
+                                    <field name="date"/>
+                                    <field name="employee_id"/>
+                                    <field name="action"/>
+                                    <field name="description"/>
+                                    <field name="user_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes" placeholder="Anything worth recording about this item..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_asset_peripheral_list" model="ir.ui.view">
+        <field name="name">asset.asset.peripheral.list</field>
+        <field name="model">asset.asset</field>
+        <field name="arch" type="xml">
+            <list string="Peripherals"
+                  decoration-success="state == 'assigned'"
+                  decoration-muted="state == 'scrapped'">
+                <field name="asset_code"/>
+                <field name="asset_name"/>
+                <field name="category_id"/>
+                <field name="serial_number" optional="show"/>
+                <field name="assigned_employee_id" widget="many2one_avatar_user"/>
+                <field name="department_id" optional="hide"/>
+                <field name="location_id" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'assigned'"
+                       decoration-info="state == 'draft'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_peripheral_search" model="ir.ui.view">
+        <field name="name">asset.asset.peripheral.search</field>
+        <field name="model">asset.asset</field>
+        <field name="arch" type="xml">
+            <search string="Peripherals">
+                <field name="asset_name"/>
+                <field name="asset_code"/>
+                <field name="serial_number"/>
+                <field name="assigned_employee_id"/>
+                <field name="category_id"/>
+                <filter name="f_unassigned" string="Unassigned"
+                        domain="[('assigned_employee_id','=',False)]"/>
+                <filter name="f_assigned" string="Assigned"
+                        domain="[('state','=','assigned')]"/>
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter name="g_category" string="Category"-->
+<!--                            context="{'group_by':'category_id'}"/>-->
+<!--                    <filter name="g_employee" string="Assigned Employee"-->
+<!--                            context="{'group_by':'assigned_employee_id'}"/>-->
+<!--                    <filter name="g_state" string="Status"-->
+<!--                            context="{'group_by':'state'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         ACTION + MENU
+         Mirrors the existing pattern (action_asset_asset for Windows, etc.):
+         same res_model, filtered by domain, own view set.
+         ══════════════════════════════════════════════════════════════════ -->
+    <record id="action_asset_peripheral" model="ir.actions.act_window">
+        <field name="name">Peripherals</field>
+        <field name="res_model">asset.asset</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('category_id.is_peripheral', '=', True)]</field>
+        <field name="context">{'search_default_g_category': 1}</field>
+        <field name="search_view_id" ref="view_asset_peripheral_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Register a peripheral</p>
+            <p>Mouse, keyboard, monitor, headset, bag - anything with no OS and
+               no agent. Create the category first under Categories with
+               <b>Is Peripheral</b> ticked, then it becomes selectable here.</p>
+        </field>
+    </record>
+
+    <record id="action_asset_peripheral_view_list" model="ir.actions.act_window.view">
+        <field name="sequence">1</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_asset_peripheral_list"/>
+        <field name="act_window_id" ref="action_asset_peripheral"/>
+    </record>
+
+    <record id="action_asset_peripheral_view_form" model="ir.actions.act_window.view">
+        <field name="sequence">2</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_asset_peripheral_form"/>
+        <field name="act_window_id" ref="action_asset_peripheral"/>
+    </record>
+
+<!--    <menuitem id="menu_asset_peripheral"-->
+<!--              name="Peripherals"-->
+<!--              parent="asset_management.menu_asset_root"-->
+<!--              action="action_asset_peripheral"-->
+<!--              sequence="8"/>-->
+
+</odoo>

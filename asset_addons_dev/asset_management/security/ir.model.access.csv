@@ -1,0 +1,142 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_asset_asset_user,asset.asset user,model_asset_asset,group_asset_user,1,1,1,0
+access_asset_asset_manager,asset.asset manager,model_asset_asset,group_asset_manager,1,1,1,1
+access_asset_asset_admin,asset.asset admin,model_asset_asset,group_asset_admin,1,1,1,1
+access_asset_category_user,asset.category user,model_asset_category,group_asset_user,1,0,0,0
+access_asset_category_manager,asset.category manager,model_asset_category,group_asset_manager,1,1,1,1
+access_asset_category_admin,asset.category admin,model_asset_category,group_asset_admin,1,1,1,1
+access_asset_location_user,asset.location user,model_asset_location,group_asset_user,1,0,0,0
+access_asset_location_manager,asset.location manager,model_asset_location,group_asset_manager,1,1,1,1
+access_asset_location_admin,asset.location admin,model_asset_location,group_asset_admin,1,1,1,1
+access_asset_maintenance_user,asset.maintenance user,model_asset_maintenance,group_asset_user,1,1,1,0
+access_asset_maintenance_manager,asset.maintenance manager,model_asset_maintenance,group_asset_manager,1,1,1,1
+access_asset_maintenance_admin,asset.maintenance admin,model_asset_maintenance,group_asset_admin,1,1,1,1
+access_asset_vendor_user,asset.vendor user,model_asset_vendor,group_asset_user,1,0,0,0
+access_asset_vendor_manager,asset.vendor manager,model_asset_vendor,group_asset_manager,1,1,1,1
+access_asset_vendor_admin,asset.vendor admin,model_asset_vendor,group_asset_admin,1,1,1,1
+access_asset_agent_log_user,asset.agent.log user,model_asset_agent_log,group_asset_user,1,0,0,0
+access_asset_agent_log_manager,asset.agent.log manager,model_asset_agent_log,group_asset_manager,1,1,1,1
+access_asset_agent_log_admin,asset.agent.log admin,model_asset_agent_log,group_asset_admin,1,1,1,1
+access_asset_assignment_history_user,asset.assignment.history user,model_asset_assignment_history,group_asset_user,1,0,0,0
+access_asset_assignment_history_manager,asset.assignment.history manager,model_asset_assignment_history,group_asset_manager,1,1,1,1
+access_asset_assignment_history_admin,asset.assignment.history admin,model_asset_assignment_history,group_asset_admin,1,1,1,1
+access_asset_audit_log_user,asset.audit.log user,model_asset_audit_log,group_asset_user,1,0,0,0
+access_asset_audit_log_manager,asset.audit.log manager,model_asset_audit_log,group_asset_manager,1,1,1,1
+access_asset_audit_log_admin,asset.audit.log admin,model_asset_audit_log,group_asset_admin,1,1,1,1
+access_asset_installed_application_user,asset.installed.application user,model_asset_installed_application,group_asset_user,1,0,0,0
+access_asset_installed_application_manager,asset.installed.application manager,model_asset_installed_application,group_asset_manager,1,1,1,1
+access_asset_installed_application_admin,asset.installed.application admin,model_asset_installed_application,group_asset_admin,1,1,1,1
+access_asset_storage_volume_user,asset.storage.volume user,model_asset_storage_volume,group_asset_user,1,0,0,0
+access_asset_storage_volume_manager,asset.storage.volume manager,model_asset_storage_volume,group_asset_manager,1,1,1,1
+access_asset_storage_volume_admin,asset.storage.volume admin,model_asset_storage_volume,group_asset_admin,1,1,1,1
+access_asset_bulk_operation_user,asset.bulk.operation user,model_asset_bulk_operations,group_asset_user,1,1,1,0
+access_asset_bulk_operation_manager,asset.bulk.operation manager,model_asset_bulk_operations,group_asset_manager,1,1,1,1
+access_asset_bulk_operation_admin,asset.bulk.operation admin,model_asset_bulk_operations,group_asset_admin,1,1,1,1
+access_asset_comparison_user,asset.comparison user,model_asset_comparison,group_asset_user,1,1,1,0
+access_asset_comparison_manager,asset.comparison manager,model_asset_comparison,group_asset_manager,1,1,1,1
+access_asset_comparison_admin,asset.comparison admin,model_asset_comparison,group_asset_admin,1,1,1,1
+access_asset_camera_user,asset.camera user,model_asset_camera,group_asset_user,1,1,1,0
+access_asset_camera_manager,asset.camera manager,model_asset_camera,group_asset_manager,1,1,1,1
+access_asset_camera_admin,asset.camera admin,model_asset_camera,group_asset_admin,1,1,1,1
+access_asset_network_device_user,asset.network.device user,model_asset_network_device,group_asset_user,1,1,1,0
+access_asset_network_device_manager,asset.network.device manager,model_asset_network_device,group_asset_manager,1,1,1,1
+access_asset_network_device_admin,asset.network.device admin,model_asset_network_device,group_asset_admin,1,1,1,1
+access_asset_wizard_all_user,asset.wizard.all user,model_asset_all_assets_wizard,group_asset_user,1,1,1,1
+access_asset_wizard_offline_user,asset.wizard.offline user,model_asset_offline_assets_wizard,group_asset_user,1,1,1,1
+access_asset_wizard_online_user,asset.wizard.online user,model_asset_online_assets_wizard,group_asset_user,1,1,1,1
+access_asset_wizard_alerts_user,asset.wizard.alerts user,model_asset_alerts_wizard,group_asset_user,1,1,1,1
+access_asset_app_uninstall_wizard_user,asset.app.uninstall.wizard user,model_asset_app_uninstall_wizard,base.group_user,1,1,1,1
+access_asset_windows_update_user,asset.windows.update user,model_asset_windows_update,group_asset_user,1,0,0,0
+access_asset_windows_update_manager,asset.windows.update manager,model_asset_windows_update,group_asset_manager,1,1,1,0
+access_asset_windows_update_admin,asset.windows.update admin,model_asset_windows_update,group_asset_admin,1,1,1,1
+access_asset_linux_update_user,asset.linux.update user,model_asset_linux_update,group_asset_user,1,0,0,0
+access_asset_linux_update_manager,asset.linux.update manager,model_asset_linux_update,group_asset_manager,1,1,1,0
+access_asset_linux_update_admin,asset.linux.update admin,model_asset_linux_update,group_asset_admin,1,1,1,1
+access_asset_macos_update_user,asset.macos.update user,model_asset_macos_update,group_asset_user,1,0,0,0
+access_asset_macos_update_manager,asset.macos.update manager,model_asset_macos_update,group_asset_manager,1,1,1,0
+access_asset_macos_update_admin,asset.macos.update admin,model_asset_macos_update,group_asset_admin,1,1,1,1
+access_asset_file_access_record_user,asset.file.access.record user,model_asset_file_access_record,group_asset_user,1,0,0,0
+access_asset_file_access_record_manager,asset.file.access.record manager,model_asset_file_access_record,group_asset_manager,1,1,1,0
+access_asset_file_access_record_admin,asset.file.access.record admin,model_asset_file_access_record,group_asset_admin,1,1,1,1
+access_asset_file_access_policy_user,asset.file.access.policy user,model_asset_file_access_policy,group_asset_user,1,0,0,0
+access_asset_file_access_policy_manager,asset.file.access.policy manager,model_asset_file_access_policy,group_asset_manager,1,1,1,1
+access_asset_file_access_policy_admin,asset.file.access.policy admin,model_asset_file_access_policy,group_asset_admin,1,1,1,1
+access_asset_file_access_violation_user,asset.file.access.violation user,model_asset_file_access_violation,group_asset_user,1,0,0,0
+access_asset_file_access_violation_manager,asset.file.access.violation manager,model_asset_file_access_violation,group_asset_manager,1,1,1,0
+access_asset_file_access_violation_admin,asset.file.access.violation admin,model_asset_file_access_violation,group_asset_admin,1,1,1,1
+access_asset_live_monitoring_user,asset.live.monitoring user,model_asset_live_monitoring,group_asset_user,1,0,0,0
+access_asset_live_monitoring_manager,asset.live.monitoring manager,model_asset_live_monitoring,group_asset_manager,1,1,1,0
+access_asset_live_monitoring_admin,asset.live.monitoring admin,model_asset_live_monitoring,group_asset_admin,1,1,1,1
+access_antivirus_threat_user,antivirus.threat user,model_antivirus_threat,group_asset_user,1,1,1,0
+access_antivirus_threat_manager,antivirus.threat manager,model_antivirus_threat,group_asset_manager,1,1,1,1
+access_antivirus_threat_admin,antivirus.threat admin,model_antivirus_threat,group_asset_admin,1,1,1,1
+access_antivirus_scan_log_user,antivirus.scan.log user,model_antivirus_scan_log,group_asset_user,1,1,1,0
+access_antivirus_scan_log_manager,antivirus.scan.log manager,model_antivirus_scan_log,group_asset_manager,1,1,1,1
+access_antivirus_scan_log_admin,antivirus.scan.log admin,model_antivirus_scan_log,group_asset_admin,1,1,1,1
+access_antivirus_license_user,antivirus.license user,model_antivirus_license,group_asset_user,1,1,1,0
+access_antivirus_license_manager,antivirus.license manager,model_antivirus_license,group_asset_manager,1,1,1,1
+access_antivirus_license_admin,antivirus.license admin,model_antivirus_license,group_asset_admin,1,1,1,1
+access_antivirus_config_user,antivirus.config user,model_antivirus_config,group_asset_user,1,0,0,0
+access_antivirus_config_manager,antivirus.config manager,model_antivirus_config,group_asset_manager,1,1,1,1
+access_antivirus_config_admin,antivirus.config admin,model_antivirus_config,group_asset_admin,1,1,1,1
+asset_management.access_antivirus_deployment,access_antivirus_deployment,asset_management.model_antivirus_deployment,base.group_user,1,1,1,1
+asset_management.access_antivirus_dashboard,access_antivirus_dashboard,asset_management.model_antivirus_dashboard,base.group_user,1,1,1,1
+access_network_device_interface_user,network.device.interface user,model_network_device_interface,group_asset_user,1,1,1,0
+access_network_device_interface_manager,network.device.interface manager,model_network_device_interface,group_asset_manager,1,1,1,1
+access_network_device_interface_admin,network.device.interface admin,model_network_device_interface,group_asset_admin,1,1,1,1
+access_snmp_monitor_service_user,snmp.monitor.service user,model_snmp_monitor_service,group_asset_user,1,0,0,0
+access_snmp_monitor_service_manager,snmp.monitor.service manager,model_snmp_monitor_service,group_asset_manager,1,1,1,1
+access_snmp_monitor_service_admin,snmp.monitor.service admin,model_snmp_monitor_service,group_asset_admin,1,1,1,1
+access_network_discovery_service_user,network.discovery.service user,model_network_discovery_service,group_asset_user,1,0,0,0
+access_network_discovery_service_manager,network.discovery.service manager,model_network_discovery_service,group_asset_manager,1,1,1,1
+access_network_discovery_service_admin,network.discovery.service admin,model_network_discovery_service,group_asset_admin,1,1,1,1
+access_asset_software_catalog_user,asset.software.catalog user,model_asset_software_catalog,base.group_user,1,1,1,1
+access_asset_software_deployment_user,asset.software.deployment user,model_asset_software_deployment,base.group_user,1,1,1,1
+access_deploy_software_wizard_user,deploy.software.wizard user,model_deploy_software_wizard,base.group_user,1,1,1,1
+access_app_deployment_user,asset_management.app_deployment user,model_asset_management_app_deployment,base.group_user,1,1,1,1
+access_app_deployment_wizard_user,asset_management.app_deployment_wizard user,model_asset_management_app_deployment_wizard,base.group_user,1,1,1,1
+access_asset_agent_user,asset.agent user,model_asset_agent,base.group_user,1,1,1,1
+access_asset_agent_manager,asset.agent manager,model_asset_agent,group_asset_manager,1,1,1,1
+access_asset_agent_admin,asset.agent admin,model_asset_agent,group_asset_admin,1,1,1,1
+access_antivirus_ksc_config,antivirus.ksc.config,model_antivirus_ksc_config,base.group_user,1,1,1,1
+access_repair_management_user,repair.management user,model_repair_management,group_asset_user,1,1,1,0
+access_repair_management_manager,repair.management manager,model_repair_management,group_asset_manager,1,1,1,1
+access_repair_management_admin,repair.management admin,model_repair_management,group_asset_admin,1,1,1,1
+access_camera_event_user,camera.event user,model_camera_event,group_asset_user,1,1,1,0
+access_camera_event_manager,camera.event manager,model_camera_event,group_asset_manager,1,1,1,1
+access_camera_event_admin,camera.event admin,model_camera_event,group_asset_admin,1,1,1,1
+access_camera_monitor_service_user,camera.monitor.service user,model_camera_monitor_service,group_asset_user,1,0,0,0
+access_camera_monitor_service_manager,camera.monitor.service manager,model_camera_monitor_service,group_asset_manager,1,1,1,1
+access_camera_monitor_service_admin,camera.monitor.service admin,model_camera_monitor_service,group_asset_admin,1,1,1,1
+access_asset_joining_process_user,asset.joining.process user,model_asset_joining_process,group_asset_user,1,1,1,0
+access_asset_joining_process_manager,asset.joining.process manager,model_asset_joining_process,group_asset_manager,1,1,1,1
+access_asset_joining_process_admin,asset.joining.process admin,model_asset_joining_process,group_asset_admin,1,1,1,1
+access_asset_joining_requirement_user,asset.joining.requirement user,model_asset_joining_requirement,group_asset_user,1,1,1,0
+access_asset_joining_requirement_manager,asset.joining.requirement manager,model_asset_joining_requirement,group_asset_manager,1,1,1,1
+access_asset_assign_process_user,asset.assign.process user,model_asset_assign_process,group_asset_user,1,1,1,0
+access_asset_assign_process_manager,asset.assign.process manager,model_asset_assign_process,group_asset_manager,1,1,1,1
+access_asset_assign_process_admin,asset.assign.process admin,model_asset_assign_process,group_asset_admin,1,1,1,1
+access_asset_exit_process_user,asset.exit.process user,model_asset_exit_process,group_asset_user,1,1,1,0
+access_asset_exit_process_manager,asset.exit.process manager,model_asset_exit_process,group_asset_manager,1,1,1,1
+access_asset_exit_process_admin,asset.exit.process admin,model_asset_exit_process,group_asset_admin,1,1,1,1
+access_asset_exit_recovery_line_user,asset.exit.recovery.line user,model_asset_exit_recovery_line,group_asset_user,1,1,1,0
+access_asset_exit_recovery_line_manager,asset.exit.recovery.line manager,model_asset_exit_recovery_line,group_asset_manager,1,1,1,1
+access_assign_laptop_wizard_user,asset.assign.laptop.wizard user,model_asset_assign_laptop_wizard,group_asset_user,1,1,1,1
+access_replace_laptop_wizard_user,asset.replace.laptop.wizard user,model_asset_replace_laptop_wizard,group_asset_user,1,1,1,1
+access_asset_location_history,asset_location_history,model_asset_location_history,,1,1,1,1
+
+access_asset_request_user,asset.request.user,model_asset_request,base.group_user,1,1,1,1
+access_asset_request_line_user,asset.request.line.user,model_asset_request_line,base.group_user,1,1,1,1
+access_asset_list_user,asset.list.user,model_asset_list,base.group_user,1,1,1,1
+access_repair_spare_part,repair_spare_part,model_repair_spare_part,,1,1,1,1
+
+
+access_asset_update_policy_user,asset.update.policy user,model_asset_update_policy,asset_management.group_asset_user,1,0,0,0
+access_asset_update_policy_manager,asset.update.policy manager,model_asset_update_policy,asset_management.group_asset_manager,1,1,1,1
+access_asset_update_policy_admin,asset.update.policy admin,model_asset_update_policy,asset_management.group_asset_admin,1,1,1,1
+
+
+access_spare_request_user,spare.request user,model_spare_request,asset_management.group_asset_user,1,1,1,0
+access_spare_request_manager,spare.request manager,model_spare_request,asset_management.group_asset_manager,1,1,1,1
+access_spare_request_line_user,spare.request.line user,model_spare_request_line,asset_management.group_asset_user,1,1,1,1
+access_spare_request_line_manager,spare.request.line manager,model_spare_request_line,asset_management.group_asset_manager,1,1,1,1

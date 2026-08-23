@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- =====================================================
+         ACTION : AGENT LOGS
+         ===================================================== -->
+    <record id="action_asset_agent_log" model="ir.actions.act_window">
+        <field name="name">Agent Logs</field>
+        <field name="res_model">asset.agent.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    
+     -->
+
+    <!-- =====================================================
+         LIST VIEW
+         ===================================================== -->
+    <record id="view_asset_agent_log_list" model="ir.ui.view">
+        <field name="name">asset.agent.log.list</field>
+        <field name="model">asset.agent.log</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sync_time"/>
+                <field name="asset_id"/>
+                <field name="serial_number"/>
+                <field name="log_type"/>
+                <field name="status" decoration-success="status == 'success'" decoration-danger="status == 'failed'"/>
+                <field name="changes_detected" optional="show"/>
+                <field name="ip_address" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         FORM VIEW
+         ===================================================== -->
+    <record id="view_asset_agent_log_form" model="ir.ui.view">
+        <field name="name">asset.agent.log.form</field>
+        <field name="model">asset.agent.log</field>
+        <field name="arch" type="xml">
+            <form string="Agent Log">
+                <sheet>
+                    <group>
+                        <group string="Asset Information">
+                            <field name="asset_id"/>
+                            <field name="serial_number"/>
+                            <field name="asset_name"/>
+                        </group>
+                        <group string="Sync Information">
+                            <field name="sync_time"/>
+                            <field name="log_type"/>
+                            <field name="status"/>
+                            <field name="ip_address"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Changes Detected" invisible="not changes_detected">
+                            <field name="changes_detected" widget="text" readonly="1"/>
+                        </page>
+
+                        <page string="Snapshot Data">
+                            <field name="snapshot_data" widget="text" readonly="1"/>
+                        </page>
+
+                        <page string="Error Details" invisible="not error_message">
+                            <field name="error_message" widget="text" readonly="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+</odoo>

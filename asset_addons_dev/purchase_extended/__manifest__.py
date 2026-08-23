@@ -1,0 +1,28 @@
+{
+    "name": "Purchase Extended",
+    "version": "19.0.1.0.0",
+    "category": "Inventory/Purchase",
+    "summary": "RFQ bid workflow, partial PO release and vendor comparison integration",
+    "author": "",
+    "license": "LGPL-3",
+    "depends": [
+        "purchase",
+        "purchase_stock",
+        "stock",
+        "vendor_comparison",
+        "report_management",
+    ],
+    "data": [
+        "security/ir.model.access.csv",
+        "data/sequence.xml",
+        "views/purchase_order_views.xml",
+        # "views/stock_picking_views.xml",
+        "wizard/cancel_bid_wizard.xml",
+        "wizard/partial_po_confirm_wizard_view.xml",
+        "wizard/last_grn_wizard_views.xml",
+    ],
+    "installable": True,
+    "application": True,
+    "sequence": 1,
+    "auto_install": False,
+}

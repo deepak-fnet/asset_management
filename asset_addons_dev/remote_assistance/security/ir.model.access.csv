@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_remote_session_user,remote.assistance.session.user,model_remote_assistance_session,group_remote_assistance_user,1,1,1,1
+access_remote_session_manager,remote.assistance.session.manager,model_remote_assistance_session,group_remote_assistance_manager,1,1,1,1
+access_remote_history_user,remote.assistance.history.user,model_remote_assistance_history,group_remote_assistance_user,1,1,1,0
+access_remote_history_manager,remote.assistance.history.manager,model_remote_assistance_history,group_remote_assistance_manager,1,1,1,1
+access_remote_recording_user,remote.assistance.recording.user,model_remote_assistance_recording,group_remote_assistance_user,1,1,1,1
+access_remote_recording_manager,remote.assistance.recording.manager,model_remote_assistance_recording,group_remote_assistance_manager,1,1,1,1

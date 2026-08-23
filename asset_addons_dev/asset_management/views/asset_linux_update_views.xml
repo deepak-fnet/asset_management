@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!--
+    Linux Update Management Views
+    ==============================
+    Inherits the existing asset form view to add a Linux Updates tab
+    with a dashboard OWL component. Only visible for Linux assets.
+    -->
+
+    <!-- =====================================================
+         LINUX UPDATE LIST VIEW
+         ===================================================== -->
+    <record id="view_asset_linux_update_list" model="ir.ui.view">
+        <field name="name">asset.linux.update.list</field>
+        <field name="model">asset.linux.update</field>
+        <field name="arch" type="xml">
+            <list string="Linux Updates"
+                  decoration-success="status == 'installed'"
+                  decoration-warning="status == 'installing'"
+                  decoration-danger="status == 'blocked'"
+                  decoration-muted="status == 'pending'">
+                <field name="asset_id"/>
+                <field name="package_name"/>
+                <field name="title" optional="show"/>
+                <field name="detected_date"/>
+                <field name="current_version" optional="show"/>
+                <field name="new_version"/>
+                <field name="repository" optional="show"/>
+                <field name="severity" widget="badge"
+                       decoration-success="severity == 'security'"
+                       decoration-danger="severity == 'critical'"
+                       decoration-warning="severity == 'important'"
+                       decoration-muted="severity == 'optional'"/>
+                <field name="size" optional="show"/>
+                <field name="status" widget="badge"
+                       decoration-success="status in ['installed', 'allowed']"
+                       decoration-warning="status == 'installing'"
+                       decoration-danger="status in ['blocked', 'failed']"
+                       decoration-muted="status == 'pending'"/>
+                <field name="action_by" optional="show"/>
+                <field name="action_date" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         LINUX UPDATE FORM VIEW
+         ===================================================== -->
+    <record id="view_asset_linux_update_form" model="ir.ui.view">
+        <field name="name">asset.linux.update.form</field>
+        <field name="model">asset.linux.update</field>
+        <field name="arch" type="xml">
+            <form string="Linux Update">
+                <header>
+                    <button name="action_push_update"
+                            type="object"
+                            string="Push Update"
+                            class="btn-primary"
+                            invisible="status not in ['pending', 'allowed', 'blocked']"
+                            groups="asset_management.group_asset_manager"/>
+                    <button name="action_block_update"
+                            type="object"
+                            string="Block Update"
+                            class="btn-danger"
+                            invisible="status not in ['pending', 'allowed']"
+                            groups="asset_management.group_asset_manager"/>
+                    <button name="action_allow_update"
+                            type="object"
+                            string="Allow Update"
+                            class="btn-success"
+                            invisible="status != 'blocked'"
+                            groups="asset_management.group_asset_manager"/>
+                    <field name="status" widget="statusbar"
+                           statusbar_visible="pending,allowed,installing,installed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="package_name" placeholder="Package Name..."/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Update Information">
+                            <field name="asset_id"/>
+                            <field name="title"/>
+                            <field name="detected_date"/>
+                            <field name="current_version"/>
+                            <field name="new_version"/>
+                            <field name="repository"/>
+                            <field name="severity"/>
+                            <field name="size"/>
+                        </group>
+                        <group string="Status &amp; Actions">
+                            <field name="status"/>
+                            <field name="action_by" readonly="1"/>
+                            <field name="action_date" readonly="1"/>
+                            <field name="is_actionable" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1" placeholder="Update description..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         LINUX UPDATE ACTION
+         ===================================================== -->
+    <record id="action_asset_linux_update" model="ir.actions.act_window">
+        <field name="name">Linux Updates</field>
+        <field name="res_model">asset.linux.update</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_pending': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Linux updates detected
+            </p>
+            <p>
+                Linux updates will appear here when detected by the asset agent.
+            </p>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         INHERIT ASSET FORM VIEW - ADD LINUX UPDATES TAB
+         Only visible for Linux assets (os_platform == 'linux')
+         ===================================================== -->
+    <record id="view_asset_asset_form_linux_update" model="ir.ui.view">
+        <field name="name">asset.asset.form.linux.update</field>
+        <field name="model">asset.asset</field>
+        <field name="inherit_id" ref="asset_management.view_asset_asset_form"/>
+        <field name="priority">21</field>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Linux Updates" name="linux_updates"
+                      invisible="os_platform != 'linux'"
+                      groups="asset_management.group_asset_user">
+                    <field name="linux_update_ids"
+                           widget="linux_update_widget"
+                           nolabel="1"
+                           style="width: 100%; display: block;"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

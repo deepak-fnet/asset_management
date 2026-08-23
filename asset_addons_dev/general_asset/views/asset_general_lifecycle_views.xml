@@ -1,0 +1,466 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         ASSET TRANSFER
+         ══════════════════════════════════════════════════════════════════ -->
+    <record id="view_asset_transfer_list" model="ir.ui.view">
+        <field name="name">asset.transfer.list</field>
+        <field name="model">asset.transfer</field>
+        <field name="arch" type="xml">
+            <list string="Asset Transfers"
+                  decoration-success="state == 'done'"
+                  decoration-muted="state == 'cancelled'"
+                  decoration-info="state == 'submitted'">
+                <field name="name"/>
+                <field name="transfer_date"/>
+                <field name="asset_id"/>
+                <field name="transfer_type"/>
+                <field name="from_employee_id" optional="show"/>
+                <field name="to_employee_id" optional="show"/>
+                <field name="from_location_id" optional="hide"/>
+                <field name="to_location_id" optional="hide"/>
+                <field name="requested_by" optional="hide"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'"
+                       decoration-info="state in ['submitted','approved']"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_transfer_form" model="ir.ui.view">
+        <field name="name">asset.transfer.form</field>
+        <field name="model">asset.transfer</field>
+        <field name="arch" type="xml">
+            <form string="Asset Transfer">
+                <header>
+                    <button name="action_submit" type="object" string="Submit"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_approve" type="object" string="Approve"
+                            class="btn-primary" invisible="state != 'submitted'"
+                            groups="asset_management.group_asset_manager"/>
+                    <button name="action_done" type="object" string="Mark Done"
+                            class="btn-primary" invisible="state != 'approved'"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state in ['done','cancelled']"/>
+                    <button name="action_reset_draft" type="object"
+                            string="Reset to Draft"
+                            invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,submitted,approved,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Asset">
+                            <field name="asset_id"
+                                   readonly="state != 'draft'"
+                                   options="{'no_create': True}"/>
+                            <field name="asset_code" readonly="1"/>
+                            <field name="serial_number" readonly="1"/>
+                            <field name="transfer_date"
+                                   readonly="state not in ['draft','submitted']"/>
+                        </group>
+                        <group string="Transfer">
+                            <field name="transfer_type"
+                                   readonly="state != 'draft'"/>
+                            <field name="requested_by" readonly="1"/>
+                            <field name="approved_by" readonly="1"
+                                   invisible="not approved_by"/>
+                            <field name="completed_on" readonly="1"
+                                   invisible="not completed_on"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group string="From (at time of request)">
+                            <field name="from_employee_id" readonly="1"/>
+                            <field name="from_location_id" readonly="1"/>
+                            <field name="from_department_id" readonly="1"/>
+                        </group>
+                        <group string="To">
+                            <field name="to_employee_id"
+                                   readonly="state in ['done','cancelled']"
+                                   invisible="transfer_type not in ['employee','multiple']"
+                                   required="transfer_type == 'employee'"/>
+                            <field name="to_location_id"
+                                   readonly="state in ['done','cancelled']"
+                                   invisible="transfer_type not in ['location','multiple']"
+                                   required="transfer_type == 'location'"/>
+                            <field name="to_department_id"
+                                   readonly="state in ['done','cancelled']"
+                                   invisible="transfer_type not in ['department','multiple']"
+                                   required="transfer_type == 'department'"/>
+                        </group>
+                    </group>
+
+                    <group string="Reason">
+                        <field name="reason" nolabel="1"
+                               readonly="state in ['done','cancelled']"
+                               placeholder="Why is this asset being transferred?"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_asset_transfer_search" model="ir.ui.view">
+        <field name="name">asset.transfer.search</field>
+        <field name="model">asset.transfer</field>
+        <field name="arch" type="xml">
+            <search string="Asset Transfers">
+                <field name="name"/>
+                <field name="asset_id"/>
+                <field name="to_employee_id"/>
+                <filter name="f_open" string="Open"
+                        domain="[('state','in',['draft','submitted','approved'])]"/>
+                <filter name="f_to_approve" string="To Approve"
+                        domain="[('state','=','submitted')]"/>
+                <filter name="f_done" string="Done" domain="[('state','=','done')]"/>
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter name="g_state" string="Status" context="{'group_by':'state'}"/>-->
+<!--                    <filter name="g_type" string="Type" context="{'group_by':'transfer_type'}"/>-->
+<!--                    <filter name="g_month" string="Month"-->
+<!--                            context="{'group_by':'transfer_date:month'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <record id="action_asset_transfer" model="ir.actions.act_window">
+        <field name="name">Asset Transfers</field>
+        <field name="res_model">asset.transfer</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_asset_transfer_search"/>
+        <field name="context">{'search_default_f_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Transfer an asset</p>
+            <p>Move an asset to another employee, location or department.
+               Submit, get it approved, then mark done to apply the change.</p>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         ASSET SCRAP
+         ══════════════════════════════════════════════════════════════════ -->
+    <record id="view_asset_scrap_list" model="ir.ui.view">
+        <field name="name">asset.scrap.list</field>
+        <field name="model">asset.scrap</field>
+        <field name="arch" type="xml">
+            <list string="Asset Scrap"
+                  decoration-success="state == 'done'"
+                  decoration-muted="state == 'cancelled'">
+                <field name="name"/>
+                <field name="scrap_date"/>
+                <field name="asset_id"/>
+                <field name="category_id" optional="show"/>
+                <field name="employee_id" optional="show"/>
+                <field name="scrap_reason"/>
+                <field name="disposal_method" optional="show"/>
+                <field name="disposal_value" optional="hide" sum="Recovered"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_scrap_form" model="ir.ui.view">
+        <field name="name">asset.scrap.form</field>
+        <field name="model">asset.scrap</field>
+        <field name="arch" type="xml">
+            <form string="Asset Scrap">
+                <header>
+                    <button name="action_submit" type="object" string="Submit"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_approve" type="object" string="Approve"
+                            class="btn-primary" invisible="state != 'submitted'"
+                            groups="asset_management.group_asset_manager"/>
+                    <button name="action_done" type="object" string="Scrap Asset"
+                            class="btn-primary" invisible="state != 'approved'"
+                            confirm="This marks the asset as scrapped and unassigns it. Continue?"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state in ['done','cancelled']"/>
+                    <button name="action_reset_draft" type="object"
+                            string="Reset to Draft" invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,submitted,approved,done"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Scrapped"
+                            bg_color="text-bg-danger" invisible="state != 'done'"/>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Asset">
+                            <field name="asset_id" readonly="state != 'draft'"
+                                   options="{'no_create': True}"/>
+                            <field name="asset_code" readonly="1"/>
+                            <field name="serial_number" readonly="1"/>
+                            <field name="category_id" readonly="1"/>
+                            <field name="employee_id" readonly="1"/>
+                        </group>
+                        <group string="Scrap">
+                            <field name="scrap_date"
+                                   readonly="state in ['done','cancelled']"/>
+                            <field name="scrap_reason"
+                                   readonly="state in ['done','cancelled']"/>
+                            <field name="disposal_method"
+                                   readonly="state in ['done','cancelled']"/>
+                            <field name="disposal_value"
+                                   readonly="state in ['done','cancelled']"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1"
+                               readonly="state in ['done','cancelled']"
+                               placeholder="Why is this asset being scrapped?"/>
+                    </group>
+                    <group string="Supporting Document">
+                        <field name="attachment_file" filename="attachment_filename"/>
+                        <field name="attachment_filename" invisible="1"/>
+                    </group>
+                    <group>
+                        <field name="requested_by" readonly="1"/>
+                        <field name="approved_by" readonly="1"
+                               invisible="not approved_by"/>
+                        <field name="completed_on" readonly="1"
+                               invisible="not completed_on"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_asset_scrap_search" model="ir.ui.view">
+        <field name="name">asset.scrap.search</field>
+        <field name="model">asset.scrap</field>
+        <field name="arch" type="xml">
+            <search string="Asset Scrap">
+                <field name="name"/>
+                <field name="asset_id"/>
+                <filter name="f_open" string="Open"
+                        domain="[('state','in',['draft','submitted','approved'])]"/>
+                <filter name="f_to_approve" string="To Approve"
+                        domain="[('state','=','submitted')]"/>
+                <filter name="f_done" string="Scrapped" domain="[('state','=','done')]"/>
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter name="g_state" string="Status" context="{'group_by':'state'}"/>-->
+<!--                    <filter name="g_reason" string="Reason" context="{'group_by':'scrap_reason'}"/>-->
+<!--                    <filter name="g_month" string="Month"-->
+<!--                            context="{'group_by':'scrap_date:month'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <record id="action_asset_scrap" model="ir.actions.act_window">
+        <field name="name">Asset Scrap</field>
+        <field name="res_model">asset.scrap</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_asset_scrap_search"/>
+        <field name="context">{'search_default_f_open': 1}</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         PHYSICAL VERIFICATION
+         ══════════════════════════════════════════════════════════════════ -->
+    <record id="view_physical_verification_list" model="ir.ui.view">
+        <field name="name">physical.verification.list</field>
+        <field name="model">physical.verification</field>
+        <field name="arch" type="xml">
+            <list string="Physical Verification"
+                  decoration-success="state == 'done'"
+                  decoration-danger="missing_count &gt; 0 and state == 'done'">
+                <field name="name"/>
+                <field name="verification_date"/>
+                <field name="plant_id" optional="show"/>
+                <field name="location_id" optional="show"/>
+                <field name="department_id" optional="hide"/>
+                <field name="verified_by"/>
+                <field name="total_count" string="Total"/>
+                <field name="found_count" string="Found"/>
+                <field name="missing_count" string="Missing"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_physical_verification_form" model="ir.ui.view">
+        <field name="name">physical.verification.form</field>
+        <field name="model">physical.verification</field>
+        <field name="arch" type="xml">
+            <form string="Physical Verification">
+                <header>
+                    <button name="action_load_assets" type="object"
+                            string="Load Assets" class="btn-primary"
+                            invisible="state not in ['draft','in_progress']"/>
+                    <button name="action_done" type="object" string="Complete"
+                            class="btn-primary" invisible="state != 'in_progress'"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state in ['done','cancelled']"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,in_progress,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Scope">
+                            <field name="verification_date"/>
+                            <field name="plant_id"/>
+                            <field name="location_id"/>
+                            <field name="department_id"/>
+                            <div colspan="2" class="text-muted">
+                                Leave a filter empty to include everything.
+                                Load Assets pulls in every non-scrapped asset
+                                that matches.
+                            </div>
+                        </group>
+                        <group string="Result">
+                            <field name="verified_by"/>
+                            <field name="total_count" readonly="1"/>
+                            <field name="found_count" readonly="1"/>
+                            <field name="missing_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Assets" name="assets">
+                            <field name="line_ids">
+                                <list editable="bottom"
+                                      decoration-success="status == 'found'"
+                                      decoration-danger="status == 'missing'">
+                                    <field name="asset_id" readonly="1"/>
+                                    <field name="asset_code" readonly="1"/>
+                                    <field name="tag_number" readonly="1"/>
+                                    <field name="employee_id" readonly="1"/>
+                                    <field name="expected_location_id" readonly="1"/>
+                                    <field name="status"/>
+                                    <field name="actual_location_id"/>
+                                    <field name="remarks"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_physical_verification" model="ir.actions.act_window">
+        <field name="name">Physical Verification</field>
+        <field name="res_model">physical.verification</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Start a physical verification</p>
+            <p>Pick a plant, location or department, load the assets, then mark
+               each one found or missing.</p>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         RFID COMPARISON
+         ══════════════════════════════════════════════════════════════════ -->
+    <record id="view_asset_rfid_comparison_list" model="ir.ui.view">
+        <field name="name">asset.rfid.comparison.list</field>
+        <field name="model">asset.rfid.comparison</field>
+        <field name="arch" type="xml">
+            <list string="RFID Comparison"
+                  decoration-warning="unmatched_count &gt; 0 or not_scanned_count &gt; 0">
+                <field name="name"/>
+                <field name="scan_date"/>
+                <field name="plant_id" optional="show"/>
+                <field name="location_id" optional="show"/>
+                <field name="matched_count" string="Matched"/>
+                <field name="unmatched_count" string="Unknown"/>
+                <field name="not_scanned_count" string="Not Scanned"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_rfid_comparison_form" model="ir.ui.view">
+        <field name="name">asset.rfid.comparison.form</field>
+        <field name="model">asset.rfid.comparison</field>
+        <field name="arch" type="xml">
+            <form string="RFID Comparison">
+                <header>
+                    <button name="action_compare" type="object" string="Compare"
+                            class="btn-primary" invisible="state == 'done'"/>
+                    <button name="action_close" type="object" string="Close"
+                            invisible="state != 'compared'"/>
+                    <button name="action_reset_draft" type="object"
+                            string="Reset to Draft" invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Scan">
+                            <field name="scan_date"/>
+                            <field name="plant_id"/>
+                            <field name="location_id"/>
+                            <field name="scan_file" filename="scan_filename"/>
+                            <field name="scan_filename" invisible="1"/>
+                        </group>
+                        <group string="Result">
+                            <field name="matched_count" readonly="1"/>
+                            <field name="unmatched_count" readonly="1"/>
+                            <field name="not_scanned_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-info" role="alert">
+                        Enter the scanned tag IDs below, then press Compare. Tags
+                        that match an asset are marked Matched; tags with no asset
+                        are Unknown; assets expected here whose tag was never
+                        scanned are added as Not Scanned.
+                    </div>
+                    <notebook>
+                        <page string="Scanned Tags" name="tags">
+                            <field name="line_ids">
+                                <list editable="bottom"
+                                      decoration-success="match_state == 'matched'"
+                                      decoration-warning="match_state == 'unmatched'"
+                                      decoration-danger="match_state == 'not_scanned'">
+                                    <field name="tag_number"/>
+                                    <field name="asset_id" readonly="1"/>
+                                    <field name="asset_name" readonly="1"/>
+                                    <field name="employee_id" readonly="1"/>
+                                    <field name="location_id" readonly="1"/>
+                                    <field name="match_state" readonly="1"
+                                           widget="badge"/>
+                                    <field name="remarks"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_asset_rfid_comparison" model="ir.actions.act_window">
+        <field name="name">RFID Comparison</field>
+        <field name="res_model">asset.rfid.comparison</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

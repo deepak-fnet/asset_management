@@ -1,0 +1,780 @@
+/* =========================
+   FULL-SCREEN CONTAINER SETUP
+   SCOPED TO: System Overview dashboard only
+   ========================= */
+
+/* Scoped action container styling for system overview */
+.o_action_manager .o_action:has(.o_system_overview) {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: 100%;
+}
+
+/* Main System Overview Container */
+.o_system_overview {
+    background-color: #f8f9fa;
+    flex: 1 1 auto;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 24px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Ensure the client action wrapper doesn't constrain height */
+.o_action:has(.o_system_overview) {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.o_action>.o_system_overview {
+    flex: 1 1 auto;
+    height: 100%;
+    overflow-y: auto;
+}
+
+/* Remove any max-width constraints */
+.o_system_overview.container-fluid {
+    max-width: none !important;
+    padding-left: 24px;
+    padding-right: 24px;
+}
+
+/* Dashboard Header */
+.o_system_overview .dashboard_header {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    /* Red outline for Home dashboard */
+    border-top: 4px solid #dc3545;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.o_system_overview .dashboard_title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #000000;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+.o_system_overview .dashboard_subtitle {
+    font-size: 15px;
+    margin-top: 2px;
+}
+
+.o_system_overview .dashboard_controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.o_system_overview .refresh_status {
+    font-size: 13px;
+    color: #6c757d;
+}
+
+/* KPI Cards Style */
+.o_system_overview .kpi_card {
+    position: relative;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px 24px;
+    height: 130px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    overflow: hidden;
+    border: none;
+    display: flex;
+    align-items: center;
+}
+
+.o_system_overview .kpi_body {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+}
+
+.o_system_overview .kpi_icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+}
+
+.o_system_overview .kpi_text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.o_system_overview .kpi_label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.o_system_overview .kpi_value {
+    font-size: 36px;
+    font-weight: 800;
+    color: #212529;
+    line-height: 1;
+}
+
+.o_system_overview .kpi_bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 5px;
+    width: 100%;
+    border-radius: 0 0 16px 16px;
+}
+
+/* =========================
+   ASSET CATEGORY BUTTONS
+   Below Total Assets KPI Card
+   ========================= */
+
+.o_system_overview .asset_category_buttons {
+    width: 100%;
+}
+
+.o_system_overview .btn_asset_category {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.o_system_overview .btn_asset_category:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.o_system_overview .btn_asset_category:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.o_system_overview .btn_asset_category i {
+    font-size: 14px;
+}
+
+.o_system_overview .btn_asset_category span {
+    white-space: nowrap;
+}
+
+/* Individual Button Colors */
+.o_system_overview .btn_windows {
+    background: #1E293B;
+    border-color: #1E293B;
+}
+
+.o_system_overview .btn_windows:hover {
+    background: #0f172a;
+}
+
+.o_system_overview .btn_linux {
+    background: #6B4F3F;
+    border-color: #6B4F3F;
+}
+
+.o_system_overview .btn_linux:hover {
+    background: #5a4133;
+}
+
+.o_system_overview .btn_cctv {
+    background: #38BDF8;
+    border-color: #38BDF8;
+}
+
+.o_system_overview .btn_cctv:hover {
+    background: #0ea5e9;
+}
+
+.o_system_overview .btn_network {
+    background: #F472B6;
+    border-color: #F472B6;
+}
+
+.o_system_overview .btn_network:hover {
+    background: #ec4899;
+}
+
+/* Row 1: General Overview */
+.o_system_overview .kpi_total_assets .kpi_icon {
+    background: #E3F2FD;
+    color: #2196F3;
+}
+
+.o_system_overview .kpi_total_assets .kpi_bottom {
+    background: #2196F3;
+}
+
+.o_system_overview .kpi_total_online .kpi_icon {
+    background: #E8F5E9;
+    color: #4CAF50;
+}
+
+.o_system_overview .kpi_total_online .kpi_bottom {
+    background: #4CAF50;
+}
+
+.o_system_overview .kpi_total_offline .kpi_icon {
+    background: #FFEBEE;
+    color: #F44336;
+}
+
+.o_system_overview .kpi_total_offline .kpi_bottom {
+    background: #F44336;
+}
+
+.o_system_overview .kpi_overall_alerts .kpi_icon {
+    background: #FBE9E7;
+    color: #FF5722;
+}
+
+.o_system_overview .kpi_overall_alerts .kpi_bottom {
+    background: #FF5722;
+}
+
+/* Row 2: Windows Assets */
+.o_system_overview .kpi_windows_total .kpi_icon {
+    background: rgba(0, 87, 217, 0.1);
+    color: #0057D9;
+}
+
+.o_system_overview .kpi_windows_total .kpi_bottom {
+    background: #0057D9;
+}
+
+.o_system_overview .kpi_windows_online .kpi_icon {
+    background: rgba(0, 180, 255, 0.1);
+    color: #00B4FF;
+}
+
+.o_system_overview .kpi_windows_online .kpi_bottom {
+    background: #00B4FF;
+}
+
+.o_system_overview .kpi_windows_offline .kpi_icon {
+    background: rgba(244, 180, 0, 0.1);
+    color: #F4B400;
+}
+
+.o_system_overview .kpi_windows_offline .kpi_bottom {
+    background: #F4B400;
+}
+
+.o_system_overview .kpi_windows_alerts .kpi_icon {
+    background: rgba(123, 63, 228, 0.1);
+    color: #7B3FE4;
+}
+
+.o_system_overview .kpi_windows_alerts .kpi_bottom {
+    background: #7B3FE4;
+}
+
+/* Row 3: Linux Assets */
+.o_system_overview .kpi_linux_total .kpi_icon {
+    background: rgba(233, 84, 32, 0.1);
+    color: #E95420;
+}
+
+.o_system_overview .kpi_linux_total .kpi_bottom {
+    background: #E95420;
+}
+
+.o_system_overview .kpi_linux_online .kpi_icon {
+    background: rgba(46, 204, 113, 0.1);
+    color: #2ECC71;
+}
+
+.o_system_overview .kpi_linux_online .kpi_bottom {
+    background: #2ECC71;
+}
+
+.o_system_overview .kpi_linux_offline .kpi_icon {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+.o_system_overview .kpi_linux_offline .kpi_bottom {
+    background: #dc3545;
+}
+
+.o_system_overview .kpi_linux_alerts .kpi_icon {
+    background: rgba(142, 0, 0, 0.1);
+    color: #8E0000;
+}
+
+.o_system_overview .kpi_linux_alerts .kpi_bottom {
+    background: #8E0000;
+}
+
+/* Row 3.5: macOS Assets */
+.o_system_overview .kpi_macos_total .kpi_icon {
+    background: rgba(233, 30, 99, 0.1);
+    color: #E91E63;
+}
+
+.o_system_overview .kpi_macos_total .kpi_bottom {
+    background: #E91E63;
+}
+
+.o_system_overview .kpi_macos_online .kpi_icon {
+    background: rgba(194, 24, 91, 0.1);
+    color: #C2185B;
+}
+
+.o_system_overview .kpi_macos_online .kpi_bottom {
+    background: #C2185B;
+}
+
+.o_system_overview .kpi_macos_offline .kpi_icon {
+    background: rgba(240, 98, 146, 0.1);
+    color: #F06292;
+}
+
+.o_system_overview .kpi_macos_offline .kpi_bottom {
+    background: #F06292;
+}
+
+.o_system_overview .kpi_macos_alerts .kpi_icon {
+    background: rgba(255, 193, 7, 0.15);
+    color: #FFC107;
+}
+
+.o_system_overview .kpi_macos_alerts .kpi_bottom {
+    background: #FFC107;
+}
+
+/* Row 4: CCTV Assets */
+.o_system_overview .kpi_cctv_total .kpi_icon {
+    background: rgba(0, 150, 136, 0.1);
+    color: #009688;
+}
+
+.o_system_overview .kpi_cctv_total .kpi_bottom {
+    background: #009688;
+}
+
+.o_system_overview .kpi_cctv_online .kpi_icon {
+    background: rgba(123, 63, 228, 0.1);
+    color: #7B3FE4;
+}
+
+.o_system_overview .kpi_cctv_online .kpi_bottom {
+    background: #7B3FE4;
+}
+
+.o_system_overview .kpi_cctv_offline .kpi_icon {
+    background: rgba(233, 84, 32, 0.1);
+    color: #E95420;
+}
+
+.o_system_overview .kpi_cctv_offline .kpi_bottom {
+    background: #E95420;
+}
+
+.o_system_overview .kpi_cctv_alerts .kpi_icon {
+    background: rgba(216, 67, 21, 0.1);
+    color: #D84315;
+}
+
+.o_system_overview .kpi_cctv_alerts .kpi_bottom {
+    background: #D84315;
+}
+
+/* Row 5: Network Assets */
+.o_system_overview .kpi_network_total .kpi_icon {
+    background: rgba(142, 36, 170, 0.1);
+    color: #8E24AA;
+}
+
+.o_system_overview .kpi_network_total .kpi_bottom {
+    background: #8E24AA;
+}
+
+.o_system_overview .kpi_network_online .kpi_icon {
+    background: rgba(0, 191, 165, 0.1);
+    color: #00BFA5;
+}
+
+.o_system_overview .kpi_network_online .kpi_bottom {
+    background: #00BFA5;
+}
+
+.o_system_overview .kpi_network_offline .kpi_icon {
+    background: rgba(149, 167, 83, 0.1);
+    color: #95A753;
+}
+
+.o_system_overview .kpi_network_offline .kpi_bottom {
+    background: #95A753;
+}
+
+.o_system_overview .kpi_network_alerts .kpi_icon {
+    background: rgba(173, 20, 87, 0.1);
+    color: #AD1457;
+}
+
+.o_system_overview .kpi_network_alerts .kpi_bottom {
+    background: #AD1457;
+}
+
+/* Dashboard Card Style */
+.o_system_overview .card {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.o_system_overview .card-header {
+    background-color: transparent;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 1rem 1.25rem;
+}
+
+.o_system_overview .activity-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.o_system_overview .table th {
+    font-weight: 600;
+    color: #6c757d;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+
+.o_system_overview .badge {
+    padding: 0.4em 0.7em;
+    font-weight: 600;
+    border-radius: 6px;
+}
+
+/* Charts Styling */
+.o_system_overview .chart-container {
+    padding: 10px;
+    background: #fff;
+    border-radius: 8px;
+}
+
+.o_system_overview .card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.o_system_overview .card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* =========================
+   SCROLLABLE ALERT LIST
+   ========================= */
+
+.o_system_overview .alert_list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.o_system_overview .alert_list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.o_system_overview .alert_list::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.o_system_overview .alert_list::-webkit-scrollbar-thumb {
+    background: #dee2e6;
+    border-radius: 10px;
+}
+
+.o_system_overview .alert_list::-webkit-scrollbar-thumb:hover {
+    background: #adb5bd;
+}
+
+/* Alert Item Enhanced Hover Effect */
+.o_system_overview .alert_item_enhanced:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+    background-color: #fcfcfc !important;
+}
+
+/* =========================
+   SCROLLABLE SYNC TIMELINE
+   ========================= */
+
+.o_system_overview .sync_timeline {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.o_system_overview .sync_timeline::-webkit-scrollbar {
+    width: 6px;
+}
+
+.o_system_overview .sync_timeline::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.o_system_overview .sync_timeline::-webkit-scrollbar-thumb {
+    background: #dee2e6;
+    border-radius: 10px;
+}
+
+.o_system_overview .sync_timeline::-webkit-scrollbar-thumb:hover {
+    background: #adb5bd;
+}
+
+/* Sync Timeline Item Hover Effect */
+.o_system_overview .sync_timeline_item:hover {
+    background-color: #fcfcfc;
+    border-radius: 8px;
+}
+
+/* =========================
+   ALERTS BREAKDOWN TOOLTIP
+   ========================= */
+
+.o_system_overview .alerts-breakdown {
+    cursor: help;
+}
+
+.o_system_overview .alerts-breakdown i {
+    color: #6c757d;
+    font-size: 14px;
+    transition: color 0.2s ease;
+}
+
+.o_system_overview .alerts-breakdown i:hover {
+    color: #212529;
+}
+
+/* =========================
+   SCOPED FULL-SCREEN LAYOUT FIXES
+   Only applies to system overview and asset dashboard
+   ========================= */
+
+/* Fix for Odoo's default content padding - SCOPED */
+.o_action_manager .o_action .o_content:has(.o_system_overview),
+.o_action_manager .o_action .o_content:has(.o_asset_dashboard) {
+    padding: 0 !important;
+    overflow: visible;
+    flex: 1 1 auto;
+    height: 100%;
+}
+
+/* =========================
+   PRINT STYLES
+   ========================= */
+@media print {
+    @page {
+        size: A4 landscape;
+        margin: 3mm;
+    }
+
+    /* Reset container constraints and force expansion */
+    .o_system_overview,
+    .o_action_manager .o_action .o_content:has(.o_system_overview),
+    .o_action:has(.o_system_overview) {
+        height: auto !important;
+        min-height: auto !important;
+        overflow: visible !important;
+        display: block !important;
+        background-color: #f8f9fa !important;
+        padding: 5px !important;
+    }
+
+    /* Standard flex row for print */
+    .o_system_overview .row {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        margin-left: -4px !important;
+        margin-right: -4px !important;
+        width: calc(100% + 8px) !important;
+        margin-bottom: 4px !important;
+    }
+
+    /* Fixed percentage widths for columns */
+    .o_system_overview .col-xl-3,
+    .o_system_overview .col-md-6 {
+        flex: 0 0 25% !important;
+        width: 25% !important;
+        max-width: 25% !important;
+        padding: 4px !important;
+        box-sizing: border-box !important;
+    }
+
+    .o_system_overview .col-lg-6 {
+        flex: 0 0 50% !important;
+        width: 50% !important;
+        max-width: 50% !important;
+        padding: 4px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* KPI cards - compressed for A4 landscape fit */
+    .o_system_overview .kpi_card {
+        height: 60px !important;
+        min-height: 60px !important;
+        padding: 0 12px !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        background-color: #ffffff !important;
+        border: 1px solid #e0e0e0 !important;
+        border-radius: 8px !important;
+        margin: 0 !important;
+        break-inside: avoid;
+    }
+
+    .o_system_overview .kpi_body {
+        padding: 0 !important;
+        gap: 10px !important;
+        width: 100% !important;
+        justify-content: flex-start !important;
+    }
+
+    .o_system_overview .kpi_icon {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        border-radius: 6px !important;
+        font-size: 14px !important;
+    }
+
+    .o_system_overview .kpi_label {
+        font-size: 9px !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.1px !important;
+        color: #444 !important;
+        margin-bottom: 0 !important;
+    }
+
+    .o_system_overview .kpi_value {
+        font-size: 18px !important;
+        font-weight: 800 !important;
+        line-height: 1 !important;
+    }
+
+    .o_system_overview .kpi_bottom {
+        height: 3px !important;
+    }
+
+    /* Chart Scaling - compressed */
+    .o_system_overview .chart-container {
+        height: 180px !important;
+        max-height: 180px !important;
+        break-inside: avoid;
+        background: #fff !important;
+        border: 1px solid #e0e0e0 !important;
+        border-radius: 12px !important;
+        padding: 5px !important;
+        display: block !important;
+    }
+
+    /* List Scaling - compressed */
+    .o_system_overview .card.dashboard_card {
+        background: #fff !important;
+        border: 1px solid #e0e0e0 !important;
+        border-radius: 12px !important;
+        height: auto !important;
+    }
+
+    .o_system_overview .card-header {
+        padding: 6px 12px !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+    }
+
+    .alert_list,
+    .sync_timeline {
+        height: 180px !important;
+        max-height: 180px !important;
+        overflow: hidden !important;
+    }
+
+    .alert_item_enhanced {
+        padding: 6px !important;
+        margin-bottom: 6px !important;
+        border-radius: 6px !important;
+    }
+
+    .alert_image_wrapper {
+        width: 32px !important;
+        height: 32px !important;
+    }
+
+    .alert_content strong {
+        font-size: 12px !important;
+    }
+
+    .alert_content .small {
+        font-size: 10px !important;
+    }
+
+    /* Print color adjust */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Hide elements */
+    .dashboard_controls,
+    .btn-group,
+    .refresh_status,
+    .btn_asset_category,
+    .dropdown-menu,
+    .o_cp_controller,
+    .dashboard_subtitle,
+    .btn-link,
+    .fa-arrow-right,
+    .fa-chevron-right,
+    .alerts-breakdown {
+        display: none !important;
+    }
+
+    /* Header styling */
+    .o_system_overview .dashboard_header {
+        padding: 8px 15px !important;
+        margin-bottom: 8px !important;
+        border-top: 3px solid #dc3545 !important;
+    }
+
+    .dashboard_title {
+        font-size: 18px !important;
+        font-weight: 700 !important;
+        margin: 0 !important;
+    }
+}

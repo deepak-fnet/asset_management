@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Windows Asset Sequence -->
+    <record id="seq_asset_windows" model="ir.sequence">
+        <field name="name">Windows Asset Code</field>
+        <field name="code">asset.asset.windows</field>
+        <field name="prefix">WIN-</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <!-- Linux Asset Sequence -->
+    <record id="seq_asset_linux" model="ir.sequence">
+        <field name="name">Linux Asset Code</field>
+        <field name="code">asset.asset.linux</field>
+        <field name="prefix">LNX-</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <!-- macOS Asset Sequence -->
+    <record id="seq_asset_macos" model="ir.sequence">
+        <field name="name">macOS Asset Code</field>
+        <field name="code">asset.asset.macos</field>
+        <field name="prefix">MAC-</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <!-- CCTV Asset Sequence -->
+    <record id="seq_asset_cctv" model="ir.sequence">
+        <field name="name">CCTV Asset Code</field>
+        <field name="code">asset.asset.cctv</field>
+        <field name="prefix">CCTV-</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <!-- Network Device Sequence -->
+    <record id="seq_asset_network" model="ir.sequence">
+        <field name="name">Network Asset Code</field>
+        <field name="code">asset.asset.network</field>
+        <field name="prefix">NET-</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <!-- Generic Asset Sequence (fallback) -->
+    <record id="seq_asset_asset" model="ir.sequence">
+        <field name="name">Asset Code</field>
+        <field name="code">asset.asset.sequence</field>
+        <field name="prefix">AST-</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

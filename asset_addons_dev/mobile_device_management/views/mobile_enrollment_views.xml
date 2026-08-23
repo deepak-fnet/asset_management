@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_mobile_enrollment_list" model="ir.ui.view">
+        <field name="name">mobile.enrollment.list</field>
+        <field name="model">mobile.enrollment</field>
+        <field name="arch" type="xml">
+            <list string="Enrolment Tokens"
+                  decoration-muted="state != 'open'"
+                  decoration-success="state == 'used'">
+                <field name="create_date"/>
+                <field name="token"/>
+                <field name="employee_id"/>
+                <field name="ownership"/>
+                <field name="expires_on"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'used'"
+                       decoration-warning="state == 'open'"/>
+                <field name="device_id"/>
+                <button name="action_revoke" type="object" string="Revoke"
+                        icon="fa-ban" invisible="state != 'open'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mobile_enrollment_form" model="ir.ui.view">
+        <field name="name">mobile.enrollment.form</field>
+        <field name="model">mobile.enrollment</field>
+        <field name="arch" type="xml">
+            <form string="Enrolment Token">
+                <header>
+                    <button name="action_revoke" type="object" string="Revoke"
+                            class="btn-secondary" invisible="state != 'open'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="open,used"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="token" string="Token"/>
+                        <h1><field name="token" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="employee_id"/>
+                            <field name="ownership"/>
+                            <field name="expires_on"/>
+                            <field name="note"/>
+                        </group>
+                        <group>
+                            <field name="device_id" readonly="1"/>
+                            <field name="used_on" readonly="1"/>
+                            <field name="enrol_url" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Scan from the agent">
+                        <field name="qr_code_html" nolabel="1" readonly="1"/>
+                        <field name="qr_payload" readonly="1"/>
+                    </group>
+                    <div class="text-muted">
+                        Open the agent, tap <b>Enrol</b>, and scan this code. The token is
+                        single-use and expires on the date above.
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_mobile_enrollment" model="ir.actions.act_window">
+        <field name="name">Enrolment Tokens</field>
+        <field name="res_model">mobile.enrollment</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create an enrolment token</p>
+            <p>Each token enrols one device, then closes. Scan its QR code from the agent.</p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Root Menu -->
+    <menuitem id="menu_vendor_root"
+              name="Vendor Management"
+              sequence="10"/>
+
+    <!-- Dashboard -->
+    <menuitem id="menu_vendor_dashboard"
+              name="Dashboard"
+              parent="menu_vendor_root"
+              action="vendor_management.vendor_dashboard_action_client"
+              sequence="1"/>
+
+    <!-- Vendors -->
+    <menuitem id="menu_vendor_list"
+              name="Vendors"
+              parent="menu_vendor_root"
+              action="vendor_management.action_vendor_partners"
+              sequence="10"/>
+
+    <!-- Categories -->
+    <menuitem id="menu_vendor_category"
+              name="Vendor Categories"
+              parent="menu_vendor_root"
+              action="vendor_management.action_vendor_category"
+              sequence="20"/>
+
+    <!-- Documents -->
+    <menuitem id="menu_vendor_documents"
+              name="Documents Risk &amp; Compliance"
+              parent="menu_vendor_root"
+              action="vendor_management.action_vendor_documents"
+              sequence="30"/>
+
+    <!-- Document Requests (DEPRECATED - Set to Inactive) -->
+    <menuitem id="menu_vendor_document_requests"
+              name="Vendor Requests"
+              parent="menu_vendor_root"
+              action="vendor_management.action_vendor_document_requests"
+              sequence="40"
+              active="False"/>
+
+    <!-- Audit Logs -->
+    <menuitem id="menu_vendor_audit_log"
+              name="Audit Logs"
+              parent="menu_vendor_root"
+              action="vendor_management.action_vendor_audit_log"
+              sequence="50"/>
+
+    <!-- Vendor Performance -->
+    <menuitem id="menu_vendor_performance_root"
+              name="Performance"
+              parent="menu_vendor_root"
+              sequence="60"/>
+
+    <menuitem id="menu_vendor_performance_overview"
+              name="Performance Overview (Trans.)"
+              parent="menu_vendor_performance_root"
+              action="vendor_management.action_vendor_performance_overview"
+              sequence="10"/>
+
+    <menuitem id="menu_vendor_performance"
+              name="Periodic Reviews"
+              parent="menu_vendor_performance_root"
+              action="vendor_management.action_vendor_periodic_reviews"
+              sequence="20"/>
+
+    <!-- Vendor Contracts -->
+    <menuitem id="menu_vendor_contracts"
+              name="Vendor Contracts"
+              parent="menu_vendor_root"
+              action="vendor_management.action_vendor_contract"
+              sequence="80"/>
+    <!-- Configuration -->
+    <menuitem id="menu_vendor_config_root"
+              name="Configuration"
+              parent="menu_vendor_root"
+              sequence="100"
+              groups="base.group_user"/>
+
+    <menuitem id="menu_vendor_settings"
+              name="Settings"
+              parent="menu_vendor_config_root"
+              action="vendor_management.action_vendor_config_settings"
+              sequence="10"
+              groups="base.group_user"/>
+
+    
+
+<!--<menuitem id="menu_vendor_doc_types"
+          name="Document Types"
+          parent="menu_vendor_config_root"
+          action="vendor_management.action_vendor_document_type"
+          sequence="20"
+          groups="base.group_user"/>
+-->
+
+</odoo>

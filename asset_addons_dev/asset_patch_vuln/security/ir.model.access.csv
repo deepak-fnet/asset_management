@@ -1,0 +1,15 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_patch_deployment_user,patch.deployment user,model_asset_patch_deployment,asset_management.group_asset_user,1,0,0,0
+access_patch_deployment_manager,patch.deployment manager,model_asset_patch_deployment,asset_management.group_asset_manager,1,1,1,1
+access_patch_deployment_line_user,patch.deployment.line user,model_asset_patch_deployment_line,asset_management.group_asset_user,1,0,0,0
+access_patch_deployment_line_manager,patch.deployment.line manager,model_asset_patch_deployment_line,asset_management.group_asset_manager,1,1,1,1
+access_patch_snapshot_user,patch.snapshot user,model_asset_patch_compliance_snapshot,asset_management.group_asset_user,1,0,0,0
+access_patch_snapshot_manager,patch.snapshot manager,model_asset_patch_compliance_snapshot,asset_management.group_asset_manager,1,1,1,1
+access_cve_user,cve user,model_asset_cve,asset_management.group_asset_user,1,0,0,0
+access_cve_manager,cve manager,model_asset_cve,asset_management.group_asset_manager,1,1,1,1
+access_cve_cpe_user,cve.cpe user,model_asset_cve_cpe,asset_management.group_asset_user,1,0,0,0
+access_cve_cpe_manager,cve.cpe manager,model_asset_cve_cpe,asset_management.group_asset_manager,1,1,1,1
+access_vulnerability_user,vulnerability user,model_asset_vulnerability,asset_management.group_asset_user,1,0,0,0
+access_vulnerability_manager,vulnerability manager,model_asset_vulnerability,asset_management.group_asset_manager,1,1,1,1
+access_vuln_scan_user,vuln.scan user,model_asset_vulnerability_scan,asset_management.group_asset_user,1,0,0,0
+access_vuln_scan_manager,vuln.scan manager,model_asset_vulnerability_scan,asset_management.group_asset_manager,1,1,1,1

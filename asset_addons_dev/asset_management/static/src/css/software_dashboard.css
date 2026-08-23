@@ -1,0 +1,561 @@
+/* ==========================================================================
+   Software Deployment Dashboard Styles
+   ========================================================================== */
+
+.o_software_dashboard {
+    padding: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    overflow-y: auto;
+    display: block;
+}
+
+/* Header Section
+   ========================================================================== */
+.o_software_dashboard_header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.o_header_content {
+    flex: 1;
+}
+
+.o_dashboard_title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.o_dashboard_title i {
+    font-size: 2.5rem;
+}
+
+.o_dashboard_subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin: 0;
+}
+
+.o_header_actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.o_header_actions .btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.o_header_actions .btn-secondary {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+.o_header_actions .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.o_header_actions .btn-primary {
+    background: white;
+    border: none;
+    color: #667eea;
+}
+
+.o_header_actions .btn-primary:hover {
+    background: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Loading State
+   ========================================================================== */
+.o_dashboard_loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    color: white;
+}
+
+.o_dashboard_loading i {
+    margin-bottom: 1rem;
+}
+
+/* Dashboard Content
+   ========================================================================== */
+.o_dashboard_content {
+    padding: 2rem;
+    background: #f5f7fb;
+    min-height: calc(100vh - 150px);
+    overflow-y: auto;
+    max-height: calc(100vh - 150px);
+}
+
+/* Statistics Grid
+   ========================================================================== */
+.o_stats_grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.o_stat_card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.o_stat_card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.o_stat_icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    flex-shrink: 0;
+}
+
+.o_stat_primary .o_stat_icon {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.o_stat_success .o_stat_icon {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}
+
+.o_stat_warning .o_stat_icon {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.o_stat_danger .o_stat_icon {
+    background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+    color: white;
+}
+
+.o_stat_content {
+    flex: 1;
+}
+
+.o_stat_value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2d3748;
+}
+
+.o_stat_label {
+    font-size: 0.9rem;
+    color: #718096;
+    margin-top: 0.25rem;
+}
+
+/* Success Rate Section
+   ========================================================================== */
+.o_success_rate_section {
+    margin-bottom: 2rem;
+}
+
+.o_section_card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.o_section_card h3 {
+    margin: 0 0 1rem 0;
+    color: #2d3748;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.o_progress_container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.o_progress_bar {
+    flex: 1;
+    height: 24px;
+    background: #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.o_progress_fill {
+    height: 100%;
+    background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%);
+    border-radius: 12px;
+    transition: width 0.5s ease;
+}
+
+.o_progress_value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #11998e;
+    min-width: 60px;
+    text-align: right;
+}
+
+/* Dashboard Grid (Two Column)
+   ========================================================================== */
+.o_dashboard_grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.o_section_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.o_section_header h3 {
+    margin: 0;
+    color: #2d3748;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.o_section_header .btn-link {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.o_section_header .btn-link:hover {
+    color: #764ba2;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 6px;
+}
+
+.o_section_body {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Empty State
+   ========================================================================== */
+.o_empty_state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #a0aec0;
+}
+
+.o_empty_state i {
+    display: block;
+    margin-bottom: 1rem;
+}
+
+.o_empty_state p {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+/* Deployment List
+   ========================================================================== */
+.o_deployment_list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.o_deployment_item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f7fafc;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.o_deployment_item:hover {
+    background: #edf2f7;
+    transform: translateX(4px);
+}
+
+.o_deployment_icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.o_deployment_icon i {
+    color: white;
+}
+
+.o_deployment_item .status_installed + .o_deployment_icon,
+.o_deployment_item:has(.bg-success) .o_deployment_icon {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+.o_deployment_item:has(.bg-danger) .o_deployment_icon {
+    background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+}
+
+.o_deployment_item:has(.bg-warning) .o_deployment_icon {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.o_deployment_item:has(.bg-info) .o_deployment_icon {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.o_deployment_content {
+    flex: 1;
+    min-width: 0;
+}
+
+.o_deployment_title {
+    font-weight: 600;
+    color: #2d3748;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.o_deployment_subtitle {
+    font-size: 0.875rem;
+    color: #718096;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.o_deployment_date {
+    color: #a0aec0;
+    font-size: 0.8rem;
+}
+
+.o_deployment_status .badge {
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+/* Software List
+   ========================================================================== */
+.o_software_list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.o_software_item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f7fafc;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.o_software_item:hover {
+    background: #edf2f7;
+    transform: translateX(4px);
+}
+
+.o_software_rank {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.o_software_content {
+    flex: 1;
+    min-width: 0;
+}
+
+.o_software_name {
+    font-weight: 600;
+    color: #2d3748;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.o_software_stats {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.o_stat_badge {
+    font-size: 0.8rem;
+    color: #718096;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Quick Actions
+   ========================================================================== */
+.o_quick_actions {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.o_quick_actions h3 {
+    margin: 0 0 1.5rem 0;
+    color: #2d3748;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.o_action_buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.o_action_button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem;
+    background: #f7fafc;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.o_action_button:hover {
+    background: white;
+    border-color: #667eea;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+}
+
+.o_action_icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.o_action_label {
+    font-weight: 600;
+    color: #2d3748;
+    text-align: center;
+}
+
+/* Responsive Design
+   ========================================================================== */
+@media (max-width: 768px) {
+    .o_software_dashboard_header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .o_header_actions {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .o_dashboard_title {
+        font-size: 1.5rem;
+        justify-content: center;
+    }
+    
+    .o_dashboard_grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .o_stats_grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .o_action_buttons {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Scrollbar Styling
+   ========================================================================== */
+.o_section_body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.o_section_body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.o_section_body::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.o_section_body::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}

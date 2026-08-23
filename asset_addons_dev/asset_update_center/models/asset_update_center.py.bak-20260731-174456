@@ -1,0 +1,177 @@
+# -*- coding: utf-8 -*-
+"""
+Per-asset Update Center.
+
+Answers the question "what does LENOVO 20S1S3B00F need?" in one place, by
+combining:
+
+  * OS patches   (asset.windows.update / linux / macos)
+  * App updates  (asset.app.update)
+
+Adds a single "Update Everything" action that queues both.
+"""
+
+import logging
+
+from odoo import models, fields, api
+from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
+
+OS_UPDATE_MODELS = {
+    'windows': ('asset.windows.update', 'kb_number'),
+    'linux': ('asset.linux.update', 'package_name'),
+    'macos': ('asset.macos.update', 'package_name'),
+}
+
+PENDING_OS_STATUSES = ('pending', 'allowed')
+
+
+class AssetAssetUpdateCenter(models.Model):
+    _inherit = 'asset.asset'
+
+    app_update_ids = fields.One2many(
+        'asset.app.update', 'asset_id', string='Application Updates',
+    )
+
+    os_update_pending_count = fields.Integer(
+        string='OS Patches Pending', compute='_compute_update_counts',
+    )
+    app_update_pending_count = fields.Integer(
+        string='App Updates Pending', compute='_compute_update_counts',
+    )
+    total_update_pending_count = fields.Integer(
+        string='Total Pending', compute='_compute_update_counts',
+    )
+    update_summary = fields.Char(
+        compute='_compute_update_counts',
+        help='One-line summary shown at the top of the Update Center tab.',
+    )
+
+    def _os_update_model(self):
+        """Return (Model, id_field) for this asset's platform, or (None, None)."""
+        self.ensure_one()
+        spec = OS_UPDATE_MODELS.get(self.platform)
+        if not spec:
+            return None, None
+        model_name, id_field = spec
+        if model_name not in self.env:
+            return None, None
+        return self.env[model_name].sudo(), id_field
+
+    @api.depends('app_update_ids', 'app_update_ids.status', 'platform')
+    def _compute_update_counts(self):
+        for asset in self:
+            Model, _idf = asset._os_update_model()
+            os_count = 0
+            if Model:
+                os_count = Model.search_count([
+                    ('asset_id', '=', asset.id),
+                    ('status', 'in', PENDING_OS_STATUSES),
+                ])
+            app_count = len(asset.app_update_ids.filtered(
+                lambda a: a.status in ('available', 'failed')
+            ))
+            asset.os_update_pending_count = os_count
+            asset.app_update_pending_count = app_count
+            asset.total_update_pending_count = os_count + app_count
+
+            if os_count or app_count:
+                parts = []
+                if os_count:
+                    parts.append(f'{os_count} OS patch{"es" if os_count != 1 else ""}')
+                if app_count:
+                    parts.append(f'{app_count} app update{"s" if app_count != 1 else ""}')
+                asset.update_summary = ' · '.join(parts) + ' pending'
+            else:
+                asset.update_summary = 'Fully up to date'
+
+    # ══════════════════════════════════════════════════════════════════════
+    # Actions
+    # ══════════════════════════════════════════════════════════════════════
+    def action_view_os_updates(self):
+        self.ensure_one()
+        Model, _idf = self._os_update_model()
+        if not Model:
+            raise UserError(
+                f'No OS update tracking for platform "{self.platform or "unknown"}".'
+            )
+        return {
+            'type': 'ir.actions.act_window',
+            'name': f'OS Patches — {self.display_name}',
+            'res_model': Model._name,
+            'view_mode': 'list,form',
+            'domain': [('asset_id', '=', self.id)],
+        }
+
+    def action_view_app_updates(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': f'App Updates — {self.display_name}',
+            'res_model': 'asset.app.update',
+            'view_mode': 'list,form',
+            'domain': [('asset_id', '=', self.id)],
+        }
+
+    def action_update_everything(self):
+        """Queue every pending OS patch AND app update on this machine."""
+        self.ensure_one()
+        if not self.env.user.has_group('asset_management.group_asset_manager'):
+            raise UserError('Only Asset Managers can trigger updates.')
+
+        queued_os = 0
+        Model, _idf = self._os_update_model()
+        if Model:
+            pending = Model.search([
+                ('asset_id', '=', self.id),
+                ('status', 'in', PENDING_OS_STATUSES),
+            ])
+            if pending:
+                pending.write({
+                    'status': 'installing',
+                    'action_date': fields.Datetime.now(),
+                })
+                queued_os = len(pending)
+
+        apps = self.app_update_ids.filtered(
+            lambda a: a.status in ('available', 'failed')
+        )
+        queued_apps = len(apps)
+        if apps:
+            apps.action_queue_update()
+
+        if not (queued_os or queued_apps):
+            raise UserError('Nothing pending on this machine.')
+
+        _logger.info('[UpdateCenter] %s — queued %s OS patch(es), %s app update(s)',
+                     self.display_name, queued_os, queued_apps)
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Updates Queued',
+                'message': (
+                    f'{queued_os} OS patch(es) and {queued_apps} app update(s) '
+                    'queued. The agent will install them on its next poll '
+                    '(within ~5 minutes if the machine is online).'
+                ),
+                'type': 'success',
+                'sticky': False,
+            },
+        }
+
+    def action_upgrade_all_apps(self):
+        """Queue only the app updates."""
+        self.ensure_one()
+        count = self.env['asset.app.update'].action_queue_all_for_asset(self.id)
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'App Updates Queued',
+                'message': f'{count} application update(s) queued.',
+                'type': 'success',
+            },
+        }

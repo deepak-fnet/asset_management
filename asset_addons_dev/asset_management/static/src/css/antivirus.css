@@ -1,0 +1,3076 @@
+/* =========================================================
+   ANTIVIRUS MANAGEMENT – PROFESSIONAL DASHBOARD
+   ========================================================= */
+
+/* =========================
+   DASHBOARD CONTAINER
+   ========================= */
+
+.o_antivirus_dashboard {
+    padding: 24px;
+    flex: 1 1 auto;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: auto;
+    background: #f8f9fa;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.o_action:has(.o_antivirus_dashboard) {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.o_action>.o_antivirus_dashboard {
+    flex: 1 1 auto;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.o_antivirus_dashboard.container-fluid {
+    max-width: none !important;
+    padding-left: 24px;
+    padding-right: 24px;
+}
+
+/* =========================
+   DASHBOARD HEADER
+   ========================= */
+
+.o_antivirus_dashboard .dashboard_header {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.o_antivirus_dashboard .dashboard_title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #000000;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+.o_antivirus_dashboard .dashboard_subtitle {
+    font-size: 15px;
+    margin-top: 2px;
+}
+
+.o_antivirus_dashboard .dashboard_controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.o_antivirus_dashboard .refresh_status {
+    font-size: 13px;
+    color: #6c757d;
+}
+
+/* =========================
+   KPI CARDS
+   ========================= */
+
+.o_antivirus_dashboard .kpi_card {
+    position: relative;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px 24px;
+    height: 130px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.o_antivirus_dashboard .kpi_card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.o_antivirus_dashboard .kpi_card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+}
+
+.o_antivirus_dashboard .kpi_card:hover::before {
+    opacity: 1;
+}
+
+.o_antivirus_dashboard .kpi_body {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+}
+
+.o_antivirus_dashboard .kpi_icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+}
+
+.o_antivirus_dashboard .kpi_card:hover .kpi_icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.o_antivirus_dashboard .kpi_text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.o_antivirus_dashboard .kpi_label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.o_antivirus_dashboard .kpi_value {
+    font-size: 36px;
+    font-weight: 800;
+    color: #212529;
+    line-height: 1;
+}
+
+.o_antivirus_dashboard .kpi_subvalue {
+    position: absolute;
+    bottom: 12px;
+    left: 24px;
+    font-size: 11px;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.o_antivirus_dashboard .kpi_bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 5px;
+    width: 100%;
+    border-radius: 0 0 16px 16px;
+}
+
+/* KPI COLORS */
+.o_antivirus_dashboard .kpi_primary .kpi_icon {
+    background: rgba(52, 152, 219, 0.1);
+    color: #3498db;
+}
+
+.o_antivirus_dashboard .kpi_primary .kpi_bottom {
+    background: #3498db;
+}
+
+.o_antivirus_dashboard .kpi_windows .kpi_icon {
+    background: rgba(0, 120, 212, 0.1);
+    color: #0078D4;
+}
+
+.o_antivirus_dashboard .kpi_windows .kpi_bottom {
+    background: #0078D4;
+}
+
+.o_antivirus_dashboard .kpi_linux .kpi_icon {
+    background: rgba(233, 84, 32, 0.1);
+    color: #E95420;
+}
+
+.o_antivirus_dashboard .kpi_linux .kpi_bottom {
+    background: #E95420;
+}
+
+.o_antivirus_dashboard .kpi_macos .kpi_icon {
+    background: rgba(99, 99, 99, 0.1);
+    color: #636363;
+}
+
+.o_antivirus_dashboard .kpi_macos .kpi_bottom {
+    background: #636363;
+}
+
+.o_antivirus_dashboard .kpi_info .kpi_icon {
+    background: rgba(0, 207, 232, 0.1);
+    color: #00cfe8;
+}
+
+.o_antivirus_dashboard .kpi_info .kpi_bottom {
+    background: #00cfe8;
+}
+
+.o_antivirus_dashboard .kpi_success .kpi_icon {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+}
+
+.o_antivirus_dashboard .kpi_success .kpi_bottom {
+    background: #28a745;
+}
+
+.o_antivirus_dashboard .kpi_warning .kpi_icon {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+}
+
+.o_antivirus_dashboard .kpi_warning .kpi_bottom {
+    background: #ffc107;
+}
+
+.o_antivirus_dashboard .kpi_danger .kpi_icon {
+    background: rgba(234, 84, 85, 0.1);
+    color: #ea5455;
+}
+
+.o_antivirus_dashboard .kpi_danger .kpi_bottom {
+    background: #ea5455;
+}
+
+.o_antivirus_dashboard .kpi_amber .kpi_icon {
+    background: rgba(255, 159, 67, 0.1);
+    color: #ff9f43;
+}
+
+.o_antivirus_dashboard .kpi_amber .kpi_bottom {
+    background: #ff9f43;
+}
+
+.o_antivirus_dashboard .kpi_purple .kpi_icon {
+    background: rgba(102, 16, 242, 0.1);
+    color: #6610f2;
+}
+
+.o_antivirus_dashboard .kpi_purple .kpi_bottom {
+    background: #6610f2;
+}
+
+/* =========================
+   DASHBOARD CARDS
+   ========================= */
+
+.o_antivirus_dashboard .dashboard_card {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: none;
+    transition: box-shadow 0.3s ease;
+}
+
+.o_antivirus_dashboard .dashboard_card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.o_antivirus_dashboard .dashboard_card .card-header {
+    background: transparent;
+    border-bottom: 2px solid #f8f9fa;
+    padding: 20px 24px;
+    font-size: 15px;
+}
+
+.o_antivirus_dashboard .dashboard_card .card-body {
+    padding: 24px;
+}
+
+.o_antivirus_dashboard .dashboard_card .btn-link {
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    color: #6c757d;
+    transition: color 0.2s ease;
+}
+
+.o_antivirus_dashboard .dashboard_card .btn-link:hover {
+    color: #0d6efd;
+}
+
+/* =========================
+   CHART CONTAINERS
+   ========================= */
+
+.o_antivirus_dashboard .chart-wrapper {
+    width: 100%;
+    height: 340px;
+    position: relative;
+}
+
+/* =========================
+   THREAT LIST
+   ========================= */
+
+.o_antivirus_dashboard .threat_list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.o_antivirus_dashboard .threat_image_wrapper {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.o_antivirus_dashboard .threat_device_img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.o_antivirus_dashboard .threat_icon_badge {
+    position: absolute;
+    left: 62px;
+    top: 62px;
+    width: 24px;
+    height: 24px;
+    background: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 2;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.o_antivirus_dashboard .threat_item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    background: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.o_antivirus_dashboard .threat_item:hover {
+    background: #e9ecef;
+    transform: translateX(4px);
+}
+
+.o_antivirus_dashboard .threat_item.severity-critical {
+    border-left: 4px solid #dc3545;
+    background: #fff5f5;
+}
+
+.o_antivirus_dashboard .threat_item.severity-high {
+    border-left: 4px solid #ffc107;
+    background: #fffbf0;
+}
+
+.o_antivirus_dashboard .threat_item.severity-medium {
+    border-left: 4px solid #0dcaf0;
+    background: #f0fcff;
+}
+
+.o_antivirus_dashboard .threat_icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.o_antivirus_dashboard .threat_content {
+    flex: 1;
+    min-width: 0;
+}
+
+.o_antivirus_dashboard .threat_title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.o_antivirus_dashboard .threat_details {
+    font-size: 12px;
+    color: #6c757d;
+    margin-bottom: 4px;
+}
+
+.o_antivirus_dashboard .threat_status {
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.o_antivirus_dashboard .threat_action {
+    color: #adb5bd;
+    font-size: 14px;
+}
+
+/* =========================
+   SCAN LIST
+   ========================= */
+
+.o_antivirus_dashboard .scan_list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.o_antivirus_dashboard .scan_item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px;
+    border-left: 3px solid #e9ecef;
+    margin-bottom: 10px;
+    transition: all 0.2s ease;
+}
+
+.o_antivirus_dashboard .scan_item:hover {
+    background: #f8f9fa;
+    border-left-color: #198754;
+}
+
+.o_antivirus_dashboard .scan_item:last-child {
+    margin-bottom: 0;
+}
+
+.o_antivirus_dashboard .scan_icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.o_antivirus_dashboard .scan_content {
+    flex: 1;
+    min-width: 0;
+}
+
+.o_antivirus_dashboard .scan_title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.o_antivirus_dashboard .scan_details {
+    font-size: 11px;
+    color: #6c757d;
+    margin-bottom: 4px;
+}
+
+.o_antivirus_dashboard .scan_summary {
+    font-size: 11px;
+    margin-top: 4px;
+}
+
+/* =========================
+   EMPTY STATE
+   ========================= */
+
+.o_antivirus_dashboard .empty_state {
+    padding: 40px 20px;
+}
+
+.o_antivirus_dashboard .empty_state i {
+    opacity: 0.3;
+}
+
+/* =========================
+   SCROLLBAR STYLING
+   ========================= */
+
+.o_antivirus_dashboard .threat_list::-webkit-scrollbar,
+.o_antivirus_dashboard .scan_list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.o_antivirus_dashboard .threat_list::-webkit-scrollbar-track,
+.o_antivirus_dashboard .scan_list::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.o_antivirus_dashboard .threat_list::-webkit-scrollbar-thumb,
+.o_antivirus_dashboard .scan_list::-webkit-scrollbar-thumb {
+    background: #dee2e6;
+    border-radius: 10px;
+}
+
+.o_antivirus_dashboard .threat_list::-webkit-scrollbar-thumb:hover,
+.o_antivirus_dashboard .scan_list::-webkit-scrollbar-thumb:hover {
+    background: #adb5bd;
+}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+
+@media (max-width: 768px) {
+    .o_antivirus_dashboard {
+        padding: 12px;
+        overflow-y: auto;
+    }
+
+    .o_antivirus_dashboard .dashboard_header {
+        padding: 16px;
+    }
+
+    .o_antivirus_dashboard .dashboard_title {
+        font-size: 20px;
+    }
+
+    .o_antivirus_dashboard .dashboard_controls {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .o_antivirus_dashboard .kpi_card {
+        height: 110px;
+        padding: 16px 18px;
+    }
+
+    .o_antivirus_dashboard .kpi_icon {
+        width: 48px;
+        height: 48px;
+        font-size: 22px;
+    }
+
+    .o_antivirus_dashboard .kpi_value {
+        font-size: 28px;
+    }
+
+    .o_antivirus_dashboard .threat_item {
+        padding: 12px;
+    }
+
+    .o_antivirus_dashboard .scan_item {
+        padding: 10px;
+    }
+}
+
+@media (max-width: 576px) {
+    .o_antivirus_dashboard .kpi_card {
+        height: 100px;
+    }
+
+    .o_antivirus_dashboard .kpi_body {
+        gap: 12px;
+    }
+
+    .o_antivirus_dashboard .kpi_icon {
+        width: 42px;
+        height: 42px;
+        font-size: 20px;
+    }
+
+    .o_antivirus_dashboard .kpi_value {
+        font-size: 24px;
+    }
+}
+
+/* =========================
+   LOADING STATE
+   ========================= */
+
+.o_antivirus_dashboard .kpi_card.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.o_antivirus_dashboard .dashboard_card.loading {
+    opacity: 0.6;
+}
+
+/* =========================
+   ANIMATIONS
+   ========================= */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.o_antivirus_dashboard .kpi_card,
+.o_antivirus_dashboard .dashboard_card {
+    animation: fadeIn 0.4s ease-out;
+}
+
+.o_antivirus_dashboard .kpi_card:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+.o_antivirus_dashboard .kpi_card:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.o_antivirus_dashboard .kpi_card:nth-child(3) {
+    animation-delay: 0.15s;
+}
+
+.o_antivirus_dashboard .kpi_card:nth-child(4) {
+    animation-delay: 0.2s;
+}
+
+/* =========================================================
+   ANTIVIRUS INSTALLER CONFIGURATION – PROFESSIONAL UI
+   ========================================================= */
+
+/* =========================
+   HIDE FORM TITLE (only on antivirus config form)
+   The previous rule was unscoped and hid the name field
+   on EVERY form in Odoo (users, products, partners, etc).
+   ========================= */
+
+.o_antivirus_config_form .o_form_sheet_bg .o_form_sheet > .oe_title,
+.o_antivirus_config_form > .oe_title {
+    display: none !important;
+}
+
+/* =========================
+   FORM CONTAINER
+   ========================= */
+
+.o_antivirus_config_form {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+/* =========================
+   HEADER SECTION
+   ========================= */
+
+.o_antivirus_config_form .o_form_view .o_form_sheet_bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 32px;
+}
+
+.o_antivirus_config_form .o_form_view .o_form_sheet_bg .o_form_sheet {
+    max-width: 100%;
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    padding: 24px;
+}
+
+/* =========================
+   TITLE STYLING
+   ========================= */
+
+.o_antivirus_config_form .oe_title {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #e8ecef;
+}
+
+.o_antivirus_config_form .oe_title h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 8px 0 0 0;
+}
+
+.o_antivirus_config_form .oe_title label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #7f8c8d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* =========================
+   GROUP BOX STYLING
+   ========================= */
+
+.o_antivirus_config_form .o_group {
+    margin-bottom: 24px;
+}
+
+.o_antivirus_config_form .o_group>.o_group_header {
+    font-size: 16px;
+    font-weight: 600;
+    color: #34495e;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #3498db;
+    display: inline-block;
+}
+
+/* =========================
+   FIELD LABELS
+   ========================= */
+
+.o_antivirus_config_form .o_field_widget .o_form_label {
+    font-weight: 600;
+    color: #555;
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+/* =========================
+   INPUT FIELDS
+   ========================= */
+
+.o_antivirus_config_form .o_field_widget input:not([type="checkbox"]),
+.o_antivirus_config_form .o_field_widget textarea,
+.o_antivirus_config_form .o_field_widget select {
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background: #fafafa;
+}
+
+.o_antivirus_config_form .o_field_widget input:focus,
+.o_antivirus_config_form .o_field_widget textarea:focus,
+.o_antivirus_config_form .o_field_widget select:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+    background: #ffffff;
+    outline: none;
+}
+
+/* =========================
+   URL FIELDS WITH COPY BUTTON
+   ========================= */
+
+.o_antivirus_config_form .o_horizontal_group .o_group {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid #e9ecef;
+    margin-bottom: 16px;
+}
+
+.o_antivirus_config_form .o_url_field_widget {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.o_antivirus_config_form .o_url_field_widget input {
+    flex: 1;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    background: #ffffff;
+    border: 2px solid #dee2e6;
+    border-radius: 6px;
+    padding: 10px 14px;
+    color: #495057;
+}
+
+.o_antivirus_config_form .o_url_field_widget .btn {
+    background: #6c757d;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.o_antivirus_config_form .o_url_field_widget .btn:hover {
+    background: #5a6268;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* =========================
+   BOOLEAN TOGGLE WIDGETS
+   ========================= */
+
+.o_antivirus_config_form .o_boolean_toggle .o_switch {
+    border-radius: 20px;
+    background: #e9ecef;
+    padding: 2px;
+}
+
+.o_antivirus_config_form .o_boolean_toggle .o_switch input:checked+.o_switch_slider {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.o_antivirus_config_form .o_boolean_toggle .o_switch .o_switch_slider {
+    border-radius: 18px;
+    transition: all 0.3s ease;
+}
+
+/* =========================
+   SELECTION FIELDS (BADGE)
+   ========================= */
+
+.o_antivirus_config_form .o_field_widget[data-widget="badge"] {
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.o_antivirus_config_form .o_field_widget[data-widget="badge"][data-decoration-success] {
+    background: #d4edda;
+    color: #155724;
+}
+
+.o_antivirus_config_form .o_field_widget[data-widget="badge"][data-decoration-info] {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.o_antivirus_config_form .o_field_widget[data-widget="badge"][data-decoration-warning] {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.o_antivirus_config_form .o_field_widget[data-widget="badge"][data-decoration-danger] {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* =========================
+   NOTEBOOK TABS
+   ========================= */
+
+.o_antivirus_config_form .o_notebook {
+    margin-top: 32px;
+    border: none;
+    background: transparent;
+}
+
+.o_antivirus_config_form .o_notebook .o_notebook_header {
+    border-bottom: 2px solid #e8ecef;
+    margin-bottom: 24px;
+}
+
+.o_antivirus_config_form .o_notebook .nav-item .nav-link {
+    border: none;
+    background: transparent;
+    color: #7f8c8d;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 12px 20px;
+    border-radius: 8px 8px 0 0;
+    transition: all 0.3s ease;
+    margin-right: 4px;
+}
+
+.o_antivirus_config_form .o_notebook .nav-item .nav-link:hover {
+    background: #f8f9fa;
+    color: #3498db;
+}
+
+.o_antivirus_config_form .o_notebook .nav-item .nav-link.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.o_antivirus_config_form .o_notebook .nav-item .nav-link i {
+    margin-right: 8px;
+}
+
+/* =========================
+   NOTEBOOK PAGES
+   ========================= */
+
+.o_antivirus_config_form .o_notebook .o_notebook_content {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e8ecef;
+}
+
+/* =========================
+   BUTTONS
+   ========================= */
+
+.o_antivirus_config_form .o_form_view .o_form_buttons_editable,
+.o_antivirus_config_form .o_form_view .o_form_buttons_create {
+    padding: 16px 24px;
+    background: #f8f9fa;
+    border-top: 1px solid #e8ecef;
+    border-radius: 0 0 12px 12px;
+}
+
+.o_antivirus_config_form .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 24px;
+    font-weight: 600;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s ease;
+}
+
+.o_antivirus_config_form .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.o_antivirus_config_form .btn-secondary {
+    background: #6c757d;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.2s ease;
+}
+
+.o_antivirus_config_form .btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-1px);
+}
+
+/* =========================
+   HEADER BAR
+   ========================= */
+
+.o_antivirus_config_form .o_form_view .o_form_statusbar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px 12px 0 0;
+    padding: 16px 24px;
+    margin: -24px -24px 24px -24px;
+}
+
+.o_antivirus_config_form .o_form_statusbar>.o_statusbar_status>.o_arrow_button {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.o_antivirus_config_form .o_form_statusbar>.o_statusbar_status>.o_arrow_button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.o_antivirus_config_form .o_form_statusbar>.o_statusbar_status>.o_arrow_button.active {
+    background: #ffffff;
+    color: #667eea;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* =========================================================
+   ANTIVIRUS INSTALLER UPLOAD ZONES
+   ========================================================= */
+
+/* Upload Zone Container */
+.o_installer_upload_zone {
+    border: 2px dashed;
+    border-radius: 16px;
+    padding: 28px 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.o_installer_upload_zone:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+}
+
+/* Windows Upload Zone */
+.o_installer_upload_zone.windows {
+    border-color: #2196f3;
+    background: linear-gradient(145deg, rgba(33, 150, 243, 0.02) 0%, rgba(33, 150, 243, 0.04) 100%);
+}
+
+.o_installer_upload_zone.windows:hover {
+    border-color: #1976d2;
+    background: linear-gradient(145deg, rgba(33, 150, 243, 0.04) 0%, rgba(33, 150, 243, 0.08) 100%);
+}
+
+/* Linux Upload Zone */
+.o_installer_upload_zone.linux {
+    border-color: #ff9800;
+    background: linear-gradient(145deg, rgba(255, 152, 0, 0.02) 0%, rgba(255, 152, 0, 0.04) 100%);
+}
+
+.o_installer_upload_zone.linux:hover {
+    border-color: #f57c00;
+    background: linear-gradient(145deg, rgba(255, 152, 0, 0.04) 0%, rgba(255, 152, 0, 0.08) 100%);
+}
+
+/* macOS Upload Zone */
+.o_installer_upload_zone.macos {
+    border-color: #607d8b;
+    background: linear-gradient(145deg, rgba(96, 125, 139, 0.02) 0%, rgba(96, 125, 139, 0.04) 100%);
+}
+
+.o_installer_upload_zone.macos:hover {
+    border-color: #455a64;
+    background: linear-gradient(145deg, rgba(96, 125, 139, 0.04) 0%, rgba(96, 125, 139, 0.08) 100%);
+}
+
+/* Binary Widget Styling */
+.o_installer_upload_zone .o_binary_uploader {
+    border: none !important;
+    padding: 0 !important;
+    background: transparent !important;
+    margin-top: 16px !important;
+}
+
+/* Browse Button Styling */
+.o_installer_upload_zone .o_binary_uploader .o_select_file_button,
+.o_installer_upload_zone .o_binary_uploader input[type="file"]+label,
+.o_installer_upload_zone .o_binary_uploader .o_form_label {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%) !important;
+    color: transparent !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 12px 32px !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    box-shadow: 0 6px 16px rgba(52, 152, 219, 0.35) !important;
+    transition: all 0.3s ease !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-transform: none !important;
+    letter-spacing: 0.3px !important;
+    margin-top: 12px !important;
+    min-width: 150px !important;
+    height: 44px !important;
+    position: relative !important;
+    text-indent: -9999px !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+}
+
+/* Show new text using ::after */
+.o_installer_upload_zone .o_binary_uploader .o_select_file_button::after,
+.o_installer_upload_zone .o_binary_uploader input[type="file"]+label::after,
+.o_installer_upload_zone .o_binary_uploader .o_form_label::after {
+    content: "Browse your file" !important;
+    color: #ffffff !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    text-indent: 0 !important;
+    white-space: nowrap !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    pointer-events: none !important;
+}
+
+.o_installer_upload_zone .o_binary_uploader .o_select_file_button:hover,
+.o_installer_upload_zone .o_binary_uploader input[type="file"]+label:hover,
+.o_installer_upload_zone .o_binary_uploader .o_form_label:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 10px 24px rgba(52, 152, 219, 0.45) !important;
+    background: linear-gradient(135deg, #2980b9 0%, #3498db 100%) !important;
+}
+
+/* Windows-specific button color */
+.o_installer_upload_zone.windows .o_binary_uploader .o_select_file_button,
+.o_installer_upload_zone.windows .o_binary_uploader input[type="file"]+label,
+.o_installer_upload_zone.windows .o_binary_uploader .o_form_label {
+    background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%) !important;
+    box-shadow: 0 6px 16px rgba(33, 150, 243, 0.35) !important;
+}
+
+.o_installer_upload_zone.windows .o_binary_uploader .o_select_file_button:hover,
+.o_installer_upload_zone.windows .o_binary_uploader input[type="file"]+label:hover,
+.o_installer_upload_zone.windows .o_binary_uploader .o_form_label:hover {
+    box-shadow: 0 10px 24px rgba(33, 150, 243, 0.45) !important;
+    background: linear-gradient(135deg, #1976d2 0%, #2196f3 100%) !important;
+}
+
+/* Linux-specific button color */
+.o_installer_upload_zone.linux .o_binary_uploader .o_select_file_button,
+.o_installer_upload_zone.linux .o_binary_uploader input[type="file"]+label,
+.o_installer_upload_zone.linux .o_binary_uploader .o_form_label {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%) !important;
+    box-shadow: 0 6px 16px rgba(255, 152, 0, 0.35) !important;
+}
+
+.o_installer_upload_zone.linux .o_binary_uploader .o_select_file_button:hover,
+.o_installer_upload_zone.linux .o_binary_uploader input[type="file"]+label:hover,
+.o_installer_upload_zone.linux .o_binary_uploader .o_form_label:hover {
+    box-shadow: 0 10px 24px rgba(255, 152, 0, 0.45) !important;
+    background: linear-gradient(135deg, #f57c00 0%, #ff9800 100%) !important;
+}
+
+/* macOS-specific button color */
+.o_installer_upload_zone.macos .o_binary_uploader .o_select_file_button,
+.o_installer_upload_zone.macos .o_binary_uploader input[type="file"]+label,
+.o_installer_upload_zone.macos .o_binary_uploader .o_form_label {
+    background: linear-gradient(135deg, #607d8b 0%, #455a64 100%) !important;
+    box-shadow: 0 6px 16px rgba(96, 125, 139, 0.35) !important;
+}
+
+.o_installer_upload_zone.macos .o_binary_uploader .o_select_file_button:hover,
+.o_installer_upload_zone.macos .o_binary_uploader input[type="file"]+label:hover,
+.o_installer_upload_zone.macos .o_binary_uploader .o_form_label:hover {
+    box-shadow: 0 10px 24px rgba(96, 125, 139, 0.45) !important;
+    background: linear-gradient(135deg, #455a64 0%, #607d8b 100%) !important;
+}
+
+.o_installer_upload_zone .o_binary_uploader .o_binary_fallback {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+
+.o_installer_upload_zone .o_binary_uploader .o_binary_fallback i {
+    font-size: 32px;
+    color: #667eea;
+}
+
+.o_installer_upload_zone .o_binary_uploader .o_binary_fallback .o_form_label {
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 0 !important;
+}
+
+.o_installer_upload_zone .o_binary_uploader .o_binary_fallback small {
+    color: #888;
+    font-size: 11px;
+}
+
+/* File Preview */
+.o_installer_upload_zone .o_binary_uploader .o_file_preview {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 14px 18px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 12px;
+}
+
+.o_installer_upload_zone .o_binary_uploader .o_file_preview i {
+    font-size: 26px;
+    color: #667eea;
+}
+
+.o_installer_upload_zone .o_binary_uploader .o_file_preview .o_file_name {
+    font-weight: 600;
+    color: #333;
+    font-size: 13px;
+    flex: 1;
+}
+
+.o_installer_upload_zone .o_binary_uploader .o_file_preview .o_file_download {
+    color: #667eea;
+    font-size: 18px;
+    padding: 6px;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.o_installer_upload_zone .o_binary_uploader .o_file_preview .o_file_download:hover {
+    color: #764ba2;
+}
+
+.o_installer_upload_zone .o_binary_uploader .o_file_preview .o_file_delete {
+    color: #dc3545;
+    font-size: 18px;
+    padding: 6px;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.o_installer_upload_zone .o_binary_uploader .o_file_preview .o_file_delete:hover {
+    color: #c82333;
+}
+
+/* Upload Icon */
+.o_upload_icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 14px;
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 16px rgba(52, 152, 219, 0.35);
+}
+
+.o_upload_icon i {
+    font-size: 26px;
+    color: #ffffff;
+}
+
+/* Windows-specific upload icon color */
+.o_installer_upload_zone.windows .o_upload_icon {
+    background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+    box-shadow: 0 6px 16px rgba(33, 150, 243, 0.35);
+}
+
+/* Linux-specific upload icon color */
+.o_installer_upload_zone.linux .o_upload_icon {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    box-shadow: 0 6px 16px rgba(255, 152, 0, 0.35);
+}
+
+/* macOS-specific upload icon color */
+.o_installer_upload_zone.macos .o_upload_icon {
+    background: linear-gradient(135deg, #607d8b 0%, #455a64 100%);
+    box-shadow: 0 6px 16px rgba(96, 125, 139, 0.35);
+}
+
+/* Upload Text */
+.o_upload_text {
+    font-weight: 600;
+    color: #444;
+    font-size: 14px;
+    margin-bottom: 6px;
+    line-height: 1.4;
+}
+
+.o_upload_subtext {
+    color: #999;
+    font-size: 11px;
+    display: block;
+    margin-top: 8px;
+}
+
+/* =========================
+   RESPONSIVE DESIGN
+   ========================= */
+
+@media (max-width: 768px) {
+    .o_antivirus_config_form .o_form_sheet_bg {
+        padding: 16px;
+    }
+
+    .o_antivirus_config_form .oe_title h1 {
+        font-size: 22px;
+    }
+
+    .o_antivirus_config_form .o_notebook .nav-item .nav-link {
+        font-size: 12px;
+        padding: 8px 12px;
+    }
+
+    .o_antivirus_config_form .o_url_field_widget {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .o_antivirus_config_form .o_url_field_widget .btn {
+        width: 100%;
+    }
+}
+
+/* =========================
+   ANIMATIONS
+   ========================= */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.o_antivirus_config_form {
+    animation: fadeIn 0.4s ease-out;
+}
+
+.o_antivirus_config_form .o_group {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* =========================
+   SCROLLBAR STYLING
+   ========================= */
+
+.o_antivirus_config_form ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.o_antivirus_config_form ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.o_antivirus_config_form ::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.o_antivirus_config_form ::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* =========================================================
+   ANTIVIRUS ASSETS TABBED VIEW STYLES
+   ========================================================= */
+
+.o_antivirus_assets_tabs_container {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.os_tab_item {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    padding: 8px 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.6;
+}
+
+.os_tab_item:hover {
+    opacity: 0.85;
+    transform: translateY(-2px);
+}
+
+.os_tab_item.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.tab_icon_wrapper {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 6px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.os_tab_item.active .tab_icon_wrapper {
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15), inset 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.tab_icon_wrapper i {
+    font-size: 20px;
+}
+
+.tab_label {
+    font-size: 13px;
+    color: #495057;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.active_indicator {
+    position: absolute;
+    bottom: -8px;
+    width: 24px;
+    height: 4px;
+    background-color: currentColor;
+    border-radius: 4px 4px 0 0;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: scaleX(0);
+        opacity: 0;
+    }
+
+    to {
+        transform: scaleX(1);
+        opacity: 1;
+    }
+}
+
+/* Premium Dark Mode support check */
+[data-bs-theme="dark"] .o_antivirus_assets_tabs_container {
+    background: rgba(33, 37, 41, 0.7);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-bs-theme="dark"] .tab_label {
+    color: #dee2e6;
+}
+
+[data-bs-theme="dark"] .tab_icon_wrapper {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Row Action Buttons Styling */
+.btn-av-action {
+    padding: 4px 16px !important;
+    border-radius: 4px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    margin-right: 4px !important;
+    text-decoration: none !important;
+    height: 28px !important;
+    border: none !important;
+    transition: all 0.2s ease !important;
+}
+
+.btn-av-deploy {
+    background-color: #10b981 !important;
+    color: white !important;
+}
+
+.btn-av-deploy:hover {
+    background-color: #059669 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3) !important;
+    color: white !important;
+}
+
+.btn-av-remove {
+    background-color: #f43f5e !important;
+    color: white !important;
+}
+
+.btn-av-remove:hover {
+    background-color: #e11d48 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(244, 63, 94, 0.3) !important;
+    color: white !important;
+}
+
+.btn-av-action i {
+    font-size: 10px !important;
+}
+
+/* Antivirus Status Badge - Square Style */
+.o_antivirus_assets .o_field_widget[name="antivirus_status"] .o-badge,
+.o_list_view .o_field_widget[name="antivirus_status"] .o-badge {
+    border-radius: 4px !important;
+}
+
+/* Antivirus Assets List - Full Dark Black Text */
+.o_antivirus_assets .o_list_renderer,
+.o_antivirus_assets .o_list_renderer .o_data_row .o_data_cell,
+.o_antivirus_assets .o_list_renderer .o_data_row .o_data_cell a,
+.o_antivirus_assets .o_list_renderer .o_data_row .o_data_cell span {
+    color: #000000 !important;
+    font-weight: 700 !important;
+    text-shadow: 0 0 1px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* =========================================================
+   FORCE BROWSE YOUR FILE BUTTON TEXT - AGGRESSIVE OVERRIDE
+   ========================================================= */
+
+/* Target any button with "Upload your file" text inside upload zones */
+.o_installer_upload_zone button,
+.o_installer_upload_zone .o_form_label,
+.o_installer_upload_zone label {
+    color: transparent !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+}
+
+.o_installer_upload_zone button::after,
+.o_installer_upload_zone .o_form_label::after,
+.o_installer_upload_zone label::after {
+    content: "Browse your file" !important;
+    color: #ffffff !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    position: static !important;
+    display: inline-block !important;
+    line-height: 20px !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+/* Windows button */
+.o_installer_upload_zone.windows button,
+.o_installer_upload_zone.windows .o_form_label,
+.o_installer_upload_zone.windows label {
+    background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%) !important;
+}
+
+.o_installer_upload_zone.windows button:hover,
+.o_installer_upload_zone.windows .o_form_label:hover,
+.o_installer_upload_zone.windows label:hover {
+    background: linear-gradient(135deg, #1976d2 0%, #2196f3 100%) !important;
+}
+
+/* Linux button */
+.o_installer_upload_zone.linux button,
+.o_installer_upload_zone.linux .o_form_label,
+.o_installer_upload_zone.linux label {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%) !important;
+}
+
+.o_installer_upload_zone.linux button:hover,
+.o_installer_upload_zone.linux .o_form_label:hover,
+.o_installer_upload_zone.linux label:hover {
+    background: linear-gradient(135deg, #f57c00 0%, #ff9800 100%) !important;
+}
+
+/* macOS button */
+.o_installer_upload_zone.macos button,
+.o_installer_upload_zone.macos .o_form_label,
+.o_installer_upload_zone.macos label {
+    background: linear-gradient(135deg, #607d8b 0%, #455a64 100%) !important;
+}
+
+.o_installer_upload_zone.macos button:hover,
+.o_installer_upload_zone.macos .o_form_label:hover,
+.o_installer_upload_zone.macos label:hover {
+    background: linear-gradient(135deg, #455a64 0%, #607d8b 100%) !important;
+}
+
+/* Common button styling */
+.o_installer_upload_zone button,
+.o_installer_upload_zone .o_form_label,
+.o_installer_upload_zone label {
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 12px 28px !important;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2) !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    text-align: center !important;
+    display: inline-block !important;
+    min-width: 140px !important;
+    height: 44px !important;
+    width: auto !important;
+}
+
+.o_installer_upload_zone button:hover,
+.o_installer_upload_zone .o_form_label:hover,
+.o_installer_upload_zone label:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* =========================================================
+   ANTIVIRUS UPLOAD BUTTON - FORCE BROWSE YOUR FILE
+   This file loads last to override all previous styles
+   ========================================================= */
+
+/* Hide original button text using text-indent */
+.o_installer_upload_zone button,
+.o_installer_upload_zone .o_form_label,
+.o_installer_upload_zone label,
+.o_installer_upload_zone .o_select_file_button {
+    color: transparent !important;
+    text-indent: -9999px !important;
+    overflow: hidden !important;
+    width: auto !important;
+    min-width: 150px !important;
+    white-space: nowrap !important;
+}
+
+/* Show new text using ::after positioned absolutely */
+.o_installer_upload_zone button,
+.o_installer_upload_zone .o_form_label,
+.o_installer_upload_zone label,
+.o_installer_upload_zone .o_select_file_button {
+    position: relative !important;
+}
+
+.o_installer_upload_zone button::after,
+.o_installer_upload_zone .o_form_label::after,
+.o_installer_upload_zone label::after,
+.o_installer_upload_zone .o_select_file_button::after {
+    content: "Browse your file" !important;
+    color: #ffffff !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    text-indent: 0 !important;
+    white-space: nowrap !important;
+    width: auto !important;
+    display: block !important;
+}
+
+/* Windows - Blue button */
+.o_installer_upload_zone.windows button,
+.o_installer_upload_zone.windows .o_form_label,
+.o_installer_upload_zone.windows label,
+.o_installer_upload_zone.windows .o_select_file_button {
+    background: linear-gradient(135deg, #2196f3, #1976d2) !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 12px 32px !important;
+    box-shadow: 0 6px 16px rgba(33, 150, 243, 0.35) !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+}
+
+.o_installer_upload_zone.windows button:hover,
+.o_installer_upload_zone.windows .o_form_label:hover,
+.o_installer_upload_zone.windows label:hover,
+.o_installer_upload_zone.windows .o_select_file_button:hover {
+    background: linear-gradient(135deg, #1976d2, #2196f3) !important;
+    box-shadow: 0 10px 24px rgba(33, 150, 243, 0.45) !important;
+    transform: translateY(-3px) !important;
+}
+
+/* Linux - Orange button */
+.o_installer_upload_zone.linux button,
+.o_installer_upload_zone.linux .o_form_label,
+.o_installer_upload_zone.linux label,
+.o_installer_upload_zone.linux .o_select_file_button {
+    background: linear-gradient(135deg, #ff9800, #f57c00) !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 12px 32px !important;
+    box-shadow: 0 6px 16px rgba(255, 152, 0, 0.35) !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+}
+
+.o_installer_upload_zone.linux button:hover,
+.o_installer_upload_zone.linux .o_form_label:hover,
+.o_installer_upload_zone.linux label:hover,
+.o_installer_upload_zone.linux .o_select_file_button:hover {
+    background: linear-gradient(135deg, #f57c00, #ff9800) !important;
+    box-shadow: 0 10px 24px rgba(255, 152, 0, 0.45) !important;
+    transform: translateY(-3px) !important;
+}
+
+/* macOS - Gray button */
+.o_installer_upload_zone.macos button,
+.o_installer_upload_zone.macos .o_form_label,
+.o_installer_upload_zone.macos label,
+.o_installer_upload_zone.macos .o_select_file_button {
+    background: linear-gradient(135deg, #607d8b, #455a64) !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 12px 32px !important;
+    box-shadow: 0 6px 16px rgba(96, 125, 139, 0.35) !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+}
+
+.o_installer_upload_zone.macos button:hover,
+.o_installer_upload_zone.macos .o_form_label:hover,
+.o_installer_upload_zone.macos label:hover,
+.o_installer_upload_zone.macos .o_select_file_button:hover {
+    background: linear-gradient(135deg, #455a64, #607d8b) !important;
+    box-shadow: 0 10px 24px rgba(96, 125, 139, 0.45) !important;
+    transform: translateY(-3px) !important;
+}
+
+/* Ensure pointer events work on pseudo-element */
+.o_installer_upload_zone button::after,
+.o_installer_upload_zone .o_form_label::after,
+.o_installer_upload_zone label::after,
+.o_installer_upload_zone .o_select_file_button::after {
+    pointer-events: none !important;
+}
+
+/* =========================================================
+   ANTIVIRUS THREAT TRACKING - ULTRA PROFESSIONAL UI
+   ========================================================= */
+
+/* =========================
+   MAIN CONTAINER
+   ========================= */
+.o_antivirus_tracking {
+    padding: 24px;
+    flex: 1 1 auto;
+    height: 100%;
+    overflow-y: auto;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.o_action:has(.o_antivirus_tracking) {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+}
+
+/* =========================
+   HEADER SECTION
+   ========================= */
+.o_antivirus_tracking .tracking_header {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(30, 60, 114, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.o_antivirus_tracking .tracking_header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.o_antivirus_tracking .tracking_header::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -5%;
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.o_antivirus_tracking .tracking_title {
+    font-size: 28px;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.o_antivirus_tracking .tracking_subtitle {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.85);
+    margin-top: 4px;
+    position: relative;
+    z-index: 1;
+}
+
+.o_antivirus_tracking .tracking_controls {
+    position: relative;
+    z-index: 1;
+}
+
+.o_antivirus_tracking .refresh_status {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.15);
+    padding: 6px 14px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+}
+
+/* =========================
+   KPI CARDS
+   ========================= */
+.o_antivirus_tracking .tracking_kpi_card {
+    position: relative;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px 24px;
+    height: 140px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.o_antivirus_tracking .tracking_kpi_card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.o_antivirus_tracking .tracking_kpi_card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+}
+
+.o_antivirus_tracking .tracking_kpi_card:hover::before {
+    opacity: 1;
+}
+
+.o_antivirus_tracking .tracking_kpi_card .kpi_body {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+}
+
+.o_antivirus_tracking .tracking_kpi_card .kpi_icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.o_antivirus_tracking .tracking_kpi_card:hover .kpi_icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.o_antivirus_tracking .tracking_kpi_card .kpi_text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.o_antivirus_tracking .tracking_kpi_card .kpi_label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.o_antivirus_tracking .tracking_kpi_card .kpi_value {
+    font-size: 40px;
+    font-weight: 800;
+    color: #212529;
+    line-height: 1;
+}
+
+.o_antivirus_tracking .tracking_kpi_card .kpi_bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 5px;
+    width: 100%;
+    border-radius: 0 0 16px 16px;
+}
+
+.o_antivirus_tracking .tracking_kpi_card .kpi_trend {
+    position: absolute;
+    bottom: 14px;
+    right: 24px;
+    font-size: 11px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.o_antivirus_tracking .tracking_kpi_card .kpi_trend.trend-positive {
+    color: #28a745;
+    background: rgba(40, 167, 69, 0.1);
+}
+
+.o_antivirus_tracking .tracking_kpi_card .kpi_trend.trend-negative {
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.1);
+}
+
+.o_antivirus_tracking .tracking_kpi_card .kpi_trend.trend-neutral {
+    color: #6c757d;
+    background: rgba(108, 117, 125, 0.1);
+}
+
+/* KPI COLORS */
+.o_antivirus_tracking .tracking_kpi_card.kpi_total .kpi_icon {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+}
+
+.o_antivirus_tracking .tracking_kpi_card.kpi_total .kpi_bottom {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.o_antivirus_tracking .tracking_kpi_card.kpi_active .kpi_icon {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: #ffffff;
+}
+
+.o_antivirus_tracking .tracking_kpi_card.kpi_active .kpi_bottom {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.o_antivirus_tracking .tracking_kpi_card.kpi_quarantined .kpi_icon {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: #ffffff;
+}
+
+.o_antivirus_tracking .tracking_kpi_card.kpi_quarantined .kpi_bottom {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.o_antivirus_tracking .tracking_kpi_card.kpi_critical .kpi_icon {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    color: #ffffff;
+}
+
+.o_antivirus_tracking .tracking_kpi_card.kpi_critical .kpi_bottom {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+/* =========================
+   TRACKING CARDS
+   ========================= */
+.o_antivirus_tracking .tracking_card {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: none;
+    transition: box-shadow 0.3s ease;
+    overflow: hidden;
+}
+
+.o_antivirus_tracking .tracking_card:hover {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.o_antivirus_tracking .tracking_card .card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-bottom: 2px solid #e9ecef;
+    padding: 18px 24px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.o_antivirus_tracking .tracking_card .card-header strong {
+    font-weight: 700;
+    font-size: 15px;
+}
+
+.o_antivirus_tracking .tracking_card .card-body {
+    padding: 24px;
+}
+
+/* =========================
+   TIMELINE VIEW
+   ========================= */
+.o_antivirus_tracking .timeline {
+    position: relative;
+    padding-left: 40px;
+}
+
+.o_antivirus_tracking .timeline::before {
+    content: '';
+    position: absolute;
+    left: 18px;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, #e9ecef 0%, #dee2e6 100%);
+    border-radius: 3px;
+}
+
+.o_antivirus_tracking .timeline_item {
+    position: relative;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.o_antivirus_tracking .timeline_item:hover {
+    transform: translateX(6px);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+}
+
+.o_antivirus_tracking .timeline_item.severity-critical {
+    border-left: 5px solid #dc3545;
+}
+
+.o_antivirus_tracking .timeline_item.severity-high {
+    border-left: 5px solid #ffc107;
+}
+
+.o_antivirus_tracking .timeline_item.severity-medium {
+    border-left: 5px solid #17a2b8;
+}
+
+.o_antivirus_tracking .timeline_item.severity-low {
+    border-left: 5px solid #6c757d;
+}
+
+.o_antivirus_tracking .timeline_marker {
+    position: absolute;
+    left: -40px;
+    top: 24px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 4px solid #ffffff;
+}
+
+.o_antivirus_tracking .timeline_item.severity-critical .timeline_marker {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: #ffffff;
+}
+
+.o_antivirus_tracking .timeline_item.severity-high .timeline_marker {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    color: #ffffff;
+}
+
+.o_antivirus_tracking .timeline_item.severity-medium .timeline_marker {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    color: #ffffff;
+}
+
+.o_antivirus_tracking .timeline_item.severity-low .timeline_marker {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    color: #ffffff;
+}
+
+.o_antivirus_tracking .timeline_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.o_antivirus_tracking .timeline_title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.o_antivirus_tracking .timeline_title strong {
+    font-size: 16px;
+    font-weight: 700;
+    color: #212529;
+}
+
+.o_antivirus_tracking .timeline_time {
+    font-size: 12px;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.o_antivirus_tracking .timeline_body {
+    margin-bottom: 16px;
+}
+
+.o_antivirus_tracking .timeline_body .device_info {
+    font-size: 14px;
+    color: #495057;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.o_antivirus_tracking .timeline_body .device_info strong {
+    font-weight: 600;
+}
+
+.o_antivirus_tracking .timeline_body .threat_details {
+    font-size: 13px;
+    color: #6c757d;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.5;
+}
+
+.o_antivirus_tracking .timeline_footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 14px;
+    border-top: 1px solid #e9ecef;
+}
+
+.o_antivirus_tracking .status_badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 14px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.o_antivirus_tracking .status_badge.status-active {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+.o_antivirus_tracking .status_badge.status-quarantined {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+}
+
+.o_antivirus_tracking .status_badge.status-cleaning {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+}
+
+.o_antivirus_tracking .status_badge.status-removed {
+    background: rgba(23, 162, 184, 0.1);
+    color: #17a2b8;
+}
+
+.o_antivirus_tracking .timeline_actions {
+    display: flex;
+    gap: 8px;
+}
+
+.o_antivirus_tracking .timeline_actions .btn {
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.o_antivirus_tracking .timeline_actions .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* =========================
+   GRID VIEW
+   ========================= */
+.o_antivirus_tracking .threat_grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.o_antivirus_tracking .threat_card {
+    background: #ffffff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.o_antivirus_tracking .threat_card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+}
+
+.o_antivirus_tracking .threat_card.severity-critical {
+    border-top: 4px solid #dc3545;
+}
+
+.o_antivirus_tracking .threat_card.severity-high {
+    border-top: 4px solid #ffc107;
+}
+
+.o_antivirus_tracking .threat_card.severity-medium {
+    border-top: 4px solid #17a2b8;
+}
+
+.o_antivirus_tracking .threat_card.severity-low {
+    border-top: 4px solid #6c757d;
+}
+
+.o_antivirus_tracking .threat_card_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+.o_antivirus_tracking .threat_type_icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.o_antivirus_tracking .threat_card.severity-critical .threat_type_icon {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: #ffffff;
+}
+
+.o_antivirus_tracking .threat_card.severity-high .threat_type_icon {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    color: #ffffff;
+}
+
+.o_antivirus_tracking .threat_card.severity-medium .threat_type_icon {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    color: #ffffff;
+}
+
+.o_antivirus_tracking .threat_card.severity-low .threat_type_icon {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    color: #ffffff;
+}
+
+.o_antivirus_tracking .threat_card_status {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.o_antivirus_tracking .threat_card_status.status-active {
+    background: rgba(220, 53, 69, 0.15);
+    color: #dc3545;
+}
+
+.o_antivirus_tracking .threat_card_status.status-quarantined {
+    background: rgba(40, 167, 69, 0.15);
+    color: #28a745;
+}
+
+.o_antivirus_tracking .threat_card_status.status-cleaning {
+    background: rgba(255, 193, 7, 0.15);
+    color: #ffc107;
+}
+
+.o_antivirus_tracking .threat_card_status.status-removed {
+    background: rgba(23, 162, 184, 0.15);
+    color: #17a2b8;
+}
+
+.o_antivirus_tracking .threat_card_body {
+    padding: 16px;
+}
+
+.o_antivirus_tracking .threat_card_title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #212529;
+    margin-bottom: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.o_antivirus_tracking .threat_card_severity {
+    margin-bottom: 10px;
+}
+
+.o_antivirus_tracking .threat_card_device {
+    font-size: 13px;
+    color: #6c757d;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.o_antivirus_tracking .threat_card_time {
+    font-size: 11px;
+    color: #adb5bd;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* =========================
+   SEVERITY BREAKDOWN
+   ========================= */
+.o_antivirus_tracking .severity_breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.o_antivirus_tracking .severity_item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 10px;
+    background: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.o_antivirus_tracking .severity_item:hover {
+    background: #e9ecef;
+    transform: translateX(4px);
+}
+
+.o_antivirus_tracking .severity_item .severity_icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+}
+
+.o_antivirus_tracking .severity_item.severity-critical .severity_icon {
+    color: #dc3545;
+}
+
+.o_antivirus_tracking .severity_item.severity-high .severity_icon {
+    color: #ffc107;
+}
+
+.o_antivirus_tracking .severity_item.severity-medium .severity_icon {
+    color: #17a2b8;
+}
+
+.o_antivirus_tracking .severity_item.severity-low .severity_icon {
+    color: #6c757d;
+}
+
+.o_antivirus_tracking .severity_item .severity_info {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.o_antivirus_tracking .severity_item .severity_label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #495057;
+}
+
+.o_antivirus_tracking .severity_item .severity_count {
+    font-size: 14px;
+    font-weight: 700;
+    color: #212529;
+}
+
+.o_antivirus_tracking .severity_item .severity_bar {
+    width: 80px;
+    height: 6px;
+    background: #dee2e6;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.o_antivirus_tracking .severity_item .severity_progress {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+.o_antivirus_tracking .severity_item.severity-critical .severity_progress {
+    background: linear-gradient(90deg, #dc3545 0%, #c82333 100%);
+}
+
+.o_antivirus_tracking .severity_item.severity-high .severity_progress {
+    background: linear-gradient(90deg, #ffc107 0%, #ff9800 100%);
+}
+
+.o_antivirus_tracking .severity_item.severity-medium .severity_progress {
+    background: linear-gradient(90deg, #17a2b8 0%, #138496 100%);
+}
+
+.o_antivirus_tracking .severity_item.severity-low .severity_progress {
+    background: linear-gradient(90deg, #6c757d 0%, #5a6268 100%);
+}
+
+/* =========================
+   AFFECTED DEVICES LIST
+   ========================= */
+.o_antivirus_tracking .affected_devices_list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.o_antivirus_tracking .affected_device_item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 10px;
+    background: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.o_antivirus_tracking .affected_device_item:hover {
+    background: #e9ecef;
+    transform: translateX(4px);
+}
+
+.o_antivirus_tracking .affected_device_item .device_avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 16px;
+}
+
+.o_antivirus_tracking .affected_device_item .device_info {
+    flex: 1;
+    min-width: 0;
+}
+
+.o_antivirus_tracking .affected_device_item .device_info strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #212529;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.o_antivirus_tracking .affected_device_item .device_info .device_code {
+    font-size: 11px;
+    color: #6c757d;
+}
+
+.o_antivirus_tracking .threat_count_badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: #ffffff;
+}
+
+/* =========================
+   CHART WRAPPERS
+   ========================= */
+.o_antivirus_tracking .chart-wrapper {
+    width: 100%;
+    height: 280px;
+    position: relative;
+}
+
+.o_antivirus_tracking .chart-wrapper-sm {
+    width: 100%;
+    height: 220px;
+    position: relative;
+}
+
+/* =========================
+   EMPTY STATE
+   ========================= */
+.o_antivirus_tracking .empty_state {
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.o_antivirus_tracking .empty_state i {
+    opacity: 0.3;
+}
+
+.o_antivirus_tracking .empty_state h5 {
+    font-weight: 600;
+    margin-top: 16px;
+}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+@media (max-width: 768px) {
+    .o_antivirus_tracking {
+        padding: 12px;
+    }
+
+    .o_antivirus_tracking .tracking_header {
+        padding: 16px !important;
+    }
+
+    .o_antivirus_tracking .tracking_title {
+        font-size: 20px;
+    }
+
+    .o_antivirus_tracking .tracking_controls {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .o_antivirus_tracking .tracking_kpi_card {
+        height: 120px;
+        padding: 16px 18px;
+    }
+
+    .o_antivirus_tracking .tracking_kpi_card .kpi_icon {
+        width: 52px;
+        height: 52px;
+        font-size: 22px;
+    }
+
+    .o_antivirus_tracking .tracking_kpi_card .kpi_value {
+        font-size: 32px;
+    }
+
+    .o_antivirus_tracking .threat_grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* =========================
+   ANIMATIONS
+   ========================= */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.o_antivirus_tracking .tracking_kpi_card,
+.o_antivirus_tracking .tracking_card {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.o_antivirus_tracking .tracking_kpi_card:nth-child(1) { animation-delay: 0.05s; }
+.o_antivirus_tracking .tracking_kpi_card:nth-child(2) { animation-delay: 0.1s; }
+.o_antivirus_tracking .tracking_kpi_card:nth-child(3) { animation-delay: 0.15s; }
+.o_antivirus_tracking .tracking_kpi_card:nth-child(4) { animation-delay: 0.2s; }
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.o_antivirus_tracking .tracking_kpi_card.kpi_active .kpi_icon {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* =========================
+   TRACKING TABS
+   ========================= */
+.o_antivirus_tracking .tracking_tabs {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 12px 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.o_antivirus_tracking .tracking_tabs .btn-group .btn {
+    padding: 12px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 10px;
+    margin-right: 8px;
+    transition: all 0.3s ease;
+}
+
+.o_antivirus_tracking .tracking_tabs .btn-group .btn:last-child {
+    margin-right: 0;
+}
+
+/* =========================
+   PRODUCTS LIST
+   ========================= */
+.o_antivirus_tracking .products_list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.o_antivirus_tracking .product_card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.o_antivirus_tracking .product_card:hover {
+    transform: translateX(6px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+.o_antivirus_tracking .product_card_header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.o_antivirus_tracking .product_icon_wrapper {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+}
+
+.o_antivirus_tracking .product_info {
+    flex: 1;
+    min-width: 200px;
+}
+
+.o_antivirus_tracking .product_name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #212529;
+    margin: 0 0 6px 0;
+}
+
+.o_antivirus_tracking .product_versions {
+    font-size: 13px;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.o_antivirus_tracking .product_stats {
+    display: flex;
+    gap: 24px;
+    flex-shrink: 0;
+}
+
+.o_antivirus_tracking .product_stats .stat_item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.o_antivirus_tracking .product_stats .stat_label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.o_antivirus_tracking .product_stats .stat_value {
+    font-size: 24px;
+    font-weight: 800;
+    color: #212529;
+}
+
+.o_antivirus_tracking .product_progress {
+    width: 100%;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e9ecef;
+}
+
+.o_antivirus_tracking .product_progress .progress_bar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.o_antivirus_tracking .product_progress .progress_fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.o_antivirus_tracking .product_progress .progress_fill.progress_success {
+    background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+}
+
+.o_antivirus_tracking .product_progress .progress_fill.progress_warning {
+    background: linear-gradient(90deg, #ffc107 0%, #ff9800 100%);
+}
+
+.o_antivirus_tracking .product_progress .progress_fill.progress_danger {
+    background: linear-gradient(90deg, #dc3545 0%, #c82333 100%);
+}
+
+.o_antivirus_tracking .product_progress .progress_text {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* =========================
+   PRODUCT DEVICES SECTION
+   ========================= */
+.o_antivirus_tracking .product_devices_section {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 2px solid #e9ecef;
+}
+
+.o_antivirus_tracking .devices_header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.o_antivirus_tracking .devices_header i {
+    font-size: 18px;
+    color: #667eea;
+}
+
+.o_antivirus_tracking .devices_header strong {
+    font-size: 15px;
+    font-weight: 700;
+    color: #212529;
+}
+
+.o_antivirus_tracking .devices_table {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.o_antivirus_tracking .devices_table_header {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1.5fr 120px 120px;
+    gap: 16px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #495057;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.o_antivirus_tracking .devices_table_row {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1.5fr 120px 120px;
+    gap: 16px;
+    padding: 14px 16px;
+    background: #ffffff;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    align-items: center;
+}
+
+.o_antivirus_tracking .devices_table_row:hover {
+    background: #f8f9fa;
+    border-color: #667eea;
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+.o_antivirus_tracking .table_col_device {
+    font-size: 14px;
+    color: #212529;
+    font-weight: 600;
+}
+
+.o_antivirus_tracking .device_name_cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.o_antivirus_tracking .device_name_cell i {
+    color: #667eea;
+    font-size: 16px;
+}
+
+.o_antivirus_tracking .table_col_asset,
+.o_antivirus_tracking .table_col_serial,
+.o_antivirus_tracking .table_col_version {
+    font-size: 13px;
+    color: #6c757d;
+}
+
+.o_antivirus_tracking .table_col_status {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+/* =========================
+   DEVICES BY PRODUCT
+   ========================= */
+.o_antivirus_tracking .devices_by_product {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.o_antivirus_tracking .product_section {
+    background: #ffffff;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.o_antivirus_tracking .product_section_header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.o_antivirus_tracking .product_section_header i {
+    font-size: 20px;
+}
+
+.o_antivirus_tracking .product_section_header strong {
+    font-size: 16px;
+    font-weight: 700;
+    color: #212529;
+    flex: 1;
+}
+
+.o_antivirus_tracking .device_list {
+    padding: 12px;
+}
+
+.o_antivirus_tracking .device_row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: #f8f9fa;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.o_antivirus_tracking .device_row:hover {
+    background: #e9ecef;
+    transform: translateX(4px);
+}
+
+.o_antivirus_tracking .device_row:last-child {
+    margin-bottom: 0;
+}
+
+.o_antivirus_tracking .device_avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.o_antivirus_tracking .device_details {
+    flex: 1;
+    min-width: 0;
+}
+
+.o_antivirus_tracking .device_details .device_name {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #212529;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.o_antivirus_tracking .device_details .device_code {
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.o_antivirus_tracking .device_serial {
+    font-size: 12px;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    min-width: 150px;
+}
+
+.o_antivirus_tracking .device_serial i {
+    color: #adb5bd;
+}
+
+.o_antivirus_tracking .device_status {
+    flex-shrink: 0;
+}
+
+.o_antivirus_tracking .device_version {
+    font-size: 12px;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    min-width: 120px;
+}
+
+/* =========================
+   RESPONSIVE FOR PRODUCTS/DEVICES
+   ========================= */
+@media (max-width: 992px) {
+    .o_antivirus_tracking .product_card_header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .o_antivirus_tracking .product_stats {
+        width: 100%;
+        justify-content: space-around;
+    }
+
+    .o_antivirus_tracking .device_row {
+        flex-wrap: wrap;
+    }
+
+    .o_antivirus_tracking .device_version {
+        width: 100%;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #dee2e6;
+    }
+
+    /* Devices Table Responsive */
+    .o_antivirus_tracking .devices_table_header,
+    .o_antivirus_tracking .devices_table_row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .o_antivirus_tracking .devices_table_header {
+        display: none;
+    }
+
+    .o_antivirus_tracking .devices_table_row {
+        position: relative;
+        padding: 16px;
+    }
+
+    .o_antivirus_tracking .devices_table_row::before {
+        content: 'Device';
+        position: absolute;
+        top: 8px;
+        left: 16px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #667eea;
+        text-transform: uppercase;
+    }
+
+    .o_antivirus_tracking .table_col_device,
+    .o_antivirus_tracking .table_col_asset,
+    .o_antivirus_tracking .table_col_serial,
+    .o_antivirus_tracking .table_col_status,
+    .o_antivirus_tracking .table_col_version {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 0;
+        border-bottom: 1px solid #f8f9fa;
+    }
+
+    .o_antivirus_tracking .table_col_asset::before,
+    .o_antivirus_tracking .table_col_serial::before,
+    .o_antivirus_tracking .table_col_status::before,
+    .o_antivirus_tracking .table_col_version::before {
+        content: attr(data-label);
+        font-size: 11px;
+        font-weight: 700;
+        color: #6c757d;
+        text-transform: uppercase;
+        min-width: 80px;
+    }
+}

@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- ================================================================
+             DEMO USERS - one per role in the workflow.
+             Password for every demo user below: demo
+             ================================================================ -->
+
+        <record id="demo_user_hr" model="res.users">
+            <field name="name">Aarti Menon</field>
+            <field name="login">aarti.hr</field>
+            <field name="password">demo</field>
+            <field name="email">aarti.menon@example.com</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="company_ids" eval="[(4, ref('base.main_company'))]"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('base.group_user'),
+                ref('oneit_ad_automation.group_oneit_hr')])]"/>
+        </record>
+
+        <record id="demo_user_tl_finance" model="res.users">
+            <field name="name">Rohan Iyer</field>
+            <field name="login">rohan.tl</field>
+            <field name="password">demo</field>
+            <field name="email">rohan.iyer@example.com</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="company_ids" eval="[(4, ref('base.main_company'))]"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('base.group_user'),
+                ref('oneit_ad_automation.group_oneit_team_lead')])]"/>
+        </record>
+
+        <record id="demo_user_tl_eng" model="res.users">
+            <field name="name">Vikram Nair</field>
+            <field name="login">vikram.tl</field>
+            <field name="password">demo</field>
+            <field name="email">vikram.nair@example.com</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="company_ids" eval="[(4, ref('base.main_company'))]"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('base.group_user'),
+                ref('oneit_ad_automation.group_oneit_team_lead')])]"/>
+        </record>
+
+        <record id="demo_user_bu_1" model="res.users">
+            <field name="name">Priya Raghavan</field>
+            <field name="login">priya.bu</field>
+            <field name="password">demo</field>
+            <field name="email">priya.raghavan@example.com</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="company_ids" eval="[(4, ref('base.main_company'))]"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('base.group_user'),
+                ref('oneit_ad_automation.group_oneit_bu_head')])]"/>
+        </record>
+
+        <record id="demo_user_bu_2" model="res.users">
+            <field name="name">Deepa Krishnan</field>
+            <field name="login">deepa.bu</field>
+            <field name="password">demo</field>
+            <field name="email">deepa.krishnan@example.com</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="company_ids" eval="[(4, ref('base.main_company'))]"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('base.group_user'),
+                ref('oneit_ad_automation.group_oneit_bu_head')])]"/>
+        </record>
+
+        <record id="demo_user_it" model="res.users">
+            <field name="name">Suresh Babu</field>
+            <field name="login">suresh.it</field>
+            <field name="password">demo</field>
+            <field name="email">suresh.babu@example.com</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="company_ids" eval="[(4, ref('base.main_company'))]"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('base.group_user'),
+                ref('oneit_ad_automation.group_oneit_it_admin')])]"/>
+        </record>
+
+
+        <!-- ================================================================
+             AD GROUPS - Finance
+             ================================================================ -->
+
+        <record id="demo_adg_fin_ou" model="oneit.ad.group">
+            <field name="name">FIN-Users-OU</field>
+            <field name="group_type">ad_folder</field>
+            <field name="distinguished_name">OU=Finance,OU=Users,DC=example,DC=local</field>
+            <field name="description">OU that Finance user objects live in</field>
+        </record>
+
+        <record id="demo_adg_fin_citrix_erp" model="oneit.ad.group">
+            <field name="name">FIN-Citrix-ERP</field>
+            <field name="group_type">citrix</field>
+            <field name="distinguished_name">CN=FIN-Citrix-ERP,OU=Groups,DC=example,DC=local</field>
+            <field name="description">Published ERP application</field>
+        </record>
+
+        <record id="demo_adg_fin_citrix_bi" model="oneit.ad.group">
+            <field name="name">FIN-Citrix-BI</field>
+            <field name="group_type">citrix</field>
+            <field name="distinguished_name">CN=FIN-Citrix-BI,OU=Groups,DC=example,DC=local</field>
+            <field name="description">Reporting and BI dashboards</field>
+        </record>
+
+        <record id="demo_adg_fin_fs_accounts" model="oneit.ad.group">
+            <field name="name">FIN-FS-Accounts</field>
+            <field name="group_type">file_server</field>
+            <field name="distinguished_name">CN=FIN-FS-Accounts,OU=Groups,DC=example,DC=local</field>
+            <field name="description">Accounts share</field>
+        </record>
+
+        <record id="demo_adg_fin_fs_payroll" model="oneit.ad.group">
+            <field name="name">FIN-FS-Payroll</field>
+            <field name="group_type">file_server</field>
+            <field name="distinguished_name">CN=FIN-FS-Payroll,OU=Groups,DC=example,DC=local</field>
+            <field name="description">Payroll share (restricted)</field>
+        </record>
+
+
+        <!-- ================================================================
+             AD GROUPS - Engineering
+             ================================================================ -->
+
+        <record id="demo_adg_eng_ou" model="oneit.ad.group">
+            <field name="name">ENG-Users-OU</field>
+            <field name="group_type">ad_folder</field>
+            <field name="distinguished_name">OU=Engineering,OU=Users,DC=example,DC=local</field>
+            <field name="description">OU that Engineering user objects live in</field>
+        </record>
+
+        <record id="demo_adg_eng_citrix_dev" model="oneit.ad.group">
+            <field name="name">ENG-Citrix-DevTools</field>
+            <field name="group_type">citrix</field>
+            <field name="distinguished_name">CN=ENG-Citrix-DevTools,OU=Groups,DC=example,DC=local</field>
+            <field name="description">IDE and build tooling</field>
+        </record>
+
+        <record id="demo_adg_eng_fs_source" model="oneit.ad.group">
+            <field name="name">ENG-FS-Source</field>
+            <field name="group_type">file_server</field>
+            <field name="distinguished_name">CN=ENG-FS-Source,OU=Groups,DC=example,DC=local</field>
+            <field name="description">Source share</field>
+        </record>
+
+        <record id="demo_adg_eng_fs_builds" model="oneit.ad.group">
+            <field name="name">ENG-FS-Builds</field>
+            <field name="group_type">file_server</field>
+            <field name="distinguished_name">CN=ENG-FS-Builds,OU=Groups,DC=example,DC=local</field>
+            <field name="description">Build artefact share</field>
+        </record>
+
+
+        <!-- ================================================================
+             AD GROUPS - Sales
+             ================================================================ -->
+
+        <record id="demo_adg_sls_ou" model="oneit.ad.group">
+            <field name="name">SLS-Users-OU</field>
+            <field name="group_type">ad_folder</field>
+            <field name="distinguished_name">OU=Sales,OU=Users,DC=example,DC=local</field>
+        </record>
+
+        <record id="demo_adg_sls_citrix_crm" model="oneit.ad.group">
+            <field name="name">SLS-Citrix-CRM</field>
+            <field name="group_type">citrix</field>
+            <field name="distinguished_name">CN=SLS-Citrix-CRM,OU=Groups,DC=example,DC=local</field>
+            <field name="description">Published CRM application</field>
+        </record>
+
+        <record id="demo_adg_sls_fs_proposals" model="oneit.ad.group">
+            <field name="name">SLS-FS-Proposals</field>
+            <field name="group_type">file_server</field>
+            <field name="distinguished_name">CN=SLS-FS-Proposals,OU=Groups,DC=example,DC=local</field>
+            <field name="description">Proposals share</field>
+        </record>
+
+
+        <!-- ================================================================
+             AD GROUPS - Support
+             ================================================================ -->
+
+        <record id="demo_adg_sup_ou" model="oneit.ad.group">
+            <field name="name">SUP-Users-OU</field>
+            <field name="group_type">ad_folder</field>
+            <field name="distinguished_name">OU=Support,OU=Users,DC=example,DC=local</field>
+        </record>
+
+        <record id="demo_adg_sup_citrix_desk" model="oneit.ad.group">
+            <field name="name">SUP-Citrix-Helpdesk</field>
+            <field name="group_type">citrix</field>
+            <field name="distinguished_name">CN=SUP-Citrix-Helpdesk,OU=Groups,DC=example,DC=local</field>
+            <field name="description">Ticketing console</field>
+        </record>
+
+        <record id="demo_adg_sup_fs_kb" model="oneit.ad.group">
+            <field name="name">SUP-FS-KnowledgeBase</field>
+            <field name="group_type">file_server</field>
+            <field name="distinguished_name">CN=SUP-FS-KnowledgeBase,OU=Groups,DC=example,DC=local</field>
+            <field name="description">Knowledge base share</field>
+        </record>
+
+
+        <!-- ================================================================
+             AD GROUPS - HR Operations
+             ================================================================ -->
+
+        <record id="demo_adg_hro_ou" model="oneit.ad.group">
+            <field name="name">HRO-Users-OU</field>
+            <field name="group_type">ad_folder</field>
+            <field name="distinguished_name">OU=HROps,OU=Users,DC=example,DC=local</field>
+        </record>
+
+        <record id="demo_adg_hro_citrix_hrms" model="oneit.ad.group">
+            <field name="name">HRO-Citrix-HRMS</field>
+            <field name="group_type">citrix</field>
+            <field name="distinguished_name">CN=HRO-Citrix-HRMS,OU=Groups,DC=example,DC=local</field>
+        </record>
+
+        <record id="demo_adg_hro_fs_records" model="oneit.ad.group">
+            <field name="name">HRO-FS-Records</field>
+            <field name="group_type">file_server</field>
+            <field name="distinguished_name">CN=HRO-FS-Records,OU=Groups,DC=example,DC=local</field>
+            <field name="description">HR records share (restricted)</field>
+        </record>
+
+
+        <!-- ================================================================
+             TEAMS
+
+             Finance and Engineering also list the admin user as both Team
+             Lead and BU Head, so a single logged-in admin can walk both
+             approval stages without switching users.
+             ================================================================ -->
+
+        <record id="demo_team_finance" model="oneit.team">
+            <field name="name">Finance</field>
+            <field name="code">FIN</field>
+            <field name="description">Finance and accounts</field>
+            <field name="ad_group_ids" eval="[(6, 0, [
+                ref('demo_adg_fin_ou'),
+                ref('demo_adg_fin_citrix_erp'),
+                ref('demo_adg_fin_citrix_bi'),
+                ref('demo_adg_fin_fs_accounts'),
+                ref('demo_adg_fin_fs_payroll')])]"/>
+            <field name="team_lead_ids" eval="[(6, 0, [
+                ref('base.user_admin'), ref('demo_user_tl_finance')])]"/>
+            <field name="bu_head_ids" eval="[(6, 0, [
+                ref('base.user_admin'), ref('demo_user_bu_1')])]"/>
+        </record>
+
+        <record id="demo_team_engineering" model="oneit.team">
+            <field name="name">Engineering</field>
+            <field name="code">ENG</field>
+            <field name="description">Product engineering</field>
+            <field name="ad_group_ids" eval="[(6, 0, [
+                ref('demo_adg_eng_ou'),
+                ref('demo_adg_eng_citrix_dev'),
+                ref('demo_adg_eng_fs_source'),
+                ref('demo_adg_eng_fs_builds')])]"/>
+            <field name="team_lead_ids" eval="[(6, 0, [
+                ref('base.user_admin'), ref('demo_user_tl_eng')])]"/>
+            <field name="bu_head_ids" eval="[(6, 0, [
+                ref('base.user_admin'), ref('demo_user_bu_1')])]"/>
+        </record>
+
+        <record id="demo_team_sales" model="oneit.team">
+            <field name="name">Sales</field>
+            <field name="code">SLS</field>
+            <field name="description">Field and inside sales</field>
+            <field name="ad_group_ids" eval="[(6, 0, [
+                ref('demo_adg_sls_ou'),
+                ref('demo_adg_sls_citrix_crm'),
+                ref('demo_adg_sls_fs_proposals')])]"/>
+            <field name="team_lead_ids" eval="[(6, 0, [ref('demo_user_tl_finance')])]"/>
+            <field name="bu_head_ids" eval="[(6, 0, [ref('demo_user_bu_1')])]"/>
+        </record>
+
+        <record id="demo_team_support" model="oneit.team">
+            <field name="name">Support</field>
+            <field name="code">SUP</field>
+            <field name="description">Customer support desk</field>
+            <field name="ad_group_ids" eval="[(6, 0, [
+                ref('demo_adg_sup_ou'),
+                ref('demo_adg_sup_citrix_desk'),
+                ref('demo_adg_sup_fs_kb')])]"/>
+            <field name="team_lead_ids" eval="[(6, 0, [ref('demo_user_tl_eng')])]"/>
+            <field name="bu_head_ids" eval="[(6, 0, [ref('demo_user_bu_2')])]"/>
+        </record>
+
+        <record id="demo_team_hr_ops" model="oneit.team">
+            <field name="name">HR Operations</field>
+            <field name="code">HRO</field>
+            <field name="description">HR shared services</field>
+            <field name="ad_group_ids" eval="[(6, 0, [
+                ref('demo_adg_hro_ou'),
+                ref('demo_adg_hro_citrix_hrms'),
+                ref('demo_adg_hro_fs_records')])]"/>
+            <field name="team_lead_ids" eval="[(6, 0, [ref('demo_user_tl_finance')])]"/>
+            <field name="bu_head_ids" eval="[(6, 0, [ref('demo_user_bu_2')])]"/>
+        </record>
+
+    </data>
+</odoo>

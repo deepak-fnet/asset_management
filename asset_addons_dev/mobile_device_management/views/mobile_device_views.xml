@@ -1,0 +1,539 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_mobile_device_list" model="ir.ui.view">
+        <field name="name">mobile.device.list</field>
+        <field name="model">mobile.device</field>
+        <field name="arch" type="xml">
+            <list string="Mobile Devices" decoration-danger="os_update_state == 'unsupported'"
+                  decoration-warning="os_update_state == 'major_behind'"
+                  decoration-muted="status == 'offline'">
+                <field name="display_label" string="Device"/>
+                <field name="platform"/>
+                <field name="manufacturer" optional="show"/>
+                <field name="model_name" optional="hide"/>
+                <field name="os_version"/>
+                <field name="security_patch" optional="show"/>
+                <field name="os_update_state" widget="badge"
+                       decoration-success="os_update_state == 'current'"
+                       decoration-warning="os_update_state in ['minor_behind','major_behind']"
+                       decoration-danger="os_update_state == 'unsupported'"/>
+                <field name="employee_id" optional="show"/>
+                <field name="ownership" optional="hide"/>
+                <field name="battery_level" widget="progressbar" optional="show"/>
+                <field name="app_count" optional="hide"/>
+                <field name="status" widget="badge"
+                       decoration-success="status == 'online'"
+                       decoration-muted="status != 'online'"/>
+                <field name="last_seen"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mobile_device_form" model="ir.ui.view">
+        <field name="name">mobile.device.form</field>
+        <field name="model">mobile.device</field>
+        <field name="arch" type="xml">
+            <form string="Mobile Device">
+                <header>
+                    <button name="action_send_command" type="object"
+                            string="Send Command" class="btn-primary"
+                            groups="mobile_device_management.group_mdm_manager"/>
+                    <button name="action_revoke_token" type="object"
+                            string="Revoke Access" class="btn-secondary"
+                            confirm="This blocks the device immediately. It must be re-enrolled to report again. Continue?"
+                            groups="mobile_device_management.group_mdm_manager"/>
+                    <field name="os_update_state" widget="statusbar"
+                           statusbar_visible="current,minor_behind,major_behind,unsupported"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_apps" type="object"
+                                class="oe_stat_button" icon="fa-th">
+                            <field name="app_count" widget="statinfo" string="Apps"/>
+                        </button>
+                        <button name="action_view_locations" type="object"
+                                class="oe_stat_button" icon="fa-map-marker">
+                            <span class="o_stat_text">Locations</span>
+                        </button>
+                        <button name="action_view_changes" type="object"
+                                class="oe_stat_button" icon="fa-exchange">
+                            <field name="app_change_count" widget="statinfo" string="Changes"/>
+                        </button>
+                        <button name="action_view_metrics" type="object"
+                                class="oe_stat_button" icon="fa-line-chart">
+                            <span class="o_stat_text">Metrics</span>
+                        </button>
+                    </div>
+
+                    <widget name="web_ribbon" title="Unsupported OS" bg_color="text-bg-danger"
+                            invisible="os_update_state != 'unsupported'"/>
+                    <widget name="web_ribbon" title="Rooted" bg_color="text-bg-warning"
+                            invisible="not is_rooted"/>
+
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Priya - Galaxy S23"/></h1>
+                        <field name="device_uid" readonly="1" class="text-muted"/>
+                    </div>
+
+                    <group>
+                        <group string="Hardware">
+                            <field name="platform"/>
+                            <field name="manufacturer"/>
+                            <field name="model_name"/>
+                            <field name="serial_number"/>
+                            <field name="imei"/>
+                            <field name="is_rooted"/>
+                        </group>
+                        <group string="Operating System">
+                            <field name="os_version"/>
+                            <field name="os_build"/>
+                            <field name="security_patch"/>
+                            <field name="sdk_int" invisible="platform != 'android'"/>
+                            <field name="latest_known_version"/>
+                            <field name="patch_age_days"/>
+                            <field name="os_update_detail"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Assignment">
+                            <field name="employee_id"/>
+                            <field name="department_id"/>
+                            <field name="ownership"/>
+                        </group>
+                        <group string="Status">
+                            <field name="status"/>
+                            <field name="last_seen"/>
+                            <field name="enrolled_on"/>
+                            <field name="agent_version"/>
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Storage">
+                            <field name="total_storage_gb"/>
+                            <field name="free_storage_gb"/>
+                            <field name="storage_used_pct" widget="progressbar"/>
+                        </group>
+                        <group string="Memory &amp; Power">
+                            <field name="total_ram_gb"/>
+                            <field name="ram_available_gb"/>
+                            <field name="ram_used_pct" widget="progressbar"/>
+                            <field name="is_low_memory"/>
+                            <field name="battery_level" widget="progressbar"/>
+                            <field name="battery_health"/>
+                            <field name="battery_temp_c"/>
+                            <field name="is_charging"/>
+                        </group>
+                        <group string="Network">
+                            <field name="carrier"/>
+                            <field name="connection_type"/>
+                            <field name="wifi_ssid"/>
+                            <field name="ip_address"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Hardware Specs" name="hardware">
+                            <div class="mdm-section">
+                                <div class="mdm-section-title">
+                                    <i class="fa fa-mobile text-primary"/> Hardware Specifications
+                                </div>
+                                <div class="mdm-section-sub">
+                                    Detailed hardware configuration and system information
+                                </div>
+                                <div class="mdm-cards">
+
+                                    <div class="mdm-card">
+                                        <div class="mdm-card-head os">
+                                            <i class="fa fa-android"/> Operating System
+                                        </div>
+                                        <div class="mdm-card-body">
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-tag"/> OS VERSION</div>
+                                                <div class="mdm-value"><field name="os_version" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-cube"/> PLATFORM</div>
+                                                <div class="mdm-value"><field name="platform" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-shield"/> SECURITY PATCH</div>
+                                                <div class="mdm-value"><field name="security_patch" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-code"/> BUILD</div>
+                                                <div class="mdm-value"><field name="os_build" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row" invisible="platform != 'android'">
+                                                <div class="mdm-label"><i class="fa fa-android"/> SDK LEVEL</div>
+                                                <div class="mdm-value"><field name="sdk_int" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mdm-card">
+                                        <div class="mdm-card-head cpu">
+                                            <i class="fa fa-microchip"/> Device and Memory
+                                        </div>
+                                        <div class="mdm-card-body">
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-industry"/> MANUFACTURER</div>
+                                                <div class="mdm-value"><field name="manufacturer" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-mobile"/> MODEL</div>
+                                                <div class="mdm-value"><field name="model_name" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-memory"/> RAM SIZE (GB)</div>
+                                                <div class="mdm-value"><field name="total_ram_gb" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-tachometer"/> RAM USED</div>
+                                                <div class="mdm-value"><field name="ram_used_pct" widget="progressbar" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-barcode"/> SERIAL</div>
+                                                <div class="mdm-value"><field name="serial_number" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mdm-card">
+                                        <div class="mdm-card-head storage">
+                                            <i class="fa fa-hdd-o"/> Storage and Power
+                                        </div>
+                                        <div class="mdm-card-body">
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-database"/> TOTAL STORAGE (GB)</div>
+                                                <div class="mdm-value"><field name="total_storage_gb" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-pie-chart"/> STORAGE USED</div>
+                                                <div class="mdm-value"><field name="storage_used_pct" widget="progressbar" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-battery-three-quarters"/> BATTERY PERCENTAGE (%)</div>
+                                                <div class="mdm-value"><field name="battery_level" widget="progressbar" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-heartbeat"/> BATTERY HEALTH</div>
+                                                <div class="mdm-value"><field name="battery_health" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-thermometer-half"/> BATTERY TEMP (C)</div>
+                                                <div class="mdm-value"><field name="battery_temp_c" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mdm-card">
+                                        <div class="mdm-card-head network">
+                                            <i class="fa fa-wifi"/> Network
+                                        </div>
+                                        <div class="mdm-card-body">
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-signal"/> CARRIER</div>
+                                                <div class="mdm-value"><field name="carrier" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-exchange"/> CONNECTION</div>
+                                                <div class="mdm-value"><field name="connection_type" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-globe"/> LAST SEEN IP</div>
+                                                <div class="mdm-value"><field name="ip_address" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-clock-o"/> LAST CHECK-IN</div>
+                                                <div class="mdm-value"><field name="last_seen" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </page>
+                        <page string="Update Center" name="update_center">
+                            <div class="mdm-section">
+                                <div class="mdm-status-bar">
+                                    <div>
+                                        <b>Status:</b>
+                                        <field name="os_update_state" readonly="1" nolabel="1" class="ms-1"/>
+                                        ·
+                                        <field name="os_updates_pending" readonly="1" nolabel="1"/>
+                                        OS update(s) pending
+                                    </div>
+                                </div>
+
+                                <div class="mdm-cards">
+                                    <div class="mdm-card">
+                                        <div class="mdm-card-head os"><i class="fa fa-refresh"/> OS Update</div>
+                                        <div class="mdm-card-body">
+                                            <div class="mdm-row">
+                                                <div class="mdm-label">CURRENT VERSION</div>
+                                                <div class="mdm-value"><field name="os_version" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label">LATEST AVAILABLE</div>
+                                                <div class="mdm-value"><field name="latest_known_version" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label">SECURITY PATCH AGE (DAYS)</div>
+                                                <div class="mdm-value"><field name="patch_age_days" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label">DETAIL</div>
+                                                <div class="mdm-value"><field name="os_update_detail" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mdm-card">
+                                        <div class="mdm-card-head cpu"><i class="fa fa-th"/> Application Inventory</div>
+                                        <div class="mdm-card-body">
+                                            <div class="mdm-row">
+                                                <div class="mdm-label">USER APPS</div>
+                                                <div class="mdm-value"><field name="user_app_count" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label">SYSTEM APPS</div>
+                                                <div class="mdm-value"><field name="system_app_count" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label">BLOCKLISTED INSTALLED</div>
+                                                <div class="mdm-value"><field name="blocklisted_app_count" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label">RECENT CHANGES</div>
+                                                <div class="mdm-value"><field name="app_change_count" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-warning mt-4" role="alert">
+                                    <b>Why there is no "app updates pending" figure.</b>
+                                    On a laptop the agent asks the package manager what is outdated.
+                                    Android has no equivalent: an app cannot query the Play Store for
+                                    available versions of other apps, and there is no public API for it.
+                                    OS update status above is derived by comparing the reported version
+                                    against the OS Release catalogue under Configuration.
+                                </div>
+                            </div>
+                        </page>
+                        <page string="Installed Apps" name="apps">
+                            <field name="application_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="package_name"/>
+                                    <field name="version_name"/>
+                                    <field name="is_system"/>
+                                    <field name="is_blocklisted" widget="boolean_toggle"/>
+                                    <field name="size_mb"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Storage Volumes" name="volumes">
+                            <field name="volume_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="is_primary"/>
+                                    <field name="is_removable"/>
+                                    <field name="state"/>
+                                    <field name="total_gb" sum="Total"/>
+                                    <field name="free_gb" sum="Free"/>
+                                    <field name="used_gb"/>
+                                    <field name="used_pct" widget="progressbar"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="App Changes" name="changes">
+                            <field name="app_change_ids" readonly="1">
+                                <list limit="50" decoration-danger="is_blocklisted"
+                                      decoration-success="change_type == 'installed'"
+                                      decoration-muted="change_type == 'removed'">
+                                    <field name="detected_on"/>
+                                    <field name="change_type"/>
+                                    <field name="app_name"/>
+                                    <field name="package_name"/>
+                                    <field name="old_version"/>
+                                    <field name="new_version"/>
+                                    <field name="is_blocklisted"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Location" name="location">
+                            <div class="row">
+                                <div class="col-lg-7">
+                                    <!-- Reuses asset_management's Leaflet field widget, which
+                                         reads record.data.latitude / .longitude. mobile.device
+                                         exposes those as related aliases of last_latitude /
+                                         last_longitude. -->
+                                    <field name="latitude" widget="asset_map" nolabel="1"
+                                           invisible="not latitude and not longitude"/>
+                                    <div class="alert alert-info" role="alert"
+                                         invisible="latitude or longitude">
+                                        No location reported yet. The user must grant location
+                                        permission in the agent, and on Android 10+ also allow it
+                                        "all the time" for background reporting.
+                                    </div>
+                                </div>
+                                <div class="col-lg-5">
+                                    <div class="mdm-card">
+                                        <div class="mdm-card-head storage">
+                                            <i class="fa fa-location-arrow"/> GPS Address Details
+                                        </div>
+                                        <div class="mdm-card-body">
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-building"/> CITY</div>
+                                                <div class="mdm-value"><field name="city" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-map"/> STATE / REGION</div>
+                                                <div class="mdm-value"><field name="region" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-globe"/> COUNTRY</div>
+                                                <div class="mdm-value"><field name="country" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-map-marker"/> FULL ADDRESS</div>
+                                                <div class="mdm-value"><field name="full_address" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-crosshairs"/> LATITUDE / LONGITUDE</div>
+                                                <div class="mdm-value">
+                                                    <field name="latitude" readonly="1" nolabel="1"/> ,
+                                                    <field name="longitude" readonly="1" nolabel="1"/>
+                                                </div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-bullseye"/> ACCURACY (M)</div>
+                                                <div class="mdm-value"><field name="location_accuracy_m" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-compass"/> SOURCE</div>
+                                                <div class="mdm-value"><field name="location_source" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                            <div class="mdm-row">
+                                                <div class="mdm-label"><i class="fa fa-clock-o"/> LAST UPDATED</div>
+                                                <div class="mdm-value"><field name="last_location_at" readonly="1" nolabel="1"/></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <field name="location_ids" readonly="1" class="mt-3">
+                                <list limit="50">
+                                    <field name="recorded_at"/>
+                                    <field name="latitude"/>
+                                    <field name="longitude"/>
+                                    <field name="accuracy_m"/>
+                                    <field name="source"/>
+                                    <field name="is_mock"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Commands" name="commands">
+                            <field name="command_ids">
+                                <list>
+                                    <field name="create_date"/>
+                                    <field name="command_type"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="requested_by"/>
+                                    <field name="completed_on"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_mobile_device_kanban" model="ir.ui.view">
+        <field name="name">mobile.device.kanban</field>
+        <field name="model">mobile.device</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="status"/>
+                <field name="os_update_state"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="o_kanban_record_top">
+                            <div class="o_kanban_record_headings">
+                                <strong><field name="display_label"/></strong>
+                                <div class="text-muted">
+                                    <field name="os_version"/>
+                                    <t t-if="record.employee_id.value">
+                                        · <field name="employee_id"/>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="o_kanban_record_bottom">
+                            <div class="oe_kanban_bottom_left">
+                                <field name="os_update_state" widget="badge"
+                                       decoration-success="os_update_state == 'current'"
+                                       decoration-warning="os_update_state in ['minor_behind','major_behind']"
+                                       decoration-danger="os_update_state == 'unsupported'"/>
+                            </div>
+                            <div class="oe_kanban_bottom_right">
+                                <field name="status" widget="badge"
+                                       decoration-success="status == 'online'"
+                                       decoration-muted="status != 'online'"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_mobile_device_search" model="ir.ui.view">
+        <field name="name">mobile.device.search</field>
+        <field name="model">mobile.device</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="serial_number"/>
+                <field name="employee_id"/>
+                <field name="manufacturer"/>
+                <field name="os_version"/>
+                <filter name="f_online" string="Online" domain="[('status','=','online')]"/>
+                <filter name="f_offline" string="Offline" domain="[('status','=','offline')]"/>
+                <separator/>
+                <filter name="f_update" string="Update Available"
+                        domain="[('os_update_state','in',['minor_behind','major_behind'])]"/>
+                <filter name="f_eol" string="Unsupported OS"
+                        domain="[('os_update_state','=','unsupported')]"/>
+                <filter name="f_rooted" string="Rooted" domain="[('is_rooted','=',True)]"/>
+                <separator/>
+                <filter name="f_android" string="Android" domain="[('platform','=','android')]"/>
+                <filter name="f_ios" string="iOS" domain="[('platform','=','ios')]"/>
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter name="g_platform" string="Platform" context="{'group_by':'platform'}"/>-->
+<!--                    <filter name="g_update" string="Update Status" context="{'group_by':'os_update_state'}"/>-->
+<!--                    <filter name="g_dept" string="Department" context="{'group_by':'department_id'}"/>-->
+<!--                    <filter name="g_manufacturer" string="Manufacturer" context="{'group_by':'manufacturer'}"/>-->
+<!--                    <filter name="g_ownership" string="Ownership" context="{'group_by':'ownership'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <record id="action_mobile_device" model="ir.actions.act_window">
+        <field name="name">Mobile Devices</field>
+        <field name="res_model">mobile.device</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_mobile_device_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No devices enrolled yet</p>
+            <p>Create an enrolment token under Configuration, then scan its QR
+               code from the mobile agent.</p>
+        </field>
+    </record>
+</odoo>

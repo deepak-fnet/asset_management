@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form_llm" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.asset.helpdesk.llm</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app string="Asset Helpdesk LLM" name="asset_helpdesk_llm"
+                     logo="/base/static/description/settings.png">
+                    <block title="LLM Integration"
+                           name="asset_helpdesk_llm_block">
+                        <setting string="Enable LLM on Helpdesk"
+                                 help="When enabled, ticket notes are sent to the LLM on create.">
+                            <field name="llm_enabled"/>
+                        </setting>
+                        <setting string="LLM URL"
+                                 help="Full endpoint of your local model."
+                                 invisible="not llm_enabled">
+                            <field name="llm_url"
+                                   placeholder="http://localhost:8001/v1/chat/completions"/>
+                        </setting>
+                        <setting string="Model Name" invisible="not llm_enabled">
+                            <field name="llm_model" placeholder="local-model"/>
+                        </setting>
+                        <setting string="Timeout (seconds)" invisible="not llm_enabled">
+                            <field name="llm_timeout"/>
+                        </setting>
+                        <setting string="Default Prompt"
+                                 help="Prepended before the ticket notes."
+                                 invisible="not llm_enabled">
+                            <field name="llm_prompt"/>
+                        </setting>
+                        <setting string="Test Connection" invisible="not llm_enabled">
+                            <button name="action_test_llm_connection"
+                                    type="object"
+                                    string="Test Connection"
+                                    class="btn-primary"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

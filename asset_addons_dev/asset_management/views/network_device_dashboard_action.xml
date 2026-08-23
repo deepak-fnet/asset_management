@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Network Dashboard Action (Overview with charts and statistics) -->
+    <record id="action_network_dashboard" model="ir.actions.client">
+        <field name="name">Network Dashboard</field>
+        <field name="tag">action_network_dashboard</field>
+        <field name="target">main</field>
+    </record>
+
+    <!-- Network Live Monitoring Action (Real-time device monitoring) -->
+    <record id="action_network_live_monitoring" model="ir.actions.client">
+        <field name="name">Network Live Monitoring</field>
+        <field name="tag">action_network_live_monitoring</field>
+        <field name="target">main</field>
+    </record>
+</odoo>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- general_asset already provides a Product Category Mapping menu for its
+         own product.category.mapping model. This module's asset.category.mapping
+         is the richer one actually used by the receipt flow (it carries the
+         is_fixed_asset flag plus plant/location/department defaults), so it goes
+         in beside it rather than replacing it - the two models are separate and
+         removing the other one is general_asset's call, not this module's. -->
+    <menuitem id="menu_asset_category_mapping"
+              name="Asset Purchase Mapping"
+              parent="general_asset.menu_asset_configuration"
+              action="action_asset_category_mapping"
+              sequence="55"/>
+
+</odoo>

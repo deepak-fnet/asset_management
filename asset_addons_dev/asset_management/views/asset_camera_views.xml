@@ -1,0 +1,552 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    
+    
+
+    <!-- =====================================================
+         TREE VIEW
+         ===================================================== -->
+    <record id="view_asset_camera_tree" model="ir.ui.view">
+        <field name="name">asset.camera.tree</field>
+        <field name="model">asset.camera</field>
+        <field name="arch" type="xml">
+            <list multi_edit="1"
+                  decoration-success="stream_status in ['online', 'available']"
+                  decoration-danger="stream_status in ['offline', 'unavailable', 'error']">
+                <field name="camera_image" widget="image" optional="show"/>
+                <field name="camera_code"/>
+                <field name="name"/>
+                <field name="camera_ip"/>
+                <field name="camera_brand"/>
+                <field name="location"/>
+                <field name="stream_status" widget="badge"
+                       decoration-success="stream_status in ['online', 'available']"
+                       decoration-danger="stream_status in ['offline', 'unavailable']"
+                       decoration-warning="stream_status=='error'"
+                       decoration-muted="stream_status=='unknown'"/>
+                <field name="connection_status" widget="badge"
+                       decoration-success="connection_status=='connected'"
+                       decoration-danger="connection_status=='disconnected'"
+                       decoration-info="connection_status=='checking'"/>
+                <field name="last_check"/>
+                <field name="uptime_percentage" widget="progressbar"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         KANBAN VIEW
+         ===================================================== -->
+    <record id="view_asset_camera_kanban" model="ir.ui.view">
+        <field name="name">asset.camera.kanban</field>
+        <field name="model">asset.camera</field>
+        <field name="arch" type="xml">
+            <kanban class="o_asset_kanban" quick_create="false">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="camera_code"/>
+                <field name="camera_ip"/>
+                <field name="camera_brand"/>
+                <field name="location"/>
+                <field name="stream_status"/>
+                <field name="connection_status"/>
+                <field name="uptime_percentage"/>
+                <field name="last_online"/>
+                <field name="ping_ms"/>
+                <field name="camera_image"/>
+
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card">
+
+                            <!-- STATUS BADGE RIBBON -->
+                            <t t-if="record.stream_status.raw_value == 'online' or record.stream_status.raw_value == 'available'">
+                                <div class="ribbon ribbon-top-right">
+                                    <span style="background-color: #28a745;">● Available</span>
+                                </div>
+                            </t>
+                            <t t-if="record.stream_status.raw_value == 'offline' or record.stream_status.raw_value == 'unavailable' or record.stream_status.raw_value == 'error'">
+                                <div class="ribbon ribbon-top-right">
+                                    <span style="background-color: #dc3545;">● Unavailable</span>
+                                </div>
+                            </t>
+
+                            <!-- CAMERA IMAGE -->
+                            <div class="kanban_image_wrapper cctv_kanban_image">
+                                <t t-if="record.camera_image.raw_value">
+                                    <img class="kanban_image"
+                                         t-attf-src="/web/image/asset.camera/#{record.id.raw_value}/camera_image"
+                                         alt="Camera Image"/>
+                                </t>
+                                <t t-if="!record.camera_image.raw_value and !record.camera_image.value">
+                                    <div class="kanban_image kanban_image_default">
+                                        <img src="/asset_management/static/src/img/asset_cctv_default.png"
+                                             alt="Default CCTV Camera"
+                                             onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMTYwIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE2MCIgZmlsbD0iI2Y4ZjlmYSIvPjx0ZXh0IHg9IjEwMCIgeT0iODAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI1MCIgZmlsbD0iIzZjNzU3ZCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPvCfk7k8L3RleHQ+PC9zdmc+';"/>
+                                    </div>
+                                </t>
+                            </div>
+
+                            <!-- BODY -->
+                            <div class="kanban_body">
+
+                                <div class="asset_title">
+                                    <field name="name"/>
+                                </div>
+
+                                <div class="asset_code">
+                                    <field name="camera_code"/> • <field name="camera_ip"/>
+                                </div>
+
+                                <!-- BADGES -->
+                                <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                                    <t t-if="record.camera_brand.raw_value">
+                                        <span class="badge bg-info">
+                                            <field name="camera_brand"/>
+                                        </span>
+                                    </t>
+
+                                    <t t-if="record.stream_status.raw_value == 'online' or record.stream_status.raw_value == 'available'">
+                                        <span class="badge bg-success">● Available</span>
+                                    </t>
+                                    <t t-else="">
+                                        <span class="badge bg-danger">● Unavailable</span>
+                                    </t>
+                                </div>
+
+                                <!-- LOCATION -->
+                                <div class="mt-2" style="font-size: 12px;">
+                                    <t t-if="record.location.value">
+                                        📍 <field name="location"/>
+                                    </t>
+                                </div>
+
+                                <!-- UPTIME -->
+                                <div class="mt-2">
+                                    <small class="text-muted">Uptime: <field name="uptime_percentage"/>%</small>
+                                </div>
+
+                                <!-- STATS -->
+                                <div class="asset_specs mt-2" style="font-size: 11px;">
+                                    <t t-if="record.ping_ms.value">
+                                        • Response: <field name="ping_ms"/> ms<br/>
+                                    </t>
+                                    <t t-if="record.last_online.value">
+                                        • Last Online: <field name="last_online"/>
+                                    </t>
+                                </div>
+
+                                <!-- ACTION -->
+                                <div class="kanban_actions">
+                                    <a type="open">Open →</a>
+                                </div>
+
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         FORM VIEW - PROFESSIONAL CARD-BASED LAYOUT
+         ===================================================== -->
+    <record id="view_asset_camera_form" model="ir.ui.view">
+        <field name="name">asset.camera.form</field>
+        <field name="model">asset.camera</field>
+        <field name="arch" type="xml">
+            <form string="CCTV Camera">
+
+                <header>
+                    <button name="test_connection"
+                            type="object"
+                            class="btn-primary"
+                            string="Test Connection"/>
+                    <button name="check_camera_status"
+                            type="object"
+                            class="btn-secondary"
+                            string="Check Status"/>
+                    <field name="stream_status"
+                           widget="statusbar"
+                           statusbar_visible="available,unavailable"/>
+                </header>
+
+                <sheet>
+
+                    <!-- HEADER SECTION: CAMERA NAME + IMAGE -->
+                    <div class="oe_button_box" name="button_box" style="display: none;"/>
+                    
+                    <div style="display: flex; flex-direction: row; flex-wrap: nowrap; margin-bottom: 24px; align-items: stretch; gap: 0; background: #fff; padding: 0; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #f0f0f0; overflow: hidden;">
+                        
+                        <!-- LEFT SECTION: CAMERA TITLE & QUICK INFO -->
+                        <div style="flex: 2; min-width: 0; display: flex; flex-direction: column; gap: 12px; padding: 32px;">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div style="width: 100%;">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div style="background: #f0f9ff; color: #0369a1; padding: 4px 14px; border-radius: 50px; border: 1px solid #bae6fd; display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px;">
+                                            <i class="fa fa-video-camera" style="font-size: 12px;"/>
+                                            <span>CCTV Camera Asset</span>
+                                        </div>
+                                    </div>
+                                    <h1 style="margin: 0; font-size: 42px; font-weight: 800; color: #0f172a; letter-spacing: -1.5px; line-height: 1.1;">
+                                        <field name="name" placeholder="Camera Name..."/>
+                                    </h1>
+                                    <h2 style="margin: 4px 0 0 0; font-size: 18px; font-weight: 600; color: #64748b;">
+                                        <field name="camera_brand" readonly="1" invisible="not camera_brand"/>
+                                        <field name="camera_model" readonly="1" invisible="not camera_model" class="ms-1"/>
+                                    </h2>
+                                    <div class="d-flex align-items-center gap-3 mt-4" style="flex-wrap: wrap;">
+                                        <div style="display: flex; align-items: center; background: #ffffff; padding: 8px 16px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                                            <i class="fa fa-barcode" style="margin-right: 10px; color: #64748b; font-size: 14px;"/>
+                                            <div style="display: flex; flex-direction: column;">
+                                                <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Camera Code</span>
+                                                <field name="camera_code" readonly="1" style="font-size: 14px; font-weight: 700; color: #1e293b;"/>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; align-items: center; background: #ffffff; padding: 8px 16px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                                            <i class="fa fa-globe" style="margin-right: 10px; color: #3b82f6; font-size: 14px;"/>
+                                            <div style="display: flex; flex-direction: column;">
+                                                <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">IP Address</span>
+                                                <field name="camera_ip" readonly="1" style="font-size: 14px; font-weight: 700; color: #1e293b;"/>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; align-items: center; background: #ffffff; padding: 8px 16px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                                            <i class="fa fa-refresh" style="margin-right: 10px; color: #10b981; font-size: 14px;"/>
+                                            <div style="display: flex; flex-direction: column;">
+                                                <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Last Check</span>
+                                                <field name="last_check" readonly="1" style="font-size: 14px; font-weight: 700; color: #1e293b;"/>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; align-items: center; background: #ffffff; padding: 8px 16px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                                            <i class="fa fa-map-marker" style="margin-right: 10px; color: #ef4444; font-size: 14px;"/>
+                                            <div style="display: flex; flex-direction: column;">
+                                                <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Location</span>
+                                                <field name="location" readonly="1" style="font-size: 14px; font-weight: 700; color: #1e293b;"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- MIDDLE SECTION: STATUS & QR (COMPACTED) -->
+                        <div style="flex-shrink: 0; width: 200px; padding: 24px; border-left: 1px solid #f0f0f0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: #fdfdfd;">
+                            <div style="text-align: center;">
+                                <div class="text-muted mb-2" style="font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    Stream Status
+                                </div>
+                                <field name="stream_status" widget="badge"
+                                       decoration-success="stream_status in ['online', 'available']"
+                                       decoration-danger="stream_status in ['offline', 'unavailable', 'error']"
+                                       decoration-muted="stream_status == 'unknown'"
+                                       readonly="1" style="font-size: 11px; font-weight: 800; padding: 8px 16px; border-radius: 8px; text-transform: uppercase; letter-spacing: 1px;"/>
+                            </div>
+                            <div style="text-align: center;">
+                                <div class="text-muted mb-1" style="font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    Quick Scan
+                                </div>
+                                <field name="camera_code" widget="image"
+                                       options="{'type': 'qr', 'size': [80, 80]}"
+                                       style="background: #fff; padding: 6px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; display: inline-block;"/>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT SECTION: CAMERA IMAGE -->
+                        <div class="asset_form_image_container" style="flex-shrink: 0; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 0; border-left: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: center; width: 240px; min-height: 220px; overflow: hidden;">
+                            <field name="camera_image" widget="image"
+                                   options="{'preview_image': 'camera_image'}"
+                                   class="asset_form_image"/>
+                        </div>
+                    </div>
+
+                    <!-- MAIN CONTENT: 3 CARDS -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                        
+                        <!-- CARD 1: AGENT ASSIGNMENT -->
+                        <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
+                                <i class="fa fa-user-circle" style="font-size: 20px; color: #10b981;"/>
+                                <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1f2937; text-transform: uppercase; letter-spacing: 0.5px;">Agent Assignment</h3>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 14px;">
+                                <div>
+                                    <div class="o_form_label" style="display: block; font-size: 10px; color: #6b7280; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">ASSIGNED LOCATION</div>
+                                    <field name="location" placeholder="Not assigned" style="font-weight: 600; color: #111827; font-size: 13px;"/>
+                                </div>
+                                <div>
+                                    <div class="o_form_label" style="display: block; font-size: 10px; color: #6b7280; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">AGENT HOSTNAME</div>
+                                    <field name="agent_hostname" placeholder="N/A" style="font-weight: 600; color: #111827; font-size: 13px;"/>
+                                </div>
+                                <div>
+                                    <div class="o_form_label" style="display: block; font-size: 10px; color: #6b7280; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">AGENT VERSION</div>
+                                    <field name="agent_version" placeholder="N/A" style="font-weight: 600; color: #111827; font-size: 13px;"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CARD 2: CAMERA INFORMATION -->
+                        <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
+                                <i class="fa fa-info-circle" style="font-size: 20px; color: #3b82f6;"/>
+                                <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1f2937; text-transform: uppercase; letter-spacing: 0.5px;">Camera Information</h3>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 14px;">
+                                <div>
+                                    <div class="o_form_label" style="display: block; font-size: 10px; color: #6b7280; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">CAMERA CODE</div>
+                                    <field name="camera_code" readonly="1" style="font-weight: 600; color: #111827; font-size: 13px;"/>
+                                </div>
+                                <div>
+                                    <div class="o_form_label" style="display: block; font-size: 10px; color: #6b7280; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">SERIAL NUMBER</div>
+                                    <field name="camera_ip" placeholder="N/A" readonly="1" style="font-weight: 600; color: #111827; font-size: 13px;"/>
+                                </div>
+                                <div>
+                                    <div class="o_form_label" style="display: block; font-size: 10px; color: #6b7280; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">BRAND</div>
+                                    <field name="camera_brand" style="font-weight: 600; color: #111827; font-size: 13px;"/>
+                                </div>
+                                <div>
+                                    <div class="o_form_label" style="display: block; font-size: 10px; color: #6b7280; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">LOCATION</div>
+                                    <field name="location" readonly="1" placeholder="N/A" style="font-weight: 600; color: #111827; font-size: 13px;"/>
+                                </div>
+                                <div>
+                                    <div class="o_form_label" style="display: block; font-size: 10px; color: #6b7280; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">CAMERA STATUS</div>
+                                    <field name="stream_status" widget="badge" 
+                                           decoration-success="stream_status in ['online', 'available']"
+                                           decoration-danger="stream_status in ['offline', 'unavailable', 'error']"/>
+                                </div>
+                                <div>
+                                    <div class="o_form_label" style="display: block; font-size: 10px; color: #6b7280; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">CONDITION</div>
+                                    <field name="stream_status" widget="badge" 
+                                           decoration-success="stream_status in ['online', 'available']"
+                                           decoration-danger="stream_status in ['offline', 'unavailable', 'error']"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CARD 3: STREAM INFORMATION -->
+                        <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb;">
+                                <i class="fa fa-video-camera" style="font-size: 20px; color: #8b5cf6;"/>
+                                <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1f2937; text-transform: uppercase; letter-spacing: 0.5px;">Stream Information</h3>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 14px;">
+                                <div>
+                                    <div class="o_form_label" style="display: block; font-size: 10px; color: #6b7280; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">ACQUISITION TYPE</div>
+                                    <field name="protocol" placeholder="Select type..." style="font-weight: 600; color: #111827; font-size: 13px;"/>
+                                </div>
+                                <div>
+                                    <div class="o_form_label" style="display: block; font-size: 10px; color: #6b7280; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">LAST CHECKED</div>
+                                    <field name="last_check" style="font-weight: 600; color: #111827; font-size: 13px;"/>
+                                </div>
+                                <div>
+                                    <div class="o_form_label" style="display: block; font-size: 10px; color: #6b7280; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">IN SERVICE DATE</div>
+                                    <field name="last_online" style="font-weight: 600; color: #111827; font-size: 13px;"/>
+                                </div>
+                                <div>
+                                    <div class="o_form_label" style="display: block; font-size: 10px; color: #6b7280; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">RESPONSE TIME</div>
+                                    <div class="d-flex align-items-center">
+                                        <field name="ping_ms" style="font-weight: 600; color: #111827; font-size: 13px;"/>
+                                        <span style="font-size: 11px; color: #64748b; font-weight: 600; margin-left: 2px;">ms</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="o_form_label" style="display: block; font-size: 10px; color: #6b7280; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">RECORDING STATUS</div>
+                                    <field name="is_recording" readonly="1" style="font-weight: 600; color: #111827; font-size: 13px;"/>
+                                </div>
+                                <div>
+                                    <div class="o_form_label" style="display: block; font-size: 10px; color: #6b7280; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">INVOICE REFERENCE</div>
+                                    <field name="camera_model" placeholder="INV-XXXX" style="font-weight: 600; color: #111827; font-size: 13px;"/>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <!-- TABBED SECTION FOR DETAILED SPECS -->
+                    <notebook>
+                        <page string="Camera Specs" icon="fa-video-camera">
+                            <group>
+                                <group string="Video Settings">
+                                    <field name="resolution"/>
+                                    <field name="fps"/>
+                                    <field name="camera_model"/>
+                                </group>
+                                <group string="Status Info">
+                                    <field name="last_online"/>
+                                    <field name="uptime_percentage" widget="progressbar"/>
+                                    <field name="is_active" widget="boolean_toggle"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Network Details" icon="fa-globe">
+                            <group>
+                                <group string="Network Configuration">
+                                    <field name="ip_address"/>
+                                    <field name="port"/>
+                                    <field name="camera_port"/>
+                                    <field name="http_accessible"/>
+                                </group>
+                                <group string="Access URLs">
+                                    <field name="http_url" widget="url"/>
+                                    <field name="rtsp_url"/>
+                                </group>
+                            </group>
+                            <group string="Network Diagnostics">
+                                <group>
+                                    <field name="ping_status" widget="badge"
+                                           decoration-success="ping_status == 'ok'"
+                                           decoration-danger="ping_status == 'fail'"
+                                           readonly="1"/>
+                                </group>
+                            </group>
+                            <group string="Authentication">
+                                <group>
+                                    <field name="username"/>
+                                    <field name="password" password="True"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Storage &amp; File Control" icon="fa-hdd-o">
+                            <group>
+                                <group string="Storage Information (GB)">
+                                    <field name="storage_total_gb"/>
+                                    <field name="storage_used_gb"/>
+                                    <field name="storage_free_gb"/>
+                                    <field name="storage_usage_percent" widget="progressbar"/>
+                                    <field name="disk_usage" widget="progressbar"/>
+                                </group>
+                                <group string="Recording Details">
+                                    <field name="recording_status" widget="boolean_toggle"/>
+                                    <field name="cctv_recording_status"/>
+                                    <field name="motion_detected"/>
+                                    <field name="last_motion_time"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Agent Sync" icon="fa-refresh">
+                            <group>
+                                <group string="Agent Information">
+                                    <field name="agent_hostname"/>
+                                    <field name="agent_version"/>
+                                </group>
+                                <group string="Related Asset">
+                                    <field name="asset_id"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Maintenance History" icon="fa-wrench">
+                            <group>
+                                <p style="color: #6b7280; font-style: italic;">Maintenance history coming soon...</p>
+                            </group>
+                        </page>
+
+                        <page string="Location History" icon="fa-map-marker">
+                            <group>
+                                <field name="location" readonly="1"/>
+                            </group>
+                        </page>
+
+                        <page string="Assignment History" icon="fa-history">
+                            <group>
+                                <p style="color: #6b7280; font-style: italic;">Assignment history coming soon...</p>
+                            </group>
+                        </page>
+
+                        <page string="Audit Logs" icon="fa-list">
+                            <group>
+                                <p style="color: #6b7280; font-style: italic;">Audit logs coming soon...</p>
+                            </group>
+                        </page>
+
+                        <page string="Notes" icon="fa-sticky-note">
+                            <field name="notes" placeholder="Additional notes about this camera..."/>
+                        </page>
+                    </notebook>
+
+                </sheet>
+
+            </form>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         ACTION : CCTV CAMERAS
+         ===================================================== -->
+    <record id="action_asset_camera" model="ir.actions.act_window">
+        <field name="name">CCTV Asset</field>
+        <field name="res_model">asset.camera</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{}</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_asset_camera_kanban')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_asset_camera_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_asset_camera_form')})]"/>
+    </record>
+
+    <!-- =====================================================
+         CAMERA EVENT VIEWS
+         ===================================================== -->
+    <record id="view_camera_event_tree" model="ir.ui.view">
+        <field name="name">camera.event.tree</field>
+        <field name="model">camera.event</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="severity=='critical'" 
+                  decoration-warning="severity=='warning'"
+                  decoration-info="severity=='info'">
+                <field name="event_time"/>
+                <field name="camera_id"/>
+                <field name="event_type"/>
+                <field name="event_message"/>
+                <field name="severity" widget="badge"
+                       decoration-danger="severity=='critical'"
+                       decoration-warning="severity=='warning'"
+                       decoration-info="severity=='info'"/>
+                <field name="is_acknowledged"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_camera_event_form" model="ir.ui.view">
+        <field name="name">camera.event.form</field>
+        <field name="model">camera.event</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="acknowledge_alert" string="Acknowledge" type="object" 
+                            invisible="is_acknowledged" class="oe_highlight"/>
+                    <field name="severity" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="camera_id"/>
+                            <field name="event_type"/>
+                            <field name="event_time"/>
+                        </group>
+                        <group>
+                            <field name="severity"/>
+                            <field name="is_acknowledged"/>
+                            <field name="acknowledged_by" invisible="not is_acknowledged"/>
+                            <field name="acknowledged_time" invisible="not is_acknowledged"/>
+                        </group>
+                    </group>
+                    <group string="Message">
+                        <field name="event_message" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_camera_event" model="ir.actions.act_window">
+        <field name="name">Camera Events</field>
+        <field name="res_model">camera.event</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>
+

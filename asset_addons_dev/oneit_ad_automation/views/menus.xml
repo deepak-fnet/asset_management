@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="menu_oneit_root"
+              name="OneIT"
+              web_icon="oneit_ad_automation,static/description/icon.png"
+              groups="oneit_ad_automation.group_oneit_hr"
+              sequence="45"/>
+
+    <!-- Requests: the equivalent of the Django homepage tiles -->
+    <menuitem id="menu_oneit_requests"
+              name="Requests"
+              parent="menu_oneit_root"
+              sequence="10"/>
+
+    <menuitem id="menu_oneit_onboarding"
+              name="Onboarding"
+              parent="menu_oneit_requests"
+              action="action_oneit_request_onboarding"
+              groups="oneit_ad_automation.group_oneit_hr"
+              sequence="10"/>
+
+    <menuitem id="menu_oneit_offboarding"
+              name="Offboarding"
+              parent="menu_oneit_requests"
+              action="action_oneit_request_offboarding"
+              groups="oneit_ad_automation.group_oneit_hr"
+              sequence="20"/>
+
+    <menuitem id="menu_oneit_team_update"
+              name="Existing User Access"
+              parent="menu_oneit_requests"
+              action="action_oneit_request_team_update"
+              groups="oneit_ad_automation.group_oneit_hr"
+              sequence="30"/>
+
+    <menuitem id="menu_oneit_all_requests"
+              name="All Requests"
+              parent="menu_oneit_requests"
+              action="action_oneit_request"
+              sequence="40"/>
+
+    <!-- Approvals -->
+    <menuitem id="menu_oneit_approvals"
+              name="Approvals"
+              parent="menu_oneit_root"
+              sequence="20"/>
+
+    <menuitem id="menu_oneit_my_approvals"
+              name="My Approvals"
+              parent="menu_oneit_approvals"
+              action="action_oneit_request_my_approvals"
+              sequence="10"/>
+
+    <menuitem id="menu_oneit_approval_history"
+              name="Approval History"
+              parent="menu_oneit_approvals"
+              action="action_oneit_approval"
+              sequence="20"/>
+
+    <!-- Configuration: IT only -->
+    <menuitem id="menu_oneit_configuration"
+              name="Configuration"
+              parent="menu_oneit_root"
+              groups="oneit_ad_automation.group_oneit_it_admin"
+              sequence="90"/>
+
+    <menuitem id="menu_oneit_config_teams"
+              name="Teams"
+              parent="menu_oneit_configuration"
+              action="action_oneit_team"
+              sequence="10"/>
+
+    <menuitem id="menu_oneit_config_ad_groups"
+              name="AD Groups"
+              parent="menu_oneit_configuration"
+              action="action_oneit_ad_group"
+              sequence="20"/>
+
+    <menuitem id="menu_oneit_config_settings"
+              name="Settings"
+              parent="menu_oneit_configuration"
+              action="action_oneit_config_settings"
+              sequence="90"/>
+
+</odoo>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <menuitem id="menu_telemetry_alerts_root"
+              name="Telemetry Alerts"
+              parent="asset_management.menu_asset_root"
+              sequence="59"/>
+
+    <menuitem id="menu_telemetry_alert_log"
+              name="Active Alerts"
+              parent="menu_telemetry_alerts_root"
+              action="action_telemetry_alert_log"
+              sequence="10"/>
+
+    <menuitem id="menu_telemetry_alert_rule"
+              name="Alert Rules"
+              parent="menu_telemetry_alerts_root"
+              action="action_telemetry_alert_rule"
+              sequence="20"
+              groups="asset_management.group_asset_manager"/>
+
+</odoo>

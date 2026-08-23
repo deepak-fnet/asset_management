@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <menuitem id="menu_asset_root" name="Asset"
+              web_icon="asset,static/description/icon.png"
+              sequence="1"/>
+
+    <menuitem id="menu_asset_sub"
+              name="Asset"
+              parent="menu_asset_root"
+              action="action_asset_creation"
+              sequence="3"/>
+
+    <menuitem id="menu_asset_internal_transfer"
+              name="Transfer"
+              parent="menu_asset_root"
+              action="action_asset_transfer"
+              sequence="4"/>
+
+    <menuitem id="menu_asset_assignment"
+              name="Assignment"
+              parent="menu_asset_root"
+              action="action_asset_assignment"
+              sequence="45"/>
+
+    <menuitem id="menu_asset_removal"
+              name="Removal"
+              parent="menu_asset_root"
+              action="action_asset_removal"
+              sequence="5"/>
+
+    <menuitem id="menu_physical_verification"
+              name="Physical Verification"
+              parent="menu_asset_root"
+              action="action_physical_verification"
+              sequence="6"/>
+
+
+    <menuitem id="menu_configuration"
+              name="Configuration"
+              parent="menu_asset_root"
+              sequence="7"/>
+
+    <menuitem id="menu_rfid_comparison"
+              name="RFID Comparison"
+              parent="menu_configuration"
+              action="action_asset_rfid_comparison"
+              sequence="1"/>
+
+    <menuitem id="menu_asset_category"
+              name="Asset Category"
+              parent="menu_configuration"
+              action="action_asset_category"
+              sequence="6"/>
+
+    <menuitem id="menu_asset_sub_category"
+              name="Asset Sub Category"
+              parent="menu_configuration"
+              action="action_asset_sub_category"
+              sequence="7"/>
+
+    <menuitem id="menu_physical_location"
+              name="Physical Location"
+              parent="menu_configuration"
+              action="action_physical_location"
+              sequence="3"/>
+
+    <menuitem id="menu_plant"
+              name="Plant"
+              parent="menu_configuration"
+              action="action_plant_master"
+              sequence="2"/>
+
+    <menuitem id="menu_from_location"
+              name="From Location"
+              parent="menu_configuration"
+              action="action_from_location"
+              sequence="4"/>
+
+    <menuitem id="menu_to_location"
+              name="To Location"
+              parent="menu_configuration"
+              action="action_to_location"
+              sequence="5"/>
+
+<!--    <menuitem id="menu_asset_dashboard"-->
+<!--              name="Dashboard"-->
+<!--              parent="menu_asset_root"-->
+<!--              sequence="1"-->
+<!--              action="action_unified_asset_kanban"/>-->
+
+<!--    <menuitem id="menu_laptop_age_dashboard"-->
+<!--              name="Age Dashboard"-->
+<!--              parent="menu_asset_root"-->
+<!--              sequence="2"-->
+<!--              action="action_laptop_age_dashboard"/>-->
+
+</odoo>

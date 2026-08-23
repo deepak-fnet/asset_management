@@ -1,0 +1,24 @@
+<odoo>
+    <record id="view_partial_po_confirm_wizard_form" model="ir.ui.view">
+        <field name="name">po.confirm.wizard.form</field>
+        <field name="model">po.confirm.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Confirm Partial PO">
+                <sheet>
+                    <div class="alert alert-warning" role="alert">
+                        <field name="message" readonly="1"/>
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="action_confirm_partial_po"
+                            type="object"
+                            string="Confirm"
+                            class="btn-primary"/>
+                    <button string="Cancel"
+                            special="cancel"
+                            class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

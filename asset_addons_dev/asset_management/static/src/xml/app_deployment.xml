@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="asset_management.AppDeploymentDashboard" owl="1">
+        <div class="o_app_deployment_dashboard">
+            <!-- Header Section -->
+            <div class="o_deployment_header">
+                <div class="o_header_left">
+                    <h1 class="o_page_title">
+                        <t t-if="state.platformFilter == 'windows'">
+                            Windows App Deployment
+                        </t>
+                        <t t-elif="state.platformFilter == 'linux'">
+                            Linux App Deployment
+                        </t>
+                        <t t-elif="state.platformFilter == 'macos'">
+                            macOS App Deployment
+                        </t>
+                        <t t-else="">
+                            App Deployment
+                        </t>
+                    </h1>
+                    <p class="o_page_subtitle">Push application installations to employee devices</p>
+                </div>
+                <div class="o_header_right">
+                    <span class="refresh_time" t-if="state.lastRefresh">
+                        <i class="fa fa-clock-o"/> Last updated: <t t-esc="state.lastRefresh"/>
+                    </span>
+                    <button class="btn btn-sm" 
+                            t-att-class="state.autoRefresh ? 'btn-success' : 'btn-outline-secondary'"
+                            t-on-click="() => this.toggleAutoRefresh()"
+                            t-att-title="state.autoRefresh ? 'Disable auto-refresh' : 'Enable auto-refresh'">
+                        <i class="fa" t-att-class="state.autoRefresh ? 'fa-pause' : 'fa-play'"/>
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" 
+                            t-on-click="() => this.refreshDashboard()"
+                            t-att-disabled="state.loading">
+                        <i class="fa fa-refresh" t-att-class="{'fa-spin': state.loading}"/>
+                    </button>
+                    <button class="btn btn-primary o_deploy_btn" t-on-click="() => this.openDeploymentWizard()">
+                        <i class="fa fa-plus"/> Deploy Application
+                    </button>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="o_stats_container">
+                <!-- Pending Card -->
+                <div class="o_stat_card o_stat_pending o_stat_card_clickable"
+                     t-on-click="() => this.onStatCardClick('pending')"
+                     title="View pending deployments">
+                    <div class="o_stat_card_content">
+                        <div class="o_stat_icon_wrapper">
+                            <i class="fa fa-clock-o"/>
+                        </div>
+                        <div class="o_stat_info">
+                            <span class="o_stat_label">Pending</span>
+                            <span class="o_stat_value"><t t-esc="state.stats.pending"/></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- In Progress Card -->
+                <div class="o_stat_card o_stat_in_progress o_stat_card_clickable"
+                     t-on-click="() => this.onStatCardClick('in_progress')"
+                     title="View in-progress deployments">
+                    <div class="o_stat_card_content">
+                        <div class="o_stat_icon_wrapper">
+                            <i class="fa fa-circle-o-notch"/>
+                        </div>
+                        <div class="o_stat_info">
+                            <span class="o_stat_label">In Progress</span>
+                            <span class="o_stat_value"><t t-esc="state.stats.in_progress"/></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Succeeded Card -->
+                <div class="o_stat_card o_stat_success o_stat_card_clickable"
+                     t-on-click="() => this.onStatCardClick('success')"
+                     title="View succeeded deployments">
+                    <div class="o_stat_card_content">
+                        <div class="o_stat_icon_wrapper">
+                            <i class="fa fa-check-circle"/>
+                        </div>
+                        <div class="o_stat_info">
+                            <span class="o_stat_label">Succeeded</span>
+                            <span class="o_stat_value"><t t-esc="state.stats.success"/></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Failed Card -->
+                <div class="o_stat_card o_stat_failed o_stat_card_clickable"
+                     t-on-click="() => this.onStatCardClick('failed')"
+                     title="View failed deployments">
+                    <div class="o_stat_card_content">
+                        <div class="o_stat_icon_wrapper">
+                            <i class="fa fa-times-circle"/>
+                        </div>
+                        <div class="o_stat_info">
+                            <span class="o_stat_label">Failed</span>
+                            <span class="o_stat_value"><t t-esc="state.stats.failed"/></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search and Filter Bar -->
+            <div class="o_filter_bar">
+                <div class="o_search_wrapper">
+                    <i class="fa fa-search o_search_icon"/>
+                    <input type="text" 
+                           class="o_search_input" 
+                           placeholder="Search assets by name, code, serial, or employee..."
+                           t-model="state.assetSearchQuery"
+                           t-on-input="(ev) => this.onAssetSearchInput(ev)"/>
+                </div>
+                <div class="o_status_filter_wrapper">
+                    <select class="o_status_filter" t-on-change="(ev) => this.onAssetStatusFilterChange(ev)">
+                        <option value="all">All Devices</option>
+                        <option value="online">Online</option>
+                        <option value="offline">Offline</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="o_deployment_content">
+                <!-- Loading State -->
+                <div t-if="state.loading" class="o_loading_state">
+                    <i class="fa fa-spinner fa-spin fa-3x"/>
+                    <p>Loading deployments...</p>
+                </div>
+
+                <!-- Deployments List -->
+                <div t-if="!state.loading &amp;&amp; state.deployments.length > 0" class="o_deployments_list">
+                    <div class="o_deployments_table">
+                        <div class="o_table_header">
+                            <div class="o_col_application">Application</div>
+                            <div class="o_col_device">Device</div>
+                            <div class="o_col_status">Status</div>
+                            <div class="o_col_package">Package Manager</div>
+                            <div class="o_col_date">Date</div>
+                            <div class="o_col_actions">Actions</div>
+                        </div>
+                        <div class="o_table_body">
+                            <t t-foreach="state.deployments" t-as="deployment" t-key="deployment.id">
+                                <div class="o_table_row" t-on-click="(ev) => this.onRowClick(ev)" t-att-data-id="deployment.id">
+                                    <div class="o_col_application">
+                                        <div class="o_app_icon">
+                                            <i class="fa fa-cube"/>
+                                        </div>
+                                        <span class="o_app_name"><t t-esc="deployment.application_name"/></span>
+                                    </div>
+                                    <div class="o_col_device">
+                                        <span class="o_device_name"><t t-esc="deployment.device_name"/></span>
+                                    </div>
+                                    <div class="o_col_status">
+                                        <span t-att-class="'o_status_badge o_status_' + deployment.status">
+                                            <i t-att-class="'fa ' + deployment.status_icon"/>
+                                            <t t-esc="deployment.status_label"/>
+                                        </span>
+                                    </div>
+                                    <div class="o_col_package">
+                                        <span class="o_package_name"><t t-esc="deployment.package_manager_label"/></span>
+                                    </div>
+                                    <div class="o_col_date">
+                                        <span class="o_date_text"><t t-esc="deployment.deployment_date"/></span>
+                                    </div>
+                                    <div class="o_col_actions">
+                                        <button class="btn btn-sm btn-icon"
+                                                t-if="deployment.status === 'failed'"
+                                                t-on-click="(ev) => this.onRetryClick(ev)"
+                                                t-att-data-id="deployment.id"
+                                                title="Retry">
+                                            <i class="fa fa-refresh"/>
+                                        </button>
+                                        <button class="btn btn-sm btn-icon"
+                                                t-on-click="(ev) => this.onViewClick(ev)"
+                                                t-att-data-id="deployment.id"
+                                                title="View Details">
+                                            <i class="fa fa-eye"/>
+                                        </button>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Available Assets Section -->
+                <div class="o_available_assets_section">
+                    <!-- Platform Tabs - Only show when no platform filter is set (unified view) -->
+                    <div class="o_platform_tabs" t-if="!state.platformFilter">
+                        <button class="o_tab_btn" t-att-class="state.activePlatform === 'windows' ? 'active' : ''" t-on-click="() => this.switchPlatform('windows')">
+                            <i class="fa fa-windows"/> WINDOWS
+                        </button>
+                        <button class="o_tab_btn" t-att-class="state.activePlatform === 'linux' ? 'active' : ''" t-on-click="() => this.switchPlatform('linux')">
+                            <i class="fa fa-linux"/> LINUX
+                        </button>
+                        <button class="o_tab_btn" t-att-class="state.activePlatform === 'macos' ? 'active' : ''" t-on-click="() => this.switchPlatform('macos')">
+                            <i class="fa fa-apple"/> MACOS
+                        </button>
+                    </div>
+
+                    <!-- Selection Action Bar -->
+                    <div class="o_selection_action_bar" t-if="state.selectedAssets.size > 0">
+                        <!-- Left: selection count badge -->
+                        <div class="o_sel_left">
+                            <div class="o_sel_badge">
+                                <i class="fa fa-check"/>
+                            </div>
+                            <div class="o_sel_label">
+                                <span class="o_sel_count"><t t-esc="state.selectedAssets.size"/></span>
+                                <span class="o_sel_text">asset<t t-if="state.selectedAssets.size > 1">s</t> selected</span>
+                            </div>
+                        </div>
+
+                        <!-- Divider -->
+                        <div class="o_sel_divider"/>
+
+                        <!-- Right: action buttons -->
+                        <div class="o_sel_actions">
+                            <button class="o_sel_btn o_sel_btn_deploy" t-on-click="() => this.deployToSelectedAssets()">
+                                <i class="fa fa-rocket"/>
+                                <span>Deploy</span>
+                            </button>
+                            <button class="o_sel_btn o_sel_btn_uninstall" t-on-click="() => this.uninstallFromSelectedAssets()">
+                                <i class="fa fa-trash-o"/>
+                                <span>Uninstall</span>
+                            </button>
+                            <button class="o_sel_btn_clear" t-on-click="() => this.clearSelection()" title="Clear selection">
+                                <i class="fa fa-times"/>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="o_section_header">
+                        <h3>
+                            <i class="fa fa-desktop"/> Available <t t-esc="state.activePlatform ? state.activePlatform.charAt(0).toUpperCase() + state.activePlatform.slice(1) : ''"/> Assets
+                        </h3>
+                        <div class="o_header_actions">
+                            <span class="badge" t-att-class="state.filteredAssets.length > 0 ? 'bg-primary' : 'bg-secondary'">
+                                <t t-esc="state.filteredAssets.length"/> devices
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="o_assets_table_view">
+                        <table class="o_assets_table">
+                            <thead>
+                                <tr>
+                                    <th class="o_col_check">
+                                        <input type="checkbox" 
+                                               t-att-checked="state.selectAll"
+                                               t-on-click="() => this.toggleSelectAll()"/>
+                                    </th>
+                                    <th class="o_col_icon"></th>
+                                    <th class="o_col_name">DEVICE NAME</th>
+                                    <th class="o_col_code">ASSET CODE</th>
+                                    <th class="o_col_platform">PLATFORM</th>
+                                    <th class="o_col_status">STATUS</th>
+                                    <th class="o_col_dep_status">DEP. STATUS</th>
+                                    <th class="o_col_app_count">INSTALLED APPS</th>
+                                    <th class="o_col_actions">ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-if="state.filteredAssets.length === 0">
+                                    <tr>
+                                        <td colspan="8" class="o_empty_row">
+                                            <i class="fa fa-inbox fa-3x"/>
+                                            <p t-if="state.assets.length === 0">No assets found for this platform</p>
+                                            <p t-else="">No assets match your search criteria</p>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <t t-else="">
+                                    <t t-foreach="state.filteredAssets" t-as="asset" t-key="asset.id">
+                                        <tr t-att-class="state.selectedAssets.has(asset.id) ? 'o_asset_row_selected' : ''"
+                                            t-on-click="() => this.toggleAssetSelection(asset.id)">
+                                            <td class="o_col_check" t-on-click="(ev) => ev.stopPropagation()">
+                                                <input type="checkbox"
+                                                       t-att-checked="state.selectedAssets.has(asset.id)"
+                                                       t-on-change="() => this.toggleAssetSelection(asset.id)"/>
+                                            </td>
+                                            <td class="o_col_icon">
+                                                <div class="o_asset_icon_wrapper">
+                                                    <t t-if="asset.has_image">
+                                                        <img t-att-src="'/web/image?model=asset.asset&amp;id=' + asset.id + '&amp;field=image_128'" 
+                                                             class="o_asset_mini_img"/>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <i class="fa fa-laptop"/>
+                                                    </t>
+                                                    <span class="o_os_icon_badge">
+                                                        <i class="fa" t-att-class="this.getPlatformIcon(asset.os_platform)"/>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td class="o_col_name">
+                                                <div class="o_device_name_info">
+                                                    <span class="o_main_name" t-esc="asset.asset_name"/>
+                                                    <span class="o_sub_info" t-esc="asset.assigned_employee"/>
+                                                </div>
+                                            </td>
+                                            <td class="o_col_code">
+                                                <span class="o_code_text" t-esc="asset.asset_code"/>
+                                            </td>
+                                            <td class="o_col_platform">
+                                                <span class="o_platform_badge" t-att-class="'o_platform_' + asset.os_platform">
+                                                    <t t-esc="asset.os_platform.toUpperCase()"/>
+                                                </span>
+                                            </td>
+                                            <td class="o_col_status">
+                                                <span class="o_status_dot_badge" t-att-class="asset.is_online ? 'online' : 'offline'">
+                                                    <t t-esc="asset.is_online ? 'online' : 'offline'"/>
+                                                </span>
+                                            </td>
+                                            <td class="o_col_dep_status">
+                                                <t t-if="asset.dep_status">
+                                                    <span t-attf-class="o_dep_status_pill o_dep_status_#{asset.dep_status}">
+                                                        <t t-if="asset.dep_status === 'pending'"><i class="fa fa-clock-o"/> Pending</t>
+                                                        <t t-elif="asset.dep_status === 'in_progress'"><i class="fa fa-circle-o-notch fa-spin"/> In Progress</t>
+                                                        <t t-elif="asset.dep_status === 'success'"><i class="fa fa-check-circle"/> Succeeded</t>
+                                                        <t t-elif="asset.dep_status === 'failed'"><i class="fa fa-times-circle"/> Failed</t>
+                                                    </span>
+                                                </t>
+                                                <t t-else="">
+                                                    <span class="o_dep_status_none">—</span>
+                                                </t>
+                                            </td>
+                                            <td class="o_col_app_count" t-on-click="(ev) => ev.stopPropagation()">
+                                                <button class="o_app_count_btn" t-on-click="() => this.openInstalledApps(asset.id, asset.asset_name)" title="View Installed Applications">
+                                                    <i class="fa fa-th-large"/>
+                                                    <span class="o_app_count_num" t-esc="asset.app_count"/>
+                                                    <span class="o_app_count_label">apps</span>
+                                                </button>
+                                            </td>
+                                            <td class="o_col_actions" t-on-click="(ev) => ev.stopPropagation()">
+                                                <button class="btn btn-sm o_deploy_action_btn" t-on-click="() => this.deployToAsset(asset.id)" title="Deploy App">
+                                                    <i class="fa fa-rocket"/> Deploy
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_mobile_storage_volume_list" model="ir.ui.view">
+        <field name="name">mobile.storage.volume.list</field>
+        <field name="model">mobile.storage.volume</field>
+        <field name="arch" type="xml">
+            <list string="Storage Volumes" decoration-danger="used_pct &gt; 90"
+                  decoration-warning="used_pct &gt; 75">
+                <field name="device_id"/>
+                <field name="name"/>
+                <field name="is_primary"/>
+                <field name="is_removable"/>
+                <field name="state"/>
+                <field name="total_gb" sum="Total GB"/>
+                <field name="free_gb" sum="Free GB"/>
+                <field name="used_gb"/>
+                <field name="used_pct" widget="progressbar"/>
+                <field name="last_reported"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_mobile_storage_volume" model="ir.actions.act_window">
+        <field name="name">Storage Volumes</field>
+        <field name="res_model">mobile.storage.volume</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_cve_list" model="ir.ui.view">
+        <field name="name">asset.cve.list</field>
+        <field name="model">asset.cve</field>
+        <field name="arch" type="xml">
+            <list create="false"
+                  decoration-danger="severity == 'critical'"
+                  decoration-warning="severity == 'high'">
+                <field name="cve_id"/>
+                <field name="cvss_score"/>
+                <field name="severity" widget="badge"/>
+                <field name="published_date"/>
+                <field name="affected_asset_count" string="Affected"/>
+                <field name="remediation_hint" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cve_form" model="ir.ui.view">
+        <field name="name">asset.cve.form</field>
+        <field name="model">asset.cve</field>
+        <field name="arch" type="xml">
+            <form create="false">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="cve_id" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="cvss_score" readonly="1"/>
+                            <field name="severity" widget="badge" readonly="1"/>
+                            <field name="cvss_vector" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="published_date" readonly="1"/>
+                            <field name="modified_date" readonly="1"/>
+                            <field name="affected_asset_count" readonly="1"/>
+                            <field name="reference_url" widget="url" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Remediation">
+                        <field name="remediation_hint" nolabel="1" readonly="1"/>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1" readonly="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Affected Products (CPE)">
+                            <field name="cpe_ids" readonly="1">
+                                <list>
+                                    <field name="vendor"/>
+                                    <field name="product"/>
+                                    <field name="exact_version"/>
+                                    <field name="version_start_including"/>
+                                    <field name="version_end_excluding"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Findings">
+                            <field name="vulnerability_ids" readonly="1">
+                                <list>
+                                    <field name="asset_id"/>
+                                    <field name="software_name"/>
+                                    <field name="software_version"/>
+                                    <field name="confidence"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cve_search" model="ir.ui.view">
+        <field name="name">asset.cve.search</field>
+        <field name="model">asset.cve</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="cve_id"/>
+                <field name="description"/>
+                <filter name="f_critical" string="Critical"
+                        domain="[('severity','=','critical')]"/>
+                <filter name="f_high" string="High"
+                        domain="[('severity','=','high')]"/>
+                <separator/>
+                <filter name="f_affecting" string="Affecting Our Fleet"
+                        domain="[('affected_asset_count','&gt;',0)]"/>
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter name="g_sev" string="Severity"-->
+<!--                            context="{'group_by':'severity'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <record id="action_cve" model="ir.actions.act_window">
+        <field name="name">CVE Database</field>
+        <field name="res_model">asset.cve</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_cve_search"/>
+    </record>
+</odoo>

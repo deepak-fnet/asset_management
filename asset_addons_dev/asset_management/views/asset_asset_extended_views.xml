@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_asset_asset_form_inherit_extra" model="ir.ui.view">
+        <field name="name">asset.asset.form.inherit.extra</field>
+        <field name="model">asset.asset</field>
+        <field name="inherit_id" ref="asset_management.view_asset_asset_form"/>
+        <field name="arch" type="xml">
+            <!-- Add notebook pages for History -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Maintenance History">
+                    <field name="repair_management_ids" readonly="1">
+                        <list string="Maintenance History" create="false" delete="false">
+                            <field name="name" string="Reference"/>
+                            <field name="issue_type" string="Issue Type"/>
+                            <field name="state" string="Status" widget="badge" 
+                                decoration-info="state == 'in_progress'" 
+                                decoration-success="state == 'done'" 
+                                decoration-danger="state == 'not_repairable'"/>
+                            <field name="request_date" string="Request Date"/>
+                            <field name="resolution_date" string="Resolution Date"/>
+                            <field name="engineer_id" string="Assigned Engineer"/>
+                        </list>
+                    </field>
+                </page>
+                <page string="Assignment History">
+                    <field name="assignment_history_ids" readonly="1">
+                        <list>
+                            <field name="date"/>
+                            <field name="employee_id"/>
+                            <field name="action"/>
+                            <field name="description"/>
+                            <field name="user_id"/>
+                        </list>
+                    </field>
+                </page>
+                <page string="Audit Logs">
+                    <field name="audit_log_ids" readonly="1">
+                        <list>
+                            <field name="timestamp"/>
+                            <field name="action" widget="badge"/>
+                            <field name="description"/>
+                            <field name="user_id"/>
+                        </list>
+                    </field>
+                </page>
+                <!-- File Access tab removed from here — now handled by
+                     asset_file_access_views.xml (view_asset_form_file_access_inherit)
+                     which uses the correct asset.file.access.record model -->
+            </xpath>
+        </field>
+    </record>
+</odoo>

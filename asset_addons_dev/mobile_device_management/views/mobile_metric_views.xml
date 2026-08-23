@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_mobile_metric_list" model="ir.ui.view">
+        <field name="name">mobile.metric.list</field>
+        <field name="model">mobile.metric</field>
+        <field name="arch" type="xml">
+            <list string="Metrics" decoration-warning="is_low_memory">
+                <field name="recorded_at"/>
+                <field name="device_id"/>
+                <field name="battery_level" widget="progressbar"/>
+                <field name="is_charging"/>
+                <field name="battery_temp_c"/>
+                <field name="ram_used_pct" widget="progressbar"/>
+                <field name="ram_available_gb"/>
+                <field name="is_low_memory"/>
+                <field name="storage_used_pct" widget="progressbar"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mobile_metric_graph" model="ir.ui.view">
+        <field name="name">mobile.metric.graph</field>
+        <field name="model">mobile.metric</field>
+        <field name="arch" type="xml">
+            <graph string="Device Metrics" type="line" sample="1">
+                <field name="recorded_at" interval="hour"/>
+                <field name="battery_level" type="measure"/>
+                <field name="ram_used_pct" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_mobile_metric_search" model="ir.ui.view">
+        <field name="name">mobile.metric.search</field>
+        <field name="model">mobile.metric</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="device_id"/>
+                <filter name="f_low_mem" string="Low Memory" domain="[('is_low_memory','=',True)]"/>
+                <filter name="f_low_batt" string="Battery under 20%" domain="[('battery_level','&lt;',20)]"/>
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter name="g_device" string="Device" context="{'group_by':'device_id'}"/>-->
+<!--                    <filter name="g_day" string="Day" context="{'group_by':'recorded_at:day'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <record id="action_mobile_metric" model="ir.actions.act_window">
+        <field name="name">Device Metrics</field>
+        <field name="res_model">mobile.metric</field>
+        <field name="view_mode">graph,list</field>
+        <field name="search_view_id" ref="view_mobile_metric_search"/>
+    </record>
+</odoo>

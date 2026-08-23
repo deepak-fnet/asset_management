@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_asset_category_mapping_list" model="ir.ui.view">
+        <field name="name">asset.category.mapping.list</field>
+        <field name="model">asset.category.mapping</field>
+        <field name="arch" type="xml">
+            <list string="Product Category Mapping" editable="bottom">
+                <field name="product_category_id"/>
+                <field name="is_fixed_asset"/>
+                <field name="category_id"/>
+                <field name="sub_category_id"/>
+                <field name="plant_id"/>
+                <field name="location_id"/>
+                <field name="department_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_category_mapping_form" model="ir.ui.view">
+        <field name="name">asset.category.mapping.form</field>
+        <field name="model">asset.category.mapping</field>
+        <field name="arch" type="xml">
+            <form string="Product Category Mapping">
+                <sheet>
+                    <group>
+                        <group string="Product Category">
+                            <field name="product_category_id"/>
+                            <field name="is_fixed_asset"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Asset Defaults">
+                            <field name="category_id"/>
+                            <field name="sub_category_id"/>
+                            <field name="plant_id"/>
+                            <field name="location_id"/>
+                            <field name="department_id"/>
+                        </group>
+                    </group>
+                    <div class="text-muted">
+                        Assets created from a receipt of products in this category are
+                        seeded with these values.
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_asset_category_mapping_search" model="ir.ui.view">
+        <field name="name">asset.category.mapping.search</field>
+        <field name="model">asset.category.mapping</field>
+        <field name="arch" type="xml">
+            <search string="Search Mapping">
+                <field name="product_category_id"/>
+                <field name="category_id"/>
+                <field name="sub_category_id"/>
+                <filter string="Fixed Asset" name="is_fixed_asset"
+                        domain="[('is_fixed_asset', '=', True)]"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Plant" name="group_plant" context="{'group_by': 'plant_id'}"/>
+                    <filter string="Department" name="group_department"
+                            context="{'group_by': 'department_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_asset_category_mapping" model="ir.actions.act_window">
+        <field name="name">Product Category Mapping</field>
+        <field name="res_model">asset.category.mapping</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Map a product category to asset defaults
+            </p>
+            <p>
+                Products in a mapped category are pre-ticked as fixed assets on purchase
+                order lines and receipt lines. When the receipt is validated, one asset is
+                created per unit received, seeded with the machine type, plant, physical
+                location and department configured here.
+            </p>
+        </field>
+    </record>
+
+</odoo>

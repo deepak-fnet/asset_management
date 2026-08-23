@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record model="ir.ui.view" id="purchase_approval_config_view_list">
+        <field name="name">purchase.approval.config.list</field>
+        <field name="model">purchase.approval.config</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="approver_ids" widget="many2many_tags"/>
+                <field name="is_default" widget="boolean_toggle"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="purchase_approval_config_view_form">
+        <field name="name">purchase.approval.config.form</field>
+        <field name="model">purchase.approval.config</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                            invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Standard Approval Flow"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="is_default"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="sequence"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Approvers" name="approvers">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="user_id"/>
+                                </list>
+                            </field>
+                            <div class="text-muted mt-2">
+                                Every user listed here must approve a Purchase Order
+                                before it can be confirmed. When "Default" is ticked,
+                                new Purchase Orders pick up this flow automatically.
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_purchase_approval_config">
+        <field name="name">Approvals</field>
+        <field name="res_model">purchase.approval.config</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Define an approval flow
+            </p>
+            <p>
+                Add the users who must approve a Purchase Order. Mark one flow as
+                "Default" to make approval mandatory on new Purchase Orders.
+                With no default flow, orders are created without any approval step.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_purchase_approval_config"
+              name="Approvals"
+              parent="purchase.menu_purchase_config"
+              action="action_purchase_approval_config"
+              groups="purchase.group_purchase_manager"
+              sequence="90"/>
+
+</odoo>

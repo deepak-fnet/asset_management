@@ -1,0 +1,450 @@
+/* Network Device Dashboard Styles */
+.o_network_device_dashboard {
+    display: flex;
+    height: 100%;
+    background-color: #f8f9fa;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ==================== SIDEBAR ==================== */
+.nd_sidebar {
+    width: 380px;
+    background: white;
+    border-right: 1px solid #e9ecef;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.nd_sidebar_header {
+    padding: 20px;
+    border-bottom: 1px solid #e9ecef;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.nd_sidebar_header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.nd_sidebar_header .form-control,
+.nd_sidebar_header .form-select {
+    background-color: rgba(255, 255, 255, 0.95);
+    border: none;
+}
+
+.nd_sidebar_header .form-label {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.nd_sidebar_header .input-group-text {
+    background-color: rgba(255, 255, 255, 0.95);
+    border: none;
+}
+
+.nd_filters {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 15px;
+}
+
+.nd_filter_group {
+    margin-bottom: 0;
+}
+
+.nd_stats_summary {
+    margin-top: 15px;
+}
+
+.nd_stats_summary .badge {
+    font-size: 0.75rem;
+    padding: 6px 10px;
+}
+
+/* Device List */
+.nd_device_list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+}
+
+.nd_device_card {
+    padding: 15px;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.nd_device_card:hover {
+    border-color: #667eea;
+    background-color: #f8f9ff;
+    transform: translateX(3px);
+}
+
+.nd_device_card.active {
+    border-color: #667eea;
+    border-width: 2px;
+    background-color: #f0f4ff;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+.nd_device_name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #212529;
+}
+
+.nd_device_code {
+    font-size: 0.8rem;
+    color: #6c757d;
+    font-family: monospace;
+}
+
+.nd_device_info {
+    font-size: 0.85rem;
+    color: #495057;
+}
+
+.nd_status_badge {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.nd_badge_success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.nd_badge_danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.nd_badge_warning {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.nd_badge_secondary {
+    background-color: #e9ecef;
+    color: #495057;
+}
+
+/* ==================== MAIN CONTENT ==================== */
+.nd_main {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+}
+
+.nd_header {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.nd_header h2 {
+    font-weight: 700;
+    color: #212529;
+}
+
+/* Status Row */
+.nd_status_row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.nd_status_card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.nd_status_icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+}
+
+.nd_status_info {
+    flex: 1;
+}
+
+.nd_status_label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.nd_status_value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #212529;
+}
+
+.nd_status_value_small {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* Background colors for status icons */
+.bg-success-light { background-color: #d4edda; }
+.bg-danger-light { background-color: #f8d7da; }
+.bg-warning-light { background-color: #fff3cd; }
+.bg-secondary-light { background-color: #e9ecef; }
+.bg-info-light { background-color: #d1ecf1; }
+.bg-purple-light { background-color: #e8daef; }
+
+.text-purple { color: #8e44ad; }
+
+/* Metrics Grid */
+.nd_metrics_grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.nd_metric_card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.nd_metric_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.nd_metric_title {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.nd_metric_icon {
+    margin-right: 10px;
+    font-size: 1.1rem;
+    color: #667eea;
+}
+
+.nd_metric_value_row {
+    margin-bottom: 15px;
+}
+
+.nd_metric_value {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #212529;
+}
+
+.nd_metric_unit {
+    font-size: 1rem;
+    color: #6c757d;
+    margin-left: 5px;
+}
+
+.nd_metric_subinfo {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.nd_progress {
+    height: 8px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.nd_progress_bar {
+    height: 100%;
+    transition: width 0.3s ease;
+    border-radius: 4px;
+}
+
+.bg-healthy { background-color: #28a745; }
+.bg-warning { background-color: #ffc107; }
+.bg-danger { background-color: #dc3545; }
+
+/* Info Grid */
+.nd_info_grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.nd_info_card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.nd_info_card h5 {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.nd_info_table {
+    width: 100%;
+}
+
+.nd_info_table td {
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f3f5;
+}
+
+.nd_info_table td:first-child {
+    font-weight: 500;
+    color: #6c757d;
+    width: 45%;
+}
+
+.nd_info_table td:last-child {
+    color: #212529;
+}
+
+/* Interfaces Section */
+.nd_interfaces_section {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.nd_interfaces_section h5 {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 15px;
+}
+
+.nd_interfaces_table_wrapper {
+    overflow-x: auto;
+}
+
+.nd_interfaces_table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.nd_interfaces_table th {
+    background-color: #f8f9fa;
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.nd_interfaces_table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 0.9rem;
+}
+
+.nd_interfaces_table tr:hover {
+    background-color: #f8f9fa;
+}
+
+.nd_interfaces_table code {
+    background-color: #f1f3f5;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+/* No Selection State */
+.nd_no_selection {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: #6c757d;
+}
+
+.nd_no_selection i {
+    opacity: 0.3;
+}
+
+.nd_no_selection h3 {
+    margin-top: 20px;
+    color: #495057;
+}
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+    .nd_status_row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 1200px) {
+    .nd_sidebar {
+        width: 320px;
+    }
+
+    .nd_info_grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 992px) {
+    .o_network_device_dashboard {
+        flex-direction: column;
+    }
+
+    .nd_sidebar {
+        width: 100%;
+        max-height: 400px;
+    }
+
+    .nd_status_row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .nd_metrics_grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .nd_status_row {
+        grid-template-columns: 1fr;
+    }
+
+    .nd_metrics_grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Surface warranty claims and licenses on the main asset form, so the
+         asset record stays the single place to see everything about a
+         machine rather than making people go hunting in a separate menu. -->
+    <record id="view_asset_asset_form_warranty_license" model="ir.ui.view">
+        <field name="name">asset.asset.form.warranty.license</field>
+        <field name="model">asset.asset</field>
+        <field name="inherit_id" ref="asset_management.view_asset_asset_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_warranty_claims" type="object"
+                        class="oe_stat_button" icon="fa-wrench"
+                        invisible="warranty_claim_count == 0">
+                    <field name="warranty_claim_count" widget="statinfo"
+                           string="Claims"/>
+                </button>
+                <button name="action_view_licenses" type="object"
+                        class="oe_stat_button" icon="fa-key"
+                        invisible="license_count == 0">
+                    <field name="license_count" widget="statinfo"
+                           string="Licenses"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

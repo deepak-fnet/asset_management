@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_asset_remote_session" model="ir.sequence">
+            <field name="name">Asset Remote Session</field>
+            <field name="code">asset.remote.session</field>
+            <field name="prefix">AR/%(year)s/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- Dedicated relay for asset remote sessions (separate port from any
+             other relay). Use wss:// in production behind TLS. -->
+        <record id="param_asset_relay_url" model="ir.config_parameter">
+            <field name="key">asset_remote.relay_url</field>
+            <field name="value">ws://localhost:8766</field>
+        </record>
+        <record id="param_asset_default_minutes" model="ir.config_parameter">
+            <field name="key">asset_remote.default_minutes</field>
+            <field name="value">30</field>
+        </record>
+
+        <record id="cron_asset_remote_expire" model="ir.cron">
+            <field name="name">Asset Remote: Expire stale sessions</field>
+            <field name="model_id" ref="model_asset_remote_session"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_expire_stale()</field>
+            <field name="interval_number">5</field>
+            <field name="interval_type">minutes</field>
+            <field name="active" eval="True"/>
+        </record>
+    </data>
+</odoo>

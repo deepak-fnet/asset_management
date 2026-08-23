@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Form View -->
+    <record id="view_asset_removal_form" model="ir.ui.view">
+        <field name="name">asset.removal.form</field>
+        <field name="model">asset.removal</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_submit" type="object" string="Submit"
+                            class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_department_approve" type="object" string="Department Approve"
+                            class="oe_highlight" invisible="state != 'submit'"/>
+                    <button name="action_approve" type="object" string="Approve"
+                            class="oe_highlight" invisible="state != 'dept_approved'"/>
+                    <button name="action_done" type="object" string="Remove / Scrap"
+                            class="oe_highlight" invisible="state != 'approved'"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state in ('done', 'cancel')"/>
+                    <button name="action_draft" type="object" string="Reset to Draft"
+                            invisible="state != 'cancel'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,submit,dept_approved,approved,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_asset" type="object"
+                                class="oe_stat_button" icon="fa-cube"
+                                invisible="not asset_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Asset</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name" string="Reference"/>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+
+                    <div class="alert alert-warning" role="alert"
+                         invisible="not employee_id or replacement_ready or state == 'done'">
+                        <strong>This asset is still held by
+                            <field name="employee_id" readonly="1" nolabel="1" class="oe_inline"/>.
+                        </strong>
+                        Assign a replacement asset to that employee before removing this one,
+                        otherwise the removal cannot be completed.
+                    </div>
+                    <div class="alert alert-success" role="alert"
+                         invisible="not employee_id or not replacement_ready or state == 'done'">
+                        Replacement is in place for
+                        <field name="employee_id" readonly="1" nolabel="1" class="oe_inline"/>.
+                        This asset can be removed.
+                    </div>
+
+                    <group>
+                        <group string="Asset" name="asset">
+                            <field name="asset_id" readonly="state != 'draft'"/>
+                            <field name="department_id"/>
+                            <field name="removal_type" readonly="state == 'done'"/>
+                        </group>
+                        <group string="Movement" name="movement">
+                            <field name="location_from_id"/>
+                            <field name="location_to_id"/>
+                            <field name="request_date"/>
+                            <field name="removal_date" invisible="not removal_date"/>
+                        </group>
+                        <group string="Handover" name="handover" invisible="not employee_id">
+                            <field name="employee_id" readonly="1"/>
+                            <field name="replacement_asset_id"
+                                   readonly="state == 'done'"
+                                   options="{'no_create': True}"/>
+                            <field name="replacement_ready"/>
+                        </group>
+                    </group>
+                    <group string="Reason">
+                        <field name="reason" nolabel="1" placeholder="Why is this asset being removed?"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- list View -->
+    <record id="view_asset_removal_list" model="ir.ui.view">
+        <field name="name">asset.removal.list</field>
+        <field name="model">asset.removal</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="state == 'done'" decoration-muted="state == 'cancel'">
+                <field name="name"/>
+                <field name="asset_id"/>
+                <field name="removal_type"/>
+                <field name="department_id"/>
+                <field name="employee_id" optional="show"/>
+                <field name="replacement_asset_id" optional="hide"/>
+                <field name="request_date"/>
+                <field name="removal_date" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-danger="state == 'done'"
+                       decoration-info="state == 'approved'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_removal_search" model="ir.ui.view">
+        <field name="name">asset.removal.search</field>
+        <field name="model">asset.removal</field>
+        <field name="arch" type="xml">
+            <search string="Search Removals">
+                <field name="name"/>
+                <field name="asset_id"/>
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <filter string="To Approve" name="to_approve"
+                        domain="[('state', 'in', ('submit', 'dept_approved'))]"/>
+                <filter string="Approved" name="approved" domain="[('state', '=', 'approved')]"/>
+                <filter string="Removed" name="done" domain="[('state', '=', 'done')]"/>
+                <separator/>
+                <filter string="Blocked by Assignment" name="blocked"
+                        domain="[('employee_id', '!=', False), ('state', 'not in', ('done', 'cancel'))]"/>
+                <group>
+                    <filter string="Removal Type" name="group_type" context="{'group_by': 'removal_type'}"/>
+                    <filter string="Department" name="group_dept" context="{'group_by': 'department_id'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_asset_removal_graph" model="ir.ui.view">
+        <field name="name">asset.removal.graph</field>
+        <field name="model">asset.removal</field>
+        <field name="arch" type="xml">
+            <graph type="bar" string="Asset Removal Graph">
+                <field name="department_id" type="row"/>
+                <field name="asset_id"/>
+                <field name="state"/>
+                <field name="location_from_id"/>
+                <field name="location_to_id"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_asset_removal" model="ir.actions.act_window">
+        <field name="name">Asset removal</field>
+        <field name="res_model">asset.removal</field>
+        <field name="view_mode">list,form,graph</field>
+    </record>
+
+    <record id="view_physical_verification_form" model="ir.ui.view">
+        <field name="name">physical.verification.form</field>
+        <field name="model">physical.verification</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_submit" type="object" string="Submit" class="oe_highlight"
+                            invisible="state not in 'draft'"/>
+                    <button name="action_department_approve" type="object" string="Department Approve"
+                            class="oe_highlight"
+                            invisible="state not in 'submit'"/>
+                    <button name="action_done" type="object" string="Done" class="oe_highlight"
+                            invisible="state not in 'approved'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="submit,dept_approved,incharge_approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_rfid_comparison" string="RFID" type="object" icon="fa-chain"
+                                class="oe_stat_button" invisible="not rfid_comparison_id">
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="schedule_date"/>
+                            <field name="plant_id"/>
+                            <field name="department_id"/>
+                            <field name="physical_location_id"/>
+                        </group>
+                        <group>
+                            <field name="csv_file" filename="csv_filename" 
+                                   widget="binary"
+                                   options="{'accepted_file_extensions': '.csv'}"/>
+                            <field name="csv_filename" invisible="1"/>
+                            <field name="rfid_comparison_id" readonly="1"/>
+<!--                            <div align="right">-->
+<!--                                <field style="padding-left: 5px;" name="qr_code" nolabel="1" widget="image"-->
+<!--                                       class="oe_avatar"/>-->
+<!--                                <button name="action_download_qr" class="oe_stat_button" type="object"-->
+<!--                                        icon="fa-download"/>-->
+<!--                            </div>-->
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- list View -->
+    <record id="view_physical_verification_list" model="ir.ui.view">
+        <field name="name">physical.verification.list</field>
+        <field name="model">physical.verification</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="plant_id"/>
+                <field name="department_id"/>
+                <field name="physical_location_id"/>
+                <field name="schedule_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_physical_verification_filter" model="ir.ui.view">
+        <field name="name">physical.verification.search.lead</field>
+        <field name="model">physical.verification</field>
+        <field name="arch" type="xml">
+            <search string="Search">
+                <field name="department_id"/>
+                <field name="plant_id"/>
+                <field name="physical_location_id"/>
+                <field name="schedule_date"/>
+                <group>
+                    <filter string="Department" name="Department" context="{'group_by':'department_id'}"/>
+                    <filter string="Plant" name="Plant" context="{'group_by':'plant_id'}"/>
+                    <filter string="Location" name="Location" context="{'group_by':'physical_location_id'}"/>
+                    <filter string="Schedule Date" name="Schedule Date" context="{'group_by':'schedule_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_asset_verification_graph" model="ir.ui.view">
+        <field name="name">physical.verification.graph</field>
+        <field name="model">physical.verification</field>
+        <field name="arch" type="xml">
+            <graph type="bar" string="Physical Verification Graph">
+                <field name="department_id" type="row"/>
+                <field name="plant_id"/>
+                <field name="state"/>
+                <field name="schedule_date"/>
+            </graph>
+        </field>
+    </record>
+
+
+    <!-- Action -->
+    <record id="action_physical_verification" model="ir.actions.act_window">
+        <field name="name">Physical Verification</field>
+        <field name="res_model">physical.verification</field>
+        <field name="view_mode">list,form,graph</field>
+    </record>
+
+</odoo>

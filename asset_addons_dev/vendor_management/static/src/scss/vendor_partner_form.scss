@@ -1,0 +1,268 @@
+/* ============================================================
+   VENDOR MANAGEMENT — res.partner (Vendor) Form Styling
+   Scope:
+     .vendor_partner_sheet        -> the <sheet> of the vendor form
+     .vendor_dashboard_container  -> the 2x2 section-card grid
+   ============================================================ */
+
+$vmf-border:  #e6eaf2;
+$vmf-text:    #111827;
+$vmf-muted:   #6b7280;
+$vmf-soft-bg: #fafbfe;
+
+/* ------------------------------------------------------------
+   1. Smart buttons (button box) — card-like tiles
+   ------------------------------------------------------------ */
+.vendor_partner_sheet {
+
+    .oe_button_box,
+    .o-form-buttonbox {
+        gap: 8px;
+    }
+
+    .oe_stat_button {
+        border: 1px solid $vmf-border !important;
+        border-radius: 12px !important;
+        background: #fff !important;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+        transition: transform 0.15s ease, box-shadow 0.15s ease,
+                    border-color 0.15s ease, background 0.15s ease;
+
+        .o_button_icon { color: #6366f1; }
+        .o_stat_value  { font-weight: 800; color: $vmf-text; }
+        .o_stat_text   { color: $vmf-muted; font-size: 11px; }
+
+        &:hover {
+            border-color: #c7d2fe !important;
+            background: #fbfbff !important;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 16px rgba(99, 102, 241, 0.14);
+        }
+    }
+}
+
+/* ------------------------------------------------------------
+   2. Section cards (Basic Info / Performance / Risk / Stats)
+   ------------------------------------------------------------ */
+.vendor_dashboard_container {
+    --vmf-accent:      #6366f1;
+    --vmf-accent-soft: #eef2ff;
+
+    /* per-card accent colors */
+    .vendor_card_info  { --vmf-accent: #3b82f6; --vmf-accent-soft: #eff6ff; }
+    .vendor_card_perf  { --vmf-accent: #8b5cf6; --vmf-accent-soft: #f5f3ff; }
+    .vendor_card_risk  { --vmf-accent: #f59e0b; --vmf-accent-soft: #fff7e6; }
+    .vendor_card_stats { --vmf-accent: #10b981; --vmf-accent-soft: #e8faf3; }
+
+    .vendor_section_card {
+        position: relative;
+        height: 100%;
+        background: #fff;
+        border: 1px solid $vmf-border;
+        border-radius: 14px;
+        padding: 16px 18px 14px;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+        overflow: hidden;
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+
+        /* colored accent strip on top */
+        &::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--vmf-accent) 0%, transparent 90%);
+        }
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(16, 24, 40, 0.08);
+        }
+    }
+
+    /* ----- Card title with icon chip ----- */
+    .vendor_section_title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px dashed $vmf-border;
+        font-size: 12.5px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        color: $vmf-text;
+
+        .vendor_title_icon {
+            flex: 0 0 30px;
+            width: 30px;
+            height: 30px;
+            border-radius: 9px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--vmf-accent-soft);
+            color: var(--vmf-accent);
+            font-size: 13px;
+        }
+    }
+
+    /* ----- Inner form elements ----- */
+    .vendor_section_card {
+
+        .o_form_label {
+            font-size: 12px;
+            font-weight: 600;
+            color: $vmf-muted;
+        }
+
+        /* pill badges (status / grade / compliance / tags) */
+        .badge,
+        .o_tag {
+            border-radius: 999px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+        .badge {
+            padding: 4px 12px;
+            font-size: 11px;
+        }
+
+        /* progressbar polish — covers both Odoo & Bootstrap markups */
+        .o_progressbar .o_progress,
+        .o_field_progressbar .progress {
+            height: 8px;
+            border-radius: 999px;
+            background: #eef1f6;
+            overflow: hidden;
+        }
+        .o_progressbar_complete,
+        .o_field_progressbar .progress-bar {
+            border-radius: 999px;
+            background: var(--vmf-accent);
+        }
+        .o_progressbar_value {
+            font-weight: 700;
+            font-size: 12px;
+        }
+    }
+
+    /* ------------------------------------------------------------
+       3. Vendor Statistics card internals
+       ------------------------------------------------------------ */
+    .vendor_stats_body {
+        padding-top: 2px;
+    }
+
+    /* -- top: RFQ / Orders mini tiles -- */
+    .vendor_stats_tiles {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .btn.vendor_stat_tile {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 10px 12px;
+        text-align: left;
+        color: inherit;
+        background: $vmf-soft-bg;
+        border: 1px solid $vmf-border;
+        border-radius: 12px;
+        transition: transform 0.15s ease, box-shadow 0.15s ease,
+                    border-color 0.15s ease, background 0.15s ease;
+
+        &:hover {
+            background: var(--vmf-accent-soft);
+            border-color: var(--vmf-accent);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(16, 24, 40, 0.08);
+        }
+    }
+    .vendor_stat_tile_icon {
+        flex: 0 0 32px;
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--vmf-accent-soft);
+        color: var(--vmf-accent);
+        font-size: 13px;
+    }
+    .vendor_stat_tile_meta {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.15;
+        min-width: 0;
+    }
+    .vendor_stat_tile_label {
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: $vmf-muted;
+    }
+    .vendor_stat_tile_value {
+        font-size: 18px;
+        font-weight: 800;
+        color: $vmf-text;
+
+        .o_field_widget,
+        span {
+            font: inherit;
+            color: inherit;
+        }
+    }
+
+    /* -- bottom: Purchased / Paid amount rows -- */
+    .vendor_stats_rows {
+        border: 1px solid $vmf-border;
+        border-radius: 12px;
+        background: #fff;
+        overflow: hidden;
+    }
+    .btn.vendor_stat_row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding: 9px 12px;
+        color: inherit;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        transition: background 0.12s ease;
+
+        + .vendor_stat_row {
+            border-top: 1px solid #f1f5f9;
+        }
+
+        &:hover {
+            background: #f8fafc;
+        }
+    }
+    .vendor_stat_row_label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12.5px;
+        color: $vmf-muted;
+
+        i { color: var(--vmf-accent); }
+    }
+    .vendor_stat_row_value {
+        font-weight: 800;
+        font-size: 13px;
+
+        .o_field_widget { font: inherit; }
+    }
+}

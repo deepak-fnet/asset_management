@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ============================================ -->
+    <!-- RFID Comparison Form View -->
+    <!-- ============================================ -->
+    <record id="view_asset_rfid_comparison_form" model="ir.ui.view">
+        <field name="name">asset.rfid.comparison.form</field>
+        <field name="model">asset.rfid.comparison</field>
+        <field name="arch" type="xml">
+            <form string="RFID Comparison">
+                <header>
+                    <button name="action_compare"
+                            string="Compare"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state == 'done'"/>
+                    <button name="action_reset_draft"
+                            string="Reset to Draft"
+                            type="object"
+                            class="btn-secondary"
+                            invisible="state == 'draft'"
+                            confirm="This will clear all comparison results. Continue?"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    
+                    <!-- Statistics Dashboard Cards -->
+                    <div invisible="state == 'draft'">
+                        <div class="row mt-3 mb-4">
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <div class="card text-center" style="border-left: 4px solid #17a2b8;">
+                                    <div class="card-body p-3">
+                                        <h6 class="card-subtitle mb-2 text-muted">Total in CSV</h6>
+                                        <h2 class="card-title mb-0">
+                                            <field name="total_csv_count" readonly="1"/>
+                                        </h2>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <div class="card text-center" style="border-left: 4px solid #28a745; cursor: pointer;">
+                                    <div class="card-body p-3">
+                                        <h6 class="card-subtitle mb-2 text-muted">✅ Matched</h6>
+                                        <h2 class="card-title mb-0 text-success">
+                                            <button name="action_view_matched" type="object" class="btn btn-link p-0 m-0">
+                                                <field name="matched_count" readonly="1" class="text-success"/>
+                                            </button>
+                                        </h2>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <div class="card text-center" style="border-left: 4px solid #ffc107; cursor: pointer;">
+                                    <div class="card-body p-3">
+                                        <h6 class="card-subtitle mb-2 text-muted">⚠️ Not Matched</h6>
+                                        <h2 class="card-title mb-0 text-warning">
+                                            <button name="action_view_missing_erp" type="object" class="btn btn-link p-0 m-0">
+                                                <field name="missing_in_erp_count" readonly="1" class="text-warning"/>
+                                            </button>
+                                        </h2>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <div class="card text-center" style="border-left: 4px solid #dc3545; cursor: pointer;">
+                                    <div class="card-body p-3">
+                                        <h6 class="card-subtitle mb-2 text-muted">❌ Not Available</h6>
+                                        <h2 class="card-title mb-0 text-danger">
+                                            <button name="action_view_missing_csv" type="object" class="btn btn-link p-0 m-0">
+                                                <field name="missing_in_csv_count" readonly="1" class="text-danger"/>
+                                            </button>
+                                        </h2>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="csv_file" filename="csv_filename" 
+                                   widget="binary" 
+                                   readonly="state == 'done'"
+                                   options="{'accepted_file_extensions': '.csv'}"/>
+                            <field name="csv_filename" invisible="1"/>
+                            <field name="verification_id" readonly="state == 'done'" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="upload_date"/>
+                            <field name="user_id"/>
+                        </group>
+                    </group>
+                    
+                    <field name="notes" placeholder="Add notes..."/>
+
+                    <notebook invisible="state == 'draft'">
+                        <page string="✅ Matched" name="matched">
+                            <field name="matched_line_ids" nolabel="1">
+                                <list create="false" delete="false" edit="false">
+                                    <field name="tag_number"/>
+                                    <field name="asset_name"/>
+                                    <field name="department_id"/>
+                                    <field name="plant_id"/>
+                                    <field name="physical_location_id"/>
+                                    <field name="scan_count" optional="show"/>
+                                    <field name="rssi" optional="hide"/>
+                                    <button name="action_open_asset" type="object" icon="fa-external-link" title="Open Asset"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="⚠️ Not Matched" name="missing_erp">
+                            <div class="alert alert-warning" role="alert">
+                                <strong>These tags were found in the CSV but do not exist in the selected scope. If found elsewhere, the actual location is shown.</strong>
+                            </div>
+                            <field name="missing_erp_line_ids" nolabel="1">
+                                <list create="false" delete="false" edit="false">
+                                    <field name="tag_number"/>
+                                    <field name="asset_name" string="Found As"/>
+                                    <field name="department_id" string="Actual Department"/>
+                                    <field name="plant_id" string="Actual Plant"/>
+                                    <field name="physical_location_id" string="Actual Location"/>
+                                    <field name="scan_count" optional="show"/>
+                                    <field name="rssi" optional="hide"/>
+                                    <field name="csv_data" optional="hide"/>
+                                    <button name="action_open_asset" type="object" icon="fa-external-link" title="Open Asset" invisible="not asset_id"/>
+                                    <button name="action_rectified" type="object" string="Rectified" invisible="not asset_id"/>
+                                    <button name="action_rejected" type="object" string="Rejected" invisible="not asset_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="❌ Not Available" name="missing_csv">
+                            <div class="alert alert-danger" role="alert">
+                                <strong>These assets exist in the ERP but were not found in the CSV (not scanned).</strong>
+                            </div>
+                            <field name="missing_csv_line_ids" nolabel="1">
+                                <list create="false" delete="false" edit="false">
+                                    <field name="tag_number"/>
+                                    <field name="asset_name"/>
+                                    <field name="department_id"/>
+                                    <field name="plant_id"/>
+                                    <field name="physical_location_id"/>
+                                    <button name="action_open_asset" type="object" icon="fa-external-link" title="Open Asset"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="All Results" name="all_results">
+                            <field name="comparison_line_ids" nolabel="1">
+                                <list create="false" delete="false" edit="false">
+                                    <field name="status_display" string="Status"/>
+                                    <field name="tag_number"/>
+                                    <field name="asset_name"/>
+                                    <field name="department_id"/>
+                                    <field name="plant_id"/>
+                                    <field name="physical_location_id"/>
+                                    <button name="action_open_asset" type="object" icon="fa-external-link" title="Open Asset" invisible="not asset_id"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================ -->
+    <!-- RFID Comparison List View -->
+    <!-- ============================================ -->
+    <record id="view_asset_rfid_comparison_list" model="ir.ui.view">
+        <field name="name">asset.rfid.comparison.list</field>
+        <field name="model">asset.rfid.comparison</field>
+        <field name="arch" type="xml">
+            <list string="RFID Comparisons" decoration-success="state == 'done'" decoration-muted="state == 'draft'">
+                <field name="name"/>
+                <field name="upload_date"/>
+                <field name="user_id"/>
+                <field name="total_csv_count" string="CSV Count"/>
+                <field name="matched_count" string="Matched"/>
+                <field name="missing_in_erp_count" string="Missing in ERP"/>
+                <field name="missing_in_csv_count" string="Missing in CSV"/>
+                <field name="state" widget="badge" decoration-success="state == 'done'" decoration-info="state == 'draft'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================ -->
+    <!-- RFID Comparison Search View -->
+    <!-- ============================================ -->
+    <record id="view_asset_rfid_comparison_search" model="ir.ui.view">
+        <field name="name">asset.rfid.comparison.search</field>
+        <field name="model">asset.rfid.comparison</field>
+        <field name="arch" type="xml">
+            <search string="Search Comparisons">
+                <field name="name"/>
+                <field name="user_id"/>
+                <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Compared" name="done" domain="[('state', '=', 'done')]"/>
+                <separator/>
+                <filter string="Has Missing in ERP" name="has_missing_erp" domain="[('missing_in_erp_count', '>', 0)]"/>
+                <filter string="Has Missing in CSV" name="has_missing_csv" domain="[('missing_in_csv_count', '>', 0)]"/>
+                <group>
+                    <filter string="User" name="group_user" context="{'group_by': 'user_id'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by': 'upload_date:day'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================ -->
+    <!-- RFID Comparison Line List View -->
+    <!-- ============================================ -->
+    <record id="view_asset_rfid_comparison_line_list" model="ir.ui.view">
+        <field name="name">asset.rfid.comparison.line.list</field>
+        <field name="model">asset.rfid.comparison.line</field>
+        <field name="arch" type="xml">
+            <list string="Comparison Results" create="false" edit="false" delete="false"
+                  decoration-success="status == 'matched'"
+                  decoration-warning="status == 'missing_in_erp'"
+                  decoration-danger="status == 'missing_in_csv'">
+                <field name="comparison_id"/>
+                <field name="tag_number"/>
+                <field name="asset_name"/>
+                <field name="department_id"/>
+                <field name="plant_id"/>
+                <field name="physical_location_id"/>
+                <field name="status_display" string="Status"/>
+                <button name="action_open_asset" type="object" icon="fa-external-link" title="Open Asset" invisible="not asset_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================ -->
+    <!-- RFID Comparison Line Form View -->
+    <!-- ============================================ -->
+    <record id="view_asset_rfid_comparison_line_form" model="ir.ui.view">
+        <field name="name">asset.rfid.comparison.line.form</field>
+        <field name="model">asset.rfid.comparison.line</field>
+        <field name="arch" type="xml">
+            <form string="Comparison Result" create="false" edit="false">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="tag_number"/>
+                            <field name="status_display" string="Status"/>
+                            <field name="asset_id"/>
+                            <field name="asset_name"/>
+                        </group>
+                        <group>
+                            <field name="department_id"/>
+                            <field name="plant_id"/>
+                            <field name="physical_location_id"/>
+                            <field name="comparison_id"/>
+                        </group>
+                    </group>
+                    <group string="Scan Data">
+                        <group>
+                            <field name="scan_count"/>
+                            <field name="rssi"/>
+                        </group>
+                    </group>
+                    <group string="CSV Data" invisible="not csv_data">
+                        <field name="csv_data" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================ -->
+    <!-- RFID Comparison Line Search View -->
+    <!-- ============================================ -->
+    <record id="view_asset_rfid_comparison_line_search" model="ir.ui.view">
+        <field name="name">asset.rfid.comparison.line.search</field>
+        <field name="model">asset.rfid.comparison.line</field>
+        <field name="arch" type="xml">
+            <search string="Search Results">
+                <field name="tag_number"/>
+                <field name="asset_name"/>
+                <field name="department_id"/>
+                <field name="plant_id"/>
+                <filter string="Matched" name="matched" domain="[('status', '=', 'matched')]"/>
+                <filter string="Missing in ERP" name="missing_erp" domain="[('status', '=', 'missing_in_erp')]"/>
+                <filter string="Missing in CSV" name="missing_csv" domain="[('status', '=', 'missing_in_csv')]"/>
+                <group>
+                    <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
+                    <filter string="Department" name="group_dept" context="{'group_by': 'department_id'}"/>
+                    <filter string="Plant" name="group_plant" context="{'group_by': 'plant_id'}"/>
+                    <filter string="Location" name="group_location" context="{'group_by': 'physical_location_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================ -->
+    <!-- Actions -->
+    <!-- ============================================ -->
+    <record id="action_asset_rfid_comparison" model="ir.actions.act_window">
+        <field name="name">RFID Comparison</field>
+        <field name="res_model">asset.rfid.comparison</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Upload your first RFID CSV file
+            </p>
+            <p>
+                Upload a CSV file from your RFID scanner to compare assets.
+                The system will identify matched assets, missing in ERP, and missing in CSV.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_asset_rfid_comparison_line" model="ir.actions.act_window">
+        <field name="name">Comparison Results</field>
+        <field name="res_model">asset.rfid.comparison.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{}</field>
+    </record>
+
+</odoo>

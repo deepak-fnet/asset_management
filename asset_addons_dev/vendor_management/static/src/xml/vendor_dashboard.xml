@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+<t t-name="vendor_management.VendorDashboard">
+<div class="vd2">
+
+    <!-- ============ COMMAND BAR ============ -->
+    <div class="vd2-hero">
+        <div class="vd2-hero-inner">
+            <div class="vd2-hero-left">
+                <h1>Vendor Intelligence Center</h1>
+                <p class="vd2-hero-sub">
+                    <i class="fa fa-calendar-o"/>
+                    <span t-esc="rangeLabel()"/>
+                    <t t-if="state.lastUpdated">
+                        <span class="vd2-sep"/>
+                        <span class="vd2-updated">updated <t t-esc="state.lastUpdated"/></span>
+                    </t>
+                </p>
+            </div>
+
+            <div class="vd2-hero-right">
+                <div class="vd2-seg" role="group" aria-label="Date range">
+                    <button t-att-class="'vd2-seg-btn ' + (state.period === 'week' ? 'active' : '')" t-on-click="() => this.setPeriod('week')">7D</button>
+                    <button t-att-class="'vd2-seg-btn ' + (state.period === 'month' ? 'active' : '')" t-on-click="() => this.setPeriod('month')">30D</button>
+                    <button t-att-class="'vd2-seg-btn ' + (state.period === 'quarter' ? 'active' : '')" t-on-click="() => this.setPeriod('quarter')">90D</button>
+                    <button t-att-class="'vd2-seg-btn ' + (state.period === 'year' ? 'active' : '')" t-on-click="() => this.setPeriod('year')">1Y</button>
+                    <button t-att-class="'vd2-seg-btn vd2-seg-custom ' + (state.period === 'custom' ? 'active' : '')"
+                            t-on-click="toggleRange" title="Pick a custom date range">
+                        <i class="fa fa-calendar"/> <span t-esc="customChip()"/>
+                    </button>
+                </div>
+                <button class="vd2-icon-btn" title="Refresh" t-on-click="refresh">
+                    <i t-att-class="'fa fa-refresh ' + (state.refreshing ? 'fa-spin' : '')"/>
+                </button>
+                <button class="vd2-btn-primary" t-on-click="newVendor"><i class="fa fa-plus me-1"/> New Vendor</button>
+            </div>
+        </div>
+
+        <!-- soft progress strip while refetching -->
+        <div t-if="state.refreshing" class="vd2-progress"><span/></div>
+
+        <!-- ============ CUSTOM RANGE POPOVER ============ -->
+        <t t-if="state.showRange">
+            <div class="vd2-range-backdrop" t-on-click="closeRange"/>
+            <div class="vd2-range-pop" t-on-keydown="onRangeKeydown">
+                <div class="vd2-range-title"><i class="fa fa-calendar"/> Custom date range</div>
+                <div class="vd2-range-fields">
+                    <label class="vd2-field">
+                        <span>From</span>
+                        <input type="date" class="vd2-input" t-model="state.draftFrom"/>
+                    </label>
+                    <span class="vd2-range-dash">–</span>
+                    <label class="vd2-field">
+                        <span>To</span>
+                        <input type="date" class="vd2-input" t-model="state.draftTo"/>
+                    </label>
+                </div>
+                <div t-if="state.rangeError" class="vd2-range-error">
+                    <i class="fa fa-exclamation-circle"/> <t t-esc="state.rangeError"/>
+                </div>
+                <div class="vd2-range-actions">
+                    <button class="vd2-btn-ghost" t-on-click="closeRange">Cancel</button>
+                    <button class="vd2-btn-apply" t-on-click="applyRange">Apply range</button>
+                </div>
+            </div>
+        </t>
+    </div>
+
+    <!-- ============ INITIAL LOAD ============ -->
+    <div t-if="state.loading" class="vd2-loading">
+        <div class="vd2-spinner"/><span>Crunching vendor data…</span>
+    </div>
+
+    <!-- ============ ERROR ============ -->
+    <div t-if="!state.loading and state.error" class="vd2-error">
+        <i class="fa fa-plug"/>
+        <h3>Couldn't load the dashboard</h3>
+        <p t-esc="state.error"/>
+        <button class="vd2-btn-primary dark" t-on-click="refresh"><i class="fa fa-refresh me-1"/> Try again</button>
+    </div>
+
+    <div t-if="!state.loading and !state.error and state.data"
+         t-att-class="'vd2-body ' + (state.refreshing ? 'is-refreshing' : '')">
+        <t t-set="k" t-value="state.data.kpis"/>
+
+        <!-- ============ KPI GRID ============ -->
+        <div class="vd2-kpi-grid">
+            <div class="vd2-kpi" role="button" t-on-click="onTotal">
+                <div class="vd2-kpi-icon vd2-ic-brand"><i class="fa fa-users"/></div>
+                <div class="vd2-kpi-meta">
+                    <span class="vd2-kpi-label">Total Vendors</span>
+                    <span class="vd2-kpi-value" t-esc="num(k.total_vendors)"/>
+                    <span t-att-class="'vd2-delta ' + (k.vend_delta >= 0 ? 'up' : 'down')">
+                        <i t-att-class="'fa ' + (k.vend_delta >= 0 ? 'fa-arrow-up' : 'fa-arrow-down')"/>
+                        <t t-esc="abs(k.vend_delta)"/>% · <t t-esc="k.new_vendors"/> new
+                    </span>
+                </div>
+            </div>
+
+            <div class="vd2-kpi" role="button" t-on-click="onActive">
+                <div class="vd2-kpi-icon vd2-ic-green"><i class="fa fa-check-circle"/></div>
+                <div class="vd2-kpi-meta">
+                    <span class="vd2-kpi-label">Active</span>
+                    <span class="vd2-kpi-value" t-esc="num(k.active_vendors)"/>
+                    <span class="vd2-sub">operational suppliers</span>
+                </div>
+            </div>
+
+            <div class="vd2-kpi" role="button" t-on-click="onReview">
+                <div class="vd2-kpi-icon vd2-ic-amber"><i class="fa fa-hourglass-half"/></div>
+                <div class="vd2-kpi-meta">
+                    <span class="vd2-kpi-label">Under Review</span>
+                    <span class="vd2-kpi-value" t-esc="num(k.under_review)"/>
+                    <span class="vd2-sub">awaiting approval</span>
+                </div>
+            </div>
+
+            <div class="vd2-kpi" role="button" t-on-click="onHighRisk">
+                <div class="vd2-kpi-icon vd2-ic-red"><i class="fa fa-exclamation-triangle"/></div>
+                <div class="vd2-kpi-meta">
+                    <span class="vd2-kpi-label">High Risk</span>
+                    <span class="vd2-kpi-value" t-esc="num(k.high_risk)"/>
+                    <span class="vd2-sub">risk score &gt; 70 · <t t-esc="k.blocked"/> blocked</span>
+                </div>
+            </div>
+
+            <div class="vd2-kpi" role="button" t-on-click="onCompliant">
+                <div class="vd2-kpi-icon vd2-ic-teal"><i class="fa fa-shield"/></div>
+                <div class="vd2-kpi-meta">
+                    <span class="vd2-kpi-label">Compliance Rate</span>
+                    <span class="vd2-kpi-value"><t t-esc="k.compliance_rate"/>%</span>
+                    <span class="vd2-sub">avg risk <t t-esc="k.avg_risk"/></span>
+                </div>
+            </div>
+
+            <div class="vd2-kpi" role="button" t-on-click="onPOs">
+                <div class="vd2-kpi-icon vd2-ic-blue"><i class="fa fa-shopping-cart"/></div>
+                <div class="vd2-kpi-meta">
+                    <span class="vd2-kpi-label">PO Spend <span class="vd2-tag" t-esc="rangeDaysTag()"/></span>
+                    <span class="vd2-kpi-value" t-esc="money(k.po_value)"/>
+                    <span t-att-class="'vd2-delta ' + (k.po_delta >= 0 ? 'up' : 'down')">
+                        <i t-att-class="'fa ' + (k.po_delta >= 0 ? 'fa-arrow-up' : 'fa-arrow-down')"/>
+                        <t t-esc="abs(k.po_delta)"/>% · <t t-esc="k.po_count"/> POs
+                    </span>
+                </div>
+            </div>
+
+            <div class="vd2-kpi" role="button" t-on-click="onOutstanding">
+                <div class="vd2-kpi-icon vd2-ic-purple"><i class="fa fa-credit-card"/></div>
+                <div class="vd2-kpi-meta">
+                    <span class="vd2-kpi-label">Outstanding</span>
+                    <span class="vd2-kpi-value" t-esc="money(k.outstanding)"/>
+                    <span class="vd2-sub">unpaid vendor bills</span>
+                </div>
+            </div>
+
+            <div class="vd2-kpi" role="button" t-on-click="onDocsApproved">
+                <div class="vd2-kpi-icon vd2-ic-slate"><i class="fa fa-file-text-o"/></div>
+                <div class="vd2-kpi-meta">
+                    <span class="vd2-kpi-label">Documents</span>
+                    <span class="vd2-kpi-value" t-esc="num(k.docs_approved)"/>
+                    <span class="vd2-sub">
+                        approved ·
+                        <span class="vd2-chip warn" t-on-click.stop="onDocsPending"><t t-esc="k.docs_pending"/> pending</span>
+                        <span class="vd2-chip orange" t-on-click.stop="onDocsExpiring"><t t-esc="k.docs_expiring"/> expiring</span>
+                        <span class="vd2-chip red" t-on-click.stop="onDocsExpired"><t t-esc="k.docs_expired"/> expired</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ CHARTS ROW ============ -->
+        <div class="vd2-grid-3">
+
+            <!-- Spend trend -->
+            <div class="vd2-card vd2-span2">
+                <div class="vd2-card-head">
+                    <h3><span class="vd2-hicon vd2-ic-brand"><i class="fa fa-line-chart"/></span> Purchase Spend Trend</h3>
+                    <div class="vd2-head-side">
+                        <span class="vd2-head-total" t-esc="money(k.po_value)"/>
+                        <span class="vd2-muted"><t t-esc="granLabel()"/> · <t t-esc="rangeLabel()"/></span>
+                    </div>
+                </div>
+                <t t-set="sp" t-value="state.spend"/>
+                <svg t-if="sp" viewBox="0 0 560 190" class="vd2-spend-svg" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="vd2SpendFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" class="vd2-spend-stop-a" stop-opacity="0.28"/>
+                            <stop offset="100%" class="vd2-spend-stop-b" stop-opacity="0.02"/>
+                        </linearGradient>
+                    </defs>
+                    <t t-foreach="sp.grid" t-as="g" t-key="g_index">
+                        <line x1="38" t-att-y1="g.y" t-att-x2="sp.W - 10" t-att-y2="g.y" stroke="#eef1f6" stroke-width="1"/>
+                        <text x="4" t-att-y="g.y + 3" class="vd2-axis" t-esc="g.label"/>
+                    </t>
+                    <path t-att-d="sp.area" fill="url(#vd2SpendFill)"/>
+                    <path t-att-d="sp.line" fill="none" class="vd2-spend-line" stroke-width="2.5" stroke-linecap="round"/>
+                    <t t-foreach="sp.pts" t-as="p" t-key="p_index">
+                        <circle t-if="isLastPt(p_index)" t-att-cx="p.x" t-att-cy="p.y" r="8" class="vd2-spend-halo" opacity="0.15"/>
+                        <circle t-att-cx="p.x" t-att-cy="p.y" t-att-r="isLastPt(p_index) ? 4.5 : 3.2"
+                                class="vd2-spend-dot" stroke-width="2.5">
+                            <title><t t-esc="p.label"/>: <t t-esc="money(p.value)"/></title>
+                        </circle>
+                        <text t-if="showXLabel(p_index)" t-att-x="p.x" t-att-y="sp.H - 8"
+                              text-anchor="middle" class="vd2-axis" t-esc="p.label"/>
+                    </t>
+                </svg>
+            </div>
+
+            <!-- Category donut -->
+            <div class="vd2-card">
+                <div class="vd2-card-head">
+                    <h3><span class="vd2-hicon vd2-ic-blue"><i class="fa fa-tags"/></span> Vendor Categories</h3>
+                </div>
+                <div class="vd2-donut-wrap">
+                    <svg viewBox="0 0 140 140" class="vd2-donut">
+                        <circle cx="70" cy="70" r="54" fill="none" stroke="#f1f5f9" stroke-width="20"/>
+                        <t t-foreach="state.donut" t-as="seg" t-key="seg.id">
+                            <path t-att-d="seg.path" fill="none" t-att-stroke="seg.color" stroke-width="20"
+                                  class="vd2-donut-seg" t-on-click="() => this.onCategory(seg)">
+                                <title><t t-esc="seg.name"/>: <t t-esc="seg.count"/> (<t t-esc="seg.pct"/>%)</title>
+                            </path>
+                        </t>
+                        <text x="70" y="66" text-anchor="middle" class="vd2-donut-num" t-esc="state.donutTotal"/>
+                        <text x="70" y="82" text-anchor="middle" class="vd2-donut-lbl">vendors</text>
+                    </svg>
+                    <div class="vd2-legend">
+                        <t t-foreach="state.donut" t-as="seg" t-key="seg.id">
+                            <div class="vd2-legend-row" t-on-click="() => this.onCategory(seg)">
+                                <span class="vd2-dot" t-attf-style="background:{{seg.color}}"/>
+                                <span class="vd2-legend-name" t-esc="seg.name"/>
+                                <span class="vd2-legend-val" t-esc="seg.count"/>
+                            </div>
+                        </t>
+                        <div t-if="!state.donut.length" class="vd2-empty">No categories assigned yet</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ RISK / COMPLIANCE / FUNNEL ============ -->
+        <div class="vd2-grid-3">
+            <div class="vd2-card">
+                <div class="vd2-card-head"><h3><span class="vd2-hicon vd2-ic-amber"><i class="fa fa-bolt"/></span> Risk Distribution</h3></div>
+                <t t-set="rd" t-value="state.data.charts.risk_dist"/>
+                <div class="vd2-hbar" t-on-click="() => this.onRiskBand('low')">
+                    <span class="vd2-hbar-label">Low <small>0–30</small></span>
+                    <div class="vd2-hbar-track"><div class="vd2-hbar-fill" t-attf-style="width:{{riskBarPct(rd.low)}}%;background:#22c55e"/></div>
+                    <span class="vd2-hbar-val" t-esc="rd.low"/>
+                </div>
+                <div class="vd2-hbar" t-on-click="() => this.onRiskBand('med')">
+                    <span class="vd2-hbar-label">Medium <small>31–70</small></span>
+                    <div class="vd2-hbar-track"><div class="vd2-hbar-fill" t-attf-style="width:{{riskBarPct(rd.med)}}%;background:#f59e0b"/></div>
+                    <span class="vd2-hbar-val" t-esc="rd.med"/>
+                </div>
+                <div class="vd2-hbar" t-on-click="() => this.onRiskBand('high')">
+                    <span class="vd2-hbar-label">High <small>&gt;70</small></span>
+                    <div class="vd2-hbar-track"><div class="vd2-hbar-fill" t-attf-style="width:{{riskBarPct(rd.high)}}%;background:#ef4444"/></div>
+                    <span class="vd2-hbar-val" t-esc="rd.high"/>
+                </div>
+            </div>
+
+            <div class="vd2-card">
+                <div class="vd2-card-head"><h3><span class="vd2-hicon vd2-ic-teal"><i class="fa fa-shield"/></span> Compliance Health</h3></div>
+                <t t-set="cb" t-value="state.data.charts.compliance"/>
+                <div class="vd2-ring-wrap">
+                    <svg viewBox="0 0 120 120" class="vd2-ring">
+                        <circle cx="60" cy="60" r="52" fill="none" stroke="#f1f5f9" stroke-width="12"/>
+                        <circle cx="60" cy="60" r="52" fill="none" stroke="#0d9488" stroke-width="12"
+                                stroke-linecap="round" transform="rotate(-90 60 60)"
+                                t-att-stroke-dasharray="complianceDash()"/>
+                        <text x="60" y="58" text-anchor="middle" class="vd2-ring-num"><t t-esc="compliancePct()"/>%</text>
+                        <text x="60" y="74" text-anchor="middle" class="vd2-ring-lbl">compliant</text>
+                    </svg>
+                    <div class="vd2-ring-legend">
+                        <div t-on-click="onCompliant"><span class="vd2-dot" style="background:#0d9488"/>Compliant <b t-esc="cb.ok"/></div>
+                        <div><span class="vd2-dot" style="background:#f59e0b"/>Pending <b t-esc="cb.pending"/></div>
+                        <div><span class="vd2-dot" style="background:#ef4444"/>Non-Compliant <b t-esc="cb.partial"/></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="vd2-card">
+                <div class="vd2-card-head"><h3><span class="vd2-hicon vd2-ic-purple"><i class="fa fa-filter"/></span> Document Pipeline</h3></div>
+                <t t-foreach="state.data.charts.doc_funnel" t-as="f" t-key="f.state">
+                    <div class="vd2-funnel-row" t-on-click="() => this.onFunnel(f)">
+                        <span class="vd2-funnel-label" t-esc="stateLabel(f.state)"/>
+                        <div class="vd2-funnel-track">
+                            <div t-att-class="'vd2-funnel-fill st-' + f.state" t-attf-style="width:{{funnelPct(f.count)}}%"/>
+                        </div>
+                        <span class="vd2-funnel-val" t-esc="f.count"/>
+                    </div>
+                </t>
+            </div>
+        </div>
+
+        <!-- ============ TABLES ROW ============ -->
+        <div class="vd2-grid-2">
+            <div class="vd2-card">
+                <div class="vd2-card-head">
+                    <h3><span class="vd2-hicon vd2-ic-red"><i class="fa fa-exclamation-circle"/></span> High Risk Vendors</h3>
+                    <button class="vd2-link" t-on-click="onHighRisk">View all</button>
+                </div>
+                <table class="vd2-table" t-if="state.data.lists.high_risk.length">
+                    <thead><tr><th>Vendor</th><th>Risk</th><th>Compliance</th><th class="text-end">Grade</th></tr></thead>
+                    <tbody>
+                        <tr t-foreach="state.data.lists.high_risk" t-as="v" t-key="v.id" t-on-click="() => this.openPartner(v.id)">
+                            <td class="vd2-strong" t-esc="v.name"/>
+                            <td><span t-att-class="'vd2-badge ' + riskClass(v.risk)" t-esc="v.risk"/></td>
+                            <td><span t-att-class="'vd2-chip ' + (v.compliance === 'ok' ? 'green' : v.compliance === 'pending' ? 'warn' : 'red')"
+                                      t-esc="v.compliance === 'ok' ? 'Compliant' : v.compliance === 'pending' ? 'Pending' : 'Non-Compliant'"/></td>
+                            <td class="text-end"><span class="vd2-grade" t-esc="v.grade"/></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div t-else="" class="vd2-empty big"><i class="fa fa-check-circle"/> No risky vendors — all clear!</div>
+            </div>
+
+            <div class="vd2-card">
+                <div class="vd2-card-head">
+                    <h3><span class="vd2-hicon vd2-ic-amber"><i class="fa fa-clock-o"/></span> Expiring Documents <span class="vd2-tag">next 30d</span></h3>
+                    <button class="vd2-link" t-on-click="onDocsExpiring">View all</button>
+                </div>
+                <table class="vd2-table" t-if="state.data.lists.expiring.length">
+                    <thead><tr><th>Vendor</th><th>Document</th><th class="text-end">Expires</th></tr></thead>
+                    <tbody>
+                        <tr t-foreach="state.data.lists.expiring" t-as="d" t-key="d.id" t-on-click="() => this.openDoc(d.id)">
+                            <td class="vd2-strong" t-esc="d.vendor"/>
+                            <td t-esc="d.type"/>
+                            <td class="text-end">
+                                <span t-att-class="'vd2-badge ' + (d.days &lt; 0 ? 'vd2-risk-high' : d.days &lt;= 7 ? 'vd2-risk-med' : 'vd2-risk-low')">
+                                    <t t-if="d.days &lt; 0">expired</t>
+                                    <t t-elif="d.days === 0">today</t>
+                                    <t t-else=""><t t-esc="d.days"/>d</t>
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div t-else="" class="vd2-empty big"><i class="fa fa-calendar-check-o"/> Nothing expiring soon</div>
+            </div>
+        </div>
+
+        <div class="vd2-grid-3">
+            <div class="vd2-card">
+                <div class="vd2-card-head">
+                    <h3><span class="vd2-hicon vd2-ic-brand"><i class="fa fa-inbox"/></span> Approval Queue</h3>
+                    <button class="vd2-link" t-on-click="onDocsPending">View all</button>
+                </div>
+                <div t-if="state.data.lists.queue.length">
+                    <div class="vd2-queue-row" t-foreach="state.data.lists.queue" t-as="q" t-key="q.id" t-on-click="() => this.openDoc(q.id)">
+                        <div>
+                            <div class="vd2-strong" t-esc="q.vendor"/>
+                            <div class="vd2-muted sm" t-esc="q.type"/>
+                        </div>
+                        <span t-att-class="'vd2-chip ' + (q.state === 'submitted' ? 'blue' : q.state === 'manager_review' ? 'warn' : 'purple')"
+                              t-esc="stateLabel(q.state)"/>
+                    </div>
+                </div>
+                <div t-else="" class="vd2-empty big"><i class="fa fa-thumbs-o-up"/> Queue is empty</div>
+            </div>
+
+            <div class="vd2-card">
+                <div class="vd2-card-head">
+                    <h3><span class="vd2-hicon vd2-ic-amber"><i class="fa fa-trophy"/></span> Top Vendors by Spend</h3>
+                    <span class="vd2-tag" t-esc="rangeDaysTag()"/>
+                </div>
+                <div t-if="state.data.lists.top_vendors.length">
+                    <div class="vd2-top-row" t-foreach="state.data.lists.top_vendors" t-as="tv" t-key="tv.id" t-on-click="() => this.openPartner(tv.id)">
+                        <span class="vd2-rank" t-esc="tv_index + 1"/>
+                        <div class="vd2-top-mid">
+                            <div class="vd2-top-line">
+                                <span class="vd2-strong" t-esc="tv.name"/>
+                                <span class="vd2-top-amt" t-esc="money(tv.amount)"/>
+                            </div>
+                            <div class="vd2-hbar-track thin"><div class="vd2-hbar-fill brand" t-attf-style="width:{{tv.pct}}%"/></div>
+                        </div>
+                    </div>
+                </div>
+                <div t-else="" class="vd2-empty big"><i class="fa fa-shopping-basket"/> No purchases in this range</div>
+            </div>
+
+            <div class="vd2-card">
+                <div class="vd2-card-head">
+                    <h3><span class="vd2-hicon vd2-ic-teal"><i class="fa fa-history"/></span> Recent Activity</h3>
+                    <span class="vd2-tag" t-esc="rangeDaysTag()"/>
+                </div>
+                <div class="vd2-feed" t-if="state.data.lists.activity.length">
+                    <div class="vd2-feed-row" t-foreach="state.data.lists.activity" t-as="a" t-key="a.id">
+                        <span class="vd2-feed-dot" t-attf-style="background:{{eventDot(a.event)}}"/>
+                        <div class="vd2-feed-body">
+                            <div><span class="vd2-strong vd2-linkish" t-on-click="() => this.openPartner(a.vendor_id)" t-esc="a.vendor"/> — <t t-esc="a.action"/></div>
+                            <div class="vd2-muted sm"><t t-esc="a.user"/> · <t t-esc="timeAgo(a.date)"/></div>
+                        </div>
+                    </div>
+                </div>
+                <div t-else="" class="vd2-empty big"><i class="fa fa-moon-o"/> No activity in this range</div>
+            </div>
+        </div>
+
+        <div class="vd2-footnote">
+            Avg periodic performance <b><t t-esc="k.avg_periodic"/>%</b> · Avg transactional score <b><t t-esc="k.avg_trans"/>%</b>
+            <span class="vd2-sep"/>
+            Spend, trend &amp; activity follow the selected range — other KPIs are live snapshots.
+        </div>
+    </div>
+</div>
+</t>
+</templates>

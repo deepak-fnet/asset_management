@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+        Client action. The tag matches the key registered in
+        registry.category("actions") in oneit_dashboard.js.
+
+        Odoo 15+ no longer needs an assets_backend template inherit here -
+        the JS, SCSS and OWL template are declared in __manifest__.py under
+        the 'assets' key instead.
+    -->
+    <record id="action_oneit_dashboard" model="ir.actions.client">
+        <field name="name">Dashboard</field>
+        <field name="tag">oneit_dashboard</field>
+    </record>
+
+    <menuitem id="menu_oneit_dashboard"
+              name="Dashboard"
+              parent="menu_oneit_root"
+              action="action_oneit_dashboard"
+              sequence="1"/>
+
+</odoo>

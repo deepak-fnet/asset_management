@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="asset_management.SoftwareDashboard" owl="1">
+        <div class="o_action_manager o_software_dashboard">
+            <!-- Header -->
+            <div class="o_software_dashboard_header">
+                <div class="o_header_content">
+                    <h1 class="o_dashboard_title">
+                        <i class="fa fa-rocket"/> Software Deployment Center
+                    </h1>
+                    <p class="o_dashboard_subtitle">
+                        Manage and deploy software across your device fleet
+                    </p>
+                </div>
+                <div class="o_header_actions">
+                    <button class="btn btn-secondary" t-on-click="() => this.refreshDashboard()">
+                        <i class="fa fa-refresh"/> Refresh
+                    </button>
+                    <button class="btn btn-primary" t-on-click="() => this.openDeploymentWizard()">
+                        <i class="fa fa-plus"/> Deploy Software
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div t-if="state.loading" class="o_dashboard_loading">
+                <i class="fa fa-spinner fa-spin fa-3x"/>
+                <p>Loading dashboard...</p>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div t-if="!state.loading" class="o_dashboard_content">
+                <!-- Statistics Cards -->
+                <div class="o_stats_grid">
+                    <div class="o_stat_card o_stat_primary" t-on-click="() => this.openSoftwareLibrary()">
+                        <div class="o_stat_icon">
+                            <i class="fa fa-cube"/>
+                        </div>
+                        <div class="o_stat_content">
+                            <div class="o_stat_value">
+                                <t t-esc="state.stats.total_software"/>
+                            </div>
+                            <div class="o_stat_label">Software Packages</div>
+                        </div>
+                    </div>
+                    
+                    <div class="o_stat_card o_stat_success" t-on-click="() => this.openDeployments()">
+                        <div class="o_stat_icon">
+                            <i class="fa fa-check-circle"/>
+                        </div>
+                        <div class="o_stat_content">
+                            <div class="o_stat_value">
+                                <t t-esc="state.stats.successful"/>
+                            </div>
+                            <div class="o_stat_label">Successful</div>
+                        </div>
+                    </div>
+                    
+                    <div class="o_stat_card o_stat_warning" t-on-click="() => this.openDeployments()">
+                        <div class="o_stat_icon">
+                            <i class="fa fa-clock-o"/>
+                        </div>
+                        <div class="o_stat_content">
+                            <div class="o_stat_value">
+                                <t t-esc="state.stats.pending"/>
+                            </div>
+                            <div class="o_stat_label">Pending / In Progress</div>
+                        </div>
+                    </div>
+                    
+                    <div class="o_stat_card o_stat_danger" t-on-click="() => this.openDeployments()">
+                        <div class="o_stat_icon">
+                            <i class="fa fa-times-circle"/>
+                        </div>
+                        <div class="o_stat_content">
+                            <div class="o_stat_value">
+                                <t t-esc="state.stats.failed"/>
+                            </div>
+                            <div class="o_stat_label">Failed</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Success Rate Progress -->
+                <div class="o_success_rate_section">
+                    <div class="o_section_card">
+                        <h3>
+                            <i class="fa fa-line-chart"/> Overall Success Rate
+                        </h3>
+                        <div class="o_progress_container">
+                            <div class="o_progress_bar">
+                                <div class="o_progress_fill" 
+                                     t-att-style="'width: ' + state.stats.success_rate + '%'"/>
+                            </div>
+                            <div class="o_progress_value">
+                                <t t-esc="state.stats.success_rate"/>%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Two Column Layout -->
+                <div class="o_dashboard_grid">
+                    <!-- Recent Deployments -->
+                    <div class="o_section_card">
+                        <div class="o_section_header">
+                            <h3>
+                                <i class="fa fa-history"/> Recent Deployments
+                            </h3>
+                            <button class="btn btn-sm btn-link" t-on-click="() => this.openDeployments()">
+                                View All <i class="fa fa-arrow-right"/>
+                            </button>
+                        </div>
+                        <div class="o_section_body">
+                            <div t-if="state.recent_deployments.length === 0" class="o_empty_state">
+                                <i class="fa fa-inbox fa-3x"/>
+                                <p>No recent deployments</p>
+                            </div>
+                            <div t-else="" class="o_deployment_list">
+                                <t t-foreach="state.recent_deployments" t-as="deployment" t-key="deployment.id">
+                                    <div class="o_deployment_item">
+                                        <div class="o_deployment_icon">
+                                            <i t-att-class="'fa ' + deployment.status_icon"/>
+                                        </div>
+                                        <div class="o_deployment_content">
+                                            <div class="o_deployment_title">
+                                                <t t-esc="deployment.software_id[1]"/>
+                                            </div>
+                                            <div class="o_deployment_subtitle">
+                                                <i class="fa fa-desktop"/> 
+                                                <t t-esc="deployment.device_name"/>
+                                                <span class="o_deployment_date">
+                                                    <t t-esc="deployment.deployed_date"/>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="o_deployment_status">
+                                            <span t-att-class="deployment.status_class">
+                                                <t t-esc="deployment.status"/>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top Software -->
+                    <div class="o_section_card">
+                        <div class="o_section_header">
+                            <h3>
+                                <i class="fa fa-star"/> Most Deployed Software
+                            </h3>
+                            <button class="btn btn-sm btn-link" t-on-click="() => this.openSoftwareLibrary()">
+                                View Library <i class="fa fa-arrow-right"/>
+                            </button>
+                        </div>
+                        <div class="o_section_body">
+                            <div t-if="state.top_software.length === 0" class="o_empty_state">
+                                <i class="fa fa-archive fa-3x"/>
+                                <p>No software in library</p>
+                            </div>
+                            <div t-else="" class="o_software_list">
+                                <t t-foreach="state.top_software" t-as="software" t-key="software.id">
+                                    <div class="o_software_item">
+                                        <div class="o_software_rank">
+                                            <t t-esc="software_index + 1"/>
+                                        </div>
+                                        <div class="o_software_content">
+                                            <div class="o_software_name">
+                                                <t t-esc="software.name"/>
+                                            </div>
+                                            <div class="o_software_stats">
+                                                <span class="o_stat_badge">
+                                                    <i class="fa fa-rocket"/> 
+                                                    <t t-esc="software.deployment_count"/> deployments
+                                                </span>
+                                                <span class="o_stat_badge" t-att-class="software.success_rate >= 80 ? 'text-success' : 'text-warning'">
+                                                    <i class="fa fa-check"/> 
+                                                    <t t-esc="software.success_rate"/>% success
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="o_quick_actions">
+                    <h3>
+                        <i class="fa fa-bolt"/> Quick Actions
+                    </h3>
+                    <div class="o_action_buttons">
+                        <button class="o_action_button" t-on-click="() => this.openSoftwareLibrary()">
+                            <div class="o_action_icon">
+                                <i class="fa fa-cube"/>
+                            </div>
+                            <div class="o_action_label">Browse Library</div>
+                        </button>
+                        <button class="o_action_button" t-on-click="() => this.openDeploymentWizard()">
+                            <div class="o_action_icon">
+                                <i class="fa fa-rocket"/>
+                            </div>
+                            <div class="o_action_label">Deploy Software</div>
+                        </button>
+                        <button class="o_action_button" t-on-click="() => this.openDeployments()">
+                            <div class="o_action_icon">
+                                <i class="fa fa-tasks"/>
+                            </div>
+                            <div class="o_action_label">View Deployments</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

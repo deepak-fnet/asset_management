@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- =========================================================
+         TREE VIEW
+         ========================================================= -->
+    <record id="view_asset_request_tree" model="ir.ui.view">
+        <field name="name">asset.request.tree</field>
+        <field name="model">asset.request</field>
+        <field name="arch" type="xml">
+            <list string="Asset Requests"
+                  decoration-info="state == 'draft'"
+                  decoration-muted="state == 'cancel'"
+                  decoration-success="state == 'done'"
+                  decoration-warning="state == 'submitted'"
+                  decoration-primary="state == 'approved'">
+                <field name="name"/>
+                <field name="requested_by"/>
+                <field name="request_date"/>
+                <field name="po_count" string="POs"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'submitted'"
+                       decoration-primary="state in ('approved', 'rfq', 'po_created')"
+                       decoration-success="state in ('po_done', 'done')"
+                       decoration-muted="state == 'cancel'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- =========================================================
+         FORM VIEW
+         ========================================================= -->
+    <record id="view_asset_request_form" model="ir.ui.view">
+        <field name="name">asset.request.form</field>
+        <field name="model">asset.request</field>
+        <field name="arch" type="xml">
+            <form string="Asset Request">
+                <header>
+                    <button name="action_submit"
+                            type="object"
+                            string="Submit"
+                            class="btn-primary"
+                            groups="asset_management.group_asset_user_it"
+                            invisible="state != 'draft'"/>
+                    <button name="action_approve"
+                            type="object"
+                            string="Approve"
+                            groups="asset_management.group_asset_manager"
+                            class="btn-primary"
+                            invisible="state != 'submitted'"/>
+                    <button name="action_reject"
+                            type="object"
+                            string="Reject"
+                            invisible="state not in ('submitted', 'approved')"/>
+                    <button name="action_create_rfq"
+                            groups="purchase.group_purchase_user"
+                            type="object"
+                            string="Create RFQ"
+                            class="btn-primary"
+                            invisible="state not in ('approved', 'rfq')"/>
+                    <!--
+                         Direct PO creation is kept as a fallback for
+                         single-source or urgent items that do not warrant
+                         quoting, but it is no longer the primary path -
+                         hence btn-secondary.
+                    -->
+                    <button name="action_create_po"
+                            groups="purchase.group_purchase_user"
+                            type="object"
+                            string="Create PO Directly"
+                            class="btn-secondary"
+                            invisible="state not in ('approved', 'rfq', 'po_created')"/>
+                    <!--
+                         The "Mark Done" button is gone. po_created → po_done is
+                         AUTOMATIC (happens when every non-cancelled PO is Locked).
+
+                         In po_done, the user goes to the Asset List page,
+                         fills serial numbers, then clicks Done below.
+                    -->
+                    <button name="action_done"
+                            type="object"
+                            string="Done"
+                            class="btn-primary"
+                            invisible="state != 'po_done'"
+                            confirm="All serial numbers are filled — close this request?"/>
+                    <button name="action_cancel"
+                            type="object"
+                            string="Cancel"
+                            invisible="state in ('done', 'cancel')"/>
+                    <button name="action_reset_to_draft"
+                            type="object"
+                            string="Reset to Draft"
+                            invisible="state != 'cancel'"/>
+                    <field name="state"
+                           widget="statusbar"
+                           statusbar_visible="draft,submitted,approved,rfq,po_created,po_done,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_rfqs"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-paper-plane"
+                                invisible="rfq_count == 0">
+                            <field name="rfq_count" widget="statinfo" string="RFQs"/>
+                        </button>
+                        <button name="action_open_pos"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-shopping-cart"
+                                invisible="po_count == 0">
+                            <field name="po_count" widget="statinfo" string="Purchase Orders"/>
+                        </button>
+                        <button name="action_open_asset_list"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-list"
+                                invisible="asset_list_count == 0">
+                            <div class="o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="asset_list_filled"/> / <field name="asset_list_count"/>
+                                </span>
+                                <span class="o_stat_text">Serial Nos</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="requested_by"
+                                   readonly="1"/>
+                            <field name="request_date"
+                                   readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="all_pos_done"
+                                   invisible="state not in ('po_created', 'po_done', 'done')"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Request Lines" name="lines">
+                            <field name="line_ids"
+                                   readonly="state not in ('draft',)">
+                                <list editable="bottom">
+                                    <field name="asset_category_id" options="{'no_create': True, 'no_create_edit':True}"/>
+                                    <field name="description"/>
+                                    <field name="quantity"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!--
+                             Asset List page is visible ONLY in po_done and done states.
+                             In po_done: editable (serial_no must be filled).
+                             In done: readonly (audit trail — no more changes).
+                        -->
+                        <page string="Asset List"
+                              name="asset_list"
+                              invisible="state not in ('po_done', 'done')">
+                            <div class="alert alert-info" role="alert"
+                                 invisible="state != 'po_done'">
+                                <strong>Action required:</strong>
+                                Fill in the <strong>Serial No</strong> for every row below,
+                                then click <strong>Done</strong> at the top to close this request.
+                            </div>
+                            <field name="asset_list_ids"
+                                   readonly="state != 'po_done'">
+                                <list editable="bottom">
+                                    <field name="product_id" readonly="1" optional="hide"/>
+                                    <field name="po_id" readonly="1" optional="hide"/>
+                                    <field name="po_line_id" readonly="1" optional="hide"/>
+                                    <field name="serial_no" required="parent.state == 'po_done'"/>
+                                    <field name="asset_id" optional="show"/>
+                                    <field name="lot_id" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Notes" name="notes">
+                            <field name="notes" placeholder="Internal notes about this request..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- =========================================================
+         SEARCH VIEW
+         ========================================================= -->
+    <record id="view_asset_request_search" model="ir.ui.view">
+        <field name="name">asset.request.search</field>
+        <field name="model">asset.request</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="requested_by"/>
+                <filter string="My Requests"
+                        name="my_requests"
+                        domain="[('requested_by', '=', uid)]"/>
+                <separator/>
+                <filter string="Draft" name="filter_draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Submitted" name="filter_submitted" domain="[('state', '=', 'submitted')]"/>
+                <filter string="Approved" name="filter_approved" domain="[('state', '=', 'approved')]"/>
+                <filter string="PO Created" name="filter_po_created" domain="[('state', '=', 'po_created')]"/>
+                <filter string="PO Done" name="filter_po_done" domain="[('state', '=', 'po_done')]"/>
+                <filter string="Done" name="filter_done" domain="[('state', '=', 'done')]"/>
+                <filter string="Cancelled" name="filter_cancel" domain="[('state', '=', 'cancel')]"/>
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter string="Requester" name="group_requester" context="{'group_by': 'requested_by'}"/>-->
+<!--                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>-->
+<!--                    <filter string="Request Date" name="group_request_date" context="{'group_by': 'request_date'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <!-- =========================================================
+         ACTION
+         ========================================================= -->
+    <record id="action_asset_request" model="ir.actions.act_window">
+        <field name="name">Asset Requests</field>
+        <field name="res_model">asset.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_asset_request_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first asset request
+            </p>
+            <p>
+                Raise a request for new assets (laptops, monitors, etc.).
+                Once approved, you can create Purchase Orders from it.
+            </p>
+        </field>
+    </record>
+
+</odoo>

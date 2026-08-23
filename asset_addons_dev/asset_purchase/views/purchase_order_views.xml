@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="purchase_order_form_asset" model="ir.ui.view">
+        <field name="name">purchase.order.form.asset</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+
+            <div name="button_box" position="inside">
+                <button name="action_view_assets" type="object"
+                        class="oe_stat_button" icon="fa-cubes"
+                        invisible="asset_count == 0">
+                    <field string="Assets" name="asset_count" widget="statinfo"/>
+                </button>
+            </div>
+
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_qty']" position="after">
+                <field name="is_fixed_asset" optional="show"/>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

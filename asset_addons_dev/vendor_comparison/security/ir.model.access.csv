@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_vendor_comparison,vendor.comparison,model_vendor_comparison,purchase.group_purchase_user,1,1,1,1
+access_vendor_comparison_line,vendor.comparison.line,model_vendor_comparison_line,purchase.group_purchase_user,1,1,1,1
+access_purchase_qty_exceed,purchase.qty.exceed,model_purchase_qty_exceed,purchase.group_purchase_user,1,1,1,1
+access_vendor_comparison_mgr,vendor.comparison.manager,model_vendor_comparison,purchase.group_purchase_manager,1,1,1,1

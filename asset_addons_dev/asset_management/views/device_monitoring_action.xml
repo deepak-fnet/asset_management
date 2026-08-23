@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_device_monitoring" model="ir.actions.client">
+        <field name="name">Device Monitoring</field>
+        <field name="tag">action_device_monitoring</field>
+        <field name="target">main</field>
+    </record>
+
+    <record id="action_windows_monitoring" model="ir.actions.client">
+        <field name="name">Windows Live Monitoring</field>
+        <field name="tag">action_device_monitoring</field>
+        <field name="target">main</field>
+        <field name="context">{'default_platform': 'windows'}</field>
+    </record>
+
+    <record id="action_ubuntu_monitoring" model="ir.actions.client">
+        <field name="name">Linux Live Monitoring</field>
+        <field name="tag">action_device_monitoring</field>
+        <field name="target">main</field>
+        <field name="context">{'default_platform': 'ubuntu'}</field>
+    </record>
+
+    <record id="action_mac_monitoring" model="ir.actions.client">
+        <field name="name">macOS Live Monitoring</field>
+        <field name="tag">action_device_monitoring</field>
+        <field name="target">main</field>
+        <field name="context">{'default_platform': 'macos'}</field>
+    </record>
+
+    <record id="action_cctv_monitoring" model="ir.actions.client">
+        <field name="name">CCTV Live Monitoring</field>
+        <field name="tag">action_device_monitoring</field>
+        <field name="target">main</field>
+        <field name="context">{'default_platform': 'cctv'}</field>
+    </record>
+</odoo>

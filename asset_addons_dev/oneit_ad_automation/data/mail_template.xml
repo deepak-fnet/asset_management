@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="mail_template_oneit_approval_request" model="mail.template">
+            <field name="name">OneIT: Approval Request</field>
+            <field name="model_id" ref="model_oneit_request"/>
+
+            <field name="subject">
+Action Required: ${'Onboarding' if object.request_type == 'onboarding' else 'Offboarding'} - ${object.employee_name or ''} (${object.employee_ref or ''})
+            </field>
+
+            <field name="email_from">
+${(user.email_formatted or user.company_id.email_formatted) | safe}
+            </field>
+
+            <field name="auto_delete" eval="False"/>
+
+            <field name="body_html" type="html">
+<div style="margin:0;padding:0;background-color:#f4f6f8;font-family:Arial,Helvetica,sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f8;padding:20px;">
+        <tr>
+            <td align="center">
+
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:6px;overflow:hidden;">
+
+                    <!-- Header -->
+                    <tr>
+                        <td style="background-color:#0b5ed7;padding:20px 30px;">
+                            <h2 style="color:#ffffff;margin:0;font-size:20px;">
+                                ${'Onboarding' if object.request_type == 'onboarding' else 'Offboarding'} - Action Required
+                            </h2>
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding:30px;color:#333333;font-size:14px;line-height:1.6;">
+
+                            <p style="margin-top:0;">Hello,</p>
+
+                            <p>
+                                Request <strong>${object.name or ''}</strong> for
+                                <strong>${object.employee_name or ''} - ${object.employee_ref or ''}</strong>
+                                requires your review and approval.
+                            </p>
+
+                            <table cellpadding="4" cellspacing="0" style="font-size:13px;color:#555555;margin:16px 0;width:100%;">
+
+                                <tr>
+                                    <td width="40%"><strong>Team</strong></td>
+                                    <td>${object.team_id.name or ''}</td>
+                                </tr>
+
+                                <tr>
+                                    <td><strong>Submitted By</strong></td>
+                                    <td>${object.submitted_by_id.name or ''}</td>
+                                </tr>
+
+                                % if object.request_type == 'offboarding':
+                                <tr>
+                                    <td><strong>Last Working Day</strong></td>
+                                    <td>${object.last_working_day or ''}</td>
+                                </tr>
+                                % endif
+
+                                % if object.request_type == 'onboarding' and object.date_of_joining:
+                                <tr>
+                                    <td><strong>Date of Joining</strong></td>
+                                    <td>${object.date_of_joining}</td>
+                                </tr>
+                                % endif
+
+                            </table>
+
+                            % if object.state == 'pending':
+                            <p>
+                                As <strong>Team Lead</strong>, please review the request and confirm the required Active Directory access.
+                            </p>
+                            % else:
+                            <p>
+                                As <strong>BU Head</strong>, your approval will trigger the Active Directory change process.
+                            </p>
+                            % endif
+
+                            <p style="text-align:center;margin:30px 0;">
+                                <a href="${object.get_base_url()}/web#id=${object.id}&amp;model=oneit.request&amp;view_type=form"
+                                   style="background-color:#0b5ed7;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:4px;font-size:14px;display:inline-block;">
+                                    Review &amp; Approve Request
+                                </a>
+                            </p>
+
+                            <p>
+                                If you have any questions, please contact the <strong>IT Support Team</strong>.
+                            </p>
+
+                            <p style="margin-bottom:0;">
+                                Regards,<br/>
+                                <strong>IT Support Team</strong>
+                            </p>
+
+                        </td>
+                    </tr>
+
+                </table>
+
+            </td>
+        </tr>
+    </table>
+</div>
+            </field>
+        </record>
+
+    </data>
+</odoo>

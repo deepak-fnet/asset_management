@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <menuitem id="menu_app_updates"
+              name="Application Updates"
+              parent="asset_patch_vuln.menu_patch_root"
+              action="action_app_update"
+              sequence="4"/>
+
+    <menuitem id="menu_cve_import"
+              name="Offline CVE Import"
+              parent="asset_patch_vuln.menu_vuln_root"
+              action="action_cve_import_wizard"
+              sequence="6"
+              groups="asset_management.group_asset_manager"/>
+
+</odoo>

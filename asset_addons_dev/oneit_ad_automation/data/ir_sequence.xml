@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_oneit_request" model="ir.sequence">
+            <field name="name">OneIT AD Request</field>
+            <field name="code">oneit.request</field>
+            <field name="prefix">OneIT/%(year)s/</field>
+            <field name="padding">5</field>
+            <field name="number_increment">1</field>
+            <field name="implementation">standard</field>
+        </record>
+    </data>
+</odoo>

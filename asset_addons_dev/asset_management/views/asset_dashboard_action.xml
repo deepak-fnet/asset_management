@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Asset Management Dashboard Action -->
+    <record id="action_asset_dashboard_client" model="ir.actions.client">
+        <field name="name">Windows Agents Dashboard</field>
+        <field name="tag">asset_dashboard</field>
+        <field name="target">current</field>
+        <field name="context">{'os_platform': 'windows'}</field>
+    </record>
+
+    <!-- Ubuntu Agents Dashboard Action -->
+    <record id="action_ubuntu_agent_dashboard" model="ir.actions.client">
+        <field name="name">Linux Agents Dashboard</field>
+        <field name="tag">ubuntu_agent_dashboard</field>
+        <field name="target">current</field>
+        <field name="context">{'os_platform': 'linux'}</field>
+    </record>
+
+    <!-- Mac Agents Dashboard Action -->
+    <record id="action_mac_agent_dashboard" model="ir.actions.client">
+        <field name="name">macOS Agents Dashboard</field>
+        <field name="tag">macos_dashboard</field>
+        <field name="target">current</field>
+        <field name="context">{'os_platform': 'macos'}</field>
+    </record>
+
+    <!-- ===================== -->
+    <!-- AGENT STATUS FILTERS -->
+    <!-- ===================== -->
+
+    <!-- Active/Online Agents Action -->
+    <record id="action_active_agents" model="ir.actions.act_window">
+        <field name="name">Active Agents</field>
+        <field name="res_model">asset.asset</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('agent_status', '=', 'online')]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No active agents found
+            </p>
+            <p>
+                Assets with agents that synced within the heartbeat timeout (default: 3 minutes) will appear here.
+            </p>
+        </field>
+    </record>
+
+    <!-- Offline Agents Action -->
+    <record id="action_offline_agents" model="ir.actions.act_window">
+        <field name="name">Offline Agents</field>
+        <field name="res_model">asset.asset</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('agent_status', '=', 'offline'), ('last_sync_time', '!=', False)]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No offline agents found
+            </p>
+            <p>
+                Assets that haven't synced within the heartbeat timeout (default: 3 minutes) will appear here.
+            </p>
+        </field>
+    </record>
+
+    <!-- Never Synced Assets Action -->
+    <record id="action_never_synced_agents" model="ir.actions.act_window">
+        <field name="name">Never Synced</field>
+        <field name="res_model">asset.asset</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('last_sync_time', '=', False)]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No assets without sync data
+            </p>
+            <p>
+                Assets that have never been synced by an agent will appear here.
+            </p>
+        </field>
+    </record>
+
+</odoo>

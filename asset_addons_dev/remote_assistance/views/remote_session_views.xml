@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ===================== FORM ===================== -->
+    <record id="view_remote_session_form" model="ir.ui.view">
+        <field name="name">remote.assistance.session.form</field>
+        <field name="model">remote.assistance.session</field>
+        <field name="arch" type="xml">
+            <form string="Remote Assistance">
+                <header>
+                    <button name="action_send_invitation" type="object"
+                            string="Send Invitation" class="btn-primary"
+                            invisible="state not in ['draft','expired','rejected']"/>
+                    <button name="action_open_viewer" type="object"
+                            string="Start Remote Session" class="btn-primary"
+                            invisible="state not in ['agent_connected','preparing','connected']"/>
+                    <button name="action_end_session" type="object"
+                            string="End Session" class="btn-danger"
+                            confirm="End the session now? The customer will be disconnected."
+                            invisible="state not in ['accepted','waiting_agent','agent_connected','preparing','connected']"/>
+                    <button name="action_reset_to_draft" type="object"
+                            string="Reset to Draft"
+                            groups="remote_assistance.group_remote_assistance_manager"
+                            invisible="state in ['draft']"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,waiting_response,accepted,waiting_agent,agent_connected,connected,ended"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_recordings" type="object"
+                                class="oe_stat_button" icon="fa-video-camera"
+                                invisible="recording_count == 0">
+                            <field name="recording_count" widget="statinfo"
+                                   string="Recordings"/>
+                        </button>
+                    </div>
+                    <div class="alert alert-info" role="status"
+                         invisible="not state_help">
+                        <field name="state_help"/>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Customer">
+                            <field name="partner_id"
+                                   readonly="state != 'draft'"/>
+                            <field name="customer_email"
+                                   readonly="state != 'draft'"/>
+                            <field name="machine_type"
+                                   readonly="state != 'draft'"/>
+                            <field name="duration_minutes"
+                                   readonly="state != 'draft'"/>
+                        </group>
+                        <group string="Session">
+                            <field name="admin_user_id"
+                                   readonly="state != 'draft'"/>
+                            <field name="company_id"
+                                   groups="base.group_multi_company"
+                                   readonly="state != 'draft'"/>
+                            <field name="relay_url"/>
+                            <field name="start_time" invisible="1"/>
+                            <field name="actual_duration"
+                                   invisible="not start_time"/>
+                            <field name="agent_os" invisible="not agent_os"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="reason" placeholder="Why do you need to connect to this machine?"
+                               readonly="state != 'draft'"/>
+                        <field name="notes" placeholder="Optional notes…"/>
+                    </group>
+                    <notebook>
+                        <page string="Recordings" name="recordings">
+                            <field name="recording_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="create_date"/>
+                                    <field name="duration"/>
+                                    <field name="file_size"/>
+                                    <field name="recorded_by"/>
+                                    <button name="action_view" type="object"
+                                            string="View" icon="fa-play"/>
+                                    <button name="action_download"
+                                            type="object" string="Download"
+                                            icon="fa-download"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="History" name="history">
+                            <field name="history_ids" readonly="1">
+                                <list>
+                                    <field name="timestamp"/>
+                                    <field name="action"/>
+                                    <field name="actor"/>
+                                    <field name="note"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Technical" name="technical"
+                              groups="remote_assistance.group_remote_assistance_manager">
+                            <group>
+                                <field name="session_token"/>
+                                <field name="invited_on"/>
+                                <field name="accepted_on"/>
+                                <field name="agent_connected_on"/>
+                                <field name="start_time"/>
+                                <field name="end_time"/>
+                                <field name="invite_expiry"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ===================== TREE ===================== -->
+    <record id="view_remote_session_list" model="ir.ui.view">
+        <field name="name">remote.assistance.session.list</field>
+        <field name="model">remote.assistance.session</field>
+        <field name="arch" type="xml">
+            <list string="Remote Assistance Sessions"
+                  decoration-success="state == 'connected'"
+                  decoration-muted="state in ['ended','expired','rejected']"
+                  decoration-info="state in ['agent_connected','preparing']">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="machine_type"/>
+                <field name="admin_user_id"/>
+                <field name="duration_minutes"/>
+                <field name="create_date"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'connected'"
+                       decoration-info="state in ['agent_connected','preparing']"
+                       decoration-warning="state in ['sent','waiting_response','accepted','waiting_agent']"
+                       decoration-danger="state == 'rejected'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ===================== SEARCH ===================== -->
+    <record id="view_remote_session_search" model="ir.ui.view">
+        <field name="name">remote.assistance.session.search</field>
+        <field name="model">remote.assistance.session</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="admin_user_id"/>
+                <filter name="my_sessions" string="My Sessions"
+                        domain="[('admin_user_id','=',uid)]"/>
+                <separator/>
+                <filter name="active_now" string="Live"
+                        domain="[('state','in',['agent_connected','preparing','connected'])]"/>
+                <filter name="waiting" string="Waiting"
+                        domain="[('state','in',['sent','waiting_response','accepted','waiting_agent'])]"/>
+                <filter name="closed" string="Closed"
+                        domain="[('state','in',['ended','expired','rejected'])]"/>
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter name="grp_state" string="Status"-->
+<!--                            context="{'group_by':'state'}"/>-->
+<!--                    <filter name="grp_admin" string="Administrator"-->
+<!--                            context="{'group_by':'admin_user_id'}"/>-->
+<!--                    <filter name="grp_type" string="Machine Type"-->
+<!--                            context="{'group_by':'machine_type'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <!-- ===================== ACTION ===================== -->
+    <record id="action_remote_session" model="ir.actions.act_window">
+        <field name="name">Remote Assistance</field>
+        <field name="res_model">remote.assistance.session</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_remote_session_search"/>
+        <field name="context">{'search_default_my_sessions': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a remote assistance request
+            </p>
+            <p>
+                Invite a customer, wait for their consent, and connect to
+                their computer from your browser.
+            </p>
+        </field>
+    </record>
+</odoo>

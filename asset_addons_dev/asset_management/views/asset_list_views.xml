@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_asset_list_tree" model="ir.ui.view">
+        <field name="name">asset.list.tree</field>
+        <field name="model">asset.list</field>
+        <field name="arch" type="xml">
+            <list string="Asset List"
+                  decoration-warning="not serial_no"
+                  decoration-success="serial_no and asset_id"
+                  editable="bottom">
+                <field name="request_id" readonly="1" optional="hide"/>
+                <field name="po_id" readonly="is_done" optional="hide"/>
+                <field name="product_id" readonly="is_done" optional="hide"/>
+                <field name="serial_no" readonly="is_done"/>
+                <field name="asset_id" readonly="is_done" domain="[('asset_list_id', '=', False)]"
+                       options="{'no_create': True, 'no_create_edit':True}"/>
+                <button name="action_confirm" type="object" string="Confirm" invisible="is_done"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_list_form" model="ir.ui.view">
+        <field name="name">asset.list.form</field>
+        <field name="model">asset.list</field>
+        <field name="arch" type="xml">
+            <form string="Asset List">
+                <header>
+                    <button name="action_confirm" type="object" string="Confirm" invisible="is_done"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="serial_no" readonly="is_done"/>
+                            <field name="asset_id" readonly="is_done" domain="[('asset_list_id', '=', False)]"
+                                   options="{'no_create': True, 'no_create_edit':True}"/>
+                        </group>
+                        <group string="Traceability">
+                            <field name="request_id" readonly="1"/>
+                            <field name="po_id" readonly="1"/>
+                            <field name="po_line_id" readonly="1"/>
+                            <field name="product_id" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_asset_list_search" model="ir.ui.view">
+        <field name="name">asset.list.search</field>
+        <field name="model">asset.list</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="serial_no"/>
+                <field name="request_id"/>
+                <field name="po_id"/>
+                <field name="product_id"/>
+                <field name="asset_id"/>
+                <filter string="Missing Serial"
+                        name="missing_serial"
+                        domain="[('serial_no', '=', False)]"/>
+                <filter string="Not Linked to Asset"
+                        name="missing_asset"
+                        domain="[('asset_id', '=', False)]"/>
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter string="Asset Request"-->
+<!--                            name="group_request"-->
+<!--                            context="{'group_by': 'request_id'}"/>-->
+<!--                    <filter string="Purchase Order"-->
+<!--                            name="group_po"-->
+<!--                            context="{'group_by': 'po_id'}"/>-->
+<!--                    <filter string="Product"-->
+<!--                            name="group_product"-->
+<!--                            context="{'group_by': 'product_id'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <record id="action_asset_list" model="ir.actions.act_window">
+        <field name="name">Asset List</field>
+        <field name="res_model">asset.list</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_asset_list_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No asset list entries yet
+            </p>
+            <p>
+                Asset list entries are created automatically once all Purchase
+                Orders of an Asset Request reach the Done state. One entry is
+                created per ordered unit so you can capture its serial number.
+            </p>
+        </field>
+    </record>
+    <record id="view_asset_asset_form_inherit_asset_list" model="ir.ui.view">
+        <field name="name">asset.asset.form.inherit.asset.list</field>
+        <field name="model">asset.asset</field>
+        <field name="inherit_id" ref="asset_management.view_asset_asset_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='last_sync_time']/ancestor::div[contains(@style,'background: #ffffff')][1]"
+                   position="after">
+                <div invisible="not asset_list_id" style="display: flex; align-items: center; background: #ffffff; padding: 8px 16px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <i class="fa fa-list" style="margin-right: 10px; color: #8b5cf6; font-size: 14px;"/>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">
+                            Asset List
+                        </span>
+                        <field name="asset_list_id" readonly="1"/>
+                    </div>
+                </div>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

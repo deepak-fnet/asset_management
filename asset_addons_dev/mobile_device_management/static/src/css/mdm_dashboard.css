@@ -1,0 +1,91 @@
+/* Card layout for the mobile.device form, matching the visual language of
+   asset_management's Hardware Specs / Update Center tabs. */
+
+.mdm-section {
+    padding: 8px 4px 24px;
+}
+.mdm-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+.mdm-section-sub {
+    color: #6c757d;
+    font-size: 13px;
+    margin-bottom: 20px;
+}
+
+.mdm-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.mdm-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+}
+.mdm-card-head {
+    padding: 12px 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.mdm-card-head.os      { background: #e7d9f5; }
+.mdm-card-head.cpu     { background: #d6e4fa; }
+.mdm-card-head.storage { background: #d5ecdd; }
+.mdm-card-head.network { background: #fde9d3; }
+.mdm-card-head.battery { background: #fbdcdc; }
+
+.mdm-card-body { padding: 4px 16px 16px; }
+
+.mdm-row {
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+.mdm-row:last-child { border-bottom: none; }
+
+.mdm-label {
+    font-size: 11px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: #8a8a8a;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.mdm-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: #212529;
+    word-break: break-word;
+}
+.mdm-value .o_field_widget { font-weight: 600; }
+
+/* Update Center */
+.mdm-status-bar {
+    background: #d9edf7;
+    border-radius: 6px;
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+.mdm-pending-table td { padding: 8px 0; }
+.mdm-pending-table .num { font-weight: 600; }
+
+/* Location */
+.mdm-geo-head {
+    background: #d5ecdd;
+    padding: 10px 16px;
+    font-weight: 600;
+    border-radius: 6px 6px 0 0;
+}

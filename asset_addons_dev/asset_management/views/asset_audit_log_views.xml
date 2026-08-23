@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Audit Log List View -->
+    <record id="view_asset_audit_log_list" model="ir.ui.view">
+        <field name="name">asset.audit.log.list</field>
+        <field name="model">asset.audit.log</field>
+        <field name="arch" type="xml">
+            <list string="Audit Logs" create="false" delete="false">
+                <field name="timestamp"/>
+                <field name="action" widget="badge" 
+                       decoration-success="action == 'uninstall_success'"
+                       decoration-danger="action == 'uninstall_failed'"
+                       decoration-warning="action == 'uninstall_request'"
+                       decoration-info="action == 'windows_update_lock'"/>
+                <field name="asset_id"/>
+                <field name="description"/>
+                <field name="user_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Audit Log Form View -->
+    <record id="view_asset_audit_log_form" model="ir.ui.view">
+        <field name="name">asset.audit.log.form</field>
+        <field name="model">asset.audit.log</field>
+        <field name="arch" type="xml">
+            <form string="Audit Log">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="asset_id"/>
+                            <field name="action"/>
+                        </group>
+                        <group>
+                            <field name="timestamp"/>
+                            <field name="user_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Audit Log Action -->
+    <record id="action_asset_audit_log" model="ir.actions.act_window">
+        <field name="name">Audit Logs</field>
+        <field name="res_model">asset.audit.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No audit logs found
+            </p>
+            <p>
+                Audit logs track all asset-related actions like uninstall requests, Windows Update locks, etc.
+            </p>
+        </field>
+    </record>
+
+</odoo>

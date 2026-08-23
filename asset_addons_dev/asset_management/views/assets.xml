@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <template id="assets_backend" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+
+            <!-- CHART.JS LIBRARY - MUST LOAD FIRST -->
+            <script type="text/javascript" src="/asset_management/static/lib/chartjs/chart.umd.min.js"/>
+
+            <!-- CSS FILES -->
+            <link rel="stylesheet" href="/asset_management/static/src/css/asset_dashboard.css?v=2.0"/>
+            <link rel="stylesheet" href="/asset_management/static/src/css/asset_category.css"/>
+            <link rel="stylesheet" href="/asset_management/static/src/css/cctv_dashboard.css"/>
+            <link rel="stylesheet" href="/asset_management/static/src/css/navbar_dropdown.css"/>
+
+            <!-- DASHBOARD XML TEMPLATE -->
+            <script type="text/xml" src="/asset_management/static/src/xml/asset_dashboard.xml"/>
+            <script type="text/xml" src="/asset_management/static/src/xml/cctv_dashboard.xml"/>
+
+            <!-- DASHBOARD JS - MUST LOAD AFTER CHART.JS -->
+            <script type="module" src="/asset_management/static/src/js/asset_dashboard.js"/>
+            <script type="module" src="/asset_management/static/src/js/cctv_dashboard.js"/>
+
+        </xpath>
+    </template>
+
+</odoo>

@@ -1,0 +1,563 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- ================================================================
+             SAMPLE REQUESTS
+
+             One request per workflow state, across all three request types.
+             Approval lines below each request match that team's configured
+             Team Leads and BU Heads.
+
+             State reference:
+               draft            - not yet submitted
+               pending          - awaiting Team Lead
+               tl_approved      - awaiting BU Head
+               approved         - awaiting the scheduled action
+               ready_to_delete  - offboarding: account disabled
+               done             - finished
+               rejected         - refused at either stage
+             ================================================================ -->
+
+
+        <!-- ============================================================
+             1. ONBOARDING - draft (Support)
+             ============================================================ -->
+        <record id="demo_req_onb_draft" model="oneit.request">
+            <field name="request_type">onboarding</field>
+            <field name="state">draft</field>
+            <field name="employee_ref">EMP1004</field>
+            <field name="employee_name">Nithya Balan</field>
+            <field name="employee_email">nithya.balan@example.com</field>
+            <field name="employee_phone">9840012004</field>
+            <field name="team_id" ref="demo_team_support"/>
+            <field name="date_of_joining"
+                   eval="(DateTime.today() + relativedelta(days=14)).strftime('%Y-%m-%d')"/>
+            <field name="submitted_by_id" ref="demo_user_hr"/>
+            <field name="ad_group_ids" eval="[(6, 0, [
+                ref('demo_adg_sup_ou'),
+                ref('demo_adg_sup_citrix_desk'),
+                ref('demo_adg_sup_fs_kb')])]"/>
+        </record>
+
+
+        <!-- ============================================================
+             2. ONBOARDING - pending Team Lead (Engineering)
+             ============================================================ -->
+        <record id="demo_req_onb_pending_tl" model="oneit.request">
+            <field name="request_type">onboarding</field>
+            <field name="state">pending</field>
+            <field name="employee_ref">EMP1002</field>
+            <field name="employee_name">Karthik Subramanian</field>
+            <field name="employee_email">karthik.s@example.com</field>
+            <field name="employee_phone">9840012002</field>
+            <field name="team_id" ref="demo_team_engineering"/>
+            <field name="date_of_joining"
+                   eval="(DateTime.today() + relativedelta(days=7)).strftime('%Y-%m-%d')"/>
+            <field name="submitted_by_id" ref="demo_user_hr"/>
+            <field name="submitted_on"
+                   eval="(DateTime.today() - relativedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')"/>
+            <field name="ad_group_ids" eval="[(6, 0, [
+                ref('demo_adg_eng_ou'),
+                ref('demo_adg_eng_citrix_dev'),
+                ref('demo_adg_eng_fs_source'),
+                ref('demo_adg_eng_fs_builds')])]"/>
+        </record>
+
+        <record id="demo_apr_onb_pending_tl_1" model="oneit.approval">
+            <field name="request_id" ref="demo_req_onb_pending_tl"/>
+            <field name="approver_id" ref="base.user_admin"/>
+            <field name="approver_role">team_lead</field>
+            <field name="state">pending</field>
+        </record>
+
+        <record id="demo_apr_onb_pending_tl_2" model="oneit.approval">
+            <field name="request_id" ref="demo_req_onb_pending_tl"/>
+            <field name="approver_id" ref="demo_user_tl_eng"/>
+            <field name="approver_role">team_lead</field>
+            <field name="state">pending</field>
+        </record>
+
+        <record id="demo_apr_onb_pending_tl_3" model="oneit.approval">
+            <field name="request_id" ref="demo_req_onb_pending_tl"/>
+            <field name="approver_id" ref="base.user_admin"/>
+            <field name="approver_role">bu_head</field>
+            <field name="state">pending</field>
+        </record>
+
+        <record id="demo_apr_onb_pending_tl_4" model="oneit.approval">
+            <field name="request_id" ref="demo_req_onb_pending_tl"/>
+            <field name="approver_id" ref="demo_user_bu_1"/>
+            <field name="approver_role">bu_head</field>
+            <field name="state">pending</field>
+        </record>
+
+
+        <!-- ============================================================
+             3. ONBOARDING - pending BU Head (Sales)
+             Team Lead has approved and trimmed the access list.
+             ============================================================ -->
+        <record id="demo_req_onb_pending_bu" model="oneit.request">
+            <field name="request_type">onboarding</field>
+            <field name="state">tl_approved</field>
+            <field name="employee_ref">EMP1003</field>
+            <field name="employee_name">Sneha Pillai</field>
+            <field name="employee_email">sneha.pillai@example.com</field>
+            <field name="employee_phone">9840012003</field>
+            <field name="team_id" ref="demo_team_sales"/>
+            <field name="date_of_joining"
+                   eval="(DateTime.today() + relativedelta(days=5)).strftime('%Y-%m-%d')"/>
+            <field name="submitted_by_id" ref="demo_user_hr"/>
+            <field name="submitted_on"
+                   eval="(DateTime.today() - relativedelta(days=3)).strftime('%Y-%m-%d %H:%M:%S')"/>
+            <field name="ad_group_ids" eval="[(6, 0, [
+                ref('demo_adg_sls_ou'),
+                ref('demo_adg_sls_citrix_crm')])]"/>
+            <field name="execution_log">Submitted for Team Lead approval.
+Approved by Team Lead Rohan Iyer. Access selected: SLS-Users-OU, SLS-Citrix-CRM</field>
+        </record>
+
+        <record id="demo_apr_onb_pending_bu_1" model="oneit.approval">
+            <field name="request_id" ref="demo_req_onb_pending_bu"/>
+            <field name="approver_id" ref="demo_user_tl_finance"/>
+            <field name="approver_role">team_lead</field>
+            <field name="state">approved</field>
+            <field name="comment">Proposals share not required for this role.</field>
+            <field name="acted_on"
+                   eval="(DateTime.today() - relativedelta(days=2)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+
+        <record id="demo_apr_onb_pending_bu_2" model="oneit.approval">
+            <field name="request_id" ref="demo_req_onb_pending_bu"/>
+            <field name="approver_id" ref="demo_user_bu_1"/>
+            <field name="approver_role">bu_head</field>
+            <field name="state">pending</field>
+        </record>
+
+
+        <!-- ============================================================
+             4. ONBOARDING - done (Finance)
+             Fully provisioned in AD.
+             ============================================================ -->
+        <record id="demo_req_onb_done" model="oneit.request">
+            <field name="request_type">onboarding</field>
+            <field name="state">done</field>
+            <field name="employee_ref">EMP1001</field>
+            <field name="employee_name">Arjun Venkatesh</field>
+            <field name="employee_email">arjun.venkatesh@example.com</field>
+            <field name="employee_phone">9840012001</field>
+            <field name="team_id" ref="demo_team_finance"/>
+            <field name="date_of_joining"
+                   eval="(DateTime.today() - relativedelta(days=20)).strftime('%Y-%m-%d')"/>
+            <field name="submitted_by_id" ref="demo_user_hr"/>
+            <field name="submitted_on"
+                   eval="(DateTime.today() - relativedelta(days=25)).strftime('%Y-%m-%d %H:%M:%S')"/>
+            <field name="executed_on"
+                   eval="(DateTime.today() - relativedelta(days=22)).strftime('%Y-%m-%d %H:%M:%S')"/>
+            <field name="ad_user_dn">CN=Arjun Venkatesh,OU=Finance,OU=Users,DC=example,DC=local</field>
+            <field name="ad_group_ids" eval="[(6, 0, [
+                ref('demo_adg_fin_ou'),
+                ref('demo_adg_fin_citrix_erp'),
+                ref('demo_adg_fin_fs_accounts')])]"/>
+            <field name="execution_log">Submitted for Team Lead approval.
+Approved by Team Lead Rohan Iyer. Access selected: FIN-Users-OU, FIN-Citrix-ERP, FIN-FS-Accounts
+Approved by BU Head Priya Raghavan.
+AD user created: CN=Arjun Venkatesh,OU=Finance,OU=Users,DC=example,DC=local
+Added to Citrix group: FIN-Citrix-ERP
+Added to File Server group: FIN-FS-Accounts
+Onboarding completed.</field>
+        </record>
+
+        <record id="demo_apr_onb_done_1" model="oneit.approval">
+            <field name="request_id" ref="demo_req_onb_done"/>
+            <field name="approver_id" ref="demo_user_tl_finance"/>
+            <field name="approver_role">team_lead</field>
+            <field name="state">approved</field>
+            <field name="comment">Payroll and BI access withheld - not needed for a junior analyst.</field>
+            <field name="acted_on"
+                   eval="(DateTime.today() - relativedelta(days=24)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+
+        <record id="demo_apr_onb_done_2" model="oneit.approval">
+            <field name="request_id" ref="demo_req_onb_done"/>
+            <field name="approver_id" ref="base.user_admin"/>
+            <field name="approver_role">team_lead</field>
+            <field name="state">skipped</field>
+            <field name="acted_on"
+                   eval="(DateTime.today() - relativedelta(days=24)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+
+        <record id="demo_apr_onb_done_3" model="oneit.approval">
+            <field name="request_id" ref="demo_req_onb_done"/>
+            <field name="approver_id" ref="demo_user_bu_1"/>
+            <field name="approver_role">bu_head</field>
+            <field name="state">approved</field>
+            <field name="acted_on"
+                   eval="(DateTime.today() - relativedelta(days=22)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+
+        <record id="demo_apr_onb_done_4" model="oneit.approval">
+            <field name="request_id" ref="demo_req_onb_done"/>
+            <field name="approver_id" ref="base.user_admin"/>
+            <field name="approver_role">bu_head</field>
+            <field name="state">skipped</field>
+            <field name="acted_on"
+                   eval="(DateTime.today() - relativedelta(days=22)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+
+
+        <!-- ============================================================
+             5. ONBOARDING - rejected (Finance)
+             ============================================================ -->
+        <record id="demo_req_onb_rejected" model="oneit.request">
+            <field name="request_type">onboarding</field>
+            <field name="state">rejected</field>
+            <field name="employee_ref">EMP1005</field>
+            <field name="employee_name">Manoj Gupta</field>
+            <field name="employee_email">manoj.gupta@example.com</field>
+            <field name="employee_phone">9840012005</field>
+            <field name="team_id" ref="demo_team_finance"/>
+            <field name="date_of_joining"
+                   eval="(DateTime.today() - relativedelta(days=4)).strftime('%Y-%m-%d')"/>
+            <field name="submitted_by_id" ref="demo_user_hr"/>
+            <field name="submitted_on"
+                   eval="(DateTime.today() - relativedelta(days=8)).strftime('%Y-%m-%d %H:%M:%S')"/>
+            <field name="rejection_reason">Offer was withdrawn - candidate did not join. Raise a fresh request if this changes.</field>
+            <field name="ad_group_ids" eval="[(6, 0, [
+                ref('demo_adg_fin_ou'),
+                ref('demo_adg_fin_citrix_erp'),
+                ref('demo_adg_fin_citrix_bi'),
+                ref('demo_adg_fin_fs_accounts'),
+                ref('demo_adg_fin_fs_payroll')])]"/>
+            <field name="execution_log">Submitted for Team Lead approval.
+Rejected by Rohan Iyer. Reason: Offer was withdrawn - candidate did not join.</field>
+        </record>
+
+        <record id="demo_apr_onb_rejected_1" model="oneit.approval">
+            <field name="request_id" ref="demo_req_onb_rejected"/>
+            <field name="approver_id" ref="demo_user_tl_finance"/>
+            <field name="approver_role">team_lead</field>
+            <field name="state">rejected</field>
+            <field name="comment">Offer withdrawn - candidate did not join.</field>
+            <field name="acted_on"
+                   eval="(DateTime.today() - relativedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+
+        <record id="demo_apr_onb_rejected_2" model="oneit.approval">
+            <field name="request_id" ref="demo_req_onb_rejected"/>
+            <field name="approver_id" ref="demo_user_bu_1"/>
+            <field name="approver_role">bu_head</field>
+            <field name="state">skipped</field>
+            <field name="acted_on"
+                   eval="(DateTime.today() - relativedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+
+
+        <!-- ============================================================
+             6. OFFBOARDING - pending Team Lead (Support)
+             ============================================================ -->
+        <record id="demo_req_off_pending_tl" model="oneit.request">
+            <field name="request_type">offboarding</field>
+            <field name="state">pending</field>
+            <field name="employee_ref">EMP0912</field>
+            <field name="employee_name">Ramesh Kumar</field>
+            <field name="employee_email">ramesh.kumar@example.com</field>
+            <field name="team_id" ref="demo_team_support"/>
+            <field name="last_working_day"
+                   eval="(DateTime.today() + relativedelta(days=20)).strftime('%Y-%m-%d')"/>
+            <field name="submitted_by_id" ref="demo_user_hr"/>
+            <field name="submitted_on"
+                   eval="(DateTime.today() - relativedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+
+        <record id="demo_apr_off_pending_tl_1" model="oneit.approval">
+            <field name="request_id" ref="demo_req_off_pending_tl"/>
+            <field name="approver_id" ref="demo_user_tl_eng"/>
+            <field name="approver_role">team_lead</field>
+            <field name="state">pending</field>
+        </record>
+
+        <record id="demo_apr_off_pending_tl_2" model="oneit.approval">
+            <field name="request_id" ref="demo_req_off_pending_tl"/>
+            <field name="approver_id" ref="demo_user_bu_2"/>
+            <field name="approver_role">bu_head</field>
+            <field name="state">pending</field>
+        </record>
+
+
+        <!-- ============================================================
+             7. OFFBOARDING - approved, not yet due (Engineering)
+             The disable cron will pick this up on the last working day.
+             ============================================================ -->
+        <record id="demo_req_off_approved" model="oneit.request">
+            <field name="request_type">offboarding</field>
+            <field name="state">approved</field>
+            <field name="employee_ref">EMP0845</field>
+            <field name="employee_name">Anand Mohan</field>
+            <field name="employee_email">anand.mohan@example.com</field>
+            <field name="team_id" ref="demo_team_engineering"/>
+            <field name="last_working_day"
+                   eval="(DateTime.today() + relativedelta(days=3)).strftime('%Y-%m-%d')"/>
+            <field name="submitted_by_id" ref="demo_user_hr"/>
+            <field name="submitted_on"
+                   eval="(DateTime.today() - relativedelta(days=6)).strftime('%Y-%m-%d %H:%M:%S')"/>
+            <field name="execution_log">Submitted for Team Lead approval.
+Approved by Team Lead Vikram Nair.
+Approved by BU Head Priya Raghavan.
+Approved. The account will be disabled on the last working day.</field>
+        </record>
+
+        <record id="demo_apr_off_approved_1" model="oneit.approval">
+            <field name="request_id" ref="demo_req_off_approved"/>
+            <field name="approver_id" ref="demo_user_tl_eng"/>
+            <field name="approver_role">team_lead</field>
+            <field name="state">approved</field>
+            <field name="acted_on"
+                   eval="(DateTime.today() - relativedelta(days=5)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+
+        <record id="demo_apr_off_approved_2" model="oneit.approval">
+            <field name="request_id" ref="demo_req_off_approved"/>
+            <field name="approver_id" ref="base.user_admin"/>
+            <field name="approver_role">team_lead</field>
+            <field name="state">skipped</field>
+            <field name="acted_on"
+                   eval="(DateTime.today() - relativedelta(days=5)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+
+        <record id="demo_apr_off_approved_3" model="oneit.approval">
+            <field name="request_id" ref="demo_req_off_approved"/>
+            <field name="approver_id" ref="demo_user_bu_1"/>
+            <field name="approver_role">bu_head</field>
+            <field name="state">approved</field>
+            <field name="acted_on"
+                   eval="(DateTime.today() - relativedelta(days=4)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+
+        <record id="demo_apr_off_approved_4" model="oneit.approval">
+            <field name="request_id" ref="demo_req_off_approved"/>
+            <field name="approver_id" ref="base.user_admin"/>
+            <field name="approver_role">bu_head</field>
+            <field name="state">skipped</field>
+            <field name="acted_on"
+                   eval="(DateTime.today() - relativedelta(days=4)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+
+
+        <!-- ============================================================
+             8. OFFBOARDING - ready to delete (Finance)
+             Account already disabled; deletion date has passed, so this is
+             the record to test the delete step against.
+             ============================================================ -->
+        <record id="demo_req_off_ready_delete" model="oneit.request">
+            <field name="request_type">offboarding</field>
+            <field name="state">ready_to_delete</field>
+            <field name="employee_ref">EMP0733</field>
+            <field name="employee_name">Lakshmi Narayan</field>
+            <field name="employee_email">lakshmi.narayan@example.com</field>
+            <field name="team_id" ref="demo_team_finance"/>
+            <field name="last_working_day"
+                   eval="(DateTime.today() - relativedelta(days=40)).strftime('%Y-%m-%d')"/>
+            <field name="submitted_by_id" ref="demo_user_hr"/>
+            <field name="submitted_on"
+                   eval="(DateTime.today() - relativedelta(days=55)).strftime('%Y-%m-%d %H:%M:%S')"/>
+            <field name="disabled_on"
+                   eval="(DateTime.today() - relativedelta(days=40)).strftime('%Y-%m-%d %H:%M:%S')"/>
+            <field name="execution_log">Submitted for Team Lead approval.
+Approved by Team Lead Rohan Iyer.
+Approved by BU Head Priya Raghavan.
+AD account disabled. Deletion scheduled after the retention period.</field>
+        </record>
+
+        <record id="demo_apr_off_ready_1" model="oneit.approval">
+            <field name="request_id" ref="demo_req_off_ready_delete"/>
+            <field name="approver_id" ref="demo_user_tl_finance"/>
+            <field name="approver_role">team_lead</field>
+            <field name="state">approved</field>
+            <field name="acted_on"
+                   eval="(DateTime.today() - relativedelta(days=54)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+
+        <record id="demo_apr_off_ready_2" model="oneit.approval">
+            <field name="request_id" ref="demo_req_off_ready_delete"/>
+            <field name="approver_id" ref="demo_user_bu_1"/>
+            <field name="approver_role">bu_head</field>
+            <field name="state">approved</field>
+            <field name="acted_on"
+                   eval="(DateTime.today() - relativedelta(days=52)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+
+
+        <!-- ============================================================
+             9. OFFBOARDING - done (Sales)
+             ============================================================ -->
+        <record id="demo_req_off_done" model="oneit.request">
+            <field name="request_type">offboarding</field>
+            <field name="state">done</field>
+            <field name="employee_ref">EMP0621</field>
+            <field name="employee_name">Farida Sheikh</field>
+            <field name="employee_email">farida.sheikh@example.com</field>
+            <field name="team_id" ref="demo_team_sales"/>
+            <field name="last_working_day"
+                   eval="(DateTime.today() - relativedelta(days=75)).strftime('%Y-%m-%d')"/>
+            <field name="submitted_by_id" ref="demo_user_hr"/>
+            <field name="submitted_on"
+                   eval="(DateTime.today() - relativedelta(days=90)).strftime('%Y-%m-%d %H:%M:%S')"/>
+            <field name="disabled_on"
+                   eval="(DateTime.today() - relativedelta(days=75)).strftime('%Y-%m-%d %H:%M:%S')"/>
+            <field name="executed_on"
+                   eval="(DateTime.today() - relativedelta(days=45)).strftime('%Y-%m-%d %H:%M:%S')"/>
+            <field name="execution_log">Approved by Team Lead Rohan Iyer.
+Approved by BU Head Priya Raghavan.
+AD account disabled.
+AD account deleted. Offboarding completed.</field>
+        </record>
+
+        <record id="demo_apr_off_done_1" model="oneit.approval">
+            <field name="request_id" ref="demo_req_off_done"/>
+            <field name="approver_id" ref="demo_user_tl_finance"/>
+            <field name="approver_role">team_lead</field>
+            <field name="state">approved</field>
+            <field name="acted_on"
+                   eval="(DateTime.today() - relativedelta(days=89)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+
+        <record id="demo_apr_off_done_2" model="oneit.approval">
+            <field name="request_id" ref="demo_req_off_done"/>
+            <field name="approver_id" ref="demo_user_bu_1"/>
+            <field name="approver_role">bu_head</field>
+            <field name="state">approved</field>
+            <field name="acted_on"
+                   eval="(DateTime.today() - relativedelta(days=88)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+
+
+        <!-- ============================================================
+             10. TEAM UPDATE - pending BU Head
+             Support -> Engineering. Team Lead has approved.
+             ============================================================ -->
+        <record id="demo_req_tu_pending_bu" model="oneit.request">
+            <field name="request_type">team_update</field>
+            <field name="state">tl_approved</field>
+            <field name="employee_ref">EMP0788</field>
+            <field name="employee_name">Divya Ramesh</field>
+            <field name="employee_email">divya.ramesh@example.com</field>
+            <field name="current_team_id" ref="demo_team_support"/>
+            <field name="team_id" ref="demo_team_engineering"/>
+            <field name="submitted_by_id" ref="demo_user_hr"/>
+            <field name="submitted_on"
+                   eval="(DateTime.today() - relativedelta(days=2)).strftime('%Y-%m-%d %H:%M:%S')"/>
+            <field name="ad_group_ids" eval="[(6, 0, [
+                ref('demo_adg_eng_ou'),
+                ref('demo_adg_eng_citrix_dev'),
+                ref('demo_adg_eng_fs_source')])]"/>
+            <field name="execution_log">Submitted for Team Lead approval.
+Approved by Team Lead Vikram Nair. Access selected: ENG-Users-OU, ENG-Citrix-DevTools, ENG-FS-Source</field>
+        </record>
+
+        <record id="demo_apr_tu_pending_bu_1" model="oneit.approval">
+            <field name="request_id" ref="demo_req_tu_pending_bu"/>
+            <field name="approver_id" ref="demo_user_tl_eng"/>
+            <field name="approver_role">team_lead</field>
+            <field name="state">approved</field>
+            <field name="comment">Build share not needed yet - will raise separately.</field>
+            <field name="acted_on"
+                   eval="(DateTime.today() - relativedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+
+        <record id="demo_apr_tu_pending_bu_2" model="oneit.approval">
+            <field name="request_id" ref="demo_req_tu_pending_bu"/>
+            <field name="approver_id" ref="base.user_admin"/>
+            <field name="approver_role">team_lead</field>
+            <field name="state">skipped</field>
+            <field name="acted_on"
+                   eval="(DateTime.today() - relativedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+
+        <record id="demo_apr_tu_pending_bu_3" model="oneit.approval">
+            <field name="request_id" ref="demo_req_tu_pending_bu"/>
+            <field name="approver_id" ref="base.user_admin"/>
+            <field name="approver_role">bu_head</field>
+            <field name="state">pending</field>
+        </record>
+
+        <record id="demo_apr_tu_pending_bu_4" model="oneit.approval">
+            <field name="request_id" ref="demo_req_tu_pending_bu"/>
+            <field name="approver_id" ref="demo_user_bu_1"/>
+            <field name="approver_role">bu_head</field>
+            <field name="state">pending</field>
+        </record>
+
+
+        <!-- ============================================================
+             11. TEAM UPDATE - done
+             HR Operations -> Finance.
+             ============================================================ -->
+        <record id="demo_req_tu_done" model="oneit.request">
+            <field name="request_type">team_update</field>
+            <field name="state">done</field>
+            <field name="employee_ref">EMP0654</field>
+            <field name="employee_name">Sanjay Desai</field>
+            <field name="employee_email">sanjay.desai@example.com</field>
+            <field name="current_team_id" ref="demo_team_hr_ops"/>
+            <field name="team_id" ref="demo_team_finance"/>
+            <field name="submitted_by_id" ref="demo_user_hr"/>
+            <field name="submitted_on"
+                   eval="(DateTime.today() - relativedelta(days=18)).strftime('%Y-%m-%d %H:%M:%S')"/>
+            <field name="executed_on"
+                   eval="(DateTime.today() - relativedelta(days=15)).strftime('%Y-%m-%d %H:%M:%S')"/>
+            <field name="ad_user_dn">CN=Sanjay Desai,OU=Finance,OU=Users,DC=example,DC=local</field>
+            <field name="ad_group_ids" eval="[(6, 0, [
+                ref('demo_adg_fin_ou'),
+                ref('demo_adg_fin_citrix_erp'),
+                ref('demo_adg_fin_citrix_bi'),
+                ref('demo_adg_fin_fs_accounts')])]"/>
+            <field name="execution_log">Submitted for Team Lead approval.
+Approved by Team Lead Rohan Iyer. Access selected: FIN-Users-OU, FIN-Citrix-ERP, FIN-Citrix-BI, FIN-FS-Accounts
+Approved by BU Head Priya Raghavan.
+Moved to CN=Sanjay Desai,OU=Finance,OU=Users,DC=example,DC=local
+Removed 3 previous group membership(s).
+Added to group: FIN-Citrix-ERP
+Added to group: FIN-Citrix-BI
+Added to group: FIN-FS-Accounts
+Team update completed.</field>
+        </record>
+
+        <record id="demo_apr_tu_done_1" model="oneit.approval">
+            <field name="request_id" ref="demo_req_tu_done"/>
+            <field name="approver_id" ref="demo_user_tl_finance"/>
+            <field name="approver_role">team_lead</field>
+            <field name="state">approved</field>
+            <field name="acted_on"
+                   eval="(DateTime.today() - relativedelta(days=17)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+
+        <record id="demo_apr_tu_done_2" model="oneit.approval">
+            <field name="request_id" ref="demo_req_tu_done"/>
+            <field name="approver_id" ref="base.user_admin"/>
+            <field name="approver_role">team_lead</field>
+            <field name="state">skipped</field>
+            <field name="acted_on"
+                   eval="(DateTime.today() - relativedelta(days=17)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+
+        <record id="demo_apr_tu_done_3" model="oneit.approval">
+            <field name="request_id" ref="demo_req_tu_done"/>
+            <field name="approver_id" ref="demo_user_bu_1"/>
+            <field name="approver_role">bu_head</field>
+            <field name="state">approved</field>
+            <field name="acted_on"
+                   eval="(DateTime.today() - relativedelta(days=16)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+
+        <record id="demo_apr_tu_done_4" model="oneit.approval">
+            <field name="request_id" ref="demo_req_tu_done"/>
+            <field name="approver_id" ref="base.user_admin"/>
+            <field name="approver_role">bu_head</field>
+            <field name="state">skipped</field>
+            <field name="acted_on"
+                   eval="(DateTime.today() - relativedelta(days=16)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        </record>
+
+    </data>
+</odoo>

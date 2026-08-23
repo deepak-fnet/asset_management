@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- General Assets: sits alongside the IT asset menus -->
+    <menuitem id="menu_asset_general"
+              name="General Assets"
+              parent="asset_management.menu_asset_root"
+              action="action_asset_general"
+              sequence="7"/>
+
+    <!-- ── Lifecycle: transfer + scrap ─────────────────────────────────── -->
+    <menuitem id="menu_asset_transfer"
+              name="Asset Transfer"
+              parent="asset_management.menu_lifecycle_root"
+              action="action_asset_transfer"
+              sequence="20"/>
+
+    <menuitem id="menu_asset_scrap"
+              name="Asset Scrap"
+              parent="asset_management.menu_lifecycle_root"
+              action="action_asset_scrap"
+              sequence="30"/>
+
+    <!-- ── Physical verification, under Asset Request ──────────────────── -->
+    <menuitem id="menu_physical_verification"
+              name="Physical Verification"
+              parent="asset_management.menu_asset_request_root"
+              action="action_physical_verification"
+              sequence="20"/>
+
+    <!-- ── Configuration ──────────────────────────────────────────────── -->
+    <menuitem id="menu_asset_configuration"
+              name="Configuration"
+              parent="asset_management.menu_asset_root"
+              sequence="99"
+              groups="asset_management.group_asset_manager"/>
+
+    <menuitem id="menu_config_asset_category"
+              name="Asset Category"
+              parent="menu_asset_configuration"
+              action="asset_management.action_asset_category"
+              sequence="10"/>
+
+    <menuitem id="menu_config_asset_sub_category"
+              name="Asset Sub Category"
+              parent="menu_asset_configuration"
+              action="action_asset_sub_category"
+              sequence="20"/>
+
+    <menuitem id="menu_config_plant"
+              name="Plant"
+              parent="menu_asset_configuration"
+              action="action_plant_master"
+              sequence="30"/>
+
+    <!-- Physical Location, From Location and To Location are all
+         asset.location - one hierarchical model rather than three flat ones,
+         so a location can be used in any of those roles. -->
+    <menuitem id="menu_config_physical_location"
+              name="Physical Location"
+              parent="menu_asset_configuration"
+              action="asset_management.action_asset_location"
+              sequence="40"/>
+
+    <menuitem id="menu_config_product_category_mapping"
+              name="Product Category Mapping"
+              parent="menu_asset_configuration"
+              action="action_product_category_mapping"
+              sequence="50"/>
+
+    <menuitem id="menu_config_rfid_comparison"
+              name="RFID Comparison"
+              parent="menu_asset_configuration"
+              action="action_asset_rfid_comparison"
+              sequence="60"/>
+
+</odoo>

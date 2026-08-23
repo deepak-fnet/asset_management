@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="asset_telemetry.JsonNode">
+    <div class="jt-node">
+        <!-- Container: object or array -->
+        <t t-if="isContainer">
+            <div class="jt-row jt-clickable" t-on-click="toggle">
+                <span class="jt-caret" t-esc="state.open ? '▾' : '▸'"/>
+                <span class="jt-key" t-esc="props.label"/>
+                <span class="jt-count" t-esc="summary"/>
+            </div>
+            <div class="jt-children" t-if="state.open">
+                <JsonNode t-foreach="entries" t-as="entry" t-key="entry[0]"
+                          label="entry[0]" value="entry[1]"
+                          depth="props.depth + 1"/>
+                <div t-if="!childCount" class="jt-empty">empty</div>
+            </div>
+        </t>
+
+        <!-- Leaf: multi-line string (command output) -->
+        <t t-elif="isMultiline">
+            <div class="jt-row jt-clickable" t-on-click="toggle">
+                <span class="jt-caret" t-esc="state.open ? '▾' : '▸'"/>
+                <span class="jt-key" t-esc="props.label"/>
+                <span class="jt-count">text output</span>
+            </div>
+            <pre class="jt-pre" t-if="state.open" t-esc="displayValue"/>
+        </t>
+
+        <!-- Leaf: scalar -->
+        <t t-else="">
+            <div class="jt-row">
+                <span class="jt-caret jt-caret-blank"/>
+                <span class="jt-key" t-esc="props.label"/>
+                <span class="jt-colon">:</span>
+                <span t-attf-class="jt-value {{valueClass}}" t-esc="displayValue"/>
+            </div>
+        </t>
+    </div>
+</t>
+
+<t t-name="asset_telemetry.JsonTreeField">
+    <div class="jt-wrap">
+        <div t-if="isEmpty" class="jt-none">
+            <p><b>No telemetry received yet.</b></p>
+            <p class="text-muted">
+                Deploy <code>agent_snippets/telemetry.py</code> to the agent
+                and call <code>report_telemetry()</code> once per sync cycle.
+                The agent posts to
+                <code>/api/asset/telemetry/report</code>.
+            </p>
+        </div>
+
+        <div t-else="">
+            <div class="jt-toolbar">
+                <input type="text" class="jt-filter"
+                       placeholder="Filter sections…"
+                       t-model="state.filter"/>
+                <button class="jt-btn" t-on-click="onCopy" title="Copy JSON">
+                    <i class="fa fa-clipboard"/> Copy
+                </button>
+                <button class="jt-btn" t-on-click="onDownload" title="Download JSON">
+                    <i class="fa fa-download"/> Download
+                </button>
+            </div>
+
+            <div class="jt-list">
+                <JsonNode t-foreach="topLevelEntries" t-as="entry"
+                          t-key="entry[0]"
+                          label="entry[0]" value="entry[1]" depth="0"/>
+                <div t-if="!topLevelEntries.length" class="jt-empty">
+                    Nothing matches "<t t-esc="state.filter"/>"
+                </div>
+            </div>
+        </div>
+    </div>
+</t>
+
+</templates>

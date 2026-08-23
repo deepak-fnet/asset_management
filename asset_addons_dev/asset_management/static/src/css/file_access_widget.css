@@ -1,0 +1,936 @@
+/* ============================================================
+   FILE ACCESS DASHBOARD — PREMIUM STYLESHEET
+   ============================================================ */
+
+:root {
+    --faw-primary: #1a73e8;
+    --faw-success: #34a853;
+    --faw-danger: #ea4335;
+    --faw-warning: #fbbc04;
+    --faw-info: #4285f4;
+    --faw-purple: #9c27b0;
+    --faw-bg: #f8f9fa;
+    --faw-border: #e0e0e0;
+    --faw-text: #3c4043;
+    --faw-text-muted: #70757a;
+    --faw-card-shadow: 0 1px 3px rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15);
+    --faw-radius: 12px;
+}
+
+.faw_wrapper {
+    position: relative;
+    width: 100%;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: var(--faw-text);
+    background: #fff;
+    min-height: 400px;
+}
+
+.faw_wrapper i.fa {
+    margin-right: 6px;
+}
+
+/* Force Odoo parent field to be full width */
+[name="file_access_record_ids"] {
+    width: 100% !important;
+    display: block !important;
+}
+
+/* ============================================================
+   DASHBOARD SECTION
+   ============================================================ */
+.faw_dashboard_section {
+    margin-bottom: 32px;
+}
+
+.faw_dashboard_cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+/* Base Card Styling */
+.faw_card {
+    background: #fff;
+    border-radius: var(--faw-radius);
+    border: 1px solid var(--faw-border);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+}
+
+.faw_card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+}
+
+.faw_card_header {
+    padding: 10px 16px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.faw_card_body {
+    padding: 16px 20px;
+    flex-grow: 1;
+}
+
+/* Card Variations */
+.faw_card_primary .faw_card_header {
+    background: #e8f0fe;
+    color: var(--faw-primary);
+    border-top: 4px solid var(--faw-primary);
+}
+
+.faw_card_success .faw_card_header {
+    background: #e6f4ea;
+    color: var(--faw-success);
+    border-top: 4px solid var(--faw-success);
+}
+
+.faw_card_danger .faw_card_header {
+    background: #fce8e6;
+    color: var(--faw-danger);
+    border-top: 4px solid var(--faw-danger);
+}
+
+.faw_card_info .faw_card_header {
+    background: #e8f0fe;
+    color: var(--faw-info);
+    border-top: 4px solid var(--faw-info);
+}
+
+.faw_card_purple .faw_card_header {
+    background: #f3e5f5;
+    color: var(--faw-purple);
+    border-top: 4px solid var(--faw-purple);
+}
+
+.faw_card_warning .faw_card_header {
+    background: #fef7e0;
+    color: #b77600;
+    border-top: 4px solid var(--faw-warning);
+}
+
+.faw_card_blue .faw_card_header {
+    background: #e3f2fd;
+    color: #1565c0;
+    border-top: 4px solid #1565c0;
+}
+
+.faw_card_muted .faw_card_header {
+    background: #f1f3f4;
+    color: #5f6368;
+    border-top: 4px solid #5f6368;
+}
+
+.faw_card_actions .faw_card_header {
+    background: #f1f3f4;
+    color: #3c4043;
+    border-top: 4px solid #3c4043;
+}
+
+/* Stat Values */
+.faw_stat_value {
+    font-size: 2.2rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 4px;
+}
+
+.faw_stat_value small {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.faw_stat_label {
+    font-size: 0.65rem;
+    color: var(--faw-text-muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.faw_text_warning {
+    color: var(--faw-warning) !important;
+}
+
+.faw_text_success {
+    color: var(--faw-success) !important;
+}
+
+.faw_text_danger {
+    color: var(--faw-danger) !important;
+}
+
+/* Info List */
+.faw_info_list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.faw_info_item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.8rem;
+}
+
+.faw_info_item i {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border-radius: 50%;
+    font-size: 0.75rem;
+}
+
+.faw_info_item strong {
+    display: block;
+    font-size: 0.65rem;
+    color: var(--faw-text-muted);
+}
+
+/* ============================================================
+   TABLE CONTAINER
+   ============================================================ */
+.faw_table_container {
+    background: #fff;
+    border-radius: var(--faw-radius);
+    border: 1px solid var(--faw-border);
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.faw_table_header {
+    background: #fafafa;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--faw-border);
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.faw_table_title {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.faw_icon_circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.bg-light-blue {
+    background: #e8f0fe;
+}
+
+.bg-light-red {
+    background: #fce8e6;
+}
+
+.faw_table_title h5 {
+    margin: 0;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #202124;
+}
+
+.faw_table_title p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--faw-text-muted);
+}
+
+.faw_header_center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.faw_header_right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.faw_sync_container {
+    line-height: 1.2;
+}
+
+.faw_sync_label {
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: var(--faw-text-muted);
+    letter-spacing: 0.05em;
+}
+
+.faw_sync_time {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #3c4043;
+}
+
+/* Controls */
+.faw_search_box {
+    position: relative;
+    width: 320px;
+}
+
+.faw_search_box i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9aa0a6;
+}
+
+.faw_search_box input {
+    width: 100%;
+    padding: 8px 12px 8px 40px;
+    border-radius: 20px;
+    border: 1px solid #dadce0;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    outline: none;
+    background: #fff;
+}
+
+.faw_search_box input:focus {
+    border-color: var(--faw-primary);
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+}
+
+/* Table Design */
+.faw_table_scroll {
+    overflow-x: auto;
+    flex-grow: 1;
+    overflow-y: auto;
+    height: 600px;
+}
+
+.faw_modern_table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.faw_modern_table th {
+    background: #f8f9fa;
+    padding: 12px 24px;
+    text-align: left;
+    font-size: 0.725rem;
+    font-weight: 700;
+    color: #5f6368;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    border-bottom: 2px solid #f1f3f4;
+}
+
+.faw_modern_table td {
+    padding: 14px 24px;
+    border-bottom: 1px solid #f1f3f4;
+    font-size: 0.85rem;
+    vertical-align: middle;
+}
+
+.faw_modern_table tbody tr:hover {
+    background: #f8faff;
+}
+
+.faw_cell_bold {
+    font-weight: 600;
+    color: #202124;
+}
+
+.faw_path_cell {
+    font-size: 0.75rem;
+    color: #80868b;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Tags & Badges */
+.faw_folder_tag {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+}
+
+.faw_tag_desktop {
+    background: #e8f0fe;
+    color: #1967d2;
+}
+
+.faw_tag_documents {
+    background: #e6f4ea;
+    color: #1e8e3e;
+}
+
+.faw_tag_downloads {
+    background: #fef7e0;
+    color: #b77600;
+}
+
+.faw_tag_gray {
+    background: #f1f3f4;
+    color: #5f6368;
+}
+
+/* Buttons & Filters */
+.faw_filter_pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.faw_pill {
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: #f1f3f4;
+    color: #5f6368;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.faw_pill:hover {
+    background: #e8eaed;
+}
+
+.faw_pill_active {
+    background: var(--faw-primary);
+    color: #fff;
+}
+
+/* Locked tab pill */
+.faw_pill_locked {
+    color: var(--faw-danger);
+    border-color: rgba(234, 67, 53, 0.25);
+    background: #fff0ef;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.faw_pill_locked:hover {
+    background: #fce8e6;
+}
+
+.faw_pill_locked_active {
+    background: var(--faw-danger) !important;
+    color: #fff !important;
+    border-color: var(--faw-danger) !important;
+}
+
+.faw_locked_count_badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--faw-danger);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 800;
+    border-radius: 10px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    line-height: 1;
+}
+
+.faw_pill_locked_active .faw_locked_count_badge {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Violations tab pill */
+.faw_pill_violations {
+    color: #b77600;
+    /* Amber/Orange */
+    border-color: rgba(254, 247, 224, 0.5);
+    background: #fff8e1;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.faw_pill_violations:hover {
+    background: #ffecb3;
+}
+
+.faw_pill_violations_active {
+    background: #f9a825 !important;
+    color: #fff !important;
+    border-color: #f9a825 !important;
+}
+
+.faw_violations_count_badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f9a825;
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 800;
+    border-radius: 10px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    line-height: 1;
+}
+
+.faw_pill_violations_active .faw_violations_count_badge {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+
+.faw_btn_main {
+    border-radius: 8px;
+    font-weight: 700;
+    padding: 10px;
+}
+
+.faw_btn_pill {
+    border-radius: 20px;
+    font-weight: 700;
+    padding: 8px 20px;
+}
+
+/* Custom Switch */
+.faw_toggle_container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.faw_switch {
+    width: 44px;
+    height: 22px;
+    background: #dadce0;
+    border-radius: 22px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.faw_switch_slider {
+    width: 18px;
+    height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    position: absolute;
+    left: 2px;
+    top: 2px;
+    transition: transform 0.3s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.faw_switch_on {
+    background: var(--faw-success);
+}
+
+.faw_switch_on .faw_switch_slider {
+    transform: translateX(22px);
+}
+
+/* Custom Lock Toggle */
+.faw_lock_toggle {
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+    width: 110px;
+    height: 36px;
+    border-radius: 18px;
+    cursor: pointer;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+    user-select: none;
+}
+
+.faw_lock_toggle.is_locked {
+    background-color: #e31837;
+    /* vibrant red */
+}
+
+.faw_lock_toggle.is_unlocked {
+    background-color: #3bb320;
+    /* dynamic green */
+}
+
+.faw_lock_knob {
+    position: absolute;
+    top: 3px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #fdfdfd;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    z-index: 2;
+}
+
+.faw_lock_toggle.is_locked .faw_lock_knob {
+    transform: translateX(3px);
+}
+
+.faw_lock_toggle.is_unlocked .faw_lock_knob {
+    transform: translateX(77px);
+    /* 110 - 30 - 3 */
+}
+
+.faw_lock_knob i.fa {
+    margin: 0 !important;
+    font-size: 14px;
+    color: #888;
+}
+
+.faw_lock_text {
+    position: absolute;
+    width: 100%;
+    color: white;
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.faw_lock_toggle.is_locked .faw_lock_text {
+    justify-content: flex-end;
+    padding-right: 20px;
+}
+
+.faw_lock_toggle.is_unlocked .faw_lock_text {
+    justify-content: flex-start;
+    padding-left: 12px;
+}
+
+/* Animation */
+.animate_fade_in {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================================
+   DEVICES AND DRIVES
+   ============================================================ */
+.faw_drive_card {
+    flex: 1;
+    min-width: 280px;
+    max-width: 350px;
+    background: #fff;
+    border: 1px solid var(--faw-border);
+    border-radius: var(--faw-radius);
+    padding: 16px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.faw_drive_card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+    border-color: var(--faw-primary);
+}
+
+.faw_drive_icon_wrapper {
+    width: 44px;
+    height: 44px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.faw_drive_icon_wrapper i {
+    font-size: 1.5rem;
+    color: var(--faw-primary);
+}
+
+.faw_drive_stats {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.faw_status_badge_healthy {
+    background-color: var(--faw-success);
+    color: white;
+}
+
+.faw_status_badge_warning {
+    background-color: var(--faw-warning);
+    color: white;
+}
+
+.faw_status_badge_critical {
+    background-color: var(--faw-danger);
+    color: white;
+}
+
+.faw_progress_healthy {
+    background-color: var(--faw-primary) !important;
+}
+
+.faw_progress_warning {
+    background-color: var(--faw-warning) !important;
+}
+
+.faw_progress_critical {
+    background-color: var(--faw-danger) !important;
+}
+
+.faw_divider {
+    border: none;
+    height: 2px;
+    background: linear-gradient(to right, transparent, #dadce0, transparent);
+    margin: 40px 0;
+}
+
+.faw_empty_row {
+    text-align: center;
+    padding: 40px !important;
+    color: #9aa0a6;
+    background: #fff !important;
+}
+
+/* ============================================================
+   GRID & LAYOUT
+   ============================================================ */
+.faw_filter_pills_container {
+    background: #fdfdfd;
+}
+
+.faw_sidebar_table td {
+    padding: 8px 12px !important;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.vertical-middle {
+    vertical-align: middle !important;
+}
+
+.faw_locked_row td {
+    background: #fff5f5;
+}
+
+.faw_sidebar_list {
+    flex-grow: 1;
+    max-height: 270px;
+}
+
+/* Sidebar Specific */
+.faw_icon_circle.sm {
+    border-radius: 8px;
+}
+
+.faw_violation_item {
+    transition: background 0.2s;
+}
+
+.faw_violation_item:hover {
+    background: #fff5f5;
+}
+
+/* Responsive Overrides */
+@media (max-width: 1200px) {
+    .faw_dashboard_cards {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .faw_dashboard_cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 992px) {
+    .faw_dashboard_cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .faw_dashboard_cards {
+        grid-template-columns: 1fr;
+    }
+
+    .faw_table_header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .faw_search_box {
+        width: 100%;
+    }
+}
+
+/* ============================================================
+   OFFLINE BANNER
+   ============================================================ */
+.faw_offline_banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-left: 5px solid #f59e0b;
+    color: #856404;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.faw_offline_banner i.fa {
+    font-size: 1.1rem;
+    color: #f59e0b;
+    margin-right: 0;
+}
+
+.faw_lock_disabled {
+    pointer-events: none;
+}
+
+/* ============================================================
+   OFFLINE EMPTY STATE (File Explorer)
+   ============================================================ */
+.faw_offline_empty_state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+    text-align: center;
+    min-height: 340px;
+    background: #fff9f9;
+    border-top: 1px solid #f1f3f4;
+    animation: fadeIn 0.35s ease-out;
+}
+
+.faw_offline_icon_wrap {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #fce8e6 0%, #ffd0cc 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 16px rgba(234, 67, 53, 0.2);
+}
+
+.faw_offline_icon_wrap .fa {
+    font-size: 2rem;
+    color: #ea4335;
+    margin: 0;
+}
+
+.faw_offline_title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #3c4043;
+    margin-bottom: 8px;
+}
+
+.faw_offline_subtitle {
+    font-size: 0.875rem;
+    color: #70757a;
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+.faw_offline_badge {
+    background: #ea4335;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    padding: 6px 16px;
+    border-radius: 20px;
+}
+
+/* ============================================================
+   SIDEBAR OFFLINE MESSAGE
+   ============================================================ */
+.faw_sidebar_offline_msg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    color: #9aa0a6;
+    font-size: 0.82rem;
+    font-weight: 600;
+    font-style: italic;
+    gap: 4px;
+}
+
+.faw_sidebar_offline_msg .fa {
+    color: #ea4335;
+    margin: 0;
+}
+
+/* Lock icon hover scale effect (replaces removed onmouseover/onmouseout handlers) */
+.faw_lock_icon {
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.faw_lock_icon:hover {
+    transform: scale(1.2);
+}

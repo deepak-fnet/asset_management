@@ -1,0 +1,1434 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+    <!-- =====================================================
+         ACTION : ASSETS
+         ===================================================== -->
+    <record id="action_asset_asset" model="ir.actions.act_window">
+        <field name="name">Windows Assets</field>
+        <field name="res_model">asset.asset</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('os_platform', '=', 'windows')]</field>
+        <field name="context">{'default_os_platform': 'windows', 'search_default_os_windows': 1}</field>
+    </record>
+
+    <record id="action_ubuntu_asset" model="ir.actions.act_window">
+        <field name="name">Linux Assets</field>
+        <field name="res_model">asset.asset</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('os_platform', '=', 'linux')]</field>
+        <field name="context">{'default_os_platform': 'linux', 'search_default_os_linux': 1}</field>
+    </record>
+
+    <record id="action_mac_asset" model="ir.actions.act_window">
+        <field name="name">macOS Assets</field>
+        <field name="res_model">asset.asset</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('os_platform', '=', 'macos')]</field>
+        <field name="context">{'default_os_platform': 'macos', 'search_default_os_mac': 1}</field>
+    </record>
+
+    <record id="action_all_assets" model="ir.actions.act_window">
+        <field name="name">All Assets</field>
+        <field name="res_model">asset.asset</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{'is_all_assets_view': True}</field>
+    </record>
+
+
+    
+    
+
+    <!-- =====================================================
+         KANBAN VIEW (REMOVED HELPDESK FIELDS)
+         ===================================================== -->
+    <record id="view_asset_asset_kanban" model="ir.ui.view">
+        <field name="name">asset.asset.kanban</field>
+        <field name="model">asset.asset</field>
+        <field name="arch" type="xml">
+            <kanban class="o_asset_kanban" quick_create="false">
+                <field name="id"/>
+                <field name="is_camera"/>
+                <field name="image_1920"/>
+                <field name="asset_name"/>
+                <field name="device_name"/>
+                <field name="hostname"/>
+                <field name="asset_code"/>
+                <field name="serial_number"/>
+                <field name="assigned_employee_id"/>
+                <field name="state"/>
+                <field name="processor"/>
+                <field name="ram_size"/>
+                <field name="os_type"/>
+                <field name="agent_status"/>
+                <field name="has_changes"/>
+                <field name="warranty_status"/>
+                <field name="has_location_coordinates"/>
+                <field name="alert_count"/>
+                <field name="alert_severity"/>
+
+
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card">
+
+                            <!-- CHANGE ALERT BADGE -->
+                            <t t-if="record.has_changes.raw_value">
+                                <div class="ribbon ribbon-top-right">
+                                    <span style="background-color: #dc3545;">⚠ Changes</span>
+                                </div>
+                            </t>
+
+                            <!-- PREMIUM ALERT BADGE (clickable — opens asset form to view details) -->
+                            <t t-if="record.alert_count.raw_value &gt; 0">
+                                <div class="position-absolute" style="top: 12px; right: 12px; z-index: 10;">
+                                    <a type="open" t-attf-style="
+                                         text-decoration: none;
+                                         cursor: pointer;
+                                         display: inline-block;
+                                         background: #{record.alert_severity.raw_value == 'critical' and 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)' or (record.alert_severity.raw_value == 'warning' and 'linear-gradient(135deg, #f59e0b 0%, #b45309 100%)' or 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)')};
+                                         color: white;
+                                         padding: 4px 12px;
+                                         border-radius: 50px;
+                                         box-shadow: 0 4px 12px #{record.alert_severity.raw_value == 'critical' and 'rgba(239, 68, 68, 0.4)' or (record.alert_severity.raw_value == 'warning' and 'rgba(245, 158, 11, 0.4)' or 'rgba(59, 130, 246, 0.4)')};
+                                         font-size: 10px;
+                                         font-weight: 800;
+                                         text-transform: uppercase;
+                                         letter-spacing: 1px;
+                                         display: flex;
+                                         align-items: center;
+                                         gap: 6px;
+                                         border: 1px solid rgba(255,255,255,0.2);
+                                         backdrop-filter: blur(4px);
+                                    ">
+                                        <i t-attf-class="fa #{record.alert_severity.raw_value == 'critical' and 'fa-exclamation-circle fa-pulse' or (record.alert_severity.raw_value == 'warning' and 'fa-exclamation-triangle' or 'fa-info-circle')}"></i>
+                                        <span><t t-out="record.alert_count.raw_value"/> ALERTS</span>
+                                    </a>
+                                </div>
+                            </t>
+
+                            <!-- IMAGE SECTION -->
+                            <div class="kanban_image_wrapper" t-att-class="record.is_camera.raw_value ? 'cctv_kanban_image' : ''">
+                                <t t-if="record.image_1920.raw_value">
+                                    <img class="kanban_image"
+                                         t-attf-src="/web/image/asset.asset/#{record.id.raw_value}/image_1920"
+                                         alt="Asset Image"/>
+                                </t>
+                                <t t-else="">
+                                    <div class="kanban_image kanban_image_default">
+                                        <t t-if="record.is_camera.raw_value">
+                                            <img src="/asset_management/static/src/img/asset_cctv_default.png"
+                                                 alt="Default CCTV Asset"
+                                                 onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMTYwIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE2MCIgZmlsbD0iI2Y4ZjlmYSIvPjx0ZXh0IHg9IjEwMCIgeT0iODAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI1MCIgZmlsbD0iIzZjNzU3ZCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPvCfk7k8L3RleHQ+PC9zdmc+'"/>
+                                        </t>
+                                        <t t-else="">
+                                            <img src="/asset_management/static/src/img/asset_laptop_default.png"
+                                                 alt="Default Asset"
+                                                 onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMTYwIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE2MCIgZmlsbD0iI2Y4ZjlmYSIvPjx0ZXh0IHg9IjEwMCIgeT0iODAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI1MCIgZmlsbD0iIzZjNzU3ZCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPvCfkrs8L3RleHQ+PC9zdmc+'"/>
+                                        </t>
+                                    </div>
+                                </t>
+                            </div>
+
+                            <!-- BODY -->
+                            <div class="kanban_body">
+
+                                <div class="asset_title">
+                                    <t t-if="record.device_name.raw_value">
+                                        <field name="device_name"/>
+                                    </t>
+                                    <t t-else="">
+                                        <field name="asset_name"/>
+                                    </t>
+                                </div>
+
+                                <div class="asset_code">
+                                    <t t-if="record.hostname.raw_value">
+                                        <span class="text-muted" style="font-size: 11px;"><field name="hostname"/></span><br/>
+                                    </t>
+                                    <field name="asset_code"/> • <field name="serial_number"/>
+                                </div>
+
+                                <!-- BADGES -->
+                                <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                                    <t t-if="record.state.raw_value == 'draft'">
+                                        <span class="asset_state draft">Draft</span>
+                                    </t>
+                                    <t t-if="record.state.raw_value == 'assigned'">
+                                        <span class="asset_state assigned">Assigned</span>
+                                    </t>
+                                    <t t-if="record.state.raw_value == 'maintenance'">
+                                        <span class="asset_state maintenance">Maintenance</span>
+                                    </t>
+                                    <t t-if="record.state.raw_value == 'scrapped'">
+                                        <span class="asset_state scrapped">Scrapped</span>
+                                    </t>
+
+                                    <t t-if="record.agent_status.raw_value == 'online' or record.agent_status.raw_value == 'idle'">
+                                        <span class="badge bg-success">● Agent Online</span>
+                                    </t>
+                                    <t t-if="record.agent_status.raw_value == 'offline'">
+                                        <span class="badge bg-warning text-dark">● Agent Offline</span>
+                                    </t>
+                                    <t t-if="record.agent_status.raw_value == 'never'">
+                                        <span class="badge bg-secondary">○ Never Synced</span>
+                                    </t>
+
+                                    <!-- WARRANTY STATUS -->
+                                    <t t-if="record.warranty_status.raw_value == 'expired'">
+                                        <span class="badge bg-danger">⚠ Warranty Expired</span>
+                                    </t>
+                                </div>
+
+                                <!-- SPECS -->
+                                <div class="asset_specs mt-2">
+                                    <t t-if="record.processor.value">
+                                        • <field name="processor"/><br/>
+                                    </t>
+                                    <t t-if="record.ram_size.value">
+                                        • RAM: <field name="ram_size"/> GB<br/>
+                                    </t>
+                                    <t t-if="record.os_type.value">
+                                        • <field name="os_type"/><br/>
+                                    </t>
+                                    <t t-if="record.graphics_card.value and record.graphics_card.value != 'Not Available'">
+                                        • <field name="graphics_card"/>
+                                    </t>
+                                </div>
+
+                                <!-- ASSIGNED EMPLOYEE -->
+                                <div class="mt-2 text-muted" style="font-size: 12px;">
+                                    <t t-if="record.assigned_employee_id.value">
+                                        👤 <field name="assigned_employee_id"/>
+                                    </t>
+                                </div>
+
+
+
+                                <!-- ACTION -->
+                                <div class="kanban_actions">
+                                    <a type="open">Open →</a>
+                                </div>
+
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         LIST VIEW (REMOVED HELPDESK FIELDS)
+         ===================================================== -->
+    <record id="view_asset_asset_list" model="ir.ui.view">
+        <field name="name">asset.asset.list</field>
+        <field name="model">asset.asset</field>
+        <field name="arch" type="xml">
+            <list multi_edit="1">
+                <field name="asset_code"/>
+                <field name="asset_name"/>
+                <field name="serial_number"/>
+                <field name="category_id"/>
+                <field name="assigned_employee_id"/>
+                <field name="graphics_card" optional="hide"/>
+                <field name="department_id" optional="show"/>
+                <field name="agent_status" widget="badge"
+                       decoration-success="agent_status == 'online'"
+                       decoration-danger="agent_status == 'offline'"
+                       decoration-muted="agent_status == 'never'"/>
+                <field name="last_file_access_scan" string="Last File Sync" optional="show"/>
+                <field name="last_sync_time"/>
+                <field name="warranty_status" optional="show" widget="badge"
+                       decoration-success="warranty_status == 'active'"
+                       decoration-danger="warranty_status == 'expired'"
+                       decoration-muted="warranty_status in ['no_warranty', 'not_applicable']"/>
+                <field name="has_changes" optional="show"/>
+                <field name="state" decoration-success="state == 'assigned'"
+                       decoration-warning="state == 'maintenance'"
+                       decoration-danger="state == 'scrapped'"/>
+                <!-- View Files button: visible when agent is online or idle -->
+                <button name="action_view_file_access_records"
+                        type="object"
+                        icon="fa-folder-open"
+                        string="View Files"
+                        title="Open File Access Records for this Asset"
+                        invisible="agent_status not in ('online', 'idle')" />
+            </list>
+        </field>
+    </record>
+
+
+    <!-- =====================================================
+         FORM VIEW (MADE CONDITIONAL FIELDS INVISIBLE BY DEFAULT)
+         ===================================================== -->
+    <record id="view_asset_asset_form" model="ir.ui.view">
+        <field name="name">asset.asset.form</field>
+        <field name="model">asset.asset</field>
+        <field name="arch" type="xml">
+            <form string="Asset">
+
+                <header>
+                    <!-- NOTE: Assignment is managed via Lifecycle Processes menu.
+                         The Assign button below is retained for backward compatibility
+                         (assets created outside the joining flow). For new employee
+                         onboarding, use Lifecycle Processes → Joining Process. -->
+                    <button name="action_assign" type="object"
+                            string="Assign"
+                            class="btn-secondary"
+                            invisible="state != 'draft'"/>
+
+                    <button name="action_maintenance" type="object"
+                            string="Maintenance"
+                            invisible="state != 'assigned'"/>
+
+                    <button name="action_scrap" type="object"
+                            string="Scrap"
+                            class="btn-danger"
+                            invisible="state == 'scrapped'"/>
+
+                    <button name="action_reset_to_draft" type="object"
+                            string="Reset to Draft"
+                            invisible="state == 'draft'"/>
+
+                    <button name="action_mark_changes_reviewed" type="object"
+                            string="Mark Changes Reviewed"
+                            class="btn-info"
+                            invisible="not has_changes"/>
+
+                    <button name="action_view_agent_logs" type="object"
+                            string="View Agent Logs"
+                            class="btn-secondary"/>
+
+                    <field name="state"
+                           widget="statusbar"
+                           statusbar_visible="draft,assigned,maintenance,scrapped"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(asset_management.action_asset_network_device)d"
+                                type="action"
+                                class="oe_stat_button"
+                                icon="fa-network-wired"
+                                invisible="not is_network_device"
+                                context="{'search_default_asset_id': id, 'default_asset_id': id}">
+                            <field name="network_device_count" widget="statinfo" string="Network Devices"/>
+                        </button>
+                        <button name="action_view_repairs"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-wrench">
+                            <field name="repair_count" widget="statinfo" string="Repairs"/>
+                        </button>
+
+                        <!-- Assign / Replace Process smart button -->
+                        <button name="action_view_assign_processes"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-exchange"
+                                invisible="assign_process_count == 0">
+                            <field name="assign_process_count" widget="statinfo" string="Replacements"/>
+                        </button>
+
+                        <!-- Quick Exit Process button – only when assigned -->
+                        <button name="action_open_exit_process"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-sign-out"
+                                invisible="state != 'assigned'">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Exit Process</span>
+                            </div>
+                        </button>
+
+                    </div><!-- /oe_button_box -->
+
+                    <!-- LIFECYCLE GUIDANCE BANNER (draft, no employee) -->
+                    <div class="alert alert-info d-flex align-items-center gap-2"
+                         role="alert"
+                         invisible="state != 'draft' or assigned_employee_id != False">
+                        <i class="fa fa-info-circle fa-lg me-2"/>
+                        <span>
+                            To assign this laptop to an employee, use
+                            <strong>Lifecycle Processes → Joining Process</strong>.
+                            This ensures proper approval tracking and asset requirement recording.
+                        </span>
+                    </div>
+
+                    <!-- CHANGE ALERT -->
+                    <div class="alert alert-warning" role="alert" invisible="not has_changes">
+                        <strong>⚠ Hardware/Software Changes Detected!</strong>
+                        <p><field name="change_summary" readonly="1"/></p>
+                        <p>Last Change: <field name="last_change_date_formatted" readonly="1"/></p>
+                    </div>
+
+                    <!-- WARRANTY ALERT (only show for expired warranty on physical assets) -->
+                    <div class="alert alert-danger" role="alert" invisible="warranty_status != 'expired'">
+                        <strong>⚠ Warranty Expired!</strong>
+                        <p>Warranty Status: <field name="warranty_status" readonly="1"/></p>
+                        <p>End Date: <field name="warranty_end_date" readonly="1"/></p>
+                    </div>
+
+                    <div style="display: flex; flex-direction: row; flex-wrap: nowrap; margin-bottom: 24px; align-items: stretch; gap: 0; background: #fff; padding: 0; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #f0f0f0; overflow: hidden; width: 100%; box-sizing: border-box;">
+                        
+                        <!-- LEFT SECTION: ASSET TITLE & QUICK INFO -->
+                        <div style="flex: 2; min-width: 0; display: flex; flex-direction: column; gap: 12px; padding: 32px;">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div style="width: 100%;">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div style="background: #f0f9ff; color: #0369a1; padding: 4px 14px; border-radius: 50px; border: 1px solid #bae6fd; display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px;">
+                                            <i class="fa fa-shield" style="font-size: 12px;"/>
+                                            <span>Managed Device Asset</span>
+                                        </div>
+                                    </div>
+                                    <h1 style="margin: 0; font-size: 42px; font-weight: 800; color: #0f172a; letter-spacing: -1.5px; line-height: 1.1;">
+                                        <field name="device_name" invisible="not device_name" readonly="1"/>
+                                        <field name="asset_name" placeholder="Asset Name..." invisible="device_name"/>
+                                    </h1>
+                                    <div class="d-flex align-items-center gap-3 mt-4" style="flex-wrap: wrap;">
+                                        <div style="display: flex; align-items: center; background: #ffffff; padding: 8px 16px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                                            <i class="fa fa-desktop" style="margin-right: 10px; color: #64748b; font-size: 14px;"/>
+                                            <div style="display: flex; flex-direction: column;">
+                                                <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Hostname</span>
+                                                <field name="hostname" readonly="1" style="font-size: 14px; font-weight: 700; color: #1e293b;"/>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; align-items: center; background: #ffffff; padding: 8px 16px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                                            <i class="fa fa-windows" style="margin-right: 10px; color: #0ea5e9; font-size: 14px;"/>
+                                            <div style="display: flex; flex-direction: column;">
+                                                <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Operating System</span>
+                                                <field name="os_name" readonly="1" style="font-size: 14px; font-weight: 700; color: #1e293b;"/>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; align-items: center; background: #ffffff; padding: 8px 16px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                                            <i class="fa fa-tag" style="margin-right: 10px; color: #3b82f6; font-size: 14px;"/>
+                                            <div style="display: flex; flex-direction: column;">
+                                                <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Asset Code</span>
+                                                <field name="asset_code" readonly="1" style="font-size: 14px; font-weight: 700; color: #1e293b;"/>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; align-items: center; background: #ffffff; padding: 8px 16px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                                            <i class="fa fa-refresh" style="margin-right: 10px; color: #10b981; font-size: 14px;"/>
+                                            <div style="display: flex; flex-direction: column;">
+                                                <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Last Sync</span>
+                                                <field name="last_sync_time" readonly="1" style="font-size: 14px; font-weight: 700; color: #1e293b;"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- DEVICE LOCATION DISPLAY (with Reverse Geocoding) -->
+                                    <div class="d-flex align-items-stretch gap-3 mt-3" style="flex-wrap: wrap;">
+                                        <div style="display: flex; align-items: flex-start; background: #ffffff; padding: 12px 16px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); min-width: 400px; max-width: 600px;">
+                                            <i class="fa fa-map-marker" style="margin-right: 12px; color: #ef4444; font-size: 18px; margin-top: 2px;"/>
+                                            <div style="display: flex; flex-direction: column; flex: 1;">
+                                                <field name="agent_status" invisible="1"/>
+                                                <field name="has_location_coordinates" invisible="1"/>
+                                                <field name="location_source" invisible="1"/>
+                                                <field name="latitude" invisible="1"/>
+                                                <field name="longitude" invisible="1"/>
+                                                <field name="map_url" invisible="1"/>
+                                                <field name="location_address" invisible="1"/>
+                                                <field name="is_network_device" invisible="1"/>
+                                                <field name="is_camera" invisible="1"/>
+                                                <field name="location_city" invisible="1"/>
+                                                <field name="location_state" invisible="1"/>
+                                                <field name="location_country" invisible="1"/>
+                                                <field name="location_area" invisible="1"/>
+
+
+                                                <!-- Show location only when agent is online or idle -->
+                                                <div invisible="agent_status in ['offline', 'never']">
+                                                    <!-- GPS Location (Precise) -->
+                                                    <div invisible="location_source != 'gps'" style="margin-top: 0;">
+                                                        <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Device Location (GPS)</span>
+                                                        <div invisible="not has_location_coordinates" style="margin-top: 6px;">
+                                                            <!-- FULL ADDRESS (Prominent) -->
+                                                            <div invisible="not location_address" style="font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 8px; line-height: 1.4;">
+                                                                <field name="location_address" readonly="1" nolabel="1"/>
+                                                            </div>
+                                                            <!-- City, State, Country Badges -->
+                                                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                                                <div invisible="not location_city" style="background: #22c55e; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                                                    <field name="location_city" readonly="1" nolabel="1"/>
+                                                                </div>
+                                                                <div invisible="not location_state" style="background: #0ea5e9; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                                                    <field name="location_state" readonly="1" nolabel="1"/>
+                                                                </div>
+                                                                <div invisible="not location_country" style="background: #64748b; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                                                    <field name="location_country" readonly="1" nolabel="1"/>
+                                                                </div>
+                                                                <div invisible="not location_area" style="background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                                                    <field name="location_area" readonly="1" nolabel="1"/>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- IP-based Location (Approximate) -->
+                                                    <div invisible="location_source != 'ip'" style="margin-top: 0;">
+                                                        <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Device Location (Network)</span>
+                                                        <div invisible="not has_location_coordinates" style="margin-top: 6px;">
+                                                            <!-- FULL ADDRESS (Prominent) -->
+                                                            <div invisible="not location_address" style="font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 8px; line-height: 1.4;">
+                                                                <field name="location_address" readonly="1" nolabel="1"/>
+                                                            </div>
+                                                            <!-- City, State, Country Badges -->
+                                                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                                                <div invisible="not location_city" style="background: #f59e0b; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                                                    <field name="location_city" readonly="1" nolabel="1"/>
+                                                                </div>
+                                                                <div invisible="not location_state" style="background: #0ea5e9; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                                                    <field name="location_state" readonly="1" nolabel="1"/>
+                                                                </div>
+                                                                <div invisible="not location_country" style="background: #64748b; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                                                    <field name="location_country" readonly="1" nolabel="1"/>
+                                                                </div>
+                                                                <div invisible="not location_area" style="background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                                                    <field name="location_area" readonly="1" nolabel="1"/>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Location Unavailable -->
+                                                    <div invisible="location_source != 'unavailable'" style="margin-top: 0;">
+                                                        <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Device Location</span>
+                                                        <div style="margin-top: 6px;">
+                                                            <div style="font-size: 14px; font-weight: 700; color: #94a3b8;">
+                                                                Location unavailable
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Show "Agent Offline" message when agent is offline or never synced -->
+                                                <div invisible="agent_status not in ['offline', 'never']" style="margin-top: 0;">
+                                                    <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Device Location</span>
+                                                    <div style="margin-top: 6px;">
+                                                        <div style="font-size: 14px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                                                            <i class="fa fa-exclamation-triangle" style="font-size: 16px; color: #f59e0b;"/>
+                                                            <span>Agent offline - Location unavailable</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- MIDDLE SECTION: STATUS & QR (COMPACTED) -->
+                        <div style="flex-shrink: 0; width: 200px; padding: 24px; border-left: 1px solid #f0f0f0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; align-self: stretch; gap: 16px; background: #fdfdfd; padding-top: 32px;">
+                            <div style="text-align: center;">
+                                <div class="text-muted mb-2" style="font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    Agent Status
+                                </div>
+                                <field name="agent_status" widget="badge"
+                                       decoration-success="agent_status == 'online'"
+                                       decoration-danger="agent_status == 'offline'"
+                                       decoration-muted="agent_status == 'never'"
+                                       readonly="1" style="font-size: 11px; font-weight: 800; padding: 8px 16px; border-radius: 8px; text-transform: uppercase; letter-spacing: 1px;"/>
+                            </div>
+                            <div style="text-align: center;">
+                                <div class="text-muted mb-1" style="font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    Quick Scan
+                                </div>
+                                <field name="qr_code" widget="image"
+                                       options="{'size': [80, 80]}"
+                                       style="background: #fff; padding: 6px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; display: inline-block;"/>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT SECTION: ASSET IMAGE -->
+                        <div class="asset_form_image_container" style="flex-shrink: 0; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 0; border-left: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: center; width: 240px; min-height: 220px; overflow: hidden;">
+                            <field name="image_1920" widget="image"
+                                   options="{'preview_image': 'image_1920'}"
+                                   class="asset_form_image"/>
+                        </div>
+                    </div>
+
+                    <div class="asset_section_container" style="padding: 16px; padding-top: 8px; background: transparent; min-height: auto; margin-top: 0;">
+                        <div class="specs_grid" style="margin-top: 0;">
+                            <!-- EMPLOYEE ASSIGNMENT CARD -->
+                            <div class="spec_card">
+                                <div class="spec_card_header" style="background: linear-gradient(135deg, #d1e7dd 0%, #a3cfbb 100%);">
+                                    <i class="fa fa-user" title="Employee Assignment" style="color: #0f5132;"></i>
+                                    <span style="color: #0f5132;">Employee Assignment</span>
+                                </div>
+                                <div class="spec_card_body">
+                                    <div class="spec_item">
+                                        <span class="o_form_label">Assigned Employee</span>
+                                        <field name="assigned_employee_id" readonly="1" class="spec_value"/>
+                                    </div>
+                                    <div class="spec_item">
+                                        <span class="o_form_label">Department</span>
+                                        <field name="department_id" readonly="1" class="spec_value"/>
+                                    </div>
+                                    <div class="spec_item">
+                                        <span class="o_form_label">Assignment Date</span>
+                                        <field name="assignment_date" readonly="1" class="spec_value"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ASSET INFORMATION CARD -->
+                            <div class="spec_card">
+                                <div class="spec_card_header">
+                                    <i class="fa fa-info-circle" title="Asset Info"></i>
+                                    <span>Asset Information</span>
+                                </div>
+                                <div class="spec_card_body">
+                                    <div class="spec_item">
+                                        <span class="o_form_label">Serial Number</span>
+                                        <field name="serial_number" readonly="1" class="spec_value"/>
+                                    </div>
+                                    <div class="spec_item">
+                                        <span class="o_form_label">Category</span>
+                                        <field name="category_id" class="spec_value"/>
+                                    </div>
+                                    <div class="spec_item">
+                                        <span class="o_form_label">Location</span>
+                                        <field name="location_id" class="spec_value"/>
+                                    </div>
+                                    <div class="spec_item">
+                                        <span class="o_form_label">Asset Status</span>
+                                        <field name="state" widget="badge"
+                                               decoration-info="state == 'draft'"
+                                               decoration-success="state == 'assigned'"
+                                               decoration-warning="state == 'maintenance'"
+                                               decoration-danger="state == 'scrapped'"
+                                               readonly="1" class="spec_value"/>
+                                    </div>
+                                    <div class="spec_item">
+                                        <span class="o_form_label">Maintenance Equipment</span>
+                                        <field name="maintenance_equipment_id" class="spec_value"/>
+                                    </div>
+                                    <div class="spec_item">
+                                        <span class="o_form_label">Condition</span>
+                                        <field name="condition" class="spec_value"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- PROCUREMENT INFORMATION CARD -->
+                            <div class="spec_card">
+                                    <div class="spec_card_header" style="background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);">
+                                        <i class="fa fa-shopping-bag" title="Procurement Info" style="color: #4338ca;"></i>
+                                        <span style="color: #4338ca;">Procurement Information</span>
+                                    </div>
+                                    <div class="spec_card_body">
+                                        <div class="spec_item">
+                                            <span class="o_form_label">Acquisition Type</span>
+                                            <field name="acquisition_type" class="spec_value" placeholder="Select type..."/>
+                                        </div>
+                                        <div class="spec_item">
+                                            <span class="o_form_label">Purchase Date</span>
+                                            <field name="purchase_date" class="spec_value"/>
+                                        </div>
+                                        <div class="spec_item">
+                                            <span class="o_form_label">In Service Date</span>
+                                            <field name="in_service_date" class="spec_value"/>
+                                        </div>
+                                        <div class="spec_item">
+                                            <span class="o_form_label">Purchase Cost</span>
+                                            <field name="purchase_cost" class="spec_value"/>
+                                            <field name="currency_id" invisible="1"/>
+                                        </div>
+                                        <div class="spec_item">
+                                            <span class="o_form_label">Purchase Vendor</span>
+                                            <field name="procurement_vendor_id" class="spec_value" options="{'no_create': True}"/>
+                                        </div>
+                                        <div class="spec_item">
+                                            <span class="o_form_label">Invoice Reference</span>
+                                            <field name="invoice_ref" class="spec_value" placeholder="INV-XXXX"/>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            <!-- WARRANTY & MAINTENANCE CARD -->
+                            <!-- Hidden helper field for conditional display -->
+                            <field name="is_virtual_asset" invisible="1"/>
+
+                            <div invisible="warranty_period_months == 0 and not vendor_id and not amc_expiry_date and not is_virtual_asset">
+                                <div class="spec_card">
+                                    <div class="spec_card_header" style="background: linear-gradient(135deg, #f8d7da 0%, #f5c2c7 100%);">
+                                        <i class="fa fa-shield" title="Warranty" style="color: #842029;"></i>
+                                        <span style="color: #842029;">Warranty &amp; Maintenance</span>
+                                    </div>
+                                    <div class="spec_card_body">
+                                        <!-- Virtual asset notice -->
+                                        <div class="spec_item" invisible="not is_virtual_asset">
+                                            <div class="alert alert-info mb-0 py-2 px-3" style="font-size: 12px; border-radius: 6px;">
+                                                <i class="fa fa-cloud me-1"></i>
+                                                <span>Physical warranty not applicable for virtual/cloud assets</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Warranty Period (hidden for virtual assets) -->
+                                        <div class="spec_item" invisible="is_virtual_asset">
+                                            <span class="o_form_label">Warranty Period (Months)</span>
+                                            <field name="warranty_period_months" class="spec_value" placeholder="e.g. 12, 24, 36"/>
+                                        </div>
+
+                                        <!-- Warranty Start (hidden for virtual assets) -->
+                                        <div class="spec_item" invisible="is_virtual_asset">
+                                            <span class="o_form_label">Warranty Start</span>
+                                            <field name="warranty_start_date" class="spec_value" readonly="1"/>
+                                        </div>
+
+                                        <!-- Warranty End (hidden for virtual assets) -->
+                                        <div class="spec_item" invisible="is_virtual_asset">
+                                            <span class="o_form_label">Warranty End</span>
+                                            <field name="warranty_end_date" class="spec_value" readonly="1"/>
+                                        </div>
+
+                                        <!-- Warranty Status (always visible, shows "Not Applicable" for virtual) -->
+                                        <div class="spec_item">
+                                            <span class="o_form_label">Warranty Status</span>
+                                            <field name="warranty_status" widget="badge"
+                                                   decoration-success="warranty_status == 'active'"
+                                                   decoration-danger="warranty_status == 'expired'"
+                                                   decoration-muted="warranty_status in ['no_warranty', 'not_applicable']"
+                                                   readonly="1" class="spec_value"/>
+                                        </div>
+
+                                        <!-- Next Maintenance (hidden for virtual assets) -->
+                                        <div class="spec_item" invisible="is_virtual_asset">
+                                            <span class="o_form_label">Next Maintenance</span>
+                                            <field name="next_maintenance_date" class="spec_value"/>
+                                        </div>
+
+                                        <!-- Vendor / AMC (always visible) -->
+                                        <div class="spec_item">
+                                            <span class="o_form_label">Vendor / AMC</span>
+                                            <field name="vendor_id" class="spec_value"/>
+                                        </div>
+
+                                        <!-- AMC Expiry (always visible) -->
+                                        <div class="spec_item">
+                                            <span class="o_form_label">AMC Expiry</span>
+                                            <field name="amc_expiry_date" class="spec_value"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- WARRANTY & AMC CARD -->
+                            <div class="spec_card">
+                                <div class="spec_card_header" style="background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);">
+                                    <i class="fa fa-shield" title="Warranty &amp; AMC" style="color: #7e22ce;"></i>
+                                    <span style="color: #7e22ce;">Warranty &amp; AMC Information</span>
+                                </div>
+                                <div class="spec_card_body">
+                                    <div class="spec_item">
+                                        <span class="o_form_label">Warranty Status</span>
+                                        <field name="warranty_status" widget="badge"
+                                               decoration-success="warranty_status == 'active'"
+                                               decoration-danger="warranty_status == 'expired'"
+                                               decoration-muted="warranty_status in ['no_warranty', 'not_applicable']"
+                                               class="spec_value"/>
+                                    </div>
+                                    <div class="spec_item">
+                                        <span class="o_form_label">Warranty Expiry</span>
+                                        <field name="warranty_end_date" class="spec_value"/>
+                                    </div>
+                                    <div class="spec_item">
+                                        <span class="o_form_label">AMC Status</span>
+                                        <field name="amc_status" widget="radio" options="{'horizontal': true}" class="spec_value"/>
+                                    </div>
+                                    <div class="spec_item">
+                                        <span class="o_form_label">AMC Vendor</span>
+                                        <field name="vendor_id" class="spec_value" options="{'no_create': True}"/>
+                                    </div>
+                                    <div class="spec_item">
+                                        <span class="o_form_label">AMC Valid Till</span>
+                                        <field name="amc_expiry_date" class="spec_value"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SPARE CONSUMPTION REMOVED -->
+
+                            <!-- MAINTENANCE SUMMARY CARD -->
+                            <div class="spec_card">
+                                <div class="spec_card_header" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);">
+                                    <i class="fa fa-tools" title="Maintenance Summary" style="color: #1e40af;"></i>
+                                    <span style="color: #1e40af;">Maintenance Summary</span>
+                                </div>
+                                <div class="spec_card_body">
+                                    <div class="spec_item">
+                                        <span class="o_form_label">Last Maintenance</span>
+                                        <field name="last_maintenance_date" class="spec_value"/>
+                                    </div>
+                                    <div class="spec_item">
+                                        <span class="o_form_label">Next Maintenance</span>
+                                        <field name="next_maintenance_date" class="spec_value"/>
+                                    </div>
+                                    <div class="spec_item">
+                                        <span class="o_form_label">Maintenance Type</span>
+                                        <field name="maintenance_type" class="spec_value"/>
+                                    </div>
+                                    <div class="spec_item">
+                                        <span class="o_form_label">Maintenance Status</span>
+                                        <field name="maintenance_status" class="spec_value"/>
+                                    </div>
+                                    <div class="spec_item">
+                                        <span class="o_form_label">Condition</span>
+                                        <field name="condition" class="spec_value"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ASSET HEALTH &amp; COMPLIANCE CARD -->
+                            <div class="spec_card">
+                                <div class="spec_card_header" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);">
+                                    <i class="fa fa-heartbeat" title="Asset Health" style="color: #92400e;"></i>
+                                    <span style="color: #92400e;">Asset Health &amp; Compliance</span>
+                                </div>
+                                <div class="spec_card_body">
+                                    <div class="spec_item">
+                                        <span class="o_form_label">Health Score</span>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <field name="health_score" readonly="1"
+                                                   style="font-size: 20px; font-weight: 800; color: #1e293b;"/>
+                                            <span style="font-size: 12px; color: #94a3b8; font-weight: 500;">/ 100</span>
+                                        </div>
+                                    </div>
+                                    <div class="spec_item">
+                                        <span class="o_form_label">Health Status</span>
+                                        <field name="health_status" widget="badge"
+                                               decoration-success="health_status in ['excellent', 'good']"
+                                               decoration-warning="health_status == 'fair'"
+                                               decoration-danger="health_status in ['poor', 'critical']"
+                                               readonly="1" class="spec_value"/>
+                                    </div>
+                                    <div class="spec_item">
+                                        <span class="o_form_label">Monitoring Protocol</span>
+                                        <field name="monitoring_protocol" class="spec_value"/>
+                                    </div>
+                                    <div class="spec_item">
+                                        <span class="o_form_label">IP Address</span>
+                                        <field name="ip_address" readonly="1" class="spec_value"/>
+                                    </div>
+                                    <div class="spec_item">
+                                        <span class="o_form_label">MAC Address</span>
+                                        <field name="mac_address" readonly="1" class="spec_value"/>
+                                    </div>
+                                    <div class="spec_item">
+                                        <span class="o_form_label">Last Seen IP</span>
+                                        <field name="last_seen_ip" readonly="1" class="spec_value"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <notebook>
+                        <page string="Hardware Specs" class="hardware_specs_page">
+                            <div class="asset_section_container">
+                                <div class="section_header">
+                                    <h3 class="section_title">
+                                        <i class="fa fa-microchip" title="Hardware Specs"></i>
+                                        <span>Hardware Specifications</span>
+                                    </h3>
+                                    <p class="section_subtitle">Detailed hardware configuration and system information</p>
+                                </div>
+
+                                <div class="specs_grid">
+                                    <div class="spec_card spec_card_os">
+                                        <div class="spec_card_header">
+                                            <i class="fa fa-desktop" title="OS"></i>
+                                            <span>Operating System</span>
+                                        </div>
+                                        <div class="spec_card_body">
+                                            <div class="spec_item">
+                                                <span class="o_form_label">
+                                                    <i class="fa fa-windows" style="margin-right: 8px; color: #0ea5e9;"/>
+                                                    OS Name
+                                                </span>
+                                                <field name="os_name" readonly="1" class="spec_value"/>
+                                            </div>
+                                            <div class="spec_item">
+                                                <span class="o_form_label">
+                                                    <i class="fa fa-linux" style="margin-right: 8px; color: #f97316;"/>
+                                                    Platform
+                                                </span>
+                                                <field name="os_platform" readonly="1" class="spec_value"/>
+                                            </div>
+                                            <div class="spec_item">
+                                                <span class="o_form_label">
+                                                    <i class="fa fa-gears" style="margin-right: 8px; color: #64748b;"/>
+                                                    OS Type
+                                                </span>
+                                                <field name="os_type" readonly="1" class="spec_value"/>
+                                            </div>
+                                            <div class="spec_item">
+                                                <span class="o_form_label">
+                                                    <i class="fa fa-terminal" style="margin-right: 8px; color: #475569;"/>
+                                                    Hostname
+                                                </span>
+                                                <field name="hostname" readonly="1" class="spec_value"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="spec_card spec_card_processor">
+                                        <div class="spec_card_header">
+                                            <i class="fa fa-microchip" title="CPU/RAM"></i>
+                                            <span>Processor and Memory</span>
+                                        </div>
+                                        <div class="spec_card_body">
+                                            <div class="spec_item">
+                                                <span class="o_form_label">
+                                                    <i class="fa fa-microchip" style="margin-right: 8px; color: #6366f1;"/>
+                                                    Processor
+                                                </span>
+                                                <field name="processor" readonly="1" class="spec_value"/>
+                                            </div>
+                                            <div class="spec_item">
+                                                <span class="o_form_label">
+                                                    <i class="fa fa-tasks" style="margin-right: 8px; color: #8b5cf6;"/>
+                                                    RAM Size (GB)
+                                                </span>
+                                                <field name="ram_size" readonly="1" class="spec_value"/>
+                                            </div>
+                                            <div class="spec_item">
+                                                <span class="o_form_label">
+                                                    <i class="fa fa-gamepad" style="margin-right: 8px; color: #ec4899;"/>
+                                                    Graphics Card
+                                                </span>
+                                                <field name="graphics_card" readonly="1" class="spec_value"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="spec_card spec_card_storage">
+                                        <div class="spec_card_header">
+                                            <i class="fa fa-hdd-o" title="Storage"></i>
+                                            <span>Storage and System</span>
+                                        </div>
+                                        <div class="spec_card_body">
+                                            <div class="spec_item">
+                                                <span class="o_form_label">
+                                                    <i class="fa fa-hdd-o" style="margin-right: 8px; color: #3b82f6;"/>
+                                                    Total Logical Storage (GB)
+                                                </span>
+                                                <field name="total_storage_size" readonly="1" class="spec_value"/>
+                                            </div>
+                                            <div class="spec_item">
+                                                <span class="o_form_label">
+                                                    <i class="fa fa-database" style="margin-right: 8px; color: #06b6d4;"/>
+                                                    Disk Type
+                                                </span>
+                                                <field name="disk_type" readonly="1" class="spec_value"/>
+                                            </div>
+                                            <!-- Battery fields hidden for virtual/cloud assets -->
+                                            <div class="spec_item" invisible="is_virtual_asset">
+                                                <span class="o_form_label">
+                                                    <i class="fa fa-battery-half" style="margin-right: 8px; color: #10b981;"/>
+                                                    Battery Percentage (%)
+                                                </span>
+                                                <field name="battery_capacity" readonly="1" class="spec_value"/>
+                                            </div>
+                                            <div class="spec_item" invisible="is_virtual_asset">
+                                                <span class="o_form_label">
+                                                    <i class="fa fa-bolt" style="margin-right: 8px; color: #f59e0b;"/>
+                                                    Battery Capacity (mAh)
+                                                </span>
+                                                <field name="battery_mah" readonly="1" class="spec_value"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </page>
+
+                        <!-- ============================================================
+                             SOFTWARE TAB — Installed apps + Deploy action
+                             ============================================================ -->
+                        <page string="Software" name="software_details" class="software_details_page">
+                            <div class="asset_section_container">
+
+                                <!-- Section header with Deploy button on the right -->
+                                <div class="section_header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+                                    <div>
+                                        <h3 class="section_title">
+                                            <i class="fa fa-cube" title="Software"/>
+                                            <span>Installed Software</span>
+                                        </h3>
+                                        <p class="section_subtitle">
+                                            Applications reported by the agent on this device.
+                                            Use <strong>Deploy</strong> to push a new application.
+                                        </p>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <span class="badge bg-primary" style="font-size: 13px; padding: 8px 14px;">
+                                            <i class="fa fa-th-large" style="margin-right: 6px;"/>
+                                            <field name="installed_application_count" nolabel="1" readonly="1"/> apps
+                                        </span>
+                                        <button name="action_deploy_application"
+                                                type="object"
+                                                string="Deploy Application"
+                                                class="btn btn-primary"
+                                                icon="fa-paper-plane"/>
+                                    </div>
+                                </div>
+
+                                <!-- Embedded list of installed applications -->
+                                <div style="margin-top: 16px; background: #ffffff; border-radius: 8px; border: 1px solid #e2e8f0; padding: 12px;">
+                                    <field name="installed_application_ids" nolabel="1" mode="list" readonly="1">
+                                        <list string="Installed Applications" create="false" delete="false" edit="false">
+                                            <field name="name"/>
+                                            <field name="publisher"/>
+                                            <field name="version"/>
+                                            <field name="installed_date_formatted" string="Installed Date"/>
+                                            <field name="size" string="Size (KB)" widget="float"/>
+                                            <field name="version" string="Version"/>
+                                            <field name="uninstall_status" widget="badge"
+                                                   decoration-success="uninstall_status == 'uninstalled'"
+                                                   decoration-warning="uninstall_status == 'pending'"
+                                                   decoration-danger="uninstall_status == 'failed'"
+                                                   optional="hide"/>
+                                        </list>
+                                    </field>
+                                </div>
+
+                                <!-- Friendly empty-state -->
+                                <div invisible="installed_application_count != 0" style="display: none;"/>
+                                <div invisible="installed_application_count != 0"
+                                     style="text-align: center; padding: 24px; color: #94a3b8;">
+                                    <i class="fa fa-inbox" style="font-size: 32px; margin-bottom: 8px;"/>
+                                    <div>No applications reported by the agent yet.</div>
+                                </div>
+                            </div>
+                        </page>
+
+                        <page string="Storage" name="storage_volumes">
+                            <div style="padding: 20px; background: #f8f9fa;">
+                                <!-- VISUAL DISK REPRESENTATION -->
+                                <div style="background: #ffffff; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e2e8f0;">
+                                    <div style="color: #1e293b; font-size: 13px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px;">
+                                        <i class="fa fa-hdd-o" style="margin-right: 8px; color: #3b82f6;"/>Devices and Drives
+                                    </div>
+
+                                    <field name="storage_volume_ids" nolabel="1" mode="kanban">
+                                        <kanban create="0" delete="0">
+                                            <field name="drive_letter"/>
+                                            <field name="drive_label"/>
+                                            <field name="total_size"/>
+                                            <field name="used_space"/>
+                                            <field name="free_space"/>
+                                            <field name="usage_percentage"/>
+                                            <field name="storage_status"/>
+                                            <templates>
+                                                <t t-name="card">
+                                                    <div style="display: inline-block; margin-right: 24px; margin-bottom: 20px; width: 320px;">
+                                                        <div style="display: flex; align-items: flex-start; gap: 14px; padding: 18px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; transition: all 0.2s ease; height: 100%;">
+                                                            <!-- DISK ICON -->
+                                                            <div style="flex-shrink: 0;">
+                                                                <t t-if="record.drive_label.raw_value == 'system'">
+                                                                    <i class="fa fa-hdd-o" style="font-size: 48px; color: #3b82f6;"/>
+                                                                </t>
+                                                                <t t-else="">
+                                                                    <i class="fa fa-hdd-o" style="font-size: 48px; color: #64748b;"/>
+                                                                </t>
+                                                            </div>
+
+                                                            <!-- DISK INFO -->
+                                                            <div style="flex: 1; min-width: 0;">
+                                                                <!-- Drive Name and Type -->
+                                                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                                                    <div style="color: #0f172a; font-size: 15px; font-weight: 700;">
+                                                                        <t t-if="record.drive_label.raw_value == 'system'">
+                                                                            <t t-out="record.drive_letter.value"/>
+                                                                        </t>
+                                                                        <t t-else="">
+                                                                            New Volume (<t t-out="record.drive_letter.value"/>)
+                                                                        </t>
+                                                                    </div>
+                                                                    <field name="drive_label" widget="badge" readonly="1"/>
+                                                                </div>
+
+                                                                <!-- Health Status -->
+                                                                <div style="margin-bottom: 10px;">
+                                                                    <field name="storage_status" widget="badge" readonly="1"
+                                                                           decoration-success="storage_status == 'healthy'"
+                                                                           decoration-warning="storage_status == 'warning'"
+                                                                           decoration-danger="storage_status == 'critical'"/>
+                                                                </div>
+
+                                                                <!-- Storage Info -->
+                                                                <div style="color: #64748b; font-size: 12px; margin-bottom: 8px; line-height: 1.6;">
+                                                                    <div><strong>Capacity:</strong> <t t-out="record.total_size.value"/> GB</div>
+                                                                    <div><strong>Used:</strong> <t t-out="record.used_space.value"/> GB</div>
+                                                                    <div><strong>Available:</strong> <t t-out="record.free_space.value"/> GB</div>
+                                                                </div>
+
+                                                                <!-- Progress Bar -->
+                                                                <div style="background: #e2e8f0; height: 22px; border-radius: 4px; overflow: hidden; margin-bottom: 6px; position: relative; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
+                                                                    <t t-set="usage_pct" t-value="record.usage_percentage.raw_value"/>
+                                                                    <t t-set="bar_color" t-value="'#3b82f6'"/>
+                                                                    <t t-if="usage_pct &gt;= 90">
+                                                                        <t t-set="bar_color" t-value="'#dc2626'"/>
+                                                                    </t>
+                                                                    <t t-elif="usage_pct &gt;= 75">
+                                                                        <t t-set="bar_color" t-value="'#f59e0b'"/>
+                                                                    </t>
+
+                                                                    <div t-attf-style="background: {{bar_color}}; height: 100%; width: {{usage_pct}}%; transition: width 0.3s ease; box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);"/>
+                                                                </div>
+
+                                                                <!-- Usage Percentage -->
+                                                                <div style="color: #64748b; font-size: 13px; font-weight: 600; text-align: center;">
+                                                                    <t t-out="record.usage_percentage.value"/>% Used
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </t>
+                                            </templates>
+                                        </kanban>
+                                    </field>
+                                </div>
+                            </div>
+                        </page>
+
+                        <page string="File Access" name="file_access">
+                            <div style="padding: 20px; background: #f8f9fa;">
+                                <!-- FILE EXPLORER INTEGRATION -->
+                                <div style="background: #ffffff; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e2e8f0;">
+                                    <div style="color: #1e293b; font-size: 13px; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px;">
+                                        <i class="fa fa-folder-open" style="margin-right: 8px; color: #3b82f6;"/>File Explorer
+                                    </div>
+                                    <field name="file_access_record_ids" widget="file_access_widget" nolabel="1"/>
+                                </div>
+                            </div>
+                        </page>
+
+                        <page string="Agent Sync" class="agent_sync_page">
+                            <div class="asset_section_container">
+                                <div class="section_header">
+                                    <h3 class="section_title">
+                                        <i class="fa fa-refresh" title="Sync"></i>
+                                        <span>Agent Synchronization</span>
+                                    </h3>
+                                    <p class="section_subtitle">Real-time monitoring and sync activity logs</p>
+                                </div>
+
+                                <div class="agent_status_grid">
+                                    <div class="agent_status_card">
+                                        <div class="agent_status_icon agent_status_icon_main">
+                                            <i class="fa fa-laptop" title="Agent Status"></i>
+                                        </div>
+                                        <div class="agent_status_info">
+                                            <span class="o_form_label">Agent Status</span>
+                                            <field name="agent_status" widget="badge"
+                                                   decoration-success="agent_status in ['online', 'idle']"
+                                                   decoration-danger="agent_status == 'offline'"
+                                                   decoration-muted="agent_status == 'never'"
+                                                   readonly="1" class="agent_status_value"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="agent_status_card">
+                                        <div class="agent_status_icon agent_status_icon_sync">
+                                            <i class="fa fa-clock-o" title="Last Sync"></i>
+                                        </div>
+                                        <div class="agent_status_info">
+                                            <span class="o_form_label">Last Agent Sync</span>
+                                            <field name="last_agent_sync" readonly="1" class="agent_status_value"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="agent_status_card">
+                                        <div class="agent_status_icon agent_status_icon_logs">
+                                            <i class="fa fa-list-alt" title="Log Count"></i>
+                                        </div>
+                                        <div class="agent_status_info">
+                                            <span class="o_form_label">Log Count</span>
+                                            <field name="agent_log_count" readonly="1" class="agent_status_value"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="agent_status_card" invisible="not has_changes">
+                                        <div class="agent_status_icon agent_status_icon_changes">
+                                            <i class="fa fa-exclamation-triangle" title="Has Changes"></i>
+                                        </div>
+                                        <div class="agent_status_info">
+                                            <span class="o_form_label">Has Changes</span>
+                                            <field name="has_changes" readonly="1" class="agent_status_value"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="agent_status_card agent_status_card_wide">
+                                        <div class="agent_status_icon agent_status_icon_change_date">
+                                            <i class="fa fa-calendar" title="Last Change"></i>
+                                        </div>
+                                        <div class="agent_status_info">
+                                            <span class="o_form_label">Last Change Detected</span>
+                                            <field name="last_change_date" readonly="1" class="agent_status_value"/>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="agent_logs_section">
+                                    <div class="section_header">
+                                        <h4 class="section_subtitle_alt">
+                                            <i class="fa fa-history" title="Sync History"></i>
+                                            <span>Recent Agent Logs</span>
+                                        </h4>
+                                    </div>
+                                    <field name="agent_log_ids" nolabel="1" class="agent_logs_list">
+                                        <list limit="20" decoration-success="status == 'success'" decoration-danger="status == 'failed'">
+                                            <field name="sync_time"/>
+                                            <field name="log_type"/>
+                                            <field name="status"/>
+                                            <field name="changes_detected"/>
+                                        </list>
+                                    </field>
+                                </div>
+
+                            </div>
+                        </page>
+
+                        <page string="Location" class="location_page">
+                            <div class="asset_section_container">
+                                <field name="location_source" invisible="1"/>
+
+                                <!-- HAS COORDINATES - Show map and details side by side -->
+                                <div invisible="not has_location_coordinates">
+                                    <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+                                        <!-- LEFT SIDE: MAP -->
+                                        <div style="flex: 1; min-width: 400px; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden;">
+                                            <field name="latitude" widget="asset_map" nolabel="1"/>
+                                        </div>
+
+                                        <!-- RIGHT SIDE: GPS ADDRESS DETAILS -->
+                                        <div style="flex: 1; min-width: 350px;">
+                                            <!-- Header -->
+                                            <div style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); padding: 12px 16px; border-radius: 8px 8px 0 0; border: 1px solid #a7f3d0; border-bottom: none;">
+                                                <span style="font-size: 14px; font-weight: 700; color: #065f46;">
+                                                    <i class="fa fa-location-arrow" style="margin-right: 8px;"/>
+                                                    GPS Address Details
+                                                </span>
+                                            </div>
+
+                                            <!-- Details Card -->
+                                            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0 0 8px 8px; padding: 0;">
+                                                <!-- City -->
+                                                <div style="padding: 12px 16px; border-bottom: 1px solid #f1f5f9;">
+                                                    <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                                                        <i class="fa fa-building" style="margin-right: 6px;"/> City
+                                                    </div>
+                                                    <div style="font-size: 15px; font-weight: 600; color: #1e293b;">
+                                                        <field name="location_city" readonly="1" nolabel="1"/>
+                                                    </div>
+                                                </div>
+
+                                                <!-- State / Region -->
+                                                <div style="padding: 12px 16px; border-bottom: 1px solid #f1f5f9;">
+                                                    <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                                                        <i class="fa fa-map" style="margin-right: 6px;"/> State / Region
+                                                    </div>
+                                                    <div style="font-size: 15px; font-weight: 600; color: #1e293b;">
+                                                        <field name="location_state" readonly="1" nolabel="1"/>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Country -->
+                                                <div style="padding: 12px 16px; border-bottom: 1px solid #f1f5f9;">
+                                                    <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                                                        <i class="fa fa-globe" style="margin-right: 6px;"/> Country
+                                                    </div>
+                                                    <div style="font-size: 15px; font-weight: 600; color: #1e293b;">
+                                                        <field name="location_country" readonly="1" nolabel="1"/>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Full Address -->
+                                                <div style="padding: 12px 16px; border-bottom: 1px solid #f1f5f9;">
+                                                    <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                                                        <i class="fa fa-location-arrow" style="margin-right: 6px;"/> Full Address
+                                                    </div>
+                                                    <div style="font-size: 14px; font-weight: 500; color: #1e293b; line-height: 1.4;">
+                                                        <field name="location_address" readonly="1" nolabel="1"/>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Latitude / Longitude -->
+                                                <div style="padding: 12px 16px; border-bottom: 1px solid #f1f5f9; display: flex; gap: 16px;">
+                                                    <div style="flex: 1;">
+                                                        <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                                                            <i class="fa fa-arrows-v" style="margin-right: 6px;"/> Latitude
+                                                        </div>
+                                                        <div style="font-size: 15px; font-weight: 600; color: #1e293b;">
+                                                            <field name="latitude" readonly="1" nolabel="1"/>
+                                                        </div>
+                                                    </div>
+                                                    <div style="flex: 1;">
+                                                        <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                                                            <i class="fa fa-arrows-h" style="margin-right: 6px;"/> Longitude
+                                                        </div>
+                                                        <div style="font-size: 15px; font-weight: 600; color: #1e293b;">
+                                                            <field name="longitude" readonly="1" nolabel="1"/>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Last Known IP -->
+                                                <div style="padding: 12px 16px; border-bottom: 1px solid #f1f5f9;">
+                                                    <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                                                        <i class="fa fa-wifi" style="margin-right: 6px;"/> Last Known IP
+                                                    </div>
+                                                    <div style="font-size: 15px; font-weight: 600; color: #1e293b;">
+                                                        <field name="last_seen_ip" readonly="1" nolabel="1"/>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Source / Last Updated -->
+                                                <div style="padding: 12px 16px; display: flex; gap: 16px;">
+                                                    <div style="flex: 1;">
+                                                        <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                                                            <i class="fa fa-crosshairs" style="margin-right: 6px;"/> Source
+                                                        </div>
+                                                        <div style="font-size: 14px; font-weight: 600; color: #1e293b;">
+                                                        <div invisible="location_source != 'gps'">GPS-based (Exact)</div>
+                                                        <div invisible="location_source != 'ip'">Network-based (Approximate)</div>
+                                                        </div>
+                                                    </div>
+                                                    <div style="flex: 1;">
+                                                        <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+                                                            <i class="fa fa-clock-o" style="margin-right: 6px;"/> Last Updated
+                                                        </div>
+                                                        <div style="font-size: 14px; font-weight: 600; color: #1e293b;">
+                                                            <field name="last_location_update" readonly="1" nolabel="1"/>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div style="margin-top: 16px;">
+                                                <style>
+                                                    .o_field_url_button a,
+                                                    .o_field_url_button a:hover,
+                                                    .o_field_url_button a:visited,
+                                                    .o_field_url_button a:active {
+                                                        color: #1e293b !important;
+                                                    }
+                                                </style>
+                                                <div class="o_field_url_button">
+                                                    <field name="map_url" widget="url" options="{'text': '🗺️ View on OpenStreetMap'}" readonly="1" nolabel="1" class="btn" style="background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%); color: #1e293b !important; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; width: 100%; text-align: center; display: block; text-decoration: none !important;"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- NO COORDINATES - Location unavailable -->
+                                <div invisible="has_location_coordinates" style="text-align: center; padding: 64px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                                    <i class="fa fa-map-marker" style="font-size: 64px; color: #cbd5e1; margin-bottom: 20px;"/>
+                                    <div style="font-size: 18px; font-weight: 600; color: #64748b;">Location Unavailable</div>
+                                    <div style="font-size: 14px; color: #94a3b8; margin-top: 8px;">Location data not available from this device.</div>
+                                    <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">Enable Windows Location Service on the device to track location.</div>
+                                </div>
+                            </div>
+                        </page>
+
+                        <page string="Camera Configuration" invisible="not is_camera">
+                            <div class="asset_section_container">
+                                <div class="section_header">
+                                    <h3 class="section_title">
+                                        <i class="fa fa-video-camera" title="Camera Configuration"></i>
+                                        <span>Camera Configuration</span>
+                                    </h3>
+                                    <p class="section_subtitle">Camera monitoring and network settings</p>
+                                </div>
+
+                                <group>
+                                    <group string="Network Settings">
+                                        <field name="ip_address"/>
+                                        <field name="monitoring_protocol"/>
+                                    </group>
+                                </group>
+
+                                <div class="section_header mt-3">
+                                    <h4 class="section_subtitle_alt">
+                                        <i class="fa fa-list" title="Cameras"></i>
+                                        <span>Associated Cameras</span>
+                                    </h4>
+                                </div>
+
+                                <field name="camera_ids" nolabel="1">
+                                    <list editable="bottom" 
+                                          decoration-success="stream_status=='online'"
+                                          decoration-danger="stream_status=='offline'">
+                                        <field name="camera_code"/>
+                                        <field name="name"/>
+                                        <field name="camera_ip"/>
+                                        <field name="camera_brand"/>
+                                        <field name="location"/>
+                                        <field name="stream_status" widget="badge"
+                                               decoration-success="stream_status=='online'"
+                                               decoration-danger="stream_status=='offline'"
+                                               decoration-warning="stream_status=='error'"
+                                               decoration-muted="stream_status=='unknown'"/>
+                                        <field name="last_check"/>
+                                    </list>
+                                </field>
+                            </div>
+                        </page>
+
+                        <page string="Network Device Configuration" invisible="not is_network_device">
+                            <div class="asset_section_container">
+                                <div class="section_header">
+                                    <h3 class="section_title">
+                                        <i class="fa fa-network-wired" title="Network Config"></i>
+                                        <span>Network Device Configuration</span>
+                                    </h3>
+                                    <p class="section_subtitle">Monitor and manage network specific parameters</p>
+                                </div>
+
+                                <group>
+                                    <group string="Network Settings">
+                                        <field name="ip_address"/>
+                                        <field name="monitoring_protocol"/>
+                                    </group>
+                                </group>
+
+                                <div class="section_header mt-3">
+                                    <h4 class="section_subtitle_alt">
+                                        <i class="fa fa-list" title="Network Devices"></i>
+                                        <span>Linked Network Devices</span>
+                                    </h4>
+                                </div>
+
+                                <field name="network_device_ids" nolabel="1">
+                                    <list decoration-success="connection_status == 'online'" decoration-danger="connection_status == 'offline'">
+                                        <field name="device_code"/>
+                                        <field name="device_type"/>
+                                        <field name="ip_address"/>
+                                        <field name="manufacturer"/>
+                                        <field name="connection_status" widget="badge" 
+                                               decoration-success="connection_status == 'online'" 
+                                               decoration-danger="connection_status == 'offline'" 
+                                               decoration-warning="connection_status == 'unreachable'" 
+                                               decoration-info="connection_status == 'unknown'"/>
+                                        <field name="cpu_usage" widget="progressbar"/>
+                                        <field name="last_check"/>
+                                    </list>
+                                </field>
+                            </div>
+                        </page>
+                        
+
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    </data>
+</odoo>

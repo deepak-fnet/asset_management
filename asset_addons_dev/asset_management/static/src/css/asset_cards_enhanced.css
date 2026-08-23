@@ -1,0 +1,938 @@
+/* =========================================================
+   ENHANCED ASSET CARDS - PROFESSIONAL DESIGNS
+   Each card type has unique visual identity
+   ========================================================= */
+
+/* =========================
+   ASSIGNED ASSETS CARD
+   Theme: User-centric, professional blue
+   ========================= */
+
+.kpi_card.kpi_assigned {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi_card.kpi_assigned::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 10%, transparent 10%);
+    background-size: 30px 30px;
+    animation: floatPattern 30s linear infinite;
+}
+
+@keyframes floatPattern {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    100% { transform: translate(50px, 50px) rotate(360deg); }
+}
+
+.kpi_card.kpi_assigned .kpi_body {
+    position: relative;
+    z-index: 2;
+}
+
+.kpi_card.kpi_assigned .kpi_icon {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    animation: pulseGlow 3s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+    0%, 100% {
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 8px 40px rgba(102, 126, 234, 0.5);
+        transform: scale(1.05);
+    }
+}
+
+.kpi_card.kpi_assigned .kpi_icon i {
+    color: white;
+    font-size: 28px;
+}
+
+.kpi_card.kpi_assigned .kpi_label {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+}
+
+.kpi_card.kpi_assigned .kpi_value {
+    color: white;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.kpi_card.kpi_assigned .kpi_bottom {
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.kpi_card.kpi_assigned:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 60px rgba(102, 126, 234, 0.4);
+}
+
+/* =========================
+   MAINTENANCE ASSETS CARD
+   Theme: Warning/Service, Orange-Yellow
+   ========================= */
+
+.kpi_card.kpi_maintenance {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi_card.kpi_maintenance::before {
+    content: '⚠';
+    position: absolute;
+    font-size: 200px;
+    color: rgba(255, 255, 255, 0.05);
+    top: -30px;
+    right: -30px;
+    transform: rotate(-15deg);
+    animation: rotateWarning 10s linear infinite;
+}
+
+@keyframes rotateWarning {
+    0%, 100% { transform: rotate(-15deg); }
+    50% { transform: rotate(15deg); }
+}
+
+.kpi_card.kpi_maintenance .kpi_icon {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    animation: wrenchRotate 4s ease-in-out infinite;
+}
+
+@keyframes wrenchRotate {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-15deg); }
+    75% { transform: rotate(15deg); }
+}
+
+.kpi_card.kpi_maintenance .kpi_icon i {
+    color: white;
+    font-size: 26px;
+}
+
+.kpi_card.kpi_maintenance .kpi_label {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.kpi_card.kpi_maintenance .kpi_value {
+    color: white;
+    text-shadow: 0 3px 15px rgba(245, 87, 108, 0.5);
+    animation: numberPulse 2s ease-in-out infinite;
+}
+
+@keyframes numberPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.kpi_card.kpi_maintenance .kpi_bottom {
+    background: linear-gradient(90deg, rgba(255,255,255,0.3) 0%, rgba(255,193,7,0.4) 100%);
+}
+
+.kpi_card.kpi_maintenance:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 60px rgba(245, 87, 108, 0.4);
+}
+
+/* =========================
+   SCRAPPED ASSETS CARD
+   Theme: Danger/Archive, Red-Dark
+   ========================= */
+
+.kpi_card.kpi_scrapped {
+    background: linear-gradient(135deg, #fc5c7d 0%, #6a82fb 100%);
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi_card.kpi_scrapped::after {
+    content: '✕';
+    position: absolute;
+    font-size: 180px;
+    color: rgba(255, 255, 255, 0.05);
+    bottom: -40px;
+    right: -20px;
+    font-weight: 900;
+    animation: fadeInOut 3s ease-in-out infinite;
+}
+
+@keyframes fadeInOut {
+    0%, 100% { opacity: 0.05; }
+    50% { opacity: 0.1; }
+}
+
+.kpi_card.kpi_scrapped .kpi_icon {
+    background: rgba(220, 53, 69, 0.3);
+    backdrop-filter: blur(10px);
+    border: 2px dashed rgba(255, 255, 255, 0.5);
+    animation: trashShake 4s ease-in-out infinite;
+}
+
+@keyframes trashShake {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-5deg); }
+    75% { transform: rotate(5deg); }
+}
+
+.kpi_card.kpi_scrapped .kpi_icon i {
+    color: white;
+    font-size: 26px;
+}
+
+.kpi_card.kpi_scrapped .kpi_label {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.kpi_card.kpi_scrapped .kpi_value {
+    color: white;
+    text-shadow: 0 3px 15px rgba(220, 53, 69, 0.6);
+}
+
+.kpi_card.kpi_scrapped .kpi_bottom {
+    background: rgba(220, 53, 69, 0.4);
+    height: 6px;
+}
+
+.kpi_card.kpi_scrapped:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 60px rgba(252, 92, 125, 0.5);
+}
+
+/* =========================
+   ACTIVE AGENTS CARD
+   Theme: Success/Online, Green
+   ========================= */
+
+.kpi_card.kpi_active_agents {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi_card.kpi_active_agents::before {
+    content: '';
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+    border-radius: 50%;
+    top: -50px;
+    right: -50px;
+    animation: ripple 3s ease-in-out infinite;
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+.kpi_card.kpi_active_agents .kpi_icon {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 20px rgba(56, 239, 125, 0.5);
+    animation: signalPulse 2s ease-in-out infinite;
+}
+
+@keyframes signalPulse {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(56, 239, 125, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(56, 239, 125, 0.8), 0 0 60px rgba(56, 239, 125, 0.4);
+    }
+}
+
+.kpi_card.kpi_active_agents .kpi_icon i {
+    color: white;
+    font-size: 26px;
+    animation: signalBars 1.5s ease-in-out infinite;
+}
+
+@keyframes signalBars {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(1.2); }
+}
+
+.kpi_card.kpi_active_agents .kpi_label {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.kpi_card.kpi_active_agents .kpi_value {
+    color: white;
+    text-shadow: 0 3px 15px rgba(17, 153, 142, 0.5);
+}
+
+.kpi_card.kpi_active_agents .kpi_bottom {
+    background: linear-gradient(90deg, rgba(56, 239, 125, 0.6) 0%, rgba(17, 153, 142, 0.8) 100%);
+    animation: progressBar 2s ease-in-out infinite;
+}
+
+@keyframes progressBar {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+.kpi_card.kpi_active_agents:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 60px rgba(56, 239, 125, 0.4);
+}
+
+/* =========================
+   OFFLINE AGENTS CARD
+   Theme: Warning/Alert, Yellow-Orange
+   ========================= */
+
+.kpi_card.kpi_offline_agents {
+    background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi_card.kpi_offline_agents::before {
+    content: '!';
+    position: absolute;
+    font-size: 200px;
+    color: rgba(0, 0, 0, 0.05);
+    top: -40px;
+    right: 10px;
+    font-weight: 900;
+    animation: blink 2s ease-in-out infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 0.05; }
+    50% { opacity: 0.15; }
+}
+
+.kpi_card.kpi_offline_agents .kpi_icon {
+    background: rgba(255, 193, 7, 0.3);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    animation: warningBounce 2s ease-in-out infinite;
+}
+
+@keyframes warningBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+.kpi_card.kpi_offline_agents .kpi_icon i {
+    color: #664d03;
+    font-size: 28px;
+}
+
+.kpi_card.kpi_offline_agents .kpi_label {
+    color: #664d03;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.kpi_card.kpi_offline_agents .kpi_value {
+    color: #664d03;
+    text-shadow: 0 2px 10px rgba(247, 151, 30, 0.3);
+}
+
+.kpi_card.kpi_offline_agents .kpi_bottom {
+    background: linear-gradient(90deg, #f7971e 0%, #ffc107 100%);
+}
+
+.kpi_card.kpi_offline_agents:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 60px rgba(247, 151, 30, 0.5);
+}
+
+/* =========================
+   CHANGE ALERTS CARD
+   Theme: Notification, Bell Red
+   ========================= */
+
+.kpi_card.kpi_change_alerts {
+    background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi_card.kpi_change_alerts::after {
+    content: '🔔';
+    position: absolute;
+    font-size: 150px;
+    opacity: 0.08;
+    top: -20px;
+    left: -20px;
+    animation: bellRing 3s ease-in-out infinite;
+}
+
+@keyframes bellRing {
+    0%, 100% { transform: rotate(-10deg); }
+    25%, 75% { transform: rotate(10deg); }
+    50% { transform: rotate(0deg); }
+}
+
+.kpi_card.kpi_change_alerts .kpi_icon {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 30px rgba(238, 9, 121, 0.6);
+    animation: bellShake 2s ease-in-out infinite;
+}
+
+@keyframes bellShake {
+    0%, 100% { transform: rotate(0deg); }
+    10%, 30% { transform: rotate(-5deg); }
+    20%, 40% { transform: rotate(5deg); }
+}
+
+.kpi_card.kpi_change_alerts .kpi_icon i {
+    color: white;
+    font-size: 26px;
+}
+
+.kpi_card.kpi_change_alerts .kpi_label {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.kpi_card.kpi_change_alerts .kpi_value {
+    color: white;
+    text-shadow: 0 3px 15px rgba(238, 9, 121, 0.6);
+    animation: alertPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes alertPulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.15);
+        opacity: 0.9;
+    }
+}
+
+.kpi_card.kpi_change_alerts .kpi_bottom {
+    background: rgba(238, 9, 121, 0.5);
+    animation: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(238, 9, 121, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(238, 9, 121, 0.6);
+    }
+}
+
+.kpi_card.kpi_change_alerts:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 60px rgba(238, 9, 121, 0.5);
+}
+
+/* =========================
+   RECENT SYNCS CARD
+   Theme: Activity/History, Cyan-Blue
+   ========================= */
+
+.kpi_card.kpi_recent_syncs {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi_card.kpi_recent_syncs::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(255, 255, 255, 0.05) 10px,
+        rgba(255, 255, 255, 0.05) 20px
+    );
+    animation: moveStripes 20s linear infinite;
+}
+
+@keyframes moveStripes {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(28px); }
+}
+
+.kpi_card.kpi_recent_syncs .kpi_icon {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+    animation: syncRotate 3s linear infinite;
+}
+
+@keyframes syncRotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.kpi_card.kpi_recent_syncs .kpi_icon i {
+    color: white;
+    font-size: 26px;
+}
+
+.kpi_card.kpi_recent_syncs .kpi_label {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+}
+
+.kpi_card.kpi_recent_syncs .kpi_value {
+    color: white;
+    text-shadow: 0 3px 15px rgba(79, 172, 254, 0.5);
+}
+
+.kpi_card.kpi_recent_syncs .kpi_bottom {
+    background: linear-gradient(90deg, rgba(0, 242, 254, 0.6) 0%, rgba(79, 172, 254, 0.8) 100%);
+    animation: flowRight 3s ease-in-out infinite;
+}
+
+@keyframes flowRight {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+.kpi_card.kpi_recent_syncs:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 60px rgba(79, 172, 254, 0.4);
+}
+
+/* =========================
+   RESPONSIVE ADJUSTMENTS
+   ========================= */
+
+@media (max-width: 768px) {
+    .kpi_card .kpi_icon {
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
+    }
+
+    .kpi_card .kpi_value {
+        font-size: 28px;
+    }
+
+    .kpi_card .kpi_label {
+        font-size: 10px;
+    }
+}
+
+/* =========================
+   LOCATION HISTORY TABLE
+   Professional Admin Dashboard Style
+   ========================= */
+
+/* Card container for location history */
+.location_history_card {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.location_history_card .spec_card_body {
+    padding: 0 !important;
+}
+
+/* Table wrapper with smooth scrolling */
+.location_history_table_wrapper {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.location_history_table_wrapper::-webkit-scrollbar {
+    height: 8px;
+}
+
+.location_history_table_wrapper::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+.location_history_table_wrapper::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.location_history_table_wrapper::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Main list view container */
+.location_history_card .o_list_view,
+.location_history_card .o_list_renderer {
+    width: 100%;
+    min-width: max-content;
+    position: relative;
+    z-index: 10;
+}
+
+/* Table base styles */
+.location_history_card .o_list_table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    table-layout: fixed;
+    position: relative;
+    z-index: 10;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Table header styles */
+.location_history_card .o_list_table thead {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+
+.location_history_card .o_list_table thead th {
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
+    padding: 16px 16px !important;
+    text-align: left !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    color: #475569 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    white-space: nowrap !important;
+    border-bottom: 2px solid #e2e8f0 !important;
+    border-right: 1px solid #e2e8f0 !important;
+    position: relative;
+    z-index: 20;
+    /* Fix header visibility */
+    height: auto !important;
+    min-height: 48px !important;
+    line-height: 1.5 !important;
+    vertical-align: middle !important;
+    overflow: visible !important;
+    clip: auto !important;
+    -webkit-clip-path: none !important;
+    clip-path: none !important;
+}
+
+.location_history_card .o_list_table thead th:last-child {
+    border-right: none !important;
+}
+
+/* Fix header text visibility - override Odoo defaults */
+.location_history_card .o_list_table thead th,
+.location_history_card .o_list_table thead th *,
+.location_history_card .o_list_table thead th > div,
+.location_history_card .o_list_table thead th > span,
+.location_history_card .o_list_table thead th .o_column_sortable,
+.location_history_card .o_list_table thead th .o_column_sortable span {
+    overflow: visible !important;
+    text-overflow: clip !important;
+    clip: auto !important;
+    -webkit-clip-path: none !important;
+    clip-path: none !important;
+    height: auto !important;
+    max-height: none !important;
+    line-height: 1.5 !important;
+    color: #475569 !important;
+}
+
+/* Remove default Odoo header sorting icons padding issues */
+.location_history_card .o_list_table thead th > div {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    height: auto !important;
+    min-height: 20px !important;
+    overflow: visible !important;
+}
+
+/* Table body styles */
+.location_history_card .o_list_table tbody {
+    position: relative;
+    z-index: 15;
+}
+
+.location_history_card .o_list_table tbody tr {
+    position: relative;
+    z-index: 15;
+    transition: background-color 0.15s ease;
+}
+
+.location_history_card .o_list_table tbody td {
+    padding: 12px 16px !important;
+    font-size: 13px !important;
+    color: #1e293b !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    border-right: 1px solid #f8fafc !important;
+    background-color: #ffffff !important;
+    vertical-align: middle !important;
+    overflow: visible !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    position: relative;
+    z-index: 15;
+}
+
+.location_history_card .o_list_table tbody td:last-child {
+    border-right: none !important;
+}
+
+/* Ensure text content is visible */
+.location_history_card .o_list_table tbody td .o_field_widget,
+.location_history_card .o_list_table tbody td span,
+.location_history_card .o_list_table tbody td div {
+    color: #1e293b !important;
+    overflow: visible !important;
+    white-space: nowrap !important;
+    position: relative;
+    z-index: 16;
+}
+
+/* Row hover effect */
+.location_history_card .o_list_table tbody tr:hover td {
+    background-color: #f8fafc !important;
+}
+
+/* Alternating row colors for better readability */
+.location_history_card .o_list_table tbody tr:nth-child(even) td {
+    background-color: #fafbfc !important;
+}
+
+.location_history_card .o_list_table tbody tr:nth-child(even):hover td {
+    background-color: #f1f5f9 !important;
+}
+
+/* IP-based source row decoration */
+.location_history_card .o_list_table tbody tr.o_decoration_info td {
+    background-color: #eff6ff !important;
+    border-left: 3px solid #3b82f6 !important;
+}
+
+.location_history_card .o_list_table tbody tr.o_decoration_info:first-child td {
+    border-left-width: 3px !important;
+}
+
+.location_history_card .o_list_table tbody tr.o_decoration_info td:first-child {
+    border-left: 3px solid #3b82f6 !important;
+}
+
+.location_history_card .o_list_table tbody tr.o_decoration_info:hover td {
+    background-color: #dbeafe !important;
+}
+
+/* Column width specifications */
+.location_history_card .o_list_table th:nth-child(1),
+.location_history_card .o_list_table td:nth-child(1) {
+    width: 145px;
+    min-width: 145px;
+} /* Timestamp */
+
+.location_history_card .o_list_table th:nth-child(2),
+.location_history_card .o_list_table td:nth-child(2) {
+    width: 100px;
+    min-width: 100px;
+} /* City */
+
+.location_history_card .o_list_table th:nth-child(3),
+.location_history_card .o_list_table td:nth-child(3) {
+    width: 110px;
+    min-width: 110px;
+} /* Region */
+
+.location_history_card .o_list_table th:nth-child(4),
+.location_history_card .o_list_table td:nth-child(4) {
+    width: 80px;
+    min-width: 80px;
+} /* Country */
+
+.location_history_card .o_list_table th:nth-child(5),
+.location_history_card .o_list_table td:nth-child(5) {
+    width: 200px;
+    min-width: 200px;
+} /* Coordinates */
+
+.location_history_card .o_list_table th:nth-child(6),
+.location_history_card .o_list_table td:nth-child(6) {
+    width: 180px;
+    min-width: 180px;
+} /* ISP */
+
+.location_history_card .o_list_table th:nth-child(7),
+.location_history_card .o_list_table td:nth-child(7) {
+    width: 120px;
+    min-width: 120px;
+} /* Public IP */
+
+.location_history_card .o_list_table th:nth-child(8),
+.location_history_card .o_list_table td:nth-child(8) {
+    width: 130px;
+    min-width: 130px;
+} /* Source */
+
+/* Hide checkbox column if present */
+.location_history_card .o_list_table .o_list_record_selector {
+    display: none !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1400px) {
+    .location_history_card .o_list_table thead th,
+    .location_history_card .o_list_table tbody td {
+        padding: 10px 12px !important;
+        font-size: 12px !important;
+    }
+}
+
+@media (max-width: 992px) {
+    .location_history_table_wrapper {
+        margin: 0 -8px;
+        padding: 0 8px;
+    }
+
+    .location_history_card .o_list_table thead th,
+    .location_history_card .o_list_table tbody td {
+        padding: 8px 10px !important;
+        font-size: 11px !important;
+    }
+
+    .location_history_card .o_list_table thead th {
+        font-size: 10px !important;
+    }
+}
+
+/* =========================
+   PRINT STYLES
+   ========================= */
+
+@media print {
+    .kpi_card::before,
+    .kpi_card::after {
+        display: none;
+    }
+
+    .kpi_card {
+        animation: none;
+        box-shadow: none;
+        page-break-inside: avoid;
+    }
+}
+
+/* =========================
+   ASSET MAP WIDGET STYLES
+   Ensures map fills container properly
+   ========================= */
+
+/* Force the Odoo field wrapper to fill container */
+.o_field_widget[name="latitude"] {
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+}
+
+.o_field_widget[name="latitude"] > div {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Map widget container - fill parent */
+.asset_map_widget {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Map container - expand to fill with increased height */
+.asset_map_container {
+    width: 100% !important;
+    min-width: 100% !important;
+    height: 520px !important;
+    min-height: 520px !important;
+}
+
+/* Map actions buttons */
+.asset_map_actions {
+    width: 100% !important;
+}
+
+/* Leaflet map container fix */
+.asset_map_container .leaflet-container {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* GPS Location Updated datetime field inline fix */
+.gps-updated-datetime,
+.gps-updated-datetime .o_field_widget,
+.gps-updated-datetime .o_datetime_input,
+.gps-updated-datetime .o_field_datetime,
+.gps-updated-datetime > div,
+.gps-updated-datetime > span {
+    display: inline !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.gps-updated-datetime .o_field_widget {
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+.gps-updated-datetime input {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    height: auto !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+    width: auto !important;
+}

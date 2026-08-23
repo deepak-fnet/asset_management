@@ -1,0 +1,169 @@
+<odoo>
+    <record model="ir.ui.view" id="purchase_order_form_inh_extended">
+        <field name="name">purchase.order.form.inh</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <button name="button_confirm" position="after">
+                <field name="ready_to_confirm" invisible="1"/>
+                <button type="object" name="action_bid_received" string="Bid Received" class="btn-primary"
+                        invisible="is_bid_received or state != 'sent'"/>
+                <button type="object" name="action_open_cancel_wizard" string="Cancel Bid" class="btn-danger"
+                        invisible="not is_bid_received or state != 'sent'"/>
+            </button>
+            <xpath expr="//field[@name='state']" position="attributes">
+                <attribute name="statusbar_visible">draft,sent,partial_po,purchase</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="is_bid_received" invisible="1"/>
+            </xpath>
+            <!--  MIGRATION NOTE (Odoo 19): the three xpaths below select buttons by
+                             POSITION ([1], [2], [3]). The purchase.order form was restructured in
+                             Odoo 18/19, so these indexes are the most likely thing to break on
+                             install. If you get a ParseError on this view, open the v19
+                             purchase.purchase_order_form and re-check which occurrence is which.  -->
+            <xpath expr="//button[@name='button_confirm'][1]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//button[@name='button_draft']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//button[@name='button_confirm'][2]" position="attributes">
+                <attribute name="invisible">not is_bid_received or state not in ['sent','partial_po'] or (approver_ids
+                    and approval_status != 'approved')
+                </attribute>
+            </xpath>
+            <xpath expr="//button[@name='print_quotation']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']" position="attributes">
+                <attribute name="readonly">state in ['purchase','cancel']</attribute>
+            </xpath>
+            <!--  Requirement (this conversation): a deselected product stays on the
+                             order for the audit trail, but is shown in red / muted so it's
+                             obvious at a glance why it never appears on the delivery/GRN.  -->
+            <xpath expr="//field[@name='order_line']/list" position="attributes">
+                <attribute name="decoration-danger">not is_selected</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="readonly">state in ['purchase','partial_po','cancel']</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_ref']" position="attributes">
+                <attribute name="readonly">state in ['purchase','partial_po','cancel']</attribute>
+            </xpath>
+            <xpath expr="//field[@name='date_order']" position="attributes">
+                <attribute name="readonly">state in ['purchase','partial_po','cancel']</attribute>
+            </xpath>
+            <xpath expr="//field[@name='date_planned']" position="attributes">
+                <attribute name="readonly">state in ['purchase','partial_po','cancel']</attribute>
+            </xpath>
+            <xpath expr="//field[@name='picking_type_id']" position="attributes">
+                <attribute name="readonly">state in ['purchase','partial_po','cancel']</attribute>
+            </xpath>
+            <xpath expr="//field[@name='user_id']" position="attributes">
+                <attribute name="readonly">state in ['purchase','partial_po','cancel']</attribute>
+            </xpath>
+            <xpath expr="//field[@name='origin']" position="attributes">
+                <attribute name="readonly">state in ['purchase','partial_po','cancel']</attribute>
+            </xpath>
+            <xpath expr="//field[@name='incoterm_id']" position="attributes">
+                <attribute name="readonly">state in ['purchase','partial_po','cancel']</attribute>
+            </xpath>
+            <xpath expr="//field[@name='incoterm_location']" position="attributes">
+                <attribute name="readonly">state in ['purchase','partial_po','cancel']</attribute>
+            </xpath>
+            <xpath expr="//field[@name='payment_term_id']" position="attributes">
+                <attribute name="readonly">state in ['purchase','partial_po','cancel']</attribute>
+            </xpath>
+            <xpath expr="//field[@name='fiscal_position_id']" position="attributes">
+                <attribute name="readonly">state in ['purchase','partial_po','cancel']</attribute>
+            </xpath>
+            <xpath expr="//page[@name='purchase_delivery_invoice']//field[@name='fiscal_position_id']" position="after">
+                <field name="reason" readonly="1" string="Bid Cancelled Reason"/>
+            </xpath>
+            <!--             <xpath expr="//button[@name='918']" position="attributes"> -->
+            <!--                 <attribute name="invisible">1</attribute> -->
+            <!--             </xpath> -->
+            <!--             <xpath expr="//button[@name='action_acknowledge']" position="attributes"> -->
+            <!--                 <attribute name="invisible">1</attribute> -->
+            <!--             </xpath> -->
+            <xpath expr="//field[@name='currency_id']" position="after">
+                <field name="bill_to_id"/>
+                <field name="bill_to_contact_id"/>
+                <field name="rfq_id" invisible="1"/>
+                <field name="is_check_over_qty" invisible="1"/>
+                <field name="is_over_qty" invisible="1"/>
+                <field name="is_partial_po" invisible="1"/>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <widget name="web_ribbon" title="Draft" bg_color="bg-warning" invisible="state != 'draft'"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']//field[@name='product_qty']" position="attributes">
+                <attribute name="readonly">state in ['purchase','cancel']</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']//field[@name='price_unit']" position="attributes">
+                <attribute name="readonly">state in ['purchase','partial_po','cancel']</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']//field[@name='tax_ids']" position="attributes">
+                <attribute name="readonly">state in ['purchase','partial_po','cancel']</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']//field[@name='product_id']" position="attributes">
+                <attribute name="readonly">state != 'draft'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']//field[@name='product_qty']" position="before">
+                <field name="rfq_qty" column_invisible="parent.state == 'draft' or parent.rfq_id" readonly="1"/>
+                <field name="partial_received_qty" column_invisible="1" readonly="1"/>
+                <!--  Requirement 2: ticked by default; auto-unticked once the product
+                                     is purchased from another vendor of the same comparison.  -->
+                <field name="is_selected" string="Select" widget="boolean_toggle"
+                       column_invisible="not parent.vendor_comparison_id or parent.rfq_id"
+                       readonly="parent.state not in ['draft', 'sent', 'partial_po']"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']//field[@name='product_id']" position="after">
+                <button name="action_view_last_grn" type="object" class="btn-info" string="Info"/>
+            </xpath>
+            <xpath expr="//button[@name='action_view_picking']" position="attributes">
+                <attribute name="invisible">state != 'purchase'</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_rfq_send'][3]" position="attributes">
+                <attribute name="invisible">state not in ['purchase','partial_po']</attribute>
+            </xpath>
+            <xpath expr="//button[@name='button_cancel']" position="attributes">
+                <attribute name="invisible">state not in ('draft', 'to approve', 'sent')</attribute>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
+                <button type="object" name="action_view_purchase" class="oe_stat_button" icon="fa-shopping-cart"
+                        invisible="purchase_count == 0">
+                    <field name="purchase_count" widget="statinfo" string="Related PO" help="Partial Purchase Order"/>
+                </button>
+                <button class="oe_stat_button" type="object" invisible="not rfq_id" name="action_view_rfq_po"
+                        icon="fa-shopping-cart">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Related RFQ</span>
+                    </div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="purchase_order_form_inherit">
+        <field name="name">purchase.order.form.inh</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase_stock.purchase_order_view_form_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='picking_type_id']" position="after">
+                <field name="ship_to_id"/>
+                <field name="ship_to_contact_id"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="action_partial_po" model="ir.actions.act_window">
+        <field name="name">Partial PO</field>
+        <field name="res_model">purchase.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" eval="False"/>
+        <field name="target">current</field>
+        <field name="domain">[('state', '=','partial_po')]</field>
+    </record>
+    <menuitem id="menu_partial_po" name="Partial PO" parent="purchase.menu_procurement_management" sequence="3"
+              action="action_partial_po"/>
+</odoo>

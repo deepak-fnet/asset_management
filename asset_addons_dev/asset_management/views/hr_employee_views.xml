@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_employee_form_inherit_asset" model="ir.ui.view">
+        <field name="name">hr.employee.form.inherit.asset</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Smart buttons for lifecycle processes -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_joining_processes"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-sign-in">
+                    <field name="joining_process_count" widget="statinfo"
+                           string="Joinings"/>
+                </button>
+                <button name="action_view_exit_processes"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-sign-out">
+                    <field name="exit_process_count" widget="statinfo"
+                           string="Exits"/>
+                </button>
+            </xpath>
+
+            <!-- Assets tab -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Assets" groups="base.group_user">
+                    <!-- Quick action buttons -->
+                    <div class="d-flex gap-2 mb-3">
+                        <button name="action_create_joining_process"
+                                type="object"
+                                string="New Joining Process"
+                                class="btn btn-sm btn-primary"/>
+                        <button name="action_create_exit_process"
+                                type="object"
+                                string="New Exit Process"
+                                class="btn btn-sm btn-warning"/>
+                    </div>
+
+                    <separator string="Currently Assigned Assets"/>
+                    <field name="assigned_asset_ids" readonly="1">
+                        <list>
+                            <field name="asset_code"/>
+                            <field name="asset_name"/>
+                            <field name="category_id"/>
+                            <field name="state"/>
+                        </list>
+                    </field>
+                    <separator string="Asset Assignment History"/>
+                    <field name="asset_assignment_history_ids" readonly="1">
+                        <list>
+                            <field name="date"/>
+                            <field name="asset_id"/>
+                            <field name="action"/>
+                            <field name="description"/>
+                            <field name="user_id"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_asset_employee" model="ir.actions.act_window">
+        <field name="name">Employees</field>
+        <field name="res_model">hr.employee</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Manage your employees and their assigned assets.
+            </p>
+        </field>
+    </record>
+</odoo>

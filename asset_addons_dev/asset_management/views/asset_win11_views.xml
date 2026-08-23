@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Readiness list — the main deliverable of the scanner -->
+    <record id="view_asset_win11_readiness_list" model="ir.ui.view">
+        <field name="name">asset.asset.win11.readiness.list</field>
+        <field name="model">asset.asset</field>
+        <field name="arch" type="xml">
+            <list string="Windows 11 Readiness" create="false"
+                  decoration-success="win11_status == 'eligible' or win11_status == 'already_11'"
+                  decoration-danger="win11_status == 'blocked'"
+                  decoration-muted="win11_status == 'unknown'">
+                <field name="asset_name"/>
+                <field name="serial_number"/>
+                <field name="asset_type"/>
+                <field name="os_name"/>
+                <field name="processor" optional="show"/>
+                <field name="ram_size" optional="show"/>
+                <field name="win11_tpm_version" optional="show"/>
+                <field name="win11_secure_boot" optional="hide"/>
+                <field name="win11_uefi_mode" optional="hide"/>
+                <field name="win11_data_source" optional="show"/>
+                <field name="win11_status" widget="badge"
+                       decoration-success="win11_status in ('eligible', 'already_11')"
+                       decoration-danger="win11_status == 'blocked'"
+                       decoration-warning="win11_status == 'unknown'"/>
+                <field name="win11_reported_date" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_win11_readiness_search" model="ir.ui.view">
+        <field name="name">asset.asset.win11.readiness.search</field>
+        <field name="model">asset.asset</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="asset_name"/>
+                <field name="serial_number"/>
+                <field name="processor"/>
+
+                <filter name="f_eligible" string="Eligible"
+                        domain="[('win11_status', '=', 'eligible')]"/>
+                <filter name="f_blocked" string="Blocked"
+                        domain="[('win11_status', '=', 'blocked')]"/>
+                <filter name="f_unknown" string="Not Scanned"
+                        domain="[('win11_status', '=', 'unknown')]"/>
+                <filter name="f_already" string="Already on 11"
+                        domain="[('win11_status', '=', 'already_11')]"/>
+                <separator/>
+                <filter name="f_agent_data" string="Agent-Verified"
+                        domain="[('win11_data_source', '=', 'agent')]"/>
+                <filter name="f_inferred" string="Inferred Only"
+                        domain="[('win11_data_source', '=', 'inferred')]"/>
+                <separator/>
+                <filter name="f_no_tpm" string="No TPM"
+                        domain="[('win11_tpm_present', '=', False),
+                                 ('win11_reported_date', '!=', False)]"/>
+
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter name="g_status" string="Status"-->
+<!--                            context="{'group_by': 'win11_status'}"/>-->
+<!--                    <filter name="g_source" string="Data Source"-->
+<!--                            context="{'group_by': 'win11_data_source'}"/>-->
+<!--                    <filter name="g_type" string="Asset Type"-->
+<!--                            context="{'group_by': 'asset_type'}"/>-->
+<!--                    <filter name="g_dept" string="Department"-->
+<!--                            context="{'group_by': 'department_id'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <record id="action_asset_win11_readiness" model="ir.actions.act_window">
+        <field name="name">Windows 11 Readiness</field>
+        <field name="res_model">asset.asset</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_asset_win11_readiness_list"/>
+        <field name="search_view_id" ref="view_asset_win11_readiness_search"/>
+        <field name="domain">[('platform', '=', 'windows')]</field>
+        <field name="context">{'search_default_g_status': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No Windows assets found</p>
+            <p>
+                This view is read-only and never triggers an upgrade. It reports which
+                machines could move to Windows 11 and why the others cannot.
+            </p>
+        </field>
+    </record>
+
+    <!-- Add an eligibility group to the asset form -->
+    <record id="view_asset_form_inherit_win11" model="ir.ui.view">
+        <field name="name">asset.asset.form.inherit.win11</field>
+        <field name="model">asset.asset</field>
+        <field name="inherit_id" ref="asset_management.view_asset_asset_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Windows 11 Readiness" name="win11"
+                      invisible="platform != 'windows'">
+                    <group>
+                        <group string="Verdict">
+                            <field name="win11_status" widget="badge"
+                                   decoration-success="win11_status in ('eligible', 'already_11')"
+                                   decoration-danger="win11_status == 'blocked'"
+                                   decoration-warning="win11_status == 'unknown'"/>
+                            <field name="win11_data_source"/>
+                            <field name="win11_reported_date"/>
+                        </group>
+                        <group string="Hardware Facts">
+                            <field name="platform"/>
+                            <field name="win11_tpm_present"/>
+                            <field name="win11_tpm_version"/>
+                            <field name="win11_secure_boot"/>
+                            <field name="win11_uefi_mode"/>
+                            <field name="win11_cpu_supported"/>
+                        </group>
+                    </group>
+                    <separator string="Blockers"/>
+                    <field name="win11_blockers" readonly="1" nolabel="1"/>
+                    <div class="text-muted mt-2"
+                         invisible="win11_data_source != 'inferred'">
+                        <p>
+                            <b>This verdict is approximate.</b> TPM and Secure Boot cannot be
+                            determined from inventory data alone. Deploy the agent eligibility
+                            check for a definitive answer — a machine can pass every inferred
+                            test and still fail on TPM.
+                        </p>
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

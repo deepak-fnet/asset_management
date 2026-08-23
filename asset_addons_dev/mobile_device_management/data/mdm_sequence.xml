@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_mobile_device" model="ir.sequence">
+            <field name="name">Mobile Device</field>
+            <field name="code">mobile.device</field>
+            <field name="prefix">MOB-</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- Tunables. Mobile devices sleep, so the heartbeat window is much
+             wider than the desktop agent's 180 seconds. -->
+        <record id="param_heartbeat_timeout" model="ir.config_parameter">
+            <field name="key">mobile_device_management.heartbeat_timeout</field>
+            <field name="value">3600</field>
+        </record>
+        <record id="param_patch_age" model="ir.config_parameter">
+            <field name="key">mobile_device_management.max_patch_age_days</field>
+            <field name="value">120</field>
+        </record>
+        <record id="param_location_retention" model="ir.config_parameter">
+            <field name="key">mobile_device_management.location_retention_days</field>
+            <field name="value">90</field>
+        </record>
+        <record id="param_blocked_packages" model="ir.config_parameter">
+            <field name="key">mobile_device_management.blocked_packages</field>
+            <field name="value"></field>
+        </record>
+        <record id="param_metric_retention" model="ir.config_parameter">
+            <field name="key">mobile_device_management.metric_retention_days</field>
+            <field name="value">30</field>
+        </record>
+    </data>
+</odoo>

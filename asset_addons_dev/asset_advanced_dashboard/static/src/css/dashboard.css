@@ -1,0 +1,433 @@
+/* ============================================================================
+   Asset analytics dashboard
+   Colour tokens come from a validated palette (adjacent-pair CVD deltaE >= 8,
+   normal-vision >= 15, ordinal ramps monotone in lightness). Charts read these
+   custom properties at render time, so light and dark use selected steps
+   rather than an automatic flip.
+   ========================================================================= */
+
+.o_asset_dashboard {
+    color-scheme: light;
+
+    /* surfaces & ink */
+    --ad-plane:        #f9f9f7;
+    --ad-surface:      #fcfcfb;
+    --ad-ink:          #0b0b0b;
+    --ad-ink-2:        #52514e;
+    --ad-ink-muted:    #898781;
+    --ad-grid:         #e1e0d9;
+    --ad-axis:         #c3c2b7;
+    --ad-border:       rgba(11, 11, 11, 0.10);
+    --ad-hover:        rgba(11, 11, 11, 0.04);
+
+    /* categorical slots, fixed order - never cycled */
+    --ad-s1: #2a78d6;
+    --ad-s2: #eb6834;
+    --ad-s3: #1baf7a;
+    --ad-s4: #eda100;
+    --ad-s5: #e87ba4;
+    --ad-s6: #008300;
+    --ad-s7: #4a3aa7;
+    --ad-s8: #e34948;
+
+    /* ordinal blue ramp for the ordered age buckets */
+    --ad-o1: #86b6ef;
+    --ad-o2: #5598e7;
+    --ad-o3: #2a78d6;
+    --ad-o4: #1c5cab;
+    --ad-o5: #104281;
+
+    /* status - reserved, never reused as a series colour */
+    --ad-good:     #0ca30c;
+    --ad-warning:  #fab219;
+    --ad-serious:  #ec835a;
+    --ad-critical: #d03b3b;
+
+    --ad-radius: 10px;
+    --ad-gap: 16px;
+
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--ad-plane);
+    color: var(--ad-ink);
+
+    /* This element IS the scroll container: a client action is dropped straight
+       into .o_action_manager, which is height:100% / overflow:hidden. Growing
+       past it (min-height) just gets clipped, so take the full height and
+       scroll internally. */
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 20px 24px 40px;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) .o_asset_dashboard {
+        color-scheme: dark;
+        --ad-plane:     #0d0d0d;
+        --ad-surface:   #1a1a19;
+        --ad-ink:       #ffffff;
+        --ad-ink-2:     #c3c2b7;
+        --ad-ink-muted: #898781;
+        --ad-grid:      #2c2c2a;
+        --ad-axis:      #383835;
+        --ad-border:    rgba(255, 255, 255, 0.10);
+        --ad-hover:     rgba(255, 255, 255, 0.06);
+        --ad-s1: #3987e5;  --ad-s2: #d95926;  --ad-s3: #199e70;  --ad-s4: #c98500;
+        --ad-s5: #d55181;  --ad-s6: #008300;  --ad-s7: #9085e9;  --ad-s8: #e66767;
+        --ad-o1: #cde2fb;  --ad-o2: #9ec5f4;  --ad-o3: #6da7ec;  --ad-o4: #3987e5;  --ad-o5: #184f95;
+    }
+}
+
+:root[data-theme="dark"] .o_asset_dashboard,
+.o_web_client.o_dark_mode .o_asset_dashboard {
+    color-scheme: dark;
+    --ad-plane:     #0d0d0d;
+    --ad-surface:   #1a1a19;
+    --ad-ink:       #ffffff;
+    --ad-ink-2:     #c3c2b7;
+    --ad-ink-muted: #898781;
+    --ad-grid:      #2c2c2a;
+    --ad-axis:      #383835;
+    --ad-border:    rgba(255, 255, 255, 0.10);
+    --ad-hover:     rgba(255, 255, 255, 0.06);
+    --ad-s1: #3987e5;  --ad-s2: #d95926;  --ad-s3: #199e70;  --ad-s4: #c98500;
+    --ad-s5: #d55181;  --ad-s6: #008300;  --ad-s7: #9085e9;  --ad-s8: #e66767;
+    --ad-o1: #cde2fb;  --ad-o2: #9ec5f4;  --ad-o3: #6da7ec;  --ad-o4: #3987e5;  --ad-o5: #184f95;
+}
+
+/* ---------- shell ---------------------------------------------------- */
+
+.o_asset_dashboard .ad-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--ad-gap);
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+.o_asset_dashboard .ad-head h1 {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0;
+    color: var(--ad-ink);
+}
+.o_asset_dashboard .ad-head p {
+    margin: 2px 0 0;
+    font-size: 13px;
+    color: var(--ad-ink-2);
+}
+.o_asset_dashboard .ad-tools { display: flex; gap: 8px; }
+
+.o_asset_dashboard .ad-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 13px;
+    font: inherit;
+    font-size: 13px;
+    color: var(--ad-ink);
+    background: var(--ad-surface);
+    border: 1px solid var(--ad-border);
+    border-radius: 8px;
+    cursor: pointer;
+}
+.o_asset_dashboard .ad-btn:hover { background: var(--ad-hover); }
+.o_asset_dashboard .ad-btn-primary {
+    background: var(--ad-s1);
+    border-color: transparent;
+    color: #fff;
+}
+.o_asset_dashboard .ad-btn-primary:hover { filter: brightness(0.94); }
+
+/* ---------- filter bar (one row above the charts) -------------------- */
+
+.o_asset_dashboard .ad-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--ad-surface);
+    border: 1px solid var(--ad-border);
+    border-radius: var(--ad-radius);
+    margin-bottom: var(--ad-gap);
+}
+.o_asset_dashboard .ad-field { display: flex; flex-direction: column; gap: 4px; min-width: 150px; flex: 1 1 150px; }
+.o_asset_dashboard .ad-field > span {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ad-ink-muted);
+}
+.o_asset_dashboard .ad-field select,
+.o_asset_dashboard .ad-field input {
+    font: inherit;
+    font-size: 13px;
+    padding: 6px 9px;
+    color: var(--ad-ink);
+    background: var(--ad-plane);
+    border: 1px solid var(--ad-border);
+    border-radius: 7px;
+    min-width: 0;
+}
+.o_asset_dashboard .ad-filter-actions { display: flex; gap: 8px; align-self: flex-end; }
+
+/* ---------- hero + KPI ---------------------------------------------- */
+
+.o_asset_dashboard .ad-hero-row {
+    display: grid;
+    grid-template-columns: minmax(220px, 300px) 1fr;
+    gap: var(--ad-gap);
+    margin-bottom: var(--ad-gap);
+}
+@media (max-width: 900px) {
+    .o_asset_dashboard .ad-hero-row { grid-template-columns: 1fr; }
+}
+
+.o_asset_dashboard .ad-card {
+    background: var(--ad-surface);
+    border: 1px solid var(--ad-border);
+    border-radius: var(--ad-radius);
+    padding: 16px 18px;
+}
+
+.o_asset_dashboard .ad-hero { display: flex; flex-direction: column; justify-content: center; }
+.o_asset_dashboard .ad-hero-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ad-ink-muted);
+}
+.o_asset_dashboard .ad-hero-value {
+    font-size: 52px;
+    line-height: 1.05;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--ad-ink);
+    margin: 6px 0 4px;
+}
+.o_asset_dashboard .ad-hero-sub { font-size: 13px; color: var(--ad-ink-2); }
+.o_asset_dashboard .ad-hero-sub strong { color: var(--ad-ink); font-weight: 600; }
+
+.o_asset_dashboard .ad-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+@media (max-width: 1180px) { .o_asset_dashboard .ad-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 900px)  { .o_asset_dashboard .ad-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.o_asset_dashboard .ad-kpi {
+    text-align: left;
+    background: var(--ad-surface);
+    border: 1px solid var(--ad-border);
+    border-radius: var(--ad-radius);
+    padding: 12px 14px;
+    cursor: pointer;
+    font: inherit;
+    color: var(--ad-ink);
+}
+.o_asset_dashboard .ad-kpi:hover { background: var(--ad-hover); }
+.o_asset_dashboard .ad-kpi-value {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+}
+.o_asset_dashboard .ad-kpi-label {
+    font-size: 12px;
+    color: var(--ad-ink-2);
+    margin-top: 2px;
+}
+
+/* ---------- section headings ---------------------------------------- */
+
+.o_asset_dashboard .ad-section {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ad-ink-muted);
+    margin: 26px 0 10px;
+}
+
+/* ---------- charts --------------------------------------------------- */
+
+.o_asset_dashboard .ad-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--ad-gap);
+}
+.o_asset_dashboard .ad-grid-wide { grid-column: 1 / -1; }
+
+.o_asset_dashboard .ad-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ad-ink);
+    margin: 0 0 2px;
+}
+.o_asset_dashboard .ad-card-note {
+    font-size: 12px;
+    color: var(--ad-ink-2);
+    margin: 0 0 12px;
+}
+
+/* Height includes the axis band, so the axis labels never get their own
+   nested scrollbar. */
+.o_asset_dashboard .ad-plot { position: relative; height: 260px; }
+.o_asset_dashboard .ad-plot-tall { height: 320px; }
+.o_asset_dashboard .ad-plot-short { height: 64px; }
+
+/* legend: the dependable identity channel, always present for >= 2 series */
+.o_asset_dashboard .ad-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    margin-top: 12px;
+}
+.o_asset_dashboard .ad-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--ad-ink-2);
+}
+.o_asset_dashboard .ad-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex: none;
+}
+.o_asset_dashboard .ad-legend-item b { color: var(--ad-ink); font-weight: 600; }
+
+.o_asset_dashboard .ad-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: 13px;
+    color: var(--ad-ink-muted);
+}
+
+/* ---------- table (age profile) ------------------------------------- */
+
+.o_asset_dashboard .ad-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.o_asset_dashboard .ad-table th,
+.o_asset_dashboard .ad-table td {
+    text-align: left;
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--ad-grid);
+}
+.o_asset_dashboard .ad-table th {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ad-ink-muted);
+}
+.o_asset_dashboard .ad-table tr:last-child td { border-bottom: 0; }
+.o_asset_dashboard .ad-table .ad-num { text-align: right; font-variant-numeric: tabular-nums; }
+.o_asset_dashboard .ad-table tbody tr:hover { background: var(--ad-hover); }
+.o_asset_dashboard .ad-scroll { overflow-x: auto; }
+
+.o_asset_dashboard .ad-link {
+    background: none;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    color: var(--ad-s1);
+    cursor: pointer;
+    text-align: left;
+}
+.o_asset_dashboard .ad-link:hover { text-decoration: underline; }
+
+.o_asset_dashboard .ad-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--ad-ink-2);
+    background: var(--ad-plane);
+    border: 1px solid var(--ad-border);
+    border-radius: 999px;
+    padding: 2px 9px;
+    margin: 2px 4px 2px 0;
+    cursor: pointer;
+}
+.o_asset_dashboard .ad-chip:hover { background: var(--ad-hover); }
+.o_asset_dashboard .ad-chip b { color: var(--ad-ink); font-weight: 600; }
+
+/* ---------- risk tiles: icon + label, never colour alone ------------ */
+
+.o_asset_dashboard .ad-risks {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+@media (max-width: 1180px) { .o_asset_dashboard .ad-risks { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 900px)  { .o_asset_dashboard .ad-risks { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.o_asset_dashboard .ad-risk {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    text-align: left;
+    font: inherit;
+    color: var(--ad-ink);
+    background: var(--ad-surface);
+    border: 1px solid var(--ad-border);
+    border-radius: var(--ad-radius);
+    padding: 12px 14px;
+    cursor: pointer;
+}
+.o_asset_dashboard .ad-risk:hover { background: var(--ad-hover); }
+.o_asset_dashboard .ad-risk-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    flex: none;
+    font-size: 14px;
+    color: #fff;
+}
+.o_asset_dashboard .ad-risk-good     .ad-risk-icon { background: var(--ad-good); }
+.o_asset_dashboard .ad-risk-warning  .ad-risk-icon { background: var(--ad-warning); color: #0b0b0b; }
+.o_asset_dashboard .ad-risk-serious  .ad-risk-icon { background: var(--ad-serious); color: #0b0b0b; }
+.o_asset_dashboard .ad-risk-critical .ad-risk-icon { background: var(--ad-critical); }
+.o_asset_dashboard .ad-risk-body { min-width: 0; }
+.o_asset_dashboard .ad-risk-value { font-size: 19px; font-weight: 600; line-height: 1.2; }
+.o_asset_dashboard .ad-risk-label { font-size: 12px; color: var(--ad-ink-2); }
+
+/* ---------- loading -------------------------------------------------- */
+
+.o_asset_dashboard .ad-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 80px 0;
+    font-size: 14px;
+    color: var(--ad-ink-2);
+}
+.o_asset_dashboard .ad-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--ad-grid);
+    border-top-color: var(--ad-s1);
+    border-radius: 50%;
+    animation: ad-spin 0.8s linear infinite;
+}
+@keyframes ad-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+    .o_asset_dashboard .ad-spinner { animation-duration: 2.4s; }
+}
+
+@media print {
+    /* Undo the scroll container, otherwise only the visible slice prints. */
+    .o_asset_dashboard { background: #fff; padding: 0; height: auto; overflow: visible; }
+    .o_asset_dashboard .ad-tools,
+    .o_asset_dashboard .ad-filters { display: none; }
+    .o_asset_dashboard .ad-card { break-inside: avoid; }
+}

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_vendor_quote_tree" model="ir.ui.view">
+        <field name="name">vendor.quote.tree</field>
+        <field name="model">vendor.quote</field>
+        <field name="arch" type="xml">
+            <list string="Vendor Quotations" decoration-success="state == 'selected'" decoration-danger="state == 'rejected'">
+                <field name="rank"/>
+                <field name="vendor_id"/>
+                <field name="total_amount"/>
+                <field name="delivery_date"/>
+                <field name="any_quote_selected" column_invisible="True"/>
+                <field name="state" widget="badge" decoration-success="state == 'selected'" decoration-info="state == 'submitted'" decoration-danger="state == 'rejected'"/>
+                <button name="action_select" string="Select Vendor" type="object" 
+                        class="btn-primary" 
+                        invisible="state == 'selected' or any_quote_selected"/>
+                <button name="action_unselect" string="Unselect Vendor" type="object" 
+                        class="btn-danger" 
+                        invisible="state != 'selected'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vendor_quote_form" model="ir.ui.view">
+        <field name="name">vendor.quote.form</field>
+        <field name="model">vendor.quote</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="vendor_id"/>
+                            <field name="rfq_id"/>
+                            <field name="quote_date"/>
+                        </group>
+                        <group>
+                            <field name="delivery_date"/>
+                            <field name="total_amount"/>
+                            <field name="rating"/>
+                            <field name="rank"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Lines">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="product_qty"/>
+                                    <field name="vendor_price"/>
+                                    <field name="uom_id"/>
+                                    <field name="delivery_date"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

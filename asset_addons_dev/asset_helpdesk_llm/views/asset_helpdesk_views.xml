@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_asset_helpdesk_form_llm" model="ir.ui.view">
+        <field name="name">asset.helpdesk.form.llm</field>
+        <field name="model">asset.helpdesk</field>
+        <!-- ▼▼▼ CHANGE THIS to your real form view's External ID ▼▼▼ -->
+        <field name="inherit_id" ref="asset_helpdesk.view_asset_helpdesk_form"/>
+        <!-- ▲▲▲ -->
+        <field name="arch" type="xml">
+
+            <xpath expr="//header" position="inside">
+                <button name="action_run_llm" type="object"
+                        string="Ask AI" class="btn-secondary"/>
+            </xpath>
+
+            <xpath expr="//notebook" position="inside">
+                <page string="AI Response" name="ai_response">
+                    <group>
+                        <field name="llm_status"/>
+                    </group>
+                    <field name="llm_response" readonly="1"/>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,537 @@
+/* Network Dashboard Styles */
+.o_network_dashboard {
+    padding: 24px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+    min-height: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    box-sizing: border-box;
+}
+
+/* Header */
+.nd_dashboard_header {
+    background: #ffffff;
+    color: #000000;
+    padding: 20px;
+    margin: 0 0 24px 0;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border-top: 4px solid #7B3FE4;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.nd_dashboard_header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 2px;
+    color: #000000;
+    letter-spacing: -0.5px;
+}
+
+.nd_dashboard_header p {
+    font-size: 15px;
+    color: #6c757d;
+    margin-top: 2px;
+}
+
+.nd_dashboard_header .dashboard_controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.nd_dashboard_header .refresh_status {
+    font-size: 13px;
+    color: #6c757d;
+}
+
+/* Summary Cards */
+.nd_summary_cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    padding: 0;
+    margin-top: 0;
+    margin-bottom: 24px;
+}
+
+.nd_summary_card {
+    background: white;
+    border-radius: 16px;
+    padding: 25px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.nd_summary_card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+}
+
+.nd_card_icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.nd_card_total .nd_card_icon {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.nd_card_online .nd_card_icon {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}
+
+.nd_card_offline .nd_card_icon {
+    background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+    color: white;
+}
+
+.nd_card_warning .nd_card_icon {
+    background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+    color: white;
+}
+
+.nd_card_cpu .nd_card_icon {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
+}
+
+.nd_card_memory .nd_card_icon {
+    background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+    color: white;
+}
+
+.nd_card_temp .nd_card_icon {
+    background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%);
+    color: white;
+}
+
+.nd_card_router .nd_card_icon {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: white;
+}
+
+.nd_card_switch .nd_card_icon {
+    background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+    color: white;
+}
+
+.nd_card_firewall .nd_card_icon {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+}
+
+.nd_card_ap .nd_card_icon {
+    background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);
+    color: white;
+}
+
+.nd_card_gateway .nd_card_icon {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    color: white;
+}
+
+.nd_card_value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #1a1a2e;
+    line-height: 1;
+}
+
+.nd_card_label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-weight: 500;
+    margin-top: 5px;
+}
+
+/* Charts Row */
+.nd_charts_row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    padding: 0;
+    margin-bottom: 24px;
+}
+
+.nd_chart_card {
+    background: white;
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.nd_chart_card h5 {
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.nd_chart_container {
+    height: 250px;
+    position: relative;
+}
+
+/* Lists Row */
+.nd_lists_row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    padding: 0;
+    margin-bottom: 24px;
+}
+
+.nd_list_card {
+    background: white;
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    max-height: 350px;
+    display: flex;
+    flex-direction: column;
+}
+
+.nd_list_card h5 {
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e9ecef;
+    flex-shrink: 0;
+}
+
+.nd_list_content {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.nd_list_item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    background: #f8f9fa;
+    transition: background 0.2s;
+}
+
+.nd_list_item:hover {
+    background: #e9ecef;
+}
+
+.nd_list_item_danger {
+    background: #fff5f5;
+    border-left: 3px solid #dc3545;
+}
+
+.nd_list_item_warning {
+    background: #fffbeb;
+    border-left: 3px solid #ffc107;
+}
+
+.nd_list_item_icon {
+    font-size: 1.2rem;
+}
+
+.nd_list_item_content {
+    flex: 1;
+}
+
+.nd_list_item_title {
+    font-weight: 600;
+    color: #1a1a2e;
+    font-size: 0.95rem;
+}
+
+.nd_list_item_subtitle {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.nd_list_item_badge .badge {
+    font-size: 0.7rem;
+    padding: 5px 10px;
+}
+
+.nd_empty_state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    color: #6c757d;
+}
+
+.nd_empty_state i {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.nd_empty_state p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* Summary Table */
+.nd_table_card {
+    background: white;
+    border-radius: 16px;
+    padding: 25px;
+    margin: 0 0 24px 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.nd_table_card h5 {
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.nd_summary_table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.nd_summary_table th {
+    background: #f8f9fa;
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.nd_summary_table td {
+    padding: 15px;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 0.95rem;
+}
+
+.nd_summary_table tr:hover {
+    background: #f8f9fa;
+}
+
+/* Health Bar */
+.nd_health_bar {
+    display: inline-block;
+    width: 80px;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    vertical-align: middle;
+    margin-right: 10px;
+}
+
+.nd_health_fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.nd_health_good {
+    background: linear-gradient(90deg, #11998e, #38ef7d);
+}
+
+.nd_health_warning {
+    background: linear-gradient(90deg, #f7971e, #ffd200);
+}
+
+.nd_health_danger {
+    background: linear-gradient(90deg, #eb3349, #f45c43);
+}
+
+.nd_health_text {
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+/* Responsive */
+@media (max-width: 1400px) {
+    .nd_summary_cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .nd_charts_row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .nd_lists_row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+
+    .nd_summary_cards,
+    .nd_charts_row,
+    .nd_lists_row {
+        grid-template-columns: 1fr;
+    }
+
+    .nd_table_card {
+        overflow-x: auto;
+    }
+
+    .o_network_dashboard {
+        padding: 16px;
+    }
+
+    .nd_dashboard_header .refresh_status {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 8px;
+    }
+}
+
+@media print {
+    @page {
+        size: A4 landscape;
+        margin: 3mm;
+    }
+
+    .o_network_dashboard,
+    .o_action_manager .o_action .o_content:has(.o_network_dashboard),
+    .o_action:has(.o_network_dashboard) {
+        height: auto !important;
+        min-height: auto !important;
+        overflow: visible !important;
+        display: block !important;
+        background-color: #f8f9fa !important;
+        padding: 5px !important;
+    }
+
+    .o_network_dashboard .row {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        margin-left: -4px !important;
+        margin-right: -4px !important;
+        width: calc(100% + 8px) !important;
+        margin-bottom: 4px !important;
+    }
+
+    .o_network_dashboard .col-xl-3,
+    .o_network_dashboard .col-md-6 {
+        flex: 0 0 25% !important;
+        width: 25% !important;
+        max-width: 25% !important;
+        padding: 4px !important;
+    }
+
+    .o_network_dashboard .kpi_card,
+    .o_network_dashboard .nd_summary_card {
+        height: 60px !important;
+        min-height: 60px !important;
+        padding: 0 12px !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        background-color: #ffffff !important;
+        border: 1px solid #e0e0e0 !important;
+        border-radius: 8px !important;
+        margin: 0 !important;
+        break-inside: avoid;
+    }
+
+    .o_network_dashboard .kpi_body,
+    .o_network_dashboard .nd_card_body {
+        padding: 0 !important;
+        gap: 10px !important;
+        width: 100% !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+    }
+
+    .o_network_dashboard .kpi_icon,
+    .o_network_dashboard .nd_card_icon {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        border-radius: 6px !important;
+        font-size: 14px !important;
+        margin: 0 !important;
+    }
+
+    .o_network_dashboard .kpi_label,
+    .o_network_dashboard .nd_card_label {
+        font-size: 9px !important;
+        margin: 0 !important;
+    }
+
+    .o_network_dashboard .kpi_value,
+    .o_network_dashboard .nd_card_value {
+        font-size: 18px !important;
+    }
+
+    .o_network_dashboard .chart-wrapper,
+    .o_network_dashboard .nd_chart_container,
+    .o_network_dashboard .chart-container {
+        height: 180px !important;
+        max-height: 180px !important;
+        background: #fff !important;
+        border: 1px solid #e0e0e0 !important;
+        border-radius: 12px !important;
+        padding: 5px !important;
+    }
+
+    .nd_charts_row,
+    .nd_lists_row {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 8px !important;
+    }
+
+    .nd_chart_card,
+    .nd_list_card {
+        flex: 1 !important;
+        padding: 10px !important;
+    }
+
+    .dashboard_controls,
+    .btn,
+    .dropdown,
+    .o_cp_controller,
+    .refresh_status {
+        display: none !important;
+    }
+
+    .dashboard_card,
+    .nd_card,
+    .nd_chart_card,
+    .nd_list_card,
+    .nd_table_card {
+        box-shadow: none !important;
+        border: 1px solid #dee2e6 !important;
+        break-inside: avoid;
+    }
+
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}

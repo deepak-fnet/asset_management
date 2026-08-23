@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="asset_workspace.HubDashboard">
+    <div class="hub">
+
+        <!-- Header -->
+        <div class="hub-header">
+            <div>
+                <h1 class="hub-title">Asset Management</h1>
+                <p class="hub-sub">
+                    <t t-if="!state.selectedPlatform">
+                        <t t-esc="totalAssets"/> assets ·
+                        <t t-esc="totalOnline"/> online ·
+                        <t t-esc="totalOffline"/> offline
+                    </t>
+                    <t t-else="">
+                        Viewing <b t-esc="activePlatform and activePlatform.label"/>
+                        — click the tile again to return to the overview
+                    </t>
+                </p>
+            </div>
+            <div class="hub-actions">
+                <button class="hub-btn" t-on-click="onRefresh">
+                    <i class="fa fa-refresh"/> Refresh
+                </button>
+                <button class="hub-btn hub-btn-primary"
+                        t-on-click="openSecurityConsole">
+                    <i class="fa fa-shield"/> Security Console
+                </button>
+            </div>
+        </div>
+
+        <div t-if="state.loading" class="hub-loading">
+            <i class="fa fa-circle-o-notch fa-spin fa-2x"/>
+            <p>Loading…</p>
+        </div>
+
+        <div t-else="">
+
+            <!-- ── Platform filter strip ─────────────────────────────── -->
+            <div class="hub-section-label">Platform</div>
+            <div class="hub-platform-row">
+                <div t-foreach="state.platforms" t-as="p" t-key="p.key"
+                     t-attf-class="hub-platform {{state.selectedPlatform === p.key ? 'hub-platform-active' : ''}}"
+                     t-on-click="() => this.selectPlatform(p.key)">
+                    <div class="hub-platform-head">
+                        <i t-attf-class="fa {{p.icon}} hub-platform-icon"
+                           t-attf-style="color:{{p.colour}}"/>
+                        <span class="hub-platform-label" t-esc="p.label"/>
+                    </div>
+                    <div class="hub-platform-total" t-esc="p.total"/>
+                    <div class="hub-platform-split">
+                        <span class="hub-online">
+                            <t t-esc="p.online"/> <t t-esc="p.online_label or 'online'"/>
+                        </span>
+                        <span class="hub-offline" t-if="p.offline">
+                            <t t-esc="p.offline"/> <t t-esc="p.offline_label or 'offline'"/>
+                        </span>
+                    </div>
+                    <div class="hub-bar">
+                        <div class="hub-bar-fill"
+                             t-attf-style="width:{{onlinePct(p)}}%;background:{{p.colour}}"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── View selector, only once a platform is chosen ──────── -->
+            <div t-if="activePlatform" class="hub-views">
+                <div class="hub-section-label">
+                    <t t-esc="activePlatform.label"/> views
+                </div>
+                <div class="hub-view-row">
+                    <button t-foreach="activePlatform.views" t-as="v"
+                            t-key="v.key" class="hub-view-btn"
+                            t-on-click="() => this.openView(activePlatform.key, v.key)">
+                        <i t-attf-class="fa {{v.icon}}"/>
+                        <span t-esc="v.label"/>
+                    </button>
+                </div>
+                <p class="hub-hint">
+                    These open the existing dashboards. Nothing is duplicated —
+                    this is a single entry point to screens that already exist.
+                </p>
+            </div>
+
+            <!-- ── Consolidated overview (default state) ──────────────── -->
+            <div t-if="!state.selectedPlatform">
+
+                <div class="hub-section-label">Fleet health</div>
+                <div class="hub-health-row">
+                    <div class="hub-health hub-clickable"
+                         t-on-click="openPatchesPending">
+                        <div class="hub-health-num"
+                             t-esc="state.health.patches_pending"/>
+                        <div class="hub-health-lbl">Patches pending</div>
+                    </div>
+                    <div class="hub-health hub-clickable"
+                         t-on-click="openPatchesFailed"
+                         t-att-class="state.health.patches_failed ? 'hub-health hub-clickable hub-health-bad' : 'hub-health hub-clickable'">
+                        <div class="hub-health-num"
+                             t-esc="state.health.patches_failed"/>
+                        <div class="hub-health-lbl">Patches failed</div>
+                    </div>
+                    <div class="hub-health hub-clickable"
+                         t-on-click="openAppUpdates">
+                        <div class="hub-health-num"
+                             t-esc="state.health.app_updates_pending"/>
+                        <div class="hub-health-lbl">App updates</div>
+                    </div>
+                    <div class="hub-health hub-clickable hub-health-bad"
+                         t-on-click="() => this.openVulns('critical')">
+                        <div class="hub-health-num"
+                             t-esc="state.health.vuln_critical"/>
+                        <div class="hub-health-lbl">Critical CVEs</div>
+                    </div>
+                    <div class="hub-health hub-clickable hub-health-warn"
+                         t-on-click="() => this.openVulns('high')">
+                        <div class="hub-health-num"
+                             t-esc="state.health.vuln_high"/>
+                        <div class="hub-health-lbl">High CVEs</div>
+                    </div>
+                    <div class="hub-health hub-clickable"
+                         t-on-click="openReviewQueue">
+                        <div class="hub-health-num"
+                             t-esc="state.health.vuln_review"/>
+                        <div class="hub-health-lbl">Awaiting review</div>
+                    </div>
+                    <div class="hub-health hub-clickable hub-health-warn"
+                         t-on-click="openUnmanagedEndpoints"
+                         title="Hosts on the network that look like a computer or phone but have no matching agent-managed asset. A heuristic based on TTL and open ports - not proof, a lead to check.">
+                        <div class="hub-health-num"
+                             t-esc="state.health.unmanaged_endpoints"/>
+                        <div class="hub-health-lbl">Agent missing</div>
+                    </div>
+                    <div class="hub-health hub-clickable hub-health-warn"
+                         t-on-click="openActiveAlerts">
+                        <div class="hub-health-num"
+                             t-esc="state.health.alerts_active"/>
+                        <div class="hub-health-lbl">Active alerts</div>
+                    </div>
+                    <div class="hub-health"
+                         t-if="state.health.compliance_pct !== null">
+                        <div class="hub-health-num">
+                            <t t-esc="state.health.compliance_pct"/>%
+                        </div>
+                        <div class="hub-health-lbl">Patch compliance</div>
+                    </div>
+                </div>
+
+                <div t-if="state.health.assets_never_scanned"
+                     class="hub-note">
+                    <i class="fa fa-info-circle"/>
+                    <span>
+                        <b t-esc="state.health.assets_never_scanned"/>
+                        asset(s) have never been scanned for vulnerabilities.
+                    </span>
+                </div>
+
+                <!-- Needs attention -->
+                <div class="hub-section-label">Needs attention</div>
+                <div class="hub-card">
+                    <table class="hub-table" t-if="state.attention.length">
+                        <thead>
+                            <tr>
+                                <th>Asset</th><th>Platform</th>
+                                <th>Status</th><th>Detail</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="state.attention" t-as="a" t-key="a.id"
+                                class="hub-clickable"
+                                t-on-click="() => this.openAsset(a.id)">
+                                <td><b t-esc="a.name"/></td>
+                                <td t-esc="a.platform"/>
+                                <td>
+                                    <span t-attf-class="hub-badge {{statusClass(a.status)}}"
+                                          t-esc="statusLabel(a.status)"/>
+                                </td>
+                                <td class="hub-muted" t-esc="a.note"/>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div t-else="" class="hub-empty">
+                        Nothing needs attention. Either everything is healthy,
+                        or the security posture has not been calculated yet —
+                        run <b>Refresh Security Status</b> on the console.
+                    </div>
+                </div>
+            </div>
+
+            <div class="hub-footer" t-if="state.lastRefresh">
+                Last refreshed <t t-esc="state.lastRefresh"/>
+            </div>
+        </div>
+    </div>
+</t>
+
+</templates>

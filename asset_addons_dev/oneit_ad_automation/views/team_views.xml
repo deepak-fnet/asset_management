@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_oneit_team_tree" model="ir.ui.view">
+        <field name="name">oneit.team.list</field>
+        <field name="model">oneit.team</field>
+        <field name="arch" type="xml">
+            <list string="Teams">
+                <field name="name"/>
+                <field name="code" optional="show"/>
+                <field name="ad_folder_group_id"/>
+                <field name="team_lead_ids" widget="many2many_tags"/>
+                <field name="bu_head_ids" widget="many2many_tags"/>
+                <field name="request_count" string="Requests"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_oneit_team_form" model="ir.ui.view">
+        <field name="name">oneit.team.form</field>
+        <field name="model">oneit.team</field>
+        <field name="arch" type="xml">
+            <form string="Team">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_requests" type="object"
+                                class="oe_stat_button" icon="fa-list">
+                            <field name="request_count" widget="statinfo"
+                                   string="Requests"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived"
+                            bg_color="bg-danger"
+                            invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Finance"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="description"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="ad_folder_group_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Access Footprint" name="access">
+                            <div class="alert alert-info" role="alert">
+                                These are the AD groups available to this team. A Team Lead
+                                picks from this list when approving a request. Include
+                                exactly one <strong>AD Folder</strong> group.
+                            </div>
+                            <field name="ad_group_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="group_type"/>
+                                    <field name="distinguished_name"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Approvers" name="approvers">
+                            <group>
+                                <group string="Team Leads (first approval)">
+                                    <field name="team_lead_ids" widget="many2many_tags"
+                                           nolabel="1"/>
+                                </group>
+                                <group string="BU Heads (final approval)">
+                                    <field name="bu_head_ids" widget="many2many_tags"
+                                           nolabel="1"/>
+                                </group>
+                            </group>
+                            <div class="alert alert-warning" role="alert">
+                                A team with no BU Head cannot have requests submitted
+                                against it - final approval would have nowhere to go.
+                                Approvers need an email address to be notified.
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_oneit_team_search" model="ir.ui.view">
+        <field name="name">oneit.team.search</field>
+        <field name="model">oneit.team</field>
+        <field name="arch" type="xml">
+            <search string="Teams">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="team_lead_ids"/>
+                <field name="bu_head_ids"/>
+                <filter name="filter_archived" string="Archived"
+                        domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_oneit_team" model="ir.actions.act_window">
+        <field name="name">Teams</field>
+        <field name="res_model">oneit.team</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first team</p>
+            <p>A team is the unit of access: map it to its AD groups and name
+               its Team Leads and BU Heads.</p>
+        </field>
+    </record>
+
+</odoo>

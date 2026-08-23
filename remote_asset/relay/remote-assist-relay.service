@@ -1,0 +1,19 @@
+[Unit]
+Description=Remote Assistance WebSocket Relay
+After=network.target
+
+[Service]
+Type=simple
+# Run as a non-root service account in production.
+User=odoo
+WorkingDirectory=/opt/remote-assist/relay
+# If terminating TLS at the relay, export RELAY_CERTFILE / RELAY_KEYFILE.
+# To have the relay confirm tokens with Odoo, export ODOO_VERIFY_URL, e.g.:
+#   Environment=ODOO_VERIFY_URL=https://your-odoo/api/remote/verify_token
+Environment=RELAY_IDLE_TIMEOUT=1800
+ExecStart=/usr/bin/python3 /opt/remote-assist/relay/relay.py --host 0.0.0.0 --port 8765
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

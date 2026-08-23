@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- =====================================================
+         WIZARD FORM VIEW
+         ===================================================== -->
+    <record id="view_asset_bulk_operations_form" model="ir.ui.view">
+        <field name="name">asset.bulk.operations.form</field>
+        <field name="model">asset.bulk.operations</field>
+        <field name="arch" type="xml">
+            <form string="Bulk Operations">
+                <sheet>
+                    <div class="alert alert-info mb-3" role="alert">
+                        <i class="fa fa-info-circle me-2" title="Info"/>
+                        <strong>Selected Assets:</strong> <field name="asset_count" readonly="1"/> asset(s)
+                    </div>
+
+                    <group>
+                        <field name="operation_type" widget="radio"/>
+                    </group>
+
+                    <group invisible="operation_type != 'assign'">
+                        <group string="Assignment Details">
+                            <field name="employee_id" required="operation_type == 'assign'"/>
+                            <field name="assignment_date"/>
+                        </group>
+                    </group>
+
+                    <group invisible="operation_type != 'state_change'">
+                        <group string="State Change">
+                            <field name="target_state" required="operation_type == 'state_change'"/>
+                        </group>
+                    </group>
+
+                    <group invisible="operation_type != 'category'">
+                        <group string="Category">
+                            <field name="category_id" required="operation_type == 'category'"/>
+                        </group>
+                    </group>
+
+                    <group invisible="operation_type != 'maintenance'">
+                        <group string="Maintenance Schedule">
+                            <field name="maintenance_date" required="operation_type == 'maintenance'"/>
+                            <field name="maintenance_notes" placeholder="Enter maintenance notes..."/>
+                        </group>
+                    </group>
+
+                    <group invisible="operation_type != 'warranty'">
+                        <group string="Warranty Information">
+                            <field name="warranty_start" required="operation_type == 'warranty'"/>
+                            <field name="warranty_end" required="operation_type == 'warranty'"/>
+                        </group>
+                    </group>
+
+                    <group invisible="operation_type != 'export'">
+                        <group string="Export Options">
+                            <field name="export_format" widget="radio"/>
+                        </group>
+                    </group>
+
+                    <field name="asset_ids" invisible="1"/>
+                </sheet>
+
+                <footer>
+                    <button string="Execute" name="action_execute" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         BULK OPERATIONS ACTION
+         ===================================================== -->
+    <record id="action_asset_bulk_operations" model="ir.actions.act_window">
+        <field name="name">Bulk Operations</field>
+        <field name="res_model">asset.bulk.operations</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="model_asset_asset"/>
+        <field name="binding_view_types">tree</field>
+    </record>
+
+</odoo>

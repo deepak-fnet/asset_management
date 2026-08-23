@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_oneit_approval_tree" model="ir.ui.view">
+        <field name="name">oneit.approval.list</field>
+        <field name="model">oneit.approval</field>
+        <field name="arch" type="xml">
+            <list string="Approvals" create="false"
+                  decoration-success="state == 'approved'"
+                  decoration-danger="state == 'rejected'"
+                  decoration-muted="state == 'skipped'">
+                <field name="request_id"/>
+                <field name="request_type"/>
+                <field name="employee_name"/>
+                <field name="team_id"/>
+                <field name="approver_role"/>
+                <field name="approver_id"/>
+                <field name="state"/>
+                <field name="acted_on"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_oneit_approval_search" model="ir.ui.view">
+        <field name="name">oneit.approval.search</field>
+        <field name="model">oneit.approval</field>
+        <field name="arch" type="xml">
+            <search string="Approvals">
+                <field name="request_id"/>
+                <field name="approver_id"/>
+                <field name="employee_name"/>
+                <filter name="filter_mine" string="Assigned To Me"
+                        domain="[('approver_id', '=', uid)]"/>
+                <filter name="filter_pending" string="Pending"
+                        domain="[('state', '=', 'pending')]"/>
+                <separator/>
+                <filter name="filter_team_lead" string="Team Lead Stage"
+                        domain="[('approver_role', '=', 'team_lead')]"/>
+                <filter name="filter_bu_head" string="BU Head Stage"
+                        domain="[('approver_role', '=', 'bu_head')]"/>
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter name="group_by_role" string="Role"-->
+<!--                            context="{'group_by': 'approver_role'}"/>-->
+<!--                    <filter name="group_by_state" string="Status"-->
+<!--                            context="{'group_by': 'state'}"/>-->
+<!--                    <filter name="group_by_approver" string="Approver"-->
+<!--                            context="{'group_by': 'approver_id'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <record id="action_oneit_approval" model="ir.actions.act_window">
+        <field name="name">Approval History</field>
+        <field name="res_model">oneit.approval</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'search_default_filter_mine': 1}</field>
+    </record>
+
+</odoo>

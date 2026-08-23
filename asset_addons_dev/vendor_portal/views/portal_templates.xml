@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Card on the portal home -->
+    <template id="portal_my_home_rfq" name="Portal My Home : RFQs"
+              inherit_id="portal.portal_my_home" priority="40">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="icon" t-value="'/vendor_portal/static/description/icon.png'"/>
+                <t t-set="title">Requests for Quotation</t>
+                <t t-set="text">Submit your bids</t>
+                <t t-set="url" t-value="'/my/rfqs'"/>
+                <t t-set="placeholder_count" t-value="'rfq_count'"/>
+            </t>
+        </xpath>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         LIST
+         ══════════════════════════════════════════════════════════════════ -->
+    <template id="portal_my_rfqs" name="My RFQs">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Requests for Quotation</t>
+            </t>
+
+            <t t-if="not orders">
+                <div class="alert alert-info" role="alert">
+                    You have no open requests for quotation right now.
+                </div>
+            </t>
+
+            <t t-if="orders" t-call="portal.portal_table">
+                <thead>
+                    <tr class="active">
+                        <th>Reference</th>
+                        <th>Date</th>
+                        <th class="text-center">Lines</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-end">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="orders" t-as="order">
+                        <td>
+                            <a t-attf-href="/my/rfq/#{order.id}">
+                                <span t-field="order.name"/>
+                            </a>
+                        </td>
+                        <td><span t-field="order.create_date" t-options="{'widget': 'date'}"/></td>
+                        <td class="text-center"><span t-esc="len(order.order_line)"/></td>
+                        <td class="text-center">
+                            <span t-if="order.is_bid_received" class="badge rounded-pill text-bg-success">
+                                Bid Submitted
+                            </span>
+                            <span t-else="" class="badge rounded-pill text-bg-warning">
+                                Awaiting Your Bid
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <span t-field="order.amount_total"
+                                  t-options="{'widget': 'monetary', 'display_currency': order.currency_id}"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </t>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         DETAIL / BID FORM
+         ══════════════════════════════════════════════════════════════════ -->
+    <template id="portal_rfq_detail" name="RFQ Detail">
+        <t t-call="portal.portal_layout">
+            <t t-set="o_portal_fullwidth_alert" t-value="True"/>
+
+            <div class="row mb-4">
+                <div class="col">
+                    <h4>
+                        <span t-field="order.name"/>
+                        <span t-if="order.is_bid_received"
+                              class="badge rounded-pill text-bg-success ms-2">
+                            Bid Submitted
+                        </span>
+                    </h4>
+                    <div class="text-muted">
+                        Requested on <span t-field="order.create_date"
+                                           t-options="{'widget': 'date'}"/>
+                    </div>
+                </div>
+            </div>
+
+            <div t-if="error" class="alert alert-danger" role="alert">
+                <span t-esc="error"/>
+            </div>
+
+            <div t-if="not editable and order.is_bid_received"
+                 class="alert alert-success" role="alert">
+                Your bid was submitted on
+                <span t-field="order.bid_submitted_on" t-options="{'widget': 'datetime'}"/>.
+                It is now being evaluated - prices can no longer be changed here.
+                Contact your buyer if something needs correcting.
+            </div>
+
+            <div t-if="not editable and not order.is_bid_received"
+                 class="alert alert-warning" role="alert">
+                This request for quotation is no longer open for bidding.
+            </div>
+
+            <form t-if="editable" t-attf-action="/my/rfq/#{order.id}/submit"
+                  method="post">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                <table class="table table-sm">
+                    <thead>
+                        <tr class="active">
+                            <th>Product</th>
+                            <th>Description</th>
+                            <th class="text-center">Quantity</th>
+                            <th class="text-center">UoM</th>
+                            <th class="text-end" style="width:160px;">Your Unit Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="order.order_line" t-as="line">
+                            <td><span t-field="line.product_id"/></td>
+                            <td><span t-field="line.name"/></td>
+                            <td class="text-center"><span t-field="line.product_qty"/></td>
+                            <td class="text-center"><span t-field="line.product_uom_id"/></td>
+                            <td class="text-end">
+                                <input type="number" step="0.01" min="0"
+                                       class="form-control text-end"
+                                       t-attf-name="price_#{line.id}"
+                                       t-att-value="line.price_unit or ''"
+                                       required="required"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <label class="form-label" for="delivery_days">
+                            Delivery Lead Time (days)
+                        </label>
+                        <input type="number" min="0" class="form-control"
+                               name="delivery_days" id="delivery_days"
+                               t-att-value="order.vendor_delivery_days or ''"/>
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label" for="vendor_remarks">Remarks</label>
+                        <textarea class="form-control" name="vendor_remarks"
+                                  id="vendor_remarks" rows="2"
+                                  placeholder="Anything the buyer should know about this quote"
+                                  t-esc="order.vendor_remarks or ''"/>
+                    </div>
+                </div>
+
+                <div class="mt-4 mb-5">
+                    <button type="submit" class="btn btn-primary">
+                        Submit Bid
+                    </button>
+                    <span class="text-muted ms-2">
+                        Once submitted, prices cannot be changed here.
+                    </span>
+                </div>
+            </form>
+
+            <!-- Read-only view after submission -->
+            <table t-if="not editable" class="table table-sm">
+                <thead>
+                    <tr class="active">
+                        <th>Product</th>
+                        <th>Description</th>
+                        <th class="text-center">Quantity</th>
+                        <th class="text-end">Unit Price</th>
+                        <th class="text-end">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="order.order_line" t-as="line">
+                        <td><span t-field="line.product_id"/></td>
+                        <td><span t-field="line.name"/></td>
+                        <td class="text-center"><span t-field="line.product_qty"/></td>
+                        <td class="text-end">
+                            <span t-field="line.price_unit"
+                                  t-options="{'widget': 'monetary', 'display_currency': order.currency_id}"/>
+                        </td>
+                        <td class="text-end">
+                            <span t-field="line.price_subtotal"
+                                  t-options="{'widget': 'monetary', 'display_currency': order.currency_id}"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </t>
+    </template>
+
+</odoo>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- ===================================================
+             Parent menu: Asset Request
+             Placed right after Lifecycle Processes (sequence 11)
+             =================================================== -->
+        <menuitem id="menu_asset_request_root"
+                  name="Asset Request"
+                  parent="asset_management.menu_asset_root"
+                  sequence="12"/>
+
+        <!-- Child: Asset Requests list -->
+        <menuitem id="menu_asset_request_list"
+                  name="Asset Requests"
+                  parent="menu_asset_request_root"
+                  action="action_asset_request"
+                  sequence="1"/>
+
+
+        <!-- ===================================================
+             Separate top-level menu: Asset List
+             =================================================== -->
+        <menuitem id="menu_asset_list_root"
+                  name="Asset List"
+                  parent="asset_management.menu_asset_root"
+                  action="action_asset_list"
+                  sequence="13"/>
+
+    </data>
+</odoo>

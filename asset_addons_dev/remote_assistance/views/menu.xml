@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_remote_assistance_root"
+              name="Remote Assistance"
+              sequence="90"
+              web_icon="remote_assistance,static/description/icon.png"
+              groups="remote_assistance.group_remote_assistance_user"/>
+
+    <menuitem id="menu_remote_assistance_sessions"
+              name="Sessions"
+              parent="menu_remote_assistance_root"
+              action="action_remote_session"
+              sequence="10"/>
+</odoo>

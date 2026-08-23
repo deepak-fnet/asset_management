@@ -1,0 +1,180 @@
+.o_device_monitoring {
+    display: flex;
+    height: 100%;
+    background-color: #f8f9fa;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Sidebar */
+.dm_sidebar {
+    width: 350px;
+    background: white;
+    border-right: 1px solid #e9ecef;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.dm_sidebar_header {
+    padding: 20px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.dm_device_list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+}
+
+.dm_device_card {
+    padding: 15px;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.dm_device_card:hover {
+    border-color: #0d6efd;
+    background-color: #f8f9ff;
+}
+
+.dm_device_card.active {
+    border-color: #0d6efd;
+    border-width: 2px;
+    background-color: #f0f7ff;
+}
+
+.dm_device_id {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #212529;
+}
+
+.dm_device_owner {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.dm_device_location {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+.dm_device_status_row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 5px;
+}
+
+.dm_status_text {
+    font-weight: 600;
+}
+
+.dm_status_text.healthy { color: #198754; }
+.dm_status_text.degraded { color: #fd7e14; }
+.dm_status_text.offline { color: #dc3545; }
+
+.dm_status_icon {
+    font-size: 1.2rem;
+}
+
+/* Main Content */
+.dm_main {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+}
+
+.dm_header {
+    margin-bottom: 30px;
+}
+
+.dm_metrics_grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.dm_metric_card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.dm_metric_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.dm_metric_title {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    color: #495057;
+}
+
+.dm_metric_icon {
+    margin-right: 10px;
+    font-size: 1.2rem;
+    color: #198754;
+}
+
+.dm_metric_trend {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.dm_trend_up { color: #dc3545; }
+.dm_trend_down { color: #198754; }
+
+.dm_metric_value_row {
+    margin-bottom: 15px;
+}
+
+.dm_metric_value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #212529;
+}
+
+.dm_metric_value_small {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #212529;
+    word-break: break-all;
+}
+
+.dm_metric_unit {
+    font-size: 1rem;
+    color: #6c757d;
+    margin-left: 5px;
+}
+
+.dm_metric_subvalue {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.dm_progress {
+    height: 8px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.dm_progress_bar {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.bg-healthy { background-color: #198754; }
+.bg-warning { background-color: #fd7e14; }
+.bg-danger { background-color: #dc3545; }

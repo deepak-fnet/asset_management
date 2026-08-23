@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_asset_update_policy_list" model="ir.ui.view">
+        <field name="name">asset.update.policy.list</field>
+        <field name="model">asset.update.policy</field>
+        <field name="arch" type="xml">
+            <list string="Update Policies">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="approve_security" string="Sec"/>
+                <field name="approve_critical" string="Crit"/>
+                <field name="approve_important" string="Imp"/>
+                <field name="approve_optional" string="Opt"/>
+                <field name="delay_days"/>
+                <field name="use_maintenance_window" string="Window"/>
+                <field name="use_staged_rollout" string="Staged"/>
+                <field name="max_per_run"/>
+                <field name="total_approved"/>
+                <field name="last_run"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_update_policy_form" model="ir.ui.view">
+        <field name="name">asset.update.policy.form</field>
+        <field name="model">asset.update.policy</field>
+        <field name="arch" type="xml">
+            <form string="Update Policy">
+                <header>
+                    <button name="action_preview" type="object"
+                            string="Preview"
+                            class="btn-secondary"
+                            help="Show what this policy would approve right now, without changing anything."/>
+                    <button name="action_run_now" type="object"
+                            string="Run Now"
+                            class="btn-primary"
+                            confirm="This will immediately approve all matching updates and queue them for installation on the target machines. Continue?"
+                            groups="asset_management.group_asset_manager"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Standard Laptops — Security Only"/></h1>
+                    </div>
+
+                    <group>
+                        <group string="Severities to Auto-Approve">
+                            <field name="approve_security"/>
+                            <field name="approve_critical"/>
+                            <field name="approve_important"/>
+                            <field name="approve_optional"/>
+                        </group>
+                        <group string="Timing">
+                            <field name="delay_days"/>
+                            <field name="use_maintenance_window"/>
+                            <field name="window_weekday"
+                                   invisible="not use_maintenance_window"/>
+                            <field name="window_start_hour"
+                                   invisible="not use_maintenance_window"/>
+                            <field name="window_end_hour"
+                                   invisible="not use_maintenance_window"/>
+                            <field name="max_per_run"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Targeting" name="targeting">
+                            <group>
+                                <field name="asset_type_filter"/>
+                                <field name="department_ids" widget="many2many_tags"
+                                       options="{'no_create': True}"/>
+                            </group>
+                            <separator string="Excluded Assets"/>
+                            <p class="text-muted">
+                                Machines listed here are never auto-patched. Use this
+                                for production servers or anything running a fragile
+                                legacy application.
+                            </p>
+                            <field name="excluded_asset_ids"
+                                   options="{'no_create': True}">
+                                <list>
+                                    <field name="asset_name"/>
+                                    <field name="serial_number"/>
+                                    <field name="asset_type"/>
+                                    <field name="os_name"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Staged Rollout" name="staged">
+                            <group>
+                                <field name="use_staged_rollout"/>
+                                <field name="pilot_soak_days"
+                                       invisible="not use_staged_rollout"/>
+                            </group>
+                            <div invisible="not use_staged_rollout">
+                                <separator string="Pilot Group"/>
+                                <p class="text-muted">
+                                    These machines receive updates first. The rest of the
+                                    fleet is only approved once a KB has been installed
+                                    successfully here for the soak period. If any pilot
+                                    machine reports a failure for a KB, the fleet rollout
+                                    for that KB is halted automatically.
+                                </p>
+                                <field name="pilot_asset_ids"
+                                       options="{'no_create': True}">
+                                    <list>
+                                        <field name="asset_name"/>
+                                        <field name="serial_number"/>
+                                        <field name="asset_type"/>
+                                    </list>
+                                </field>
+                            </div>
+                        </page>
+
+                        <page string="Notes" name="notes">
+                            <field name="description" placeholder="Why this policy exists, who owns it, any caveats…"/>
+                        </page>
+                    </notebook>
+
+                    <group string="Statistics" col="4">
+                        <field name="last_run" readonly="1"/>
+                        <field name="total_approved" readonly="1"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_asset_update_policy" model="ir.actions.act_window">
+        <field name="name">Update Policies</field>
+        <field name="res_model">asset.update.policy</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first update policy</p>
+            <p>
+                A policy automatically approves Windows updates that match its criteria,
+                inside a maintenance window, after a safety delay. The agent then installs
+                them on its next poll.
+            </p>
+        </field>
+    </record>
+
+</odoo>

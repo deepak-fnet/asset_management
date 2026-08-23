@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Form View -->
+    <record id="view_asset_helpdesk_form" model="ir.ui.view">
+        <field name="name">asset.helpdesk.form</field>
+        <field name="model">asset.helpdesk</field>
+        <field name="arch" type="xml">
+            <form string="Helpdesk Ticket">
+                <header>
+                    <button name="action_start_progress" string="Start Progress" type="object" class="oe_highlight"
+                            invisible="state != 'open' or is_repair_flow"/>
+                    <button name="action_mark_solved" string="Mark Solved" type="object" class="oe_highlight"
+                            invisible="state != 'in_progress' or is_repair_flow"/>
+                    <button name="action_cancel" string="Cancel" type="object"
+                            invisible="state in ('solved', 'cancelled')"/>
+                    <button name="action_reset_to_open" string="Reset to Open" type="object"
+                            invisible="state != 'cancelled'"/>
+
+                    <button name="action_create_repair_management" type="object" string="Create Repair"
+                            invisible="repair_id"/>
+                    <field name="state" widget="statusbar" statusbar_visible="open,in_progress,solved,cancelled"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button type="object" name="action_create_repair_management" class="oe_stat_button"
+                                invisible="not repair_id" icon="fa-tasks">
+                            <span class="o_stat_text">Repair</span>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="subject" placeholder="Ticket Subject"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <!-- Row 1 -->
+                        <group>
+                            <field name="ticket_number"/>
+                            <field name="priority" widget="priority" decoration-info="priority == 'low'"
+                                   decoration-primary="priority == 'medium'" decoration-warning="priority == 'high'"
+                                   decoration-danger="priority == 'critical'"/>
+                        </group>
+
+                        <!-- Row 2 -->
+                        <group>
+                            <field name="ticket_type_id"/>
+                            <field name="assigned_to_id"/>
+                        </group>
+
+                        <!-- Row 3 -->
+                        <group>
+                            <field name="category_id"/>
+                            <field name="asset_id"/>
+                        </group>
+
+                        <!-- Row 4 -->
+                        <group>
+                            <field name="team_id"/>
+                            <field name="repair_id" invisible="1"/>
+                            <field name="is_repair_flow" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="History" name="history">
+                            <field name="history_ids" readonly="1">
+                                <list string="History" decoration-muted="new_state in ('solved', 'cancelled')">
+                                    <field name="change_date"/>
+                                    <field name="old_state" widget="badge"/>
+                                    <field name="new_state" widget="badge" decoration-info="new_state == 'open'"
+                                           decoration-warning="new_state == 'in_progress'"
+                                           decoration-success="new_state == 'solved'"
+                                           decoration-danger="new_state == 'cancelled'"/>
+                                    <field name="changed_by"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree View -->
+    <record id="view_asset_helpdesk_tree" model="ir.ui.view">
+        <field name="name">asset.helpdesk.tree</field>
+        <field name="model">asset.helpdesk</field>
+        <field name="arch" type="xml">
+            <list string="Helpdesk Tickets">
+                <field name="ticket_number"/>
+                <field name="subject"/>
+                <field name="ticket_type_id"/>
+                <field name="category_id"/>
+                <field name="priority" widget="badge"
+                       decoration-info="priority == 'low'"
+                       decoration-primary="priority == 'medium'"
+                       decoration-warning="priority == 'high'"
+                       decoration-danger="priority == 'critical'"/>
+                <field name="team_id"/>
+                <field name="assigned_to_id"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'open'"
+                       decoration-warning="state == 'in_progress'"
+                       decoration-success="state == 'solved'"
+                       decoration-danger="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+
+    <!--  Kanban View  -->
+    <record id="view_asset_helpdesk_kanban" model="ir.ui.view">
+        <field name="name">asset.helpdesk.kanban</field>
+        <field name="model">asset.helpdesk</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_small_column" default_group_by="assigned_to_id"
+                    records_draggable="true" quick_create="false" group_create="true">
+                <field name="ticket_number"/>
+                <field name="subject"/>
+                <field name="priority"/>
+                <field name="state"/>
+                <field name="category_id"/>
+                <field name="team_id"/>
+                <field name="assigned_to_id"/>
+                <field name="create_date"/>
+                <progressbar field="state"
+                             colors='{"open": "info", "in_progress": "warning", "solved": "success", "cancelled": "danger"}'/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_global_click o_kanban_record oh_ticket_card oh_ticket_#{record.state.raw_value}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="oh_ticket_number">
+                                    <i class="fa fa-tag me-1"/>
+                                    <strong>
+                                        <field name="ticket_number"/>
+                                    </strong>
+                                </div>
+                                <div class="oh_ticket_priority">
+                                    <field name="priority" widget="priority"/>
+                                </div>
+                            </div>
+                            <div class="oh_ticket_subject mt-1 mb-2">
+                                <field name="subject"/>
+                            </div>
+                            <div class="oh_ticket_info">
+                                <div t-if="record.category_id.value" class="oh_ticket_info_line">
+                                    <i class="fa fa-folder-o me-1"/>
+                                    <span class="oh_label">Category:</span>
+                                    <field name="category_id"/>
+                                </div>
+                                <div t-if="record.team_id.value" class="oh_ticket_info_line">
+                                    <i class="fa fa-users me-1"/>
+                                    <span class="oh_label">Team:</span>
+                                    <field name="team_id"/>
+                                </div>
+                                <div class="oh_ticket_info_line">
+                                    <i class="fa fa-calendar me-1"/>
+                                    <span class="oh_label">Created:</span>
+                                    <field name="create_date" widget="date"/>
+                                </div>
+                                <div class="oh_ticket_info_line">
+                                    <i class="fa fa-info-circle me-1"/>
+                                    <span class="oh_label">Status:</span>
+                                    <span class="oh_status_pill">
+                                        <field name="state"/>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="oh_ticket_footer d-flex justify-content-between align-items-center mt-2 pt-2">
+                                <span class="oh_drag_hint">
+                                    <i class="fa fa-arrows me-1"/>Drag to assign
+                                </span>
+                                <span t-if="record.assigned_to_id.value" class="d-flex align-items-center">
+                                    <img t-att-src="kanban_image('res.users', 'avatar_128', record.assigned_to_id.raw_value)"
+                                         class="oh_avatar rounded-circle me-1" alt="Avatar"/>
+                                    <field name="assigned_to_id"/>
+                                </span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>    <!-- Search View -->
+    <record id="view_asset_helpdesk_search" model="ir.ui.view">
+        <field name="name">asset.helpdesk.search</field>
+        <field name="model">asset.helpdesk</field>
+        <field name="arch" type="xml">
+            <search string="Search Helpdesk Tickets">
+                <field name="ticket_number" string="Ticket Number"/>
+                <field name="subject" string="Subject"/>
+                <field name="team_id"/>
+                <field name="assigned_to_id"/>
+                <filter string="Open" name="filter_open" domain="[('state', '=', 'open')]"/>
+                <filter string="In Progress" name="filter_in_progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter string="Solved" name="filter_solved" domain="[('state', '=', 'solved')]"/>
+                <filter string="Cancelled" name="filter_cancelled" domain="[('state', '=', 'cancelled')]"/>
+                <separator/>
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter string="Team" name="group_by_team" context="{'group_by': 'team_id'}"/>-->
+<!--                    <filter string="Assigned To" name="group_by_assigned" context="{'group_by': 'assigned_to_id'}"/>-->
+<!--                    <filter string="Priority" name="group_by_priority" context="{'group_by': 'priority'}"/>-->
+<!--                    <filter string="Ticket Type" name="group_by_type" context="{'group_by': 'ticket_type_id'}"/>-->
+<!--                    <filter string="Category" name="group_by_category" context="{'group_by': 'category_id'}"/>-->
+<!--                    <filter string="Status" name="group_by_state" context="{'group_by': 'state'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_asset_helpdesk" model="ir.actions.act_window">
+        <field name="name">Help Desk</field>
+        <field name="res_model">asset.helpdesk</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_asset_helpdesk_search"/>
+        <field name="context">{'search_default_filter_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new helpdesk ticket
+            </p>
+        </field>
+    </record>
+
+</odoo>

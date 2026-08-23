@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_asset_creation_form" model="ir.ui.view">
+        <field name="name">asset.creation.form</field>
+        <field name="model">asset.addition</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_submit" type="object" string="Submit" class="oe_highlight"
+                            invisible="state not in 'draft'"/>
+                    <button name="action_department_approve" type="object" string="Department Approve"
+                            class="oe_highlight"
+                            invisible="state not in 'submit'"/>
+                    <button name="action_incharge_approve" type="object" string="FI Approve" class="oe_highlight"
+                            invisible="state not in 'dept_approved'"/>
+                    <button name="action_cfo_approve" type="object" string="CFO Approve" class="oe_highlight"
+                            invisible="state not in 'incharge_approved'"/>
+                    <button name="action_done" type="object" string="Done" class="oe_highlight"
+                            invisible="state not in 'cfo_approved'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="submit,dept_approved,incharge_approved"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="asset_name"/>
+                            <field name="ip_address"/>
+                            <field name="value"/>
+                            <field name="acquisition_date"/>
+                            <field name="plant_id"/>
+                            <field name="department_id"/>
+                            <field name="physical_location_id"/>
+                        </group>
+                        <group>
+                            <div align="right">
+                                <field style="padding-left: 5px;" name="qr_code" nolabel="1" widget="image"
+                                       class="oe_avatar"/>
+                                <button name="action_download_qr" class="oe_stat_button" type="object"
+                                        icon="fa-download"/>
+                            </div>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Details">
+                            <group>
+                                <group>
+                                    <field name="is_amc"/>
+                                    <field name="is_warranty"/>
+                                    <field name="is_licence"/>
+                                </group>
+                                <group>
+                                    <field name="serial_number_1"/>
+                                    <field name="serial_number_2"/>
+                                    <field name="serial_number_3"/>
+                                </group>
+                                <table class="table table-bordered"
+                                       style="font-size: 10px; font-family: 'Roboto', sans-serif; width:80%;"
+                                       invisible="not is_amc and not is_licence and not is_warranty">
+                                    <tr>
+                                        <td style="padding: 5px; font-weight: bold;"></td>
+                                        <td style="padding: 5px; text-align: center; font-weight: bold;">Vendor</td>
+                                        <td style="padding: 5px; text-align: center; font-weight: bold;">Nature</td>
+                                        <td style="padding: 5px; text-align: center; font-weight: bold;">Start Date</td>
+                                        <td style="padding: 5px; text-align: center; font-weight: bold;">End Date</td>
+                                        <td style="padding: 5px; text-align: center; font-weight: bold;">Attachments
+                                        </td>
+                                    </tr>
+                                    <tr invisible="is_amc == False">
+                                        <td style="font-weight: bold;">AMC</td>
+                                        <td style="text-align: center;">
+                                            <field name="amc_vendor_name_id"/>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <field name="amc_nature"/>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <field name="amc_start_date"/>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <field name="amc_end_date"/>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <field name="amc_file" filename="amc_file_filename"/>
+                                            <field name="amc_file_filename" invisible="1"/>
+                                        </td>
+                                    </tr>
+                                    <tr invisible="is_licence == False">
+                                        <td style="font-weight: bold;">Licence</td>
+                                        <td style="text-align: center;">
+                                            <field name="licence_vendor_name_id"/>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <field name="licence_nature"/>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <field name="licence_start_date"/>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <field name="licence_end_date"/>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <field name="licence_file" filename="licence_file_filename"/>
+                                            <field name="licence_file_filename" invisible="1"/>
+                                        </td>
+                                    </tr>
+                                    <tr invisible="is_warranty == False">
+                                        <td style="font-weight: bold;">Warranty</td>
+                                        <td style="text-align: center;">
+                                            <field name="warranty_vendor_name_id"/>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <field name="warranty_nature"/>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <field name="warranty_start_date"/>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <field name="warranty_end_date"/>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <field name="warranty_file" filename="warranty_file_filename"/>
+                                            <field name="warranty_file_filename" invisible="1"/>
+                                        </td>
+
+                                    </tr>
+                                </table>
+                            </group>
+                        </page>
+                        <page string="History">
+                            <field name="history_ids" widget="one2many">
+                                <list editable="bottom">
+<!--                                    <field name="vendor_id"/>-->
+                                    <field name="asset_type"/>
+                                    <field name="start_date"/>
+                                    <field name="end_date"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree View -->
+    <record id="view_asset_creation_tree" model="ir.ui.view">
+        <field name="name">asset.creation.tree</field>
+        <field name="model">asset.addition</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="asset_name"/>
+                <field name="value"/>
+                <field name="acquisition_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_addition_pivot" model="ir.ui.view">
+        <field name="name">asset.addition.pivot</field>
+        <field name="model">asset.addition</field>
+        <field name="arch" type="xml">
+            <pivot string="Asset Addition Analysis">
+                <field name="plant_id" type="row"/>
+                <field name="state" type="col"/>
+                <field name="physical_location_id" type="col"/>
+                <field name="acquisition_date" type="col"/>
+                <field name="department_id" type="row"/>
+                <field name="asset_name" type="row"/>
+                <field name="ip_address" type="col"/>
+                <field name="value" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Graph View -->
+    <record id="view_asset_addition_graph" model="ir.ui.view">
+        <field name="name">asset.addition.graph</field>
+        <field name="model">asset.addition</field>
+        <field name="arch" type="xml">
+            <graph string="Asset Graph" type="bar">
+                <field name="value" type="measure"/>
+                <field name="plant_id" type="row"/>
+                <field name="department_id" />
+                <field name="acquisition_date" />
+            </graph>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_asset_creation" model="ir.actions.act_window">
+        <field name="name">Asset Addition</field>
+        <field name="res_model">asset.addition</field>
+        <field name="view_mode">list,form,pivot,graph</field>
+    </record>
+
+</odoo>

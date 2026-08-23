@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="cron_remote_assistance_expire" model="ir.cron">
+            <field name="name">Remote Assistance: Expire stale sessions</field>
+            <field name="model_id" ref="model_remote_assistance_session"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_expire_stale()</field>
+            <field name="interval_number">10</field>
+            <field name="interval_type">minutes</field>
+            <!-- Odoo 19: ir.cron.numbercall / doall no longer exist;
+                 crons repeat indefinitely by default. -->
+            <field name="active" eval="True"/>
+        </record>
+    </data>
+</odoo>

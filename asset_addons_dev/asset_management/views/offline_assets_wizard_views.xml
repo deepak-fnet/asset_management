@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Offline Assets Selection Wizard Form View -->
+    <record id="view_offline_assets_wizard_form" model="ir.ui.view">
+        <field name="name">asset.offline.assets.wizard.form</field>
+        <field name="model">asset.offline.assets.wizard</field>
+        <field name="arch" type="xml">
+            <form string="View Offline Assets" class="o_offline_assets_wizard">
+                <style>
+                    .btn-windows { background-color: #F4B400 !important; }
+                    .btn-windows:hover { background-color: #F4B400 !important; color: white !important; opacity: 0.8; }
+                    .btn-linux { background-color: #dc3545 !important; }
+                    .btn-linux:hover { background-color: #dc3545 !important; color: white !important; opacity: 0.8; }
+                    .btn-macos { background-color: #F06292 !important; }
+                    .btn-macos:hover { background-color: #F06292 !important; color: white !important; opacity: 0.8; }
+                    .btn-cctv { background-color: #E95420 !important; }
+                    .btn-cctv:hover { background-color: #E95420 !important; color: white !important; opacity: 0.8; }
+                    .btn-network { background-color: #95A753 !important; }
+                    .btn-network:hover { background-color: #95A753 !important; color: white !important; opacity: 0.8; }
+                    .outline-btn { transition: all 0.3s ease; }
+                </style>
+                <sheet>
+                    <!-- Total Offline Banner -->
+                    <div class="alert alert-danger text-center" style="background: linear-gradient(135deg, rgba(220, 53, 69, 0.15) 0%, rgba(200, 35, 51, 0.15) 100%); border: 2px solid rgba(220, 53, 69, 0.3); border-radius: 12px; padding: 30px; margin: 20px 0; box-shadow: 0 2px 8px rgba(220, 53, 69, 0.08);">
+                        <h2 style="color: #dc3545; margin: 0; font-size: 16px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;">TOTAL OFFLINE ASSETS</h2>
+                        <h1 style="color: #2C3E50; margin: 15px 0 0 0; font-size: 56px; font-weight: 700;">
+                            <field name="total_offline" readonly="1" nolabel="1" class="oe_inline"/>
+                        </h1>
+                        <p style="color: #5D6D7B; margin: 10px 0 0 0; font-size: 14px;">Assets currently offline across all categories</p>
+                    </div>
+
+                    <!-- Asset Category Cards -->
+                    <div class="row" style="margin: 30px 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;">
+                        <!-- Windows Card -->
+                        <div style="flex: 1 1 calc(20% - 1rem); min-width: 180px; max-width: 250px;">
+                            <div class="card h-100 text-center shadow-sm" style="border: 2px solid #F4B400; border-radius: 12px; transition: transform 0.2s; display: flex; flex-direction: column;">
+                                <div class="card-body" style="padding: 30px 20px; display: flex; flex-direction: column; justify-content: space-between; flex: 1;">
+                                    <div>
+                                        <div style="background: #F4B400; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                                            <i class="fa fa-windows fa-2x" style="color: white;"/>
+                                        </div>
+                                        <h4 style="color: #333; font-weight: 600;">Windows</h4>
+                                        <h2 style="color: #F4B400; font-weight: 700; font-size: 36px; margin: 15px 0;">
+                                            <field name="windows_offline" readonly="1" nolabel="1"/>
+                                        </h2>
+                                        <p class="text-muted small">Offline Windows assets</p>
+                                    </div>
+                                    <button name="action_view_windows_offline" type="object" string="View Windows Offline" class="btn outline-btn btn-windows" style="border: 2px solid #F4B400; color: white; border-radius: 8px; padding: 10px 20px; width: 100%; margin-top: auto; font-weight: 600;"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Linux Card -->
+                        <div style="flex: 1 1 calc(20% - 1rem); min-width: 180px; max-width: 250px;">
+                            <div class="card h-100 text-center shadow-sm" style="border: 2px solid #dc3545; border-radius: 12px; transition: transform 0.2s; display: flex; flex-direction: column;">
+                                <div class="card-body" style="padding: 30px 20px; display: flex; flex-direction: column; justify-content: space-between; flex: 1;">
+                                    <div>
+                                        <div style="background: #dc3545; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                                            <i class="fa fa-linux fa-2x" style="color: white;"/>
+                                        </div>
+                                        <h4 style="color: #333; font-weight: 600;">Linux</h4>
+                                        <h2 style="color: #dc3545; font-weight: 700; font-size: 36px; margin: 15px 0;">
+                                            <field name="linux_offline" readonly="1" nolabel="1"/>
+                                        </h2>
+                                        <p class="text-muted small">Offline Linux assets</p>
+                                    </div>
+                                    <button name="action_view_linux_offline" type="object" string="View Linux Offline" class="btn outline-btn btn-linux" style="border: 2px solid #dc3545; color: white; border-radius: 8px; padding: 10px 20px; width: 100%; margin-top: auto; font-weight: 600;"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- macOS Card -->
+                        <div style="flex: 1 1 calc(20% - 1rem); min-width: 180px; max-width: 250px;">
+                            <div class="card h-100 text-center shadow-sm" style="border: 2px solid #F06292; border-radius: 12px; transition: transform 0.2s; display: flex; flex-direction: column;">
+                                <div class="card-body" style="padding: 30px 20px; display: flex; flex-direction: column; justify-content: space-between; flex: 1;">
+                                    <div>
+                                        <div style="background: #F06292; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                                            <i class="fa fa-apple fa-2x" style="color: white;"/>
+                                        </div>
+                                        <h4 style="color: #333; font-weight: 600;">macOS</h4>
+                                        <h2 style="color: #F06292; font-weight: 700; font-size: 36px; margin: 15px 0;">
+                                            <field name="mac_offline" readonly="1" nolabel="1"/>
+                                        </h2>
+                                        <p class="text-muted small">Offline macOS assets</p>
+                                    </div>
+                                    <button name="action_view_mac_offline" type="object" string="View macOS Offline" class="btn outline-btn btn-macos" style="border: 2px solid #F06292; color: white; border-radius: 8px; padding: 10px 20px; width: 100%; margin-top: auto; font-weight: 600;"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CCTV Card -->
+                        <div style="flex: 1 1 calc(20% - 1rem); min-width: 180px; max-width: 250px;">
+                            <div class="card h-100 text-center shadow-sm" style="border: 2px solid #E95420; border-radius: 12px; transition: transform 0.2s; display: flex; flex-direction: column;">
+                                <div class="card-body" style="padding: 30px 20px; display: flex; flex-direction: column; justify-content: space-between; flex: 1;">
+                                    <div>
+                                        <div style="background: #E95420; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                                            <i class="fa fa-video-camera fa-2x" style="color: white;"/>
+                                        </div>
+                                        <h4 style="color: #333; font-weight: 600;">CCTV Cameras</h4>
+                                        <h2 style="color: #E95420; font-weight: 700; font-size: 36px; margin: 15px 0;">
+                                            <field name="cctv_offline" readonly="1" nolabel="1"/>
+                                        </h2>
+                                        <p class="text-muted small">Offline CCTV cameras</p>
+                                    </div>
+                                    <button name="action_view_cctv_offline" type="object" string="View CCTV Offline" class="btn outline-btn btn-cctv" style="border: 2px solid #E95420; color: white; border-radius: 8px; padding: 10px 20px; width: 100%; margin-top: auto; font-weight: 600;"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Network Card -->
+                        <div style="flex: 1 1 calc(20% - 1rem); min-width: 180px; max-width: 250px;">
+                            <div class="card h-100 text-center shadow-sm" style="border: 2px solid #95A753; border-radius: 12px; transition: transform 0.2s; display: flex; flex-direction: column;">
+                                <div class="card-body" style="padding: 30px 20px; display: flex; flex-direction: column; justify-content: space-between; flex: 1;">
+                                    <div>
+                                        <div style="background: #95A753; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                                            <i class="fa fa-sitemap fa-2x" style="color: white;"/>
+                                        </div>
+                                        <h4 style="color: #333; font-weight: 600;">Network Devices</h4>
+                                        <h2 style="color: #95A753; font-weight: 700; font-size: 36px; margin: 15px 0;">
+                                            <field name="network_offline" readonly="1" nolabel="1"/>
+                                        </h2>
+                                        <p class="text-muted small">Offline network devices</p>
+                                    </div>
+                                    <button name="action_view_network_offline" type="object" string="View Network Offline" class="btn outline-btn btn-network" style="border: 2px solid #95A753; color: white; border-radius: 8px; padding: 10px 20px; width: 100%; margin-top: auto; font-weight: 600;"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action to open wizard -->
+    <record id="action_offline_assets_wizard" model="ir.actions.act_window">
+        <field name="name">View Offline Assets</field>
+        <field name="res_model">asset.offline.assets.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="view_id" ref="view_offline_assets_wizard_form"/>
+    </record>
+
+</odoo>

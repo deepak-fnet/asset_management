@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_asset_creation_form" model="ir.ui.view">
+        <field name="name">asset.creation.form</field>
+        <field name="model">asset.addition</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_submit" type="object" string="Submit" class="oe_highlight"
+                            invisible="state not in 'draft'"/>
+                    <button name="action_department_approve" type="object" string="Department Approve"
+                            class="oe_highlight"
+                            invisible="state not in 'submit'"/>
+                    <button name="action_incharge_approve" type="object" string="FI Approve" class="oe_highlight"
+                            invisible="state not in 'dept_approved'"/>
+                    <button name="action_cfo_approve" type="object" string="CFO Approve" class="oe_highlight"
+                            invisible="state not in 'incharge_approved'"/>
+                    <button name="action_done" type="object" string="Done" class="oe_highlight"
+                            invisible="state not in 'cfo_approved'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="submit,dept_approved,incharge_approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_assignments" type="object"
+                                class="oe_stat_button" icon="fa-user"
+                                invisible="assignment_count == 0">
+                            <field string="Assignments" name="assignment_count" widget="statinfo"/>
+                        </button>
+                        <button name="action_download_qr" type="object"
+                                class="oe_stat_button" icon="fa-download"
+                                invisible="not qr_code">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Download</span>
+                                <span class="o_stat_text">QR Code</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <widget name="web_ribbon" title="Removed" bg_color="text-bg-danger"
+                            invisible="state != 'removed'"/>
+
+                    <field name="qr_code" widget="image" class="oe_avatar" nolabel="1"
+                           options="{'size': [90, 90]}" invisible="not qr_code"/>
+                    <field name="asset_image" widget="image" class="oe_avatar" nolabel="1"
+                           filename="asset_image_name" options="{'size': [90, 90]}"/>
+                    <field name="asset_image_name" invisible="1"/>
+
+                    <div class="oe_title">
+                        <label for="asset_name" string="Asset"/>
+                        <h1>
+                            <field name="asset_name" placeholder="e.g. Dell Latitude 5450"/>
+                        </h1>
+                        <label for="name" string="Reference"/>
+                        <h3>
+                            <field name="name" readonly="1" placeholder="New"/>
+                        </h3>
+                    </div>
+
+                    <group>
+                        <group string="Identification" name="identification">
+                            <field name="tag_number"/>
+                            <field name="serial_number"/>
+                            <field name="category_id"/>
+                            <field name="sub_category_id"
+                                   readonly="not category_id"
+                                   options="{'no_quick_create': True}"/>
+                            <field name="ip_address"/>
+                        </group>
+                        <group string="Specification" name="specification">
+                            <field name="make"/>
+                            <field name="model"/>
+                            <field name="controller"/>
+                            <field name="controller_model"/>
+                        </group>
+                        <group string="Acquisition" name="acquisition">
+                            <field name="value"/>
+                            <field name="acquisition_date"/>
+                            <field name="laptop_age"/>
+                        </group>
+                        <group string="Location" name="location">
+                            <field name="plant_id"/>
+                            <field name="department_id"/>
+                            <field name="physical_location_id"/>
+                        </group>
+                        <group string="Assigned To" name="assignment">
+                            <field name="employee_id"/>
+                            <field name="assigned_since" invisible="not employee_id"/>
+                            <field name="current_assignment_id" invisible="not employee_id"/>
+                            <field name="assignment_count" invisible="1"/>
+                        </group>
+                        <group string="Removal" name="removal" invisible="state != 'removed'">
+                            <field name="removal_id"/>
+                            <field name="removal_date"/>
+                        </group>
+                        <group string="Connectivity" name="connectivity">
+                            <field name="network"/>
+                            <field name="remote_possibility"/>
+                        </group>
+                        <group string="Operations" name="operations">
+                            <field name="process"/>
+                            <field name="robo_enabled"/>
+                            <field name="machines_criticality"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Details">
+                            <group>
+                                <group string="Coverage" name="coverage">
+                                    <field name="is_amc"/>
+                                    <field name="is_warranty"/>
+                                    <field name="is_licence"/>
+                                </group>
+                                <group string="Additional Serial Numbers" name="extra_serials">
+                                    <field name="serial_number_1"/>
+                                    <field name="serial_number_2"/>
+                                    <field name="serial_number_3"/>
+                                </group>
+                            </group>
+
+                            <separator string="Contracts"
+                                       invisible="not is_amc and not is_licence and not is_warranty"/>
+                            <div class="table-responsive"
+                                 invisible="not is_amc and not is_licence and not is_warranty">
+                                <table class="table table-sm table-bordered align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th class="w-auto"/>
+                                            <th>Vendor</th>
+                                            <th>Nature</th>
+                                            <th>Start Date</th>
+                                            <th>End Date</th>
+                                            <th>Attachment</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr invisible="not is_amc">
+                                            <th class="text-nowrap">AMC</th>
+                                            <td><field name="amc_vendor_name_id" nolabel="1" class="w-100"/></td>
+                                            <td><field name="amc_nature" nolabel="1" class="w-100"/></td>
+                                            <td><field name="amc_start_date" nolabel="1"/></td>
+                                            <td><field name="amc_end_date" nolabel="1"/></td>
+                                            <td>
+                                                <field name="amc_file" filename="amc_file_filename" nolabel="1"/>
+                                                <field name="amc_file_filename" invisible="1"/>
+                                            </td>
+                                        </tr>
+                                        <tr invisible="not is_licence">
+                                            <th class="text-nowrap">Licence</th>
+                                            <td><field name="licence_vendor_name_id" nolabel="1" class="w-100"/></td>
+                                            <td><field name="licence_nature" nolabel="1" class="w-100"/></td>
+                                            <td><field name="licence_start_date" nolabel="1"/></td>
+                                            <td><field name="licence_end_date" nolabel="1"/></td>
+                                            <td>
+                                                <field name="licence_file" filename="licence_file_filename" nolabel="1"/>
+                                                <field name="licence_file_filename" invisible="1"/>
+                                            </td>
+                                        </tr>
+                                        <tr invisible="not is_warranty">
+                                            <th class="text-nowrap">Warranty</th>
+                                            <td><field name="warranty_vendor_name_id" nolabel="1" class="w-100"/></td>
+                                            <td><field name="warranty_nature" nolabel="1" class="w-100"/></td>
+                                            <td><field name="warranty_start_date" nolabel="1"/></td>
+                                            <td><field name="warranty_end_date" nolabel="1"/></td>
+                                            <td>
+                                                <field name="warranty_file" filename="warranty_file_filename" nolabel="1"/>
+                                                <field name="warranty_file_filename" invisible="1"/>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </page>
+                        <page string="Assignment History" name="assignment_history">
+                            <field name="assignment_ids" readonly="1">
+                                <list decoration-success="state == 'assigned'"
+                                      decoration-muted="state in ('returned', 'cancel')">
+                                    <field name="name"/>
+                                    <field name="employee_id"/>
+                                    <field name="department_id"/>
+                                    <field name="assign_date"/>
+                                    <field name="return_date"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="History">
+                            <field name="history_ids" widget="one2many">
+                                <list editable="bottom">
+                                    <!--                                    <field name="vendor_id"/>-->
+                                    <field name="asset_type"/>
+                                    <field name="start_date"/>
+                                    <field name="end_date"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree View -->
+    <record id="view_asset_creation_tree" model="ir.ui.view">
+        <field name="name">asset.creation.tree</field>
+        <field name="model">asset.addition</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="asset_name"/>
+                <field name="ip_address"/>
+                <field name="serial_number"/>
+                <field name="category_id"/>
+                <field name="sub_category_id" optional="show"/>
+                <field name="employee_id" optional="show"/>
+                <field name="value"/>
+                <field name="acquisition_date"/>
+                <field name="plant_id"/>
+                <field name="department_id"/>
+                <field name="physical_location_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_addition_pivot" model="ir.ui.view">
+        <field name="name">asset.addition.pivot</field>
+        <field name="model">asset.addition</field>
+        <field name="arch" type="xml">
+            <pivot string="Asset Addition Analysis">
+                <field name="plant_id" type="row"/>
+                <field name="state" type="col"/>
+                <field name="physical_location_id" type="col"/>
+                <field name="acquisition_date" type="col"/>
+                <field name="department_id" type="row"/>
+                <field name="asset_name" type="row"/>
+                <field name="serial_number" type="col"/>
+                <field name="value" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_asset_addition_filter" model="ir.ui.view">
+        <field name="name">asset.addition.search.lead</field>
+        <field name="model">asset.addition</field>
+        <field name="arch" type="xml">
+            <search string="Search">
+                <field name="department_id"/>
+                <field name="category_id"/>
+                <field name="sub_category_id"/>
+                <field name="employee_id"/>
+                <field name="plant_id"/>
+                <field name="physical_location_id"/>
+                <field name="acquisition_date"/>
+                <group>
+                    <filter string="Department" name="Department" context="{'group_by':'department_id'}"/>
+                    <filter string="Category" name="Category" context="{'group_by':'category_id'}"/>
+                    <filter string="Sub Category" name="Sub Category" context="{'group_by':'sub_category_id'}"/>
+                    <filter string="Assigned Employee" name="Employee" context="{'group_by':'employee_id'}"/>
+                    <filter string="Plant" name="Plant" context="{'group_by':'plant_id'}"/>
+                    <filter string="Location" name="Location" context="{'group_by':'physical_location_id'}"/>
+                    <filter string="Acquisition Date" name="Acquisition Date"
+                            context="{'group_by':'acquisition_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Graph View -->
+    <record id="view_asset_addition_graph" model="ir.ui.view">
+        <field name="name">asset.addition.graph</field>
+        <field name="model">asset.addition</field>
+        <field name="arch" type="xml">
+            <graph string="Asset Graph" type="bar">
+                <field name="value" type="measure"/>
+                <field name="department_id" type="row"/>
+                <field name="plant_id"/>
+                <field name="acquisition_date"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_asset_creation" model="ir.actions.act_window">
+        <field name="name">Asset Addition</field>
+        <field name="res_model">asset.addition</field>
+        <field name="view_mode">list,form,pivot,graph</field>
+    </record>
+
+    <record id="view_laptop_age_dashboard_kanban" model="ir.ui.view">
+        <field name="name">Laptop Age Dashboard</field>
+        <field name="model">laptop.age.dashboard</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_dashboard" create="false">
+                <field name="name"/>
+                <field name="count"/>
+                <field name="color_code"/>
+                <field name="machine_breakdown"/>
+
+                <templates>
+                    <t t-name="card">
+                        <div class="dashboard_card">
+
+                            <!-- TOP HEADER -->
+                            <div class="header_bar" t-att-style="'background-color:' + record.color_code.value">
+                                <div class="title_text">
+                                    <t t-esc="record.name.value"/>
+                                    — Overview
+                                </div>
+
+                                <button type="object"
+                                        name="action_open_records"
+                                        class="count_badge">
+                                    <t t-esc="record.count.value"/>
+                                </button>
+                            </div>
+
+                            <!-- BREAKDOWN -->
+                            <div class="breakdown_body">
+                                <t t-if="record.machine_breakdown.value">
+                                    <t t-foreach="record.machine_breakdown.value.split('\n')" t-as="line" t-key="line">
+                                        <button type="object"
+                                                name="action_open_machine_type"
+                                                class="break_row"
+                                                t-att-context="{'machine_type': line.split(':')[0]}">
+
+                                            <span class="break_name">
+                                                <t t-esc="line.split(':')[0]"/>
+                                            </span>
+
+                                            <span class="item_count">
+                                                <t t-esc="line.split(':')[1]"/>
+                                            </span>
+                                        </button>
+                                    </t>
+                                </t>
+                            </div>
+
+                            <!-- FOOTER -->
+                            <div class="dashboard-footer">
+                                <button type="object"
+                                        name="action_open_records"
+                                        class="btn-primary">
+                                    <i class="fa fa-folder-open"></i>
+                                    View All
+                                </button>
+                            </div>
+
+                        </div>
+                    </t>
+                </templates>
+
+
+            </kanban>
+        </field>
+    </record>
+
+
+    <record id="action_laptop_age_dashboard" model="ir.actions.act_window">
+        <field name="name">Age Dashboard</field>
+        <field name="res_model">laptop.age.dashboard</field>
+        <field name="view_mode">kanban</field>
+        <field name="help" type="html">
+            <p>
+                Color-coded dashboard of assets by laptop age ranges.
+            </p>
+        </field>
+    </record>
+
+
+</odoo>
+

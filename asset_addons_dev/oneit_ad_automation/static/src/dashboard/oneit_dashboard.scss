@@ -1,0 +1,602 @@
+// =====================================================================
+// OneIT dashboard
+//
+// Scoped entirely under .o_oneit_dashboard so nothing leaks into the
+// rest of the Odoo backend.
+// =====================================================================
+
+.o_oneit_dashboard {
+    // The action container is fixed height; this is what makes the
+    // dashboard vertically scrollable rather than clipping.
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #F4F5F7;
+    -webkit-overflow-scrolling: touch;
+
+    $ink:        #1F2430;
+    $ink-soft:   #6B7280;
+    $line:       #E4E7EC;
+    $purple:     #7C5CBF;
+    $blue:       #2E9BDA;
+    $teal:       #17A98C;
+    $amber:      #F2A93B;
+    $orange:     #E8724C;
+    $red:        #D94F4F;
+    $grey:       #9AA0A6;
+
+    .o_oneit_dashboard_body {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 24px 24px 0;
+    }
+
+    // ---------- header ----------
+    .o_oneit_header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 20px;
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: $ink;
+            margin: 0;
+            letter-spacing: -0.01em;
+        }
+        .o_oneit_sub {
+            color: $ink-soft;
+            font-size: 13px;
+            margin: 4px 0 0;
+        }
+        .o_oneit_refresh {
+            background: #fff;
+            border: 1px solid $line;
+            border-radius: 8px;
+            color: $ink-soft;
+            font-size: 13px;
+            padding: 7px 14px;
+            &:hover { background: #FAFBFC; color: $ink; }
+        }
+    }
+
+    // ---------- banners ----------
+    .o_oneit_banner {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 13px;
+        margin-bottom: 16px;
+        line-height: 1.5;
+
+        i { margin-top: 2px; }
+
+        &.o_oneit_banner_warn {
+            background: #FFF7E8;
+            border: 1px solid #F6DFB0;
+            color: #8A6318;
+        }
+        &.o_oneit_banner_ok {
+            background: #E9F8F3;
+            border: 1px solid #B6E5D6;
+            color: #10715E;
+        }
+    }
+
+    // ---------- cards ----------
+    .o_oneit_card {
+        background: #fff;
+        border: 1px solid $line;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+    }
+
+    .o_oneit_card_head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 16px;
+
+        h2 {
+            font-size: 15px;
+            font-weight: 600;
+            color: $ink;
+            margin: 0;
+            i { color: $purple; margin-right: 7px; }
+        }
+        .o_oneit_hint { font-size: 12px; color: $ink-soft; }
+    }
+
+    // ---------- lookup ----------
+    .o_oneit_lookup_card { border-top: 3px solid $purple; }
+
+    .o_oneit_lookup_bar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .o_oneit_input_wrap {
+        position: relative;
+        flex: 1 1 280px;
+
+        i {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: $grey;
+            font-size: 13px;
+        }
+        input {
+            width: 100%;
+            padding: 10px 14px 10px 36px;
+            border: 1px solid $line;
+            border-radius: 8px;
+            font-size: 14px;
+            color: $ink;
+            background: #FAFBFC;
+            transition: border-color .15s, background .15s;
+
+            &:focus {
+                outline: none;
+                border-color: $purple;
+                background: #fff;
+                box-shadow: 0 0 0 3px rgba(124, 92, 191, .12);
+            }
+        }
+    }
+
+    .o_oneit_check {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 13px;
+        color: $ink-soft;
+        margin: 0;
+        cursor: pointer;
+        white-space: nowrap;
+
+        input[disabled] + span { opacity: .45; }
+    }
+
+    .o_oneit_btn_primary {
+        background: $purple;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-size: 13px;
+        font-weight: 500;
+        &:hover:not(:disabled) { background: darken($purple, 6%); color: #fff; }
+        &:disabled { opacity: .6; }
+    }
+
+    .o_oneit_btn_ghost {
+        background: transparent;
+        border: 1px solid $line;
+        border-radius: 8px;
+        padding: 10px 16px;
+        font-size: 13px;
+        color: $ink-soft;
+        &:hover { background: #FAFBFC; }
+    }
+
+    // ---------- person ----------
+    .o_oneit_person {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin: 22px 0 18px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid $line;
+    }
+
+    .o_oneit_avatar {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, $purple, $blue);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 19px;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+
+    .o_oneit_person_meta {
+        h3 {
+            font-size: 17px;
+            font-weight: 600;
+            color: $ink;
+            margin: 0 0 5px;
+        }
+    }
+
+    .o_oneit_person_facts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        font-size: 13px;
+        color: $ink;
+
+        label {
+            color: $ink-soft;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            margin: 0 6px 0 0;
+            font-weight: 500;
+        }
+    }
+
+    // ---------- split ----------
+    .o_oneit_split {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        gap: 24px;
+        align-items: start;
+
+        @media (max-width: 900px) { grid-template-columns: 1fr; }
+    }
+
+    .o_oneit_split_list { min-width: 0; overflow-x: auto; }
+
+    // ---------- charts ----------
+    .o_oneit_chart_box {
+        position: relative;
+        height: 260px;
+        &.o_oneit_chart_sm { height: 210px; }
+    }
+
+    .o_oneit_grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        @media (max-width: 900px) { grid-template-columns: 1fr; }
+    }
+
+    // ---------- KPIs ----------
+    .o_oneit_kpis {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .o_oneit_kpi {
+        background: #fff;
+        border: 1px solid $line;
+        border-radius: 12px;
+        padding: 16px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        transition: transform .12s, box-shadow .12s;
+
+        &[data-domain] {
+            cursor: pointer;
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 14px rgba(31, 36, 48, .08);
+            }
+        }
+        &.o_oneit_kpi_accent { border-left: 3px solid $purple; }
+    }
+
+    .o_oneit_kpi_label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        color: $ink-soft;
+        font-weight: 600;
+    }
+    .o_oneit_kpi_value {
+        font-size: 27px;
+        font-weight: 600;
+        color: $ink;
+        line-height: 1.1;
+    }
+    .o_oneit_kpi_note { font-size: 11px; color: $grey; }
+
+    .o_oneit_amber  { color: $amber; }
+    .o_oneit_purple { color: $purple; }
+    .o_oneit_green  { color: $teal; }
+    .o_oneit_red    { color: $red; }
+    .o_oneit_orange { color: $orange; }
+
+    // ---------- tables ----------
+    .o_oneit_table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+
+        th {
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: $ink-soft;
+            font-weight: 600;
+            padding: 0 12px 9px 0;
+            border-bottom: 1px solid $line;
+            white-space: nowrap;
+        }
+        td {
+            padding: 11px 12px 11px 0;
+            border-bottom: 1px solid #F1F3F5;
+            color: $ink;
+            vertical-align: top;
+        }
+        tr:last-child td { border-bottom: none; }
+
+        &.o_oneit_table_hover tbody tr {
+            cursor: pointer;
+            &:hover { background: #FAFBFC; }
+        }
+    }
+
+    .o_oneit_dn {
+        font-family: 'SFMono-Regular', Menlo, Consolas, monospace;
+        font-size: 11px;
+        color: $ink-soft;
+        word-break: break-all;
+    }
+    .o_oneit_desc { font-size: 11px; color: $ink-soft; margin-top: 3px; }
+    .o_oneit_muted { color: $grey; font-size: 12px; }
+
+    // ---------- pills ----------
+    .o_oneit_pill {
+        display: inline-block;
+        padding: 3px 9px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+    .o_oneit_pill_ad_folder   { background: rgba(124,92,191,.12); color: $purple; }
+    .o_oneit_pill_citrix      { background: rgba(46,155,218,.12); color: $blue; }
+    .o_oneit_pill_file_server { background: rgba(23,169,140,.12); color: $teal; }
+
+    .o_oneit_pill_state_draft           { background: #F1F3F5; color: $ink-soft; }
+    .o_oneit_pill_state_pending,
+    .o_oneit_pill_state_tl_approved     { background: rgba(242,169,59,.14); color: #8A6318; }
+    .o_oneit_pill_state_approved        { background: rgba(46,155,218,.12); color: $blue; }
+    .o_oneit_pill_state_ready_to_delete { background: rgba(232,114,76,.14); color: $orange; }
+    .o_oneit_pill_state_done            { background: rgba(23,169,140,.12); color: $teal; }
+    .o_oneit_pill_state_rejected        { background: rgba(217,79,79,.12); color: $red; }
+
+    .o_oneit_tag {
+        display: inline-block;
+        margin-left: 8px;
+        padding: 2px 8px;
+        border-radius: 5px;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        vertical-align: middle;
+    }
+    .o_oneit_tag_red  { background: rgba(217,79,79,.12); color: $red; }
+    .o_oneit_tag_grey { background: #F1F3F5; color: $grey; }
+
+    .o_oneit_chip {
+        display: inline-block;
+        background: #F4F5F7;
+        border: 1px solid $line;
+        border-radius: 6px;
+        padding: 3px 9px;
+        font-size: 11px;
+        color: $ink;
+        margin: 0 5px 5px 0;
+    }
+
+    // ---------- subsections ----------
+    .o_oneit_subsection {
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: 1px solid $line;
+
+        h4 {
+            font-size: 13px;
+            font-weight: 600;
+            color: $ink;
+            margin: 0 0 14px;
+        }
+        h5 {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            margin: 0 0 8px;
+        }
+        ul { margin: 0; padding-left: 16px; font-size: 12px; color: $ink; }
+        li { margin-bottom: 4px; }
+    }
+
+    .o_oneit_h_amber { color: #8A6318; }
+    .o_oneit_h_red   { color: $red; }
+    .o_oneit_h_grey  { color: $ink-soft; }
+
+    .o_oneit_drift {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+    }
+
+    // ---------- timeline ----------
+    .o_oneit_timeline { position: relative; padding-left: 6px; }
+
+    .o_oneit_tl_item {
+        position: relative;
+        padding: 0 0 18px 24px;
+        border-left: 2px solid $line;
+        cursor: pointer;
+
+        &:last-child { border-left-color: transparent; padding-bottom: 0; }
+        &:hover .o_oneit_tl_top strong { color: $purple; }
+    }
+
+    .o_oneit_tl_dot {
+        position: absolute;
+        left: -7px;
+        top: 2px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        background: $grey;
+    }
+    .o_oneit_dot_onboarding  { background: $teal; }
+    .o_oneit_dot_offboarding { background: $orange; }
+    .o_oneit_dot_team_update { background: $blue; }
+
+    .o_oneit_tl_top {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 7px;
+
+        strong { font-size: 13px; color: $ink; }
+    }
+    .o_oneit_tl_date { font-size: 11px; color: $grey; margin-left: auto; }
+    .o_oneit_tl_groups { line-height: 1.9; }
+
+    // ---------- empty ----------
+    .o_oneit_empty {
+        text-align: center;
+        padding: 34px 20px;
+        color: $ink-soft;
+
+        i { font-size: 30px; color: #D5D9DF; display: block; margin-bottom: 12px; }
+        p { font-size: 13px; margin: 0; max-width: 380px; margin-inline: auto; line-height: 1.55; }
+
+        &.o_oneit_empty_sm {
+            padding: 22px 14px;
+            i { font-size: 22px; margin-bottom: 9px; }
+            p { font-size: 12px; }
+        }
+    }
+
+    .o_oneit_footer_space { height: 24px; }
+}
+
+// =====================================================================
+// Access Explorer additions (v1.4)
+// =====================================================================
+.o_oneit_dashboard {
+    $ink:      #1F2430;
+    $ink-soft: #6B7280;
+    $line:     #E4E7EC;
+    $purple:   #7C5CBF;
+    $amber:    #F2A93B;
+
+    .o_oneit_modes {
+        display: inline-flex;
+        background: #F1F3F5;
+        border-radius: 8px;
+        padding: 3px;
+        gap: 2px;
+    }
+    .o_oneit_mode_tab {
+        border: none;
+        background: transparent;
+        border-radius: 6px;
+        padding: 6px 14px;
+        font-size: 12px;
+        font-weight: 500;
+        color: $ink-soft;
+        cursor: pointer;
+        transition: background .12s, color .12s;
+
+        &:hover { color: $ink; }
+        &.o_oneit_mode_on {
+            background: #fff;
+            color: $purple;
+            box-shadow: 0 1px 3px rgba(31,36,48,.1);
+        }
+    }
+
+    .o_oneit_sec_h {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        color: $ink-soft;
+        margin: 0 0 10px;
+    }
+
+    // ---- by-group blocks ----
+    .o_oneit_grp_block {
+        margin-top: 22px;
+        padding-top: 20px;
+        border-top: 1px solid $line;
+        &:first-of-type { border-top: none; }
+    }
+
+    .o_oneit_grp_head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+
+        h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: $ink;
+            margin: 0 0 4px;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            flex-wrap: wrap;
+        }
+    }
+
+    .o_oneit_grp_counts {
+        display: flex;
+        gap: 16px;
+        font-size: 12px;
+        color: $ink-soft;
+        white-space: nowrap;
+        strong { color: $ink; font-size: 14px; }
+    }
+
+    .o_oneit_tag_amber {
+        background: rgba(242,169,59,.16);
+        color: #8A6318;
+    }
+}
+
+// --- Odoo 19 additions -----------------------------------------------
+.o_oneit_dashboard {
+    .o_oneit_clickable {
+        cursor: pointer;
+        transition: transform .12s, box-shadow .12s;
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 14px rgba(31, 36, 48, .08);
+        }
+    }
+
+    .o_oneit_loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        height: 240px;
+        color: #6B7280;
+        font-size: 13px;
+    }
+
+    .o_oneit_table_hover tbody tr { cursor: pointer; }
+}

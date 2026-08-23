@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Online Assets Selection Wizard Form View -->
+    <record id="view_online_assets_wizard_form" model="ir.ui.view">
+        <field name="name">asset.online.assets.wizard.form</field>
+        <field name="model">asset.online.assets.wizard</field>
+        <field name="arch" type="xml">
+            <form string="View Online Assets" class="o_online_assets_wizard">
+                <style>
+                    .btn-windows { background-color: #00B4FF !important; }
+                    .btn-windows:hover { background-color: #00B4FF !important; color: white !important; opacity: 0.8; }
+                    .btn-linux { background-color: #2ECC71 !important; }
+                    .btn-linux:hover { background-color: #2ECC71 !important; color: white !important; opacity: 0.8; }
+                    .btn-macos { background-color: #C2185B !important; }
+                    .btn-macos:hover { background-color: #C2185B !important; color: white !important; opacity: 0.8; }
+                    .btn-cctv { background-color: #7B3FE4 !important; }
+                    .btn-cctv:hover { background-color: #7B3FE4 !important; color: white !important; opacity: 0.8; }
+                    .btn-network { background-color: #00BFA5 !important; }
+                    .btn-network:hover { background-color: #00BFA5 !important; color: white !important; opacity: 0.8; }
+                    .outline-btn { transition: all 0.3s ease; }
+                </style>
+                <sheet>
+                    <!-- Total Online Banner -->
+                    <div class="alert alert-success text-center" style="background: linear-gradient(135deg, rgba(40, 167, 69, 0.15) 0%, rgba(32, 134, 55, 0.15) 100%); border: 2px solid rgba(40, 167, 69, 0.3); border-radius: 12px; padding: 30px; margin: 20px 0; box-shadow: 0 2px 8px rgba(40, 167, 69, 0.08);">
+                        <h2 style="color: #28a745; margin: 0; font-size: 16px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;">TOTAL ONLINE ASSETS</h2>
+                        <h1 style="color: #2C3E50; margin: 15px 0 0 0; font-size: 56px; font-weight: 700;">
+                            <field name="total_online" readonly="1" nolabel="1" class="oe_inline"/>
+                        </h1>
+                        <p style="color: #5D6D7B; margin: 10px 0 0 0; font-size: 14px;">Assets currently online across all categories</p>
+                    </div>
+
+                    <!-- Asset Category Cards -->
+                    <div class="row" style="margin: 30px 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;">
+                        <!-- Windows Card -->
+                        <div style="flex: 1 1 calc(20% - 1rem); min-width: 180px; max-width: 250px;">
+                            <div class="card h-100 text-center shadow-sm" style="border: 2px solid #00B4FF; border-radius: 12px; transition: transform 0.2s; display: flex; flex-direction: column;">
+                                <div class="card-body" style="padding: 30px 20px; display: flex; flex-direction: column; justify-content: space-between; flex: 1;">
+                                    <div>
+                                        <div style="background: #00B4FF; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                                            <i class="fa fa-windows fa-2x" style="color: white;"/>
+                                        </div>
+                                        <h4 style="color: #333; font-weight: 600;">Windows</h4>
+                                        <h2 style="color: #00B4FF; font-weight: 700; font-size: 36px; margin: 15px 0;">
+                                            <field name="windows_online" readonly="1" nolabel="1"/>
+                                        </h2>
+                                        <p class="text-muted small">Online Windows assets</p>
+                                    </div>
+                                    <button name="action_view_windows_online" type="object" string="View Windows Online" class="btn outline-btn btn-windows" style="border: 2px solid #00B4FF; color: white; border-radius: 8px; padding: 10px 20px; width: 100%; margin-top: auto; font-weight: 600;"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Linux Card -->
+                        <div style="flex: 1 1 calc(20% - 1rem); min-width: 180px; max-width: 250px;">
+                            <div class="card h-100 text-center shadow-sm" style="border: 2px solid #2ECC71; border-radius: 12px; transition: transform 0.2s; display: flex; flex-direction: column;">
+                                <div class="card-body" style="padding: 30px 20px; display: flex; flex-direction: column; justify-content: space-between; flex: 1;">
+                                    <div>
+                                        <div style="background: #2ECC71; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                                            <i class="fa fa-linux fa-2x" style="color: white;"/>
+                                        </div>
+                                        <h4 style="color: #333; font-weight: 600;">Linux</h4>
+                                        <h2 style="color: #2ECC71; font-weight: 700; font-size: 36px; margin: 15px 0;">
+                                            <field name="linux_online" readonly="1" nolabel="1"/>
+                                        </h2>
+                                        <p class="text-muted small">Online Linux assets</p>
+                                    </div>
+                                    <button name="action_view_linux_online" type="object" string="View Linux Online" class="btn outline-btn btn-linux" style="border: 2px solid #2ECC71; color: white; border-radius: 8px; padding: 10px 20px; width: 100%; margin-top: auto; font-weight: 600;"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- macOS Card -->
+                        <div style="flex: 1 1 calc(20% - 1rem); min-width: 180px; max-width: 250px;">
+                            <div class="card h-100 text-center shadow-sm" style="border: 2px solid #C2185B; border-radius: 12px; transition: transform 0.2s; display: flex; flex-direction: column;">
+                                <div class="card-body" style="padding: 30px 20px; display: flex; flex-direction: column; justify-content: space-between; flex: 1;">
+                                    <div>
+                                        <div style="background: #C2185B; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                                            <i class="fa fa-apple fa-2x" style="color: white;"/>
+                                        </div>
+                                        <h4 style="color: #333; font-weight: 600;">macOS</h4>
+                                        <h2 style="color: #C2185B; font-weight: 700; font-size: 36px; margin: 15px 0;">
+                                            <field name="mac_online" readonly="1" nolabel="1"/>
+                                        </h2>
+                                        <p class="text-muted small">Online macOS assets</p>
+                                    </div>
+                                    <button name="action_view_mac_online" type="object" string="View macOS Online" class="btn outline-btn btn-macos" style="border: 2px solid #C2185B; color: white; border-radius: 8px; padding: 10px 20px; width: 100%; margin-top: auto; font-weight: 600;"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CCTV Card -->
+                        <div style="flex: 1 1 calc(20% - 1rem); min-width: 180px; max-width: 250px;">
+                            <div class="card h-100 text-center shadow-sm" style="border: 2px solid #7B3FE4; border-radius: 12px; transition: transform 0.2s; display: flex; flex-direction: column;">
+                                <div class="card-body" style="padding: 30px 20px; display: flex; flex-direction: column; justify-content: space-between; flex: 1;">
+                                    <div>
+                                        <div style="background: #7B3FE4; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                                            <i class="fa fa-video-camera fa-2x" style="color: white;"/>
+                                        </div>
+                                        <h4 style="color: #333; font-weight: 600;">CCTV Cameras</h4>
+                                        <h2 style="color: #7B3FE4; font-weight: 700; font-size: 36px; margin: 15px 0;">
+                                            <field name="cctv_online" readonly="1" nolabel="1"/>
+                                        </h2>
+                                        <p class="text-muted small">Online CCTV cameras</p>
+                                    </div>
+                                    <button name="action_view_cctv_online" type="object" string="View CCTV Online" class="btn outline-btn btn-cctv" style="border: 2px solid #7B3FE4; color: white; border-radius: 8px; padding: 10px 20px; width: 100%; margin-top: auto; font-weight: 600;"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Network Card -->
+                        <div style="flex: 1 1 calc(20% - 1rem); min-width: 180px; max-width: 250px;">
+                            <div class="card h-100 text-center shadow-sm" style="border: 2px solid #00BFA5; border-radius: 12px; transition: transform 0.2s; display: flex; flex-direction: column;">
+                                <div class="card-body" style="padding: 30px 20px; display: flex; flex-direction: column; justify-content: space-between; flex: 1;">
+                                    <div>
+                                        <div style="background: #00BFA5; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                                            <i class="fa fa-sitemap fa-2x" style="color: white;"/>
+                                        </div>
+                                        <h4 style="color: #333; font-weight: 600;">Network Devices</h4>
+                                        <h2 style="color: #00BFA5; font-weight: 700; font-size: 36px; margin: 15px 0;">
+                                            <field name="network_online" readonly="1" nolabel="1"/>
+                                        </h2>
+                                        <p class="text-muted small">Online network devices</p>
+                                    </div>
+                                    <button name="action_view_network_online" type="object" string="View Network Online" class="btn outline-btn btn-network" style="border: 2px solid #00BFA5; color: white; border-radius: 8px; padding: 10px 20px; width: 100%; margin-top: auto; font-weight: 600;"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action to open wizard -->
+    <record id="action_online_assets_wizard" model="ir.actions.act_window">
+        <field name="name">View Online Assets</field>
+        <field name="res_model">asset.online.assets.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="view_id" ref="view_online_assets_wizard_form"/>
+    </record>
+
+</odoo>

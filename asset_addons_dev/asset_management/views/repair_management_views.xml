@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- ==========================================
+             REPAIR MANAGEMENT - FORM VIEW
+             ========================================== -->
+        <record id="view_repair_management_form" model="ir.ui.view">
+            <field name="name">repair.management.form</field>
+            <field name="model">repair.management</field>
+            <field name="arch" type="xml">
+                <form string="Repair Management">
+                    <header>
+                        <button name="action_start" type="object"
+                                string="Start Repair"
+                                class="btn-primary"
+                                invisible="state != 'new'"/>
+                        <button name="action_done" type="object"
+                                string="Mark as Done"
+                                class="btn-primary"
+                                invisible="state != 'in_progress'"/>
+                        <button name="action_not_repairable" type="object"
+                                string="Not Repairable"
+                                class="btn-danger"
+                                invisible="state != 'in_progress'"/>
+                        <button name="action_reset_to_new" type="object"
+                                string="Reset to New"
+                                invisible="state not in ('in_progress', 'done', 'not_repairable')"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="new,in_progress,done"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_open_assign_process"
+                                    type="object"
+                                    class="oe_stat_button"
+                                    icon="fa-exchange"
+                                    invisible="state in ('done', 'not_repairable')">
+                                <div class="o_stat_info">
+                                    <span class="o_stat_text">Assign Replacement</span>
+                                </div>
+                            </button>
+                        </div>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group string="Asset Information">
+                                <field name="asset_id"
+                                       readonly="state != 'new'"/>
+                                <field name="asset_name"/>
+                                <field name="request_date"/>
+                                <field name="resolution_date"
+                                       invisible="state not in ('done', 'not_repairable')"/>
+                            </group>
+                            <group string="Issue Details">
+                                <field name="issue_type"
+                                       readonly="state != 'new'"/>
+                                <field name="support_mode"
+                                       invisible="not issue_type"
+                                       readonly="state != 'new'"
+                                       required="issue_type != False"/>
+                                <field name="handover_mode"
+                                       invisible="support_mode != 'direct_visit'"
+                                       readonly="state != 'new'"
+                                       required="support_mode == 'direct_visit'"/>
+                            </group>
+                        </group>
+                        <group>
+                            <group string="Assignment">
+                                <field name="engineer_id"
+                                       readonly="state in ('done', 'not_repairable')"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Description" name="description">
+                                <field name="description" placeholder="Describe the issue in detail..."
+                                       readonly="state in ('done', 'not_repairable')"/>
+                            </page>
+
+                            <!-- ✅ NEW: Spare Parts page, visible only during in_progress -->
+                            <page string="Spare Parts" name="spare_parts" invisible="state not in ['in_progress','done']">
+                                <field name="spare_part_ids" widget="section_and_note_one2many">
+                                    <list editable="bottom">
+                                        <field name="product_id" string="Product" required="1"/>
+                                        <field name="quantity" string="Qty" required="1"/>
+                                        <field name="description" string="Description" optional="show"/>
+                                        <field name="cost" string="Cost" optional="show" widget="monetary"/>
+                                        <field name="currency_id" column_invisible="1"/>
+                                    </list>
+                                </field>
+                            </page>
+
+                            <page string="Resolution Notes" name="resolution"
+                                  invisible="state not in ('done', 'not_repairable')">
+                                <field name="resolution_notes"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <!-- ==========================================
+             REPAIR MANAGEMENT - LIST VIEW
+             ========================================== -->
+        <record id="view_repair_management_list" model="ir.ui.view">
+            <field name="name">repair.management.list</field>
+            <field name="model">repair.management</field>
+            <field name="arch" type="xml">
+                <list string="Repair Management"
+                      decoration-danger="state == 'not_repairable'"
+                      decoration-success="state == 'done'"
+                      decoration-info="state == 'in_progress'">
+                    <field name="name"/>
+                    <field name="asset_id"/>
+                    <field name="asset_name"/>
+                    <field name="issue_type"/>
+                    <field name="support_mode"/>
+                    <field name="handover_mode" optional="hide"/>
+                    <field name="engineer_id"/>
+                    <field name="request_date"/>
+                    <field name="state" widget="badge"
+                           decoration-info="state == 'in_progress'"
+                           decoration-success="state == 'done'"
+                           decoration-danger="state == 'not_repairable'"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Search view disabled for Odoo 19 compatibility to avoid ParseError -->
+
+        <!-- ==========================================
+             REPAIR MANAGEMENT - ACTION
+             ========================================== -->
+        <record id="action_repair_management" model="ir.actions.act_window">
+            <field name="name">Repair Management</field>
+            <field name="res_model">repair.management</field>
+            <field name="view_mode">list,form</field>
+
+        </record>
+
+    </data>
+</odoo>

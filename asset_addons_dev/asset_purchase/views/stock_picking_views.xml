@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_picking_form_asset" model="ir.ui.view">
+        <field name="name">stock.picking.form.asset</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+
+            <div name="button_box" position="inside">
+                <button name="action_view_assets" type="object"
+                        class="oe_stat_button" icon="fa-cubes"
+                        invisible="asset_count == 0">
+                    <field string="Assets" name="asset_count" widget="statinfo"/>
+                </button>
+            </div>
+
+            <xpath expr="//field[@name='move_ids']/list/field[@name='picked']" position="after">
+                <field name="is_fixed_asset" optional="show"
+                       column_invisible="parent.picking_type_code != 'incoming'"/>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

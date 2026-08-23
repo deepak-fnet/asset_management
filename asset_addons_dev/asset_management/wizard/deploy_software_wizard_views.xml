@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- =====================================================
+         DEPLOY SOFTWARE WIZARD - FORM VIEW
+         Professional deployment wizard with visual device selection
+         ===================================================== -->
+    <record id="view_deploy_software_wizard_form" model="ir.ui.view">
+        <field name="name">deploy.software.wizard.form</field>
+        <field name="model">deploy.software.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Deploy Software">
+                <!-- Software Selection -->
+                <group string="📦 Software to Deploy">
+                    <field name="software_ids" 
+                           widget="many2many_tags"
+                           options="{'color_field': 'category', 'no_create': True}"
+                           domain="[('installer_file', '!=', False)]"
+                           placeholder="Select software packages to deploy..."/>
+                    <field name="software_count" readonly="1"
+                           string="Software Selected"
+                           class="oe_subheading"/>
+                </group>
+
+                <separator string="🎯 Deployment Target"/>
+
+                <!-- Deployment Scope Selection - Visual Radio Buttons -->
+                <group>
+                    <field name="deployment_scope" widget="radio"
+                           options="{'horizontal': false}"
+                           class="oe_inline"/>
+                </group>
+
+                <!-- Option A: Selected Devices Section -->
+                <group invisible="deployment_scope != 'selected'">
+                    <separator string="📋 Select Specific Devices"/>
+                    <field name="device_ids" nolabel="1"
+                           widget="many2many_checkboxes"
+                           domain="[('platform', '=', 'windows')]"/>
+                    <div class="alert alert-info" role="alert" 
+                         invisible="device_count == 0">
+                        <i class="fa fa-info-circle"/>
+                        <strong>Selected:</strong> <field name="device_count" readonly="1" 
+                        class="oe_inline"/> device(s) will receive the deployment.
+                    </div>
+                </group>
+
+                <!-- Option B: Department Selection Section -->
+                <group invisible="deployment_scope != 'department'">
+                    <separator string="🏢 Select Department"/>
+                    <field name="department_id"
+                           placeholder="Select department..."
+                           options="{'no_create': True}"
+                           string="Department"/>
+                    <div class="alert alert-info" role="alert"
+                         invisible="department_id == False">
+                        <i class="fa fa-users"/>
+                        <strong>Department Selected:</strong> 
+                        <field name="device_count" readonly="1" class="oe_inline"/> 
+                        device(s) in this department will receive the deployment.
+                    </div>
+                    <div class="alert alert-warning" role="alert"
+                         invisible="department_id != False">
+                        <i class="fa fa-exclamation-circle"/>
+                        Please select a department to continue.
+                    </div>
+                </group>
+
+                <!-- Option C: All Devices Warning -->
+                <div class="alert alert-warning" role="alert"
+                     invisible="deployment_scope != 'all'">
+                    <i class="fa fa-exclamation-triangle"/>
+                    <strong>Deploy to All Devices:</strong> This will create deployment
+                    tasks for ALL active Windows devices in your system.
+                    <p style="margin-top: 8px;">
+                        <field name="total_device_count" readonly="1"
+                               string="Total devices"/> devices will be targeted.
+                    </p>
+                </div>
+
+                <!-- Options Section -->
+                <separator string="⚙️ Deployment Options"/>
+
+                <group>
+                    <field name="skip_installed"
+                           string="Skip devices that already have this software"
+                           help="When enabled, devices with this software already installed will be skipped"/>
+                </group>
+
+                <!-- Footer Buttons -->
+                <footer>
+                    <button string="🚀 Deploy Now"
+                            name="action_deploy"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa fa-rocket"/>
+                    <button string="Cancel"
+                            class="btn-secondary"
+                            special="cancel"
+                            icon="fa fa-times"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         DEPLOY SOFTWARE WIZARD - ACTION
+         ===================================================== -->
+    <record id="action_deploy_software_wizard" model="ir.actions.act_window">
+        <field name="name">Deploy Software</field>
+        <field name="res_model">deploy.software.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{}</field>
+    </record>
+</odoo>

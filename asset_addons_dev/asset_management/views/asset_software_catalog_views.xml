@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- =====================================================
+         SOFTWARE CATALOG - LIST VIEW
+         ===================================================== -->
+    <record id="view_asset_software_catalog_tree" model="ir.ui.view">
+        <field name="name">asset.software.catalog.list</field>
+        <field name="model">asset.software.catalog</field>
+        <field name="arch" type="xml">
+            <list string="Software Library" create="1" edit="1" delete="1">
+                <field name="name"/>
+                <field name="version"/>
+                <field name="publisher"/>
+                <field name="category"/>
+                <field name="installer_filename"/>
+                <field name="installer_size" widget="float" string="Size (MB)"/>
+                <field name="deployment_count"/>
+                <field name="success_rate" widget="progressbar"/>
+                <field name="create_date" string="Uploaded"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         SOFTWARE CATALOG - FORM VIEW (Single Page)
+         ===================================================== -->
+    <record id="view_asset_software_catalog_form" model="ir.ui.view">
+        <field name="name">asset.software.catalog.form</field>
+        <field name="model">asset.software.catalog</field>
+        <field name="arch" type="xml">
+            <form string="Software Package">
+                <header>
+                    <button name="action_deploy_software"
+                            string="Deploy Software"
+                            type="object"
+                            class="oe_highlight"
+                            icon="fa-rocket"/>
+                    <field name="active" widget="boolean_toggle"
+                           options="{'terminology': 'active'}"
+                           optional="hide"/>
+                </header>
+
+                <sheet>
+                    <!-- Smart Buttons -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_deployments"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-rocket">
+                            <field name="deployment_count"
+                                   widget="statinfo"
+                                   string="Deployments"/>
+                        </button>
+                        <button name="action_view_successful"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-check-circle">
+                            <field name="success_count"
+                                   widget="statinfo"
+                                   string="Successful"/>
+                        </button>
+                        <button name="action_view_failed"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-times-circle">
+                            <field name="failed_count"
+                                   widget="statinfo"
+                                   string="Failed"/>
+                        </button>
+                    </div>
+
+                    <!-- Title Section with Name and Version -->
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name"
+                                   placeholder="Software Name (e.g., Google Chrome)"/>
+                        </h1>
+                        <div>
+                            <label for="version" string="Version:" class="oe_edit_only"/>
+                            <field name="version"
+                                   placeholder="e.g., 124.0"
+                                   class="oe_inline"/>
+                        </div>
+                    </div>
+
+                    <!-- =====================================================
+                         SECTION 1: SOFTWARE IDENTITY
+                         ===================================================== -->
+                    <group string="📦 Software Identity">
+                        <group>
+                            <field name="publisher" 
+                                   placeholder="Publisher (e.g., Google LLC)"/>
+                            <field name="category" widget="selection"/>
+                        </group>
+                        <group>
+                            <field name="platform" widget="radio"/>
+                            <field name="create_uid" 
+                                   readonly="1" 
+                                   string="Uploaded By"/>
+                            <field name="create_date" 
+                                   readonly="1" 
+                                   string="Upload Date"/>
+                        </group>
+                    </group>
+
+                    <group string="📝 Description">
+                        <field name="description" 
+                               nolabel="1" 
+                               placeholder="Describe this software package (optional)..." 
+                               widget="text"/>
+                    </group>
+
+                    <!-- =====================================================
+                         SECTION 2: INSTALLER FILE
+                         ===================================================== -->
+                    <separator string="📁 Installer File"/>
+                    
+                    <group>
+                        <group string="Upload Installer">
+                            <field name="installer_file"
+                                   widget="binary"
+                                   filename="installer_filename"/>
+                            <field name="installer_filename" invisible="1"/>
+                            <field name="installer_size"
+                                   readonly="1"
+                                   string="File Size (MB)"/>
+                        </group>
+                        <group string="Distribution">
+                            <field name="installer_url" 
+                                   readonly="1" 
+                                   widget="url" 
+                                   string="Agent Download URL"
+                                   placeholder="URL will be generated after saving..."/>
+                        </group>
+                    </group>
+
+                    <div class="alert alert-info" role="alert" 
+                         style="margin: 16px 0;">
+                        <i class="fa fa-info-circle"/> 
+                        <strong>Distribution:</strong> The agent will automatically download 
+                        the installer from the URL above during deployment.
+                    </div>
+
+                    <!-- =====================================================
+                         SECTION 3: INSTALLATION SETTINGS
+                         ===================================================== -->
+                    <separator string="⚙️ Installation Settings (Automatic)"/>
+                    
+                    <group>
+                        <field name="silent_flags" readonly="1" 
+                               string="Auto-Detected Flags"/>
+                    </group>
+
+                    <div class="alert alert-success" role="alert" 
+                         style="margin: 16px 0;">
+                        <i class="fa fa-check-circle"/> 
+                        <strong>Automatic Configuration:</strong> Silent install flags are 
+                        automatically detected based on your installer file type 
+                        (.exe or .msi). No configuration needed!
+                    </div>
+
+                    <!-- =====================================================
+                         SECTION 4: DEPLOYMENT STATISTICS
+                         ===================================================== -->
+                    <separator string="📊 Deployment Statistics"/>
+                    
+                    <group col="4">
+                        <group string="Total Deployments">
+                            <field name="deployment_count" 
+                                   readonly="1" 
+                                   style="font-size: 28px; font-weight: bold; color: #6366f1;"/>
+                        </group>
+                        <group string="✅ Successful">
+                            <field name="success_count" 
+                                   readonly="1" 
+                                   style="font-size: 28px; font-weight: bold; color: #10b981;"/>
+                        </group>
+                        <group string="❌ Failed">
+                            <field name="failed_count" 
+                                   readonly="1" 
+                                   style="font-size: 28px; font-weight: bold; color: #ef4444;"/>
+                        </group>
+                        <group string="📈 Success Rate">
+                            <field name="success_rate" 
+                                   readonly="1" 
+                                   widget="progressbar"/>
+                        </group>
+                    </group>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    
+    <!-- ODOO19_DISABLED-->
+
+    <!-- =====================================================
+         SOFTWARE CATALOG - ACTION
+         ===================================================== -->
+    <record id="action_asset_software_catalog" model="ir.actions.act_window">
+        <field name="name">Software Library</field>
+        <field name="res_model">asset.software.catalog</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add your first software installer
+            </p>
+            <p>
+                Upload .exe or .msi installers to deploy across your device fleet.
+            </p>
+        </field>
+    </record>
+</odoo>

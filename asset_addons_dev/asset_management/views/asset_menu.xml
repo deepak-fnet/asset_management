@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!-- ==========================================
+             ROOT MENU - MUST BE DEFINED FIRST
+             ========================================== -->
+        <menuitem id="menu_asset_root"
+                  name="Asset Management"
+                  web_icon="asset_management,static/description/icon.png"
+                  sequence="10"/>
+
+        <!-- ==========================================
+             HOME - SYSTEM OVERVIEW
+             ========================================== -->
+        <menuitem id="menu_system_overview"
+                  name="Home"
+                  parent="menu_asset_root"
+                  action="action_system_overview"
+                  sequence="0"/>
+
+        <!-- ==========================================
+             WINDOWS MENU
+             ========================================== -->
+
+        <menuitem id="menu_windows_root"
+                  name="Windows ▾"
+                  parent="menu_asset_root"
+                  sequence="1"/>
+
+        <menuitem id="menu_asset_dashboard"
+                  name="Windows Dashboard"
+                  parent="menu_windows_root"
+                  action="action_asset_dashboard_client"
+                  sequence="1"/>
+
+        <menuitem id="menu_asset_assets"
+                  name="Windows Assets"
+                  parent="menu_windows_root"
+                  action="action_asset_asset"
+                  sequence="2"/>
+
+        <menuitem id="menu_windows_live_monitoring"
+                  name="Windows Live Monitoring"
+                  parent="menu_windows_root"
+                  action="action_windows_monitoring"
+                  sequence="3"/>
+
+        <menuitem id="menu_windows_antivirus_dashboard"
+                  name="Windows Antivirus Dashboard"
+                  parent="menu_windows_root"
+                  action="action_windows_antivirus_dashboard"
+                  sequence="40"/>
+
+        <menuitem id="menu_windows_app_deployment"
+                  name="Windows App Deployment"
+                  parent="menu_windows_root"
+                  action="action_app_deployment_dashboard_windows"
+                  sequence="41"/>
+
+        <!-- ==========================================
+             LINUX MENU
+             ========================================== -->
+
+        <menuitem id="menu_ubuntu_root"
+                  name="Linux ▾"
+                  parent="menu_asset_root"
+                  sequence="2"/>
+
+        <menuitem id="menu_ubuntu_agent_dashboard"
+                  name="Linux Dashboard"
+                  parent="menu_ubuntu_root"
+                  action="action_ubuntu_agent_dashboard"
+                  sequence="1"/>
+
+        <menuitem id="menu_ubuntu_assets"
+                  name="Linux Assets"
+                  parent="menu_ubuntu_root"
+                  action="action_ubuntu_asset"
+                  sequence="2"/>
+
+        <menuitem id="menu_ubuntu_live_monitoring"
+                  name="Linux Live Monitoring"
+                  parent="menu_ubuntu_root"
+                  action="action_ubuntu_monitoring"
+                  sequence="3"/>
+
+        <menuitem id="menu_linux_antivirus_dashboard"
+                  name="Linux Antivirus Dashboard"
+                  parent="menu_ubuntu_root"
+                  action="action_linux_antivirus_dashboard"
+                  sequence="40"/>
+
+        <menuitem id="menu_linux_app_deployment"
+                  name="Linux App Deployment"
+                  parent="menu_ubuntu_root"
+                  action="action_app_deployment_dashboard_linux"
+                  sequence="41"/>
+
+        <!-- ==========================================
+             MAC MENU
+             ========================================== -->
+
+        <menuitem id="menu_mac_root"
+                  name="macOS ▾"
+                  parent="menu_asset_root"
+                  sequence="3"/>
+
+        <menuitem id="menu_mac_dashboard"
+                  name="macOS Dashboard"
+                  parent="menu_mac_root"
+                  action="action_mac_agent_dashboard"
+                  sequence="1"/>
+
+        <menuitem id="menu_mac_assets"
+                  name="macOS Assets"
+                  parent="menu_mac_root"
+                  action="action_mac_asset"
+                  sequence="2"/>
+
+        <menuitem id="menu_mac_live_monitoring"
+                  name="macOS Live Monitoring"
+                  parent="menu_mac_root"
+                  action="action_mac_monitoring"
+                  sequence="3"/>
+
+        <menuitem id="menu_macos_antivirus_dashboard"
+                  name="macOS Antivirus Dashboard"
+                  parent="menu_mac_root"
+                  action="action_macos_antivirus_dashboard"
+                  sequence="40"/>
+
+        <menuitem id="menu_macos_app_deployment"
+                  name="macOS App Deployment"
+                  parent="menu_mac_root"
+                  action="action_app_deployment_dashboard_macos"
+                  sequence="41"/>
+
+        <!-- ==========================================
+             CCTV MENU
+             ========================================== -->
+
+        <menuitem id="menu_cctv_root"
+                  name="CCTV ▾"
+                  parent="menu_asset_root"
+                  sequence="5"/>
+
+        <menuitem id="menu_cctv_dashboard"
+                  name="CCTV Dashboard"
+                  parent="menu_cctv_root"
+                  action="action_cctv_dashboard"
+                  sequence="1"/>
+
+        <menuitem id="menu_cctv_cameras"
+                  name="CCTV Assets"
+                  parent="menu_cctv_root"
+                  action="action_asset_camera"
+                  sequence="2"/>
+
+        <menuitem id="menu_cctv_live_monitoring"
+                  name="CCTV Live Monitoring"
+                  parent="menu_cctv_root"
+                  action="action_cctv_monitoring"
+                  sequence="3"/>
+
+        <!-- ==========================================
+             NETWORK DEVICES MENU
+             ========================================== -->
+
+        <menuitem id="menu_network_root"
+                  name="Network Devices ▾"
+                  parent="menu_asset_root"
+                  sequence="4"/>
+
+        <menuitem id="menu_network_dashboard"
+                  name="Network Dashboard"
+                  parent="menu_network_root"
+                  action="action_network_dashboard"
+                  sequence="1"/>
+
+        <menuitem id="menu_network_devices_list"
+                  name="Network Assets"
+                  parent="menu_network_root"
+                  action="action_asset_network_device"
+                  sequence="2"/>
+
+        <menuitem id="menu_network_live_monitoring"
+                  name="Network Live Monitoring"
+                  parent="menu_network_root"
+                  action="action_network_live_monitoring"
+                  sequence="3"/>
+
+        <!-- ==========================================
+             ANTIVIRUS MANAGEMENT
+             ========================================== -->
+
+
+        <!-- ==========================================
+             CATEGORIES
+             ========================================== -->
+
+        <menuitem id="menu_asset_categories"
+                  name="Categories"
+                  parent="menu_asset_root"
+                  action="action_asset_category"
+                  sequence="10"/>
+
+        <menuitem id="menu_repair_management"
+                  name="Repair Management"
+                  parent="menu_asset_root"
+                  action="action_repair_management"
+                  sequence="9"/>
+
+        <!-- ── Lifecycle Processes ──────────────────────────────────── -->
+        <menuitem id="menu_lifecycle_root"
+                  name="Lifecycle Processes"
+                  parent="menu_asset_root"
+                  sequence="11"/>
+
+        <menuitem id="menu_joining_process"
+                  name="Joining Process"
+                  parent="menu_lifecycle_root"
+                  action="action_asset_joining_process"
+                  sequence="1"/>
+
+        <menuitem id="menu_assign_process"
+                  name="Assign / Replace Process"
+                  parent="menu_lifecycle_root"
+                  action="action_asset_assign_process"
+                  sequence="2"/>
+
+        <menuitem id="menu_exit_process"
+                  name="Exit Process"
+                  parent="menu_lifecycle_root"
+                  action="action_asset_exit_process"
+                  sequence="3"/>
+
+    <menuitem id="menu_asset_network_device_unmanaged"
+              name="Unmanaged Endpoints"
+              action="asset_management.action_asset_network_device_unmanaged"
+              sequence="15"
+              parent="asset_management.menu_network_root"/>
+    </data>
+</odoo>

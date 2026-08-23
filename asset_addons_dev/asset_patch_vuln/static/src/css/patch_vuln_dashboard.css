@@ -1,0 +1,356 @@
+/* ==========================================================================
+   Patch & Vulnerability dashboards — shared styles
+   Prefix: pv-  (avoids collisions with the existing asset_management CSS,
+   which previously leaked global rules; see the antivirus.css incident)
+   ========================================================================== */
+
+.pv-dashboard {
+    padding: 20px 24px 40px;
+    background: #f7f8fa;
+    min-height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;min-height: 100vh;
+    height: 100vh; /* Set fixed height */
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.pv-dashboard .pv-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.pv-dashboard .pv-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 4px;
+}
+.pv-dashboard .pv-subtitle {
+    font-size: 13px;
+    color: #6b7280;
+    margin: 0;
+}
+.pv-dashboard .pv-header-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* ── Buttons ────────────────────────────────────────────────────────────── */
+.pv-dashboard .pv-btn {
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all .15s;
+}
+.pv-dashboard .pv-btn:hover:not(:disabled) {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+.pv-dashboard .pv-btn:disabled { opacity: .55; cursor: not-allowed; }
+.pv-dashboard .pv-btn-primary {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+}
+.pv-dashboard .pv-btn-primary:hover:not(:disabled) {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+}
+
+/* ── Alerts ─────────────────────────────────────────────────────────────── */
+.pv-dashboard .pv-alert {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+.pv-dashboard .pv-alert i { font-size: 18px; margin-top: 1px; }
+.pv-dashboard .pv-alert-warning {
+    background: #fffbeb; border-left: 4px solid #f59e0b; color: #78350f;
+}
+.pv-dashboard .pv-alert-info {
+    background: #eff6ff; border-left: 4px solid #3b82f6; color: #1e3a5f;
+    cursor: pointer;
+}
+.pv-dashboard .pv-alert-info:hover { background: #dbeafe; }
+
+/* ── KPI tiles ──────────────────────────────────────────────────────────── */
+.pv-dashboard .pv-kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+}
+.pv-dashboard .pv-kpi {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 16px 18px;
+    transition: box-shadow .15s;
+}
+.pv-dashboard .pv-kpi:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,.07);
+}
+.pv-dashboard .pv-kpi-danger  { background: #fef2f2; border-color: #fecaca; }
+.pv-dashboard .pv-kpi-warning { background: #fff7ed; border-color: #fed7aa; }
+.pv-dashboard .pv-kpi-medium  { background: #fefce8; border-color: #fef08a; }
+.pv-dashboard .pv-kpi-info    { background: #eff6ff; border-color: #bfdbfe; }
+
+.pv-dashboard .pv-kpi-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.pv-dashboard .pv-kpi-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: none;
+}
+.pv-dashboard .pv-kpi-icon { font-size: 20px; }
+.pv-dashboard .pv-icon-danger  { color: #ef4444; }
+.pv-dashboard .pv-icon-warning { color: #f97316; }
+.pv-dashboard .pv-icon-medium  { color: #eab308; }
+.pv-dashboard .pv-icon-success { color: #22c55e; }
+.pv-dashboard .pv-icon-info    { color: #3b82f6; }
+.pv-dashboard .pv-icon-purple  { color: #8b5cf6; }
+
+.pv-dashboard .pv-kpi-value {
+    font-size: 30px;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.1;
+}
+.pv-dashboard .pv-kpi-sub {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+.pv-dashboard .pv-delta-up   { color: #dc2626; font-weight: 600; }
+.pv-dashboard .pv-delta-down { color: #16a34a; font-weight: 600; }
+.pv-dashboard .pv-delta-flat { color: #6b7280; }
+
+/* ── Cards / grids ──────────────────────────────────────────────────────── */
+.pv-dashboard .pv-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+}
+.pv-dashboard .pv-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+}
+.pv-dashboard .pv-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 14px;
+}
+.pv-dashboard .pv-card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 14px;
+}
+
+/* ── Donut ──────────────────────────────────────────────────────────────── */
+.pv-dashboard .pv-donut-wrap {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+.pv-dashboard .pv-donut {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    flex-shrink: 0;
+}
+.pv-dashboard .pv-donut-center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+}
+.pv-dashboard .pv-donut-num {
+    font-size: 24px; font-weight: 700; color: #111827; line-height: 1;
+}
+.pv-dashboard .pv-donut-lbl { font-size: 11px; color: #9ca3af; }
+
+.pv-dashboard .pv-legend { flex: 1; min-width: 150px; }
+.pv-dashboard .pv-legend-item {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12.5px; padding: 4px 0;
+}
+.pv-dashboard .pv-dot {
+    width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0;
+}
+.pv-dashboard .pv-legend-label { flex: 1; color: #374151; }
+.pv-dashboard .pv-legend-val { color: #6b7280; font-weight: 500; }
+
+/* ── Horizontal bars ────────────────────────────────────────────────────── */
+.pv-dashboard .pv-bars { display: flex; flex-direction: column; gap: 14px; }
+.pv-dashboard .pv-bar-row {
+    display: flex; align-items: center; gap: 10px; font-size: 12.5px;
+}
+.pv-dashboard .pv-bar-label { width: 80px; color: #374151; flex-shrink: 0; }
+.pv-dashboard .pv-bar-track {
+    flex: 1; height: 8px; background: #f3f4f6; border-radius: 4px; overflow: hidden;
+}
+.pv-dashboard .pv-bar-fill {
+    height: 100%; background: #2563eb; border-radius: 4px; transition: width .4s;
+}
+.pv-dashboard .pv-bar-val {
+    width: 86px; text-align: right; color: #6b7280; flex-shrink: 0;
+}
+
+/* ── Charts ─────────────────────────────────────────────────────────────── */
+.pv-dashboard .pv-chart-box { height: 200px; position: relative; }
+.pv-dashboard .pv-chart-tall { height: 280px; }
+
+/* ── Mini stat row ──────────────────────────────────────────────────────── */
+.pv-dashboard .pv-mini-row {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+}
+.pv-dashboard .pv-mini {
+    text-align: center; padding: 14px 8px;
+    background: #f9fafb; border-radius: 8px;
+}
+.pv-dashboard .pv-mini-num { font-size: 22px; font-weight: 700; }
+.pv-dashboard .pv-mini-lbl { font-size: 11.5px; color: #6b7280; margin-top: 2px; }
+
+/* ── Tables ─────────────────────────────────────────────────────────────── */
+.pv-dashboard .pv-table {
+    width: 100%; border-collapse: collapse; font-size: 12.5px;
+}
+.pv-dashboard .pv-table th {
+    text-align: left; padding: 8px 10px;
+    font-size: 11px; font-weight: 600; color: #6b7280;
+    text-transform: uppercase; letter-spacing: .3px;
+    border-bottom: 1px solid #e5e7eb;
+}
+.pv-dashboard .pv-table td {
+    padding: 10px; border-bottom: 1px solid #f3f4f6; color: #374151;
+    vertical-align: middle;
+}
+.pv-dashboard .pv-table tbody tr:last-child td { border-bottom: none; }
+.pv-dashboard .pv-clickable { cursor: pointer; }
+.pv-dashboard .pv-clickable:hover { background: #f9fafb; }
+.pv-dashboard .pv-truncate {
+    max-width: 260px; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ── Badges ─────────────────────────────────────────────────────────────── */
+.pv-dashboard .pv-badge {
+    display: inline-block; padding: 2px 9px; border-radius: 11px;
+    font-size: 11px; font-weight: 600; text-transform: capitalize;
+}
+.pv-dashboard .pv-badge-critical { background: #fee2e2; color: #b91c1c; }
+.pv-dashboard .pv-badge-high     { background: #ffedd5; color: #c2410c; }
+.pv-dashboard .pv-badge-medium   { background: #fef9c3; color: #a16207; }
+.pv-dashboard .pv-badge-low      { background: #dbeafe; color: #1d4ed8; }
+.pv-dashboard .pv-badge-success  { background: #dcfce7; color: #15803d; }
+.pv-dashboard .pv-badge-info     { background: #dbeafe; color: #1d4ed8; }
+.pv-dashboard .pv-badge-muted    { background: #f3f4f6; color: #6b7280; }
+
+.pv-dashboard .pv-cvss {
+    display: inline-block; padding: 2px 8px; border-radius: 5px;
+    font-weight: 700; font-size: 12px;
+}
+
+/* ── Text colours ───────────────────────────────────────────────────────── */
+.pv-dashboard .pv-text-danger  { color: #dc2626; font-weight: 600; }
+.pv-dashboard .pv-text-warning { color: #ea580c; font-weight: 600; }
+.pv-dashboard .pv-text-medium  { color: #ca8a04; font-weight: 600; }
+.pv-dashboard .pv-text-info    { color: #2563eb; font-weight: 600; }
+.pv-dashboard .pv-text-success { color: #16a34a; font-weight: 600; }
+.pv-dashboard .pv-muted        { color: #9ca3af; font-size: 11.5px; }
+
+/* ── Detail panel ───────────────────────────────────────────────────────── */
+.pv-dashboard .pv-detail-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px;
+}
+.pv-dashboard .pv-detail-head h4 {
+    margin: 0; font-size: 15px; font-weight: 700; color: #111827;
+}
+.pv-dashboard .pv-detail-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;
+}
+.pv-dashboard .pv-detail-lbl {
+    display: block; font-size: 11px; color: #6b7280;
+    text-transform: uppercase; letter-spacing: .3px; margin-bottom: 3px;
+}
+.pv-dashboard .pv-detail-val { font-size: 13px; color: #111827; font-weight: 500; }
+.pv-dashboard .pv-detail-section { margin-bottom: 14px; }
+.pv-dashboard .pv-detail-section p {
+    font-size: 12.5px; color: #374151; line-height: 1.55; margin: 4px 0 0;
+}
+.pv-dashboard .pv-detail-actions {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;
+}
+.pv-dashboard .pv-confidence {
+    background: #f9fafb; border-radius: 6px; padding: 10px 12px;
+    margin-bottom: 14px; font-size: 12px; color: #374151;
+}
+.pv-dashboard .pv-confidence-warn {
+    background: #fffbeb; border-left: 3px solid #f59e0b;
+}
+.pv-dashboard .pv-link {
+    font-size: 12.5px; color: #2563eb; text-decoration: none;
+}
+.pv-dashboard .pv-link:hover { text-decoration: underline; }
+
+/* ── States ─────────────────────────────────────────────────────────────── */
+.pv-dashboard .pv-loading {
+    text-align: center; padding: 70px 20px; color: #6b7280;
+}
+.pv-dashboard .pv-loading p { margin-top: 12px; font-size: 13px; }
+.pv-dashboard .pv-empty {
+    text-align: center; padding: 26px 12px; color: #9ca3af; font-size: 13px;
+}
+.pv-dashboard .pv-empty p { margin: 4px 0; }
+.pv-dashboard .pv-footer {
+    text-align: center; font-size: 11.5px; color: #9ca3af;
+    padding: 14px 0 4px;
+}
+
+@media (max-width: 768px) {
+    .pv-dashboard { padding: 12px; }
+    .pv-dashboard .pv-detail-grid,
+    .pv-dashboard .pv-mini-row { grid-template-columns: 1fr 1fr; }
+}
+
+/* Clickable table cells — drill-through from a specific number */
+.pv-dashboard .pv-cell-link {
+    cursor: pointer;
+    border-radius: 3px;
+    transition: background .12s;
+}
+.pv-dashboard .pv-cell-link:hover {
+    background: #e8edf3;
+    text-decoration: underline;
+}

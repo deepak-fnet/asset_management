@@ -1,0 +1,440 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<!-- =========================================================
+     WINDOWS-STYLE ANTIVIRUS DASHBOARD TEMPLATE
+     ========================================================= -->
+<t t-name="antivirus_management.WindowsAntivirusDashboard" owl="1">
+    <div class="o_windows_antivirus_dashboard">
+
+        <!-- =========================
+             HEADER
+             ========================= -->
+        <div class="dashboard_header mb-4 px-4 py-3">
+            <div class="row align-items-center g-0">
+                <div class="col-md-6">
+                    <h2 class="dashboard_title mb-1">
+                        <i class="fa fa-shield me-2"/>Windows Antivirus Tracking
+                    </h2>
+                    <p class="dashboard_subtitle text-muted mb-0">
+                        Real-time antivirus protection monitoring and threat detection
+                    </p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <div class="header-controls">
+                        <span class="last-refresh-badge me-2" t-if="state.last_refresh">
+                            <i class="fa fa-clock me-1"/>
+                            <t t-esc="state.last_refresh"/>
+                        </span>
+                        <button class="btn btn-outline-primary btn-sm me-2"
+                                t-on-click="() => this.refreshData()"
+                                t-att-disabled="state.loading">
+                            <i class="fa fa-sync" t-att-class="{'fa-spin': state.loading}"/>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========================
+             NAVIGATION TABS
+             ========================= -->
+        <div class="dashboard-tabs mb-4">
+            <div class="btn-group" role="group">
+                <button class="btn btn-tab"
+                        t-on-click="() => this.setActiveTab('overview')"
+                        t-att-class="state.activeTab === 'overview' ? 'btn-primary' : 'btn-outline-primary'">
+                    <i class="fa fa-dashboard me-2"/>Overview
+                </button>
+                <button class="btn btn-tab"
+                        t-on-click="() => this.setActiveTab('all_devices')"
+                        t-att-class="state.activeTab === 'all_devices' ? 'btn-primary' : 'btn-outline-primary'">
+                    <i class="fa fa-desktop me-2"/>All Devices
+                </button>
+            </div>
+        </div>
+
+        <!-- =========================
+             OVERVIEW TAB
+             ========================= -->
+        <div t-att-style="state.activeTab === 'overview' ? '' : 'display:none'">
+            <!-- KPI Cards Row -->
+            <div class="nd_summary_cards">
+                <!-- Total Devices -->
+                <div class="nd_summary_card nd_card-total" t-on-click="() => this.openAllDevices()">
+                    <div class="nd_card_icon">
+                        <i class="fa fa-server"/>
+                    </div>
+                    <div class="nd_card_content">
+                        <div class="nd_card_value" t-esc="state.total_devices"/>
+                        <div class="nd_card_label">Total Devices</div>
+                    </div>
+                </div>
+
+                <!-- Protected Devices -->
+                <div class="nd_summary_card nd_card-protected" t-on-click="() => this.openProtectedDevices()">
+                    <div class="nd_card_icon">
+                        <i class="fa fa-shield"/>
+                    </div>
+                    <div class="nd_card_content">
+                        <div class="nd_card_value" t-esc="state.protected_devices"/>
+                        <div class="nd_card_label">Protected</div>
+                    </div>
+                </div>
+
+                <!-- Unprotected Devices -->
+                <div class="nd_summary_card nd_card-unprotected" t-on-click="() => this.openUnprotectedDevices()">
+                    <div class="nd_card_icon">
+                        <i class="fa fa-exclamation-triangle"/>
+                    </div>
+                    <div class="nd_card_content">
+                        <div class="nd_card_value" t-esc="state.unprotected_devices"/>
+                        <div class="nd_card_label">Unprotected</div>
+                    </div>
+                </div>
+
+                <!-- Threats -->
+                <div class="nd_summary_card nd_card-threats" t-on-click="() => this.openThreats()">
+                    <div class="nd_card_icon">
+                        <i class="fa fa-bug"/>
+                    </div>
+                    <div class="nd_card_content">
+                        <div class="nd_card_value" t-esc="state.total_threats"/>
+                        <div class="nd_card_label">Threats</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Antivirus Products Row -->
+            <div class="nd_summary_cards">
+                <!-- Kaspersky -->
+                <div class="nd_summary_card nd_card-kaspersky" t-on-click="() => this.openKasperskyDevices()">
+                    <div class="nd_card_icon">
+                        <i class="fa fa-shield"/>
+                    </div>
+                    <div class="nd_card_content">
+                        <div class="nd_card_value" t-esc="state.kaspersky_count"/>
+                        <div class="nd_card_label">Kaspersky</div>
+                    </div>
+                </div>
+
+                <!-- Windows Defender -->
+                <div class="nd_summary_card nd_card-windows-defender" t-on-click="() => this.openWindowsDefenderDevices()">
+                    <div class="nd_card_icon">
+                        <i class="fa fa-windows"/>
+                    </div>
+                    <div class="nd_card_content">
+                        <div class="nd_card_value" t-esc="state.windows_defender_count"/>
+                        <div class="nd_card_label">Windows Defender</div>
+                    </div>
+                </div>
+
+                <!-- McAfee -->
+                <div class="nd_summary_card nd_card-mcafee" t-on-click="() => this.openMcAfeeDevices()">
+                    <div class="nd_card_icon">
+                        <i class="fa fa-shield"/>
+                    </div>
+                    <div class="nd_card_content">
+                        <div class="nd_card_value" t-esc="state.mcafee_count"/>
+                        <div class="nd_card_label">McAfee</div>
+                    </div>
+                </div>
+
+                <!-- Others -->
+                <div class="nd_summary_card nd_card-others" t-on-click="() => this.openOtherDevices()">
+                    <div class="nd_card_icon">
+                        <i class="fa fa-shield"/>
+                    </div>
+                    <div class="nd_card_content">
+                        <div class="nd_card_value" t-esc="state.others_count"/>
+                        <div class="nd_card_label">Others</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="row g-4 mt-1 mb-4">
+                <!-- Antivirus Distribution Chart -->
+                <div class="col-lg-6">
+                    <div class="card border-0 h-100" style="border-radius: 12px; box-shadow: 0 1px 8px rgba(0,0,0,0.08);">
+                        <div class="card-header bg-white border-bottom-0 pb-0 pt-3 px-4" style="border-radius: 12px 12px 0 0;">
+                            <span style="font-size: 14px; font-weight: 700; color: #1e293b;">
+                                <i class="fa fa-pie-chart me-2" style="color: #667eea;"/>Antivirus Distribution
+                            </span>
+                        </div>
+                        <div class="card-body pt-2 pb-4 px-4">
+                            <div style="position: relative; height: 260px;">
+                                <canvas id="av_distribution_chart"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Protection Status Chart -->
+                <div class="col-lg-6">
+                    <div class="card border-0 h-100" style="border-radius: 12px; box-shadow: 0 1px 8px rgba(0,0,0,0.08);">
+                        <div class="card-header bg-white border-bottom-0 pb-0 pt-3 px-4" style="border-radius: 12px 12px 0 0;">
+                            <span style="font-size: 14px; font-weight: 700; color: #1e293b;">
+                                <i class="fa fa-bar-chart me-2" style="color: #10b981;"/>Protection Status
+                            </span>
+                        </div>
+                        <div class="card-body pt-2 pb-4 px-4">
+                            <div style="position: relative; height: 260px;">
+                                <canvas id="av_protection_chart"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Threats + Recent Sync Row -->
+            <div class="row g-4 mt-1 mb-4">
+                <!-- Recent Threats (Left) — alert_item style -->
+                <div class="col-lg-6">
+                    <div class="card dashboard_card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fa fa-exclamation-circle me-2 text-danger"/>
+                                <strong>Recent Threats</strong>
+                                <span class="badge bg-danger ms-2" t-if="state.total_threats > 0" t-esc="state.total_threats"/>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert_list">
+                                <t t-if="!state.threat_list || state.threat_list.length === 0">
+                                    <div class="empty_state text-center py-4">
+                                        <i class="fa fa-check-circle text-success" style="font-size: 48px;"/>
+                                        <p class="text-muted mt-3">No threats detected</p>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <t t-foreach="state.threat_list.slice(0, 5)" t-as="threat" t-key="threat.id">
+                                        <div class="alert_item"
+                                             t-att-class="'severity-' + (threat.severity || 'low')">
+                                            <div class="alert_image_wrapper">
+                                                <img src="/asset_management/static/src/img/asset_laptop_default.png"
+                                                     class="alert_asset_img" alt="Asset"/>
+                                            </div>
+                                            <div class="alert_icon_badge">
+                                                <i class="fa fa-bug"
+                                                   t-att-class="threat.severity === 'critical' ? 'text-danger' : threat.severity === 'high' ? 'text-warning' : 'text-info'"/>
+                                            </div>
+                                            <div class="alert_content">
+                                                <div class="alert_title">
+                                                    <strong t-esc="threat.threat_name"/>
+                                                    <span class="badge bg-secondary ms-2" t-esc="threat.device_code"/>
+                                                    <span class="badge ms-2"
+                                                          t-att-class="{
+                                                              'bg-danger':  threat.severity === 'critical',
+                                                              'bg-warning text-dark': threat.severity === 'high',
+                                                              'bg-info text-dark': threat.severity === 'medium',
+                                                              'bg-secondary': threat.severity === 'low'
+                                                          }"
+                                                          t-esc="threat.severity"/>
+                                                </div>
+                                                <div class="alert_details text-muted">
+                                                    <small>
+                                                        <i class="fa fa-desktop me-1"/>
+                                                        <t t-esc="threat.device_name"/>
+                                                    </small>
+                                                </div>
+                                                <div class="alert_summary">
+                                                    <small t-esc="threat.detected_date"/>
+                                                </div>
+                                            </div>
+                                            <div class="alert_action">
+                                                <i class="fa fa-chevron-right"/>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Sync (Right) — log_item style -->
+                <div class="col-lg-6">
+                    <div class="card dashboard_card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fa fa-history me-2 text-info"/>
+                                <strong>Recent Sync</strong>
+                            </div>
+                            <span class="badge bg-primary" t-esc="state.device_list.length"/>
+                        </div>
+                        <div class="card-body">
+                            <div class="log_list">
+                                <t t-if="!state.device_list || state.device_list.length === 0">
+                                    <div class="empty_state text-center py-4">
+                                        <i class="fa fa-inbox text-muted" style="font-size: 48px;"/>
+                                        <p class="text-muted mt-3">No sync data available</p>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <t t-foreach="state.device_list.slice(0, 5)" t-as="device" t-key="device.id">
+                                        <div class="alert_item" t-on-click="() => this.viewDevice(device.id)" style="cursor:pointer;">
+                                            <div class="alert_image_wrapper">
+                                                <img src="/asset_management/static/src/img/asset_laptop_default.png"
+                                                     class="alert_asset_img" alt="Asset"/>
+                                            </div>
+                                            <div class="alert_icon_badge">
+                                                <i class="fa"
+                                                   t-att-class="{
+                                                       'fa-windows': device.platform === 'windows',
+                                                       'fa-linux':   device.platform === 'linux',
+                                                       'fa-apple':   device.platform === 'macos',
+                                                       'fa-desktop text-muted': !device.platform
+                                                   }"
+                                                   t-att-style="device.platform === 'windows' ? 'color:#0078d4' : device.platform === 'linux' ? 'color:#f97316' : 'color:#374151'"/>
+                                            </div>
+                                            <div class="alert_content">
+                                                <div class="alert_title">
+                                                    <strong t-esc="device.name"/>
+                                                    <span class="badge bg-secondary ms-2" t-esc="device.code"/>
+                                                    <span class="badge ms-2"
+                                                          t-att-class="{
+                                                              'bg-success': device.protection === 'protected',
+                                                              'bg-danger':  device.protection === 'unprotected',
+                                                              'bg-warning text-dark': device.protection === 'expired'
+                                                          }"
+                                                          t-esc="device.protection"/>
+                                                </div>
+                                                <div class="alert_details text-muted">
+                                                    <small>
+                                                        <i class="fa fa-shield me-1"/>
+                                                        <t t-esc="device.antivirus"/>
+                                                    </small>
+                                                </div>
+                                                <div class="alert_summary">
+                                                    <small><i class="fa fa-clock me-1"/><t t-esc="device.last_scan"/></small>
+                                                </div>
+                                            </div>
+                                            <div class="alert_action">
+                                                <i class="fa fa-chevron-right"/>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- =========================
+             ALL DEVICES TAB
+             ========================= -->
+        <div t-att-style="state.activeTab === 'all_devices' ? '' : 'display:none'">
+            <div class="card mt-2">
+                <div class="card-header bg-white border-bottom">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="fa fa-desktop me-2"/>All Devices
+                        </h5>
+                        <span class="badge bg-primary" t-esc="state.device_list.length"/>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th style="width: 40px;" class="text-center">
+                                        <i class="fa fa-desktop text-muted"/>
+                                    </th>
+                                    <th>DEVICE NAME</th>
+                                    <th>ASSET CODE</th>
+                                    <th>PLATFORM</th>
+                                    <th>STATUS</th>
+                                    <th>PROTECTION</th>
+                                    <th>ANTIVIRUS</th>
+                                    <th>LAST SCAN</th>
+                                    <th class="text-end">ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-if="state.device_list.length === 0">
+                                    <tr>
+                                        <td colspan="9" class="text-center py-5">
+                                            <i class="fa fa-inbox text-muted" style="font-size: 48px; opacity: 0.3;"/>
+                                            <p class="text-muted mt-3">No devices found</p>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <t t-foreach="state.device_list" t-as="device" t-key="device.id">
+                                    <tr>
+                                        <td class="text-center">
+                                            <div style="position:relative; display:inline-block; width:44px; height:44px;">
+                                                <img src="/asset_management/static/src/img/asset_laptop_default.png"
+                                                     style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;"
+                                                     alt="Device"/>
+                                                <span style="position:absolute;bottom:-4px;right:-4px;background:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,0.15);">
+                                                    <i class="fa"
+                                                       t-att-class="{
+                                                           'fa-windows': device.platform === 'windows',
+                                                           'fa-linux':   device.platform === 'linux',
+                                                           'fa-apple':   device.platform === 'macos',
+                                                           'fa-desktop': !device.platform
+                                                       }"
+                                                       t-att-style="device.platform === 'windows' ? 'color:#0078d4;font-size:10px;' : device.platform === 'linux' ? 'color:#f97316;font-size:10px;' : device.platform === 'macos' ? 'color:#374151;font-size:10px;' : 'color:#6b7280;font-size:10px;'"/>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <strong class="text-dark" t-esc="device.name"/>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted" t-esc="device.code"/>
+                                        </td>
+                                        <td>
+                                            <span class="badge" t-att-class="{
+                                                'bg-primary': device.platform === 'windows',
+                                                'bg-warning text-dark': device.platform === 'linux',
+                                                'bg-dark': device.platform === 'macos'
+                                            }" t-esc="device.platform.toUpperCase()"/>
+                                        </td>
+                                        <td>
+                                            <span class="badge" t-att-class="{
+                                                'bg-success': device.status === 'online',
+                                                'bg-info': device.status === 'idle',
+                                                'bg-danger': device.status === 'offline'
+                                            }" t-esc="device.status"/>
+                                        </td>
+                                        <td>
+                                            <span class="badge" t-att-class="{
+                                                'bg-success': device.protection === 'protected',
+                                                'bg-danger': device.protection === 'unprotected',
+                                                'bg-warning text-dark': device.protection === 'expired'
+                                            }" t-esc="device.protection"/>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border" style="font-size: 11px;">
+                                                <i class="fa fa-shield me-1"/><t t-esc="device.antivirus"/>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted" t-esc="device.last_scan"/>
+                                        </td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-outline-primary" t-on-click="() => this.viewDevice(device.id)" title="View Details">
+                                                <i class="fa fa-eye"/>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</t>
+
+</templates>
+

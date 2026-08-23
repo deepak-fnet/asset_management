@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_mdm_root" name="Mobile Devices"
+              web_icon="mobile_device_management,static/description/icon.png"
+              sequence="16"
+              groups="mobile_device_management.group_mdm_user"/>
+
+    <menuitem id="menu_mdm_devices" name="Devices"
+              parent="menu_mdm_root" action="action_mobile_device" sequence="10"/>
+
+    <menuitem id="menu_mdm_monitoring" name="Monitoring"
+              parent="menu_mdm_root" sequence="20"/>
+    <menuitem id="menu_mdm_os_updates" name="OS Updates"
+              parent="menu_mdm_monitoring" action="action_mobile_os_update" sequence="10"/>
+    <menuitem id="menu_mdm_apps" name="Installed Apps"
+              parent="menu_mdm_monitoring" action="action_mobile_application" sequence="20"/>
+    <menuitem id="menu_mdm_locations" name="Location History"
+              parent="menu_mdm_monitoring" action="action_mobile_location" sequence="30"/>
+    <menuitem id="menu_mdm_changes" name="Software Changes"
+              parent="menu_mdm_monitoring" action="action_mobile_app_change" sequence="25"/>
+    <menuitem id="menu_mdm_storage" name="Storage Volumes"
+              parent="menu_mdm_monitoring" action="action_mobile_storage_volume" sequence="35"/>
+    <menuitem id="menu_mdm_metrics" name="Battery &amp; Memory"
+              parent="menu_mdm_monitoring" action="action_mobile_metric" sequence="38"/>
+    <menuitem id="menu_mdm_commands" name="Commands"
+              parent="menu_mdm_monitoring" action="action_mobile_command" sequence="40"
+              groups="mobile_device_management.group_mdm_manager"/>
+
+    <menuitem id="menu_mdm_config" name="Configuration"
+              parent="menu_mdm_root" sequence="90"
+              groups="mobile_device_management.group_mdm_manager"/>
+    <menuitem id="menu_mdm_enrolment" name="Enrolment Tokens"
+              parent="menu_mdm_config" action="action_mobile_enrollment" sequence="10"/>
+    <menuitem id="menu_mdm_os_releases" name="OS Releases"
+              parent="menu_mdm_config" action="action_mobile_os_release" sequence="20"/>
+</odoo>

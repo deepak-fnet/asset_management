@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_asset_helpdesk_user,asset.helpdesk.user,model_asset_helpdesk,base.group_user,1,1,1,1
+access_asset_helpdesk_team_user,asset.helpdesk.team.user,model_asset_helpdesk_team,base.group_user,1,1,1,1
+access_asset_helpdesk_type_user,asset.helpdesk.type.user,model_asset_helpdesk_type,base.group_user,1,1,1,1
+access_asset_helpdesk_category_user,asset.helpdesk.category.user,model_asset_helpdesk_category,base.group_user,1,1,1,1
+access_asset_helpdesk_history,asset_helpdesk_history,model_asset_helpdesk_history,base.group_user,1,1,1,1

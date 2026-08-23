@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Requesters see what they submitted, plus anything they must approve -->
+        <record id="rule_oneit_request_own" model="ir.rule">
+            <field name="name">OneIT Request: own or awaiting my approval</field>
+            <field name="model_id" ref="model_oneit_request"/>
+            <field name="domain_force">
+                ['|', ('submitted_by_id', '=', user.id),
+                      ('approval_ids.approver_id', '=', user.id)]
+            </field>
+            <field name="groups" eval="[(4, ref('group_oneit_hr'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- IT administrators see everything -->
+        <record id="rule_oneit_request_all" model="ir.rule">
+            <field name="name">OneIT Request: all</field>
+            <field name="model_id" ref="model_oneit_request"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_oneit_it_admin'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- Approval lines follow the same visibility -->
+        <record id="rule_oneit_approval_own" model="ir.rule">
+            <field name="name">OneIT Approval: mine</field>
+            <field name="model_id" ref="model_oneit_approval"/>
+            <field name="domain_force">
+                ['|', ('approver_id', '=', user.id),
+                      ('request_id.submitted_by_id', '=', user.id)]
+            </field>
+            <field name="groups" eval="[(4, ref('group_oneit_hr'))]"/>
+        </record>
+
+        <record id="rule_oneit_approval_all" model="ir.rule">
+            <field name="name">OneIT Approval: all</field>
+            <field name="model_id" ref="model_oneit_approval"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_oneit_it_admin'))]"/>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,57 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_vendor_category_user,Vendor Category User,vendor_management.model_vendor_category,vendor_management.group_vendor_user,1,0,0,0
+access_vendor_category_manager,Vendor Category Manager,vendor_management.model_vendor_category,vendor_management.group_vendor_manager,1,1,1,0
+access_vendor_category_md,Vendor Category MD,vendor_management.model_vendor_category,vendor_management.group_vendor_md,1,1,1,1
+access_vendor_category_document_line_internal,Vendor Category Document Line Internal,vendor_management.model_vendor_category_document_line,base.group_user,1,1,1,1
+access_vendor_category_document_line_user,Vendor Category Document Line User,vendor_management.model_vendor_category_document_line,vendor_management.group_vendor_user,1,0,0,0
+access_vendor_category_document_line_manager,Vendor Category Document Line Manager,vendor_management.model_vendor_category_document_line,vendor_management.group_vendor_manager,1,1,1,1
+access_vendor_category_document_line_md,Vendor Category Document Line MD,vendor_management.model_vendor_category_document_line,vendor_management.group_vendor_md,1,1,1,1
+
+access_vendor_document_user,Vendor Document User,vendor_management.model_vendor_document,vendor_management.group_vendor_user,1,1,1,0
+access_vendor_document_internal,Vendor Document Internal,vendor_management.model_vendor_document,base.group_user,1,1,1,1
+access_vendor_document_manager,Vendor Document Manager,vendor_management.model_vendor_document,vendor_management.group_vendor_manager,1,1,1,0
+access_vendor_document_md,Vendor Document MD,vendor_management.model_vendor_document,vendor_management.group_vendor_md,1,1,1,1
+access_vendor_document_portal,Vendor Document Portal,vendor_management.model_vendor_document,base.group_portal,1,1,0,0
+
+access_vendor_contract_user,Vendor Contract User,vendor_management.model_vendor_contract,vendor_management.group_vendor_user,1,1,1,0
+access_vendor_contract_manager,Vendor Contract Manager,vendor_management.model_vendor_contract,vendor_management.group_vendor_manager,1,1,1,1
+access_vendor_contract_md,Vendor Contract MD,vendor_management.model_vendor_contract,vendor_management.group_vendor_md,1,1,1,1
+
+access_vendor_performance_user,Vendor Performance User,vendor_management.model_vendor_performance,vendor_management.group_vendor_user,1,1,1,0
+access_vendor_performance_manager,Vendor Performance Manager,vendor_management.model_vendor_performance,vendor_management.group_vendor_manager,1,1,1,0
+access_vendor_performance_md,Vendor Performance MD,vendor_management.model_vendor_performance,vendor_management.group_vendor_md,1,1,1,1
+
+access_vendor_document_type,Vendor Document Type,vendor_management.model_vendor_document_type,base.group_user,1,1,1,1
+access_vendor_dashboard_user,Vendor Dashboard User,vendor_management.model_vendor_dashboard,base.group_user,1,1,1,0
+
+access_vendor_document_request_portal,Vendor Document Request Portal,vendor_management.model_vendor_document_request,base.group_portal,1,1,1,0
+access_vendor_document_request_user,Vendor Document Request User,vendor_management.model_vendor_document_request,vendor_management.group_vendor_user,1,1,1,0
+access_vendor_document_request_manager,Vendor Document Request Manager,vendor_management.model_vendor_document_request,vendor_management.group_vendor_manager,1,1,1,1
+
+access_vendor_audit_log_user,Vendor Audit Log User,vendor_management.model_vendor_audit_log,base.group_user,1,0,1,0
+access_vendor_audit_log_manager,Vendor Audit Log Manager,vendor_management.model_vendor_audit_log,vendor_management.group_vendor_manager,1,0,1,0
+access_vendor_audit_log_md,Vendor Audit Log MD,vendor_management.model_vendor_audit_log,vendor_management.group_vendor_md,1,0,1,0
+access_vendor_quote_user,Vendor Quote User,vendor_management.model_vendor_quote,vendor_management.group_vendor_user,1,1,1,0
+access_vendor_quote_manager,Vendor Quote Manager,vendor_management.model_vendor_quote,vendor_management.group_vendor_manager,1,1,1,1
+access_vendor_quote_md,Vendor Quote MD,vendor_management.model_vendor_quote,vendor_management.group_vendor_md,1,1,1,1
+access_vendor_quote_portal,Vendor Quote Portal,vendor_management.model_vendor_quote,base.group_portal,1,1,1,0
+access_vendor_quote_line,Vendor Quote Line,vendor_management.model_vendor_quote_line,base.group_user,1,1,1,1
+access_vendor_quote_line_portal,Vendor Quote Line Portal,vendor_management.model_vendor_quote_line,base.group_portal,1,1,1,1
+
+access_res_partner_vendor_user,Res Partner Vendor User,base.model_res_partner,vendor_management.group_vendor_user,1,1,1,0
+access_res_partner_vendor_manager,Res Partner Vendor Manager,base.model_res_partner,vendor_management.group_vendor_manager,1,1,1,0
+access_res_partner_vendor_md,Res Partner Vendor MD,base.model_res_partner,vendor_management.group_vendor_md,1,1,1,1
+
+access_res_partner_internal,Res Partner Internal,base.model_res_partner,base.group_user,1,0,0,0
+
+access_res_users_internal_read,Res Users Internal Read,base.model_res_users,base.group_user,1,0,0,0
+access_res_users_vendor_manager_read,Res Users Vendor Manager Read,base.model_res_users,vendor_management.group_vendor_manager,1,0,0,0
+access_res_partner_vendor_manager_login,Res Partner Vendor Manager Login,base.model_res_partner,vendor_management.group_vendor_manager,1,0,0,0
+access_vendor_performance_overview_user,Vendor Performance Overview User,vendor_management.model_vendor_performance_overview,vendor_management.group_vendor_user,1,1,1,0
+access_vendor_performance_overview_manager,Vendor Performance Overview Manager,vendor_management.model_vendor_performance_overview,vendor_management.group_vendor_manager,1,1,1,0
+access_vendor_performance_overview_md,Vendor Performance Overview MD,vendor_management.model_vendor_performance_overview,vendor_management.group_vendor_md,1,1,1,1
+access_vendor_rating_wizard_user,Vendor Rating Wizard User,vendor_management.model_vendor_rating_wizard,base.group_user,1,1,1,1
+access_vendor_performance_review_wizard_user,Vendor Performance Review Wizard User,vendor_management.model_vendor_performance_review_wizard,vendor_management.group_vendor_user,1,1,1,1
+access_vendor_performance_review_wizard_manager,Vendor Performance Review Wizard Manager,vendor_management.model_vendor_performance_review_wizard,vendor_management.group_vendor_manager,1,1,1,1
+access_vendor_performance_review_wizard_md,Vendor Performance Review Wizard MD,vendor_management.model_vendor_performance_review_wizard,vendor_management.group_vendor_md,1,1,1,1
+access_purchase_order_line_portal,Purchase Order Line Portal,purchase.model_purchase_order_line,base.group_portal,1,1,0,0

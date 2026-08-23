@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- =====================================================
+         APP DEPLOYMENT - KANBAN VIEW
+         ===================================================== -->
+    <record id="view_app_deployment_kanban" model="ir.ui.view">
+        <field name="name">asset.management.app.deployment.kanban</field>
+        <field name="model">asset_management.app_deployment</field>
+        <field name="arch" type="xml">
+            <kanban create="false" quick_create="false"
+                    class="o_app_deployment_kanban">
+                <field name="name"/>
+                <field name="status"/>
+                <field name="action_type"/>
+                <field name="application_name"/>
+                <field name="device_name"/>
+                <field name="serial_number"/>
+                <field name="package_manager"/>
+                <field name="deployment_created"/>
+                <field name="completed"/>
+                <field name="error_message"/>
+                <field name="created_by"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="o_dep_card o_dep_s_#{record.status.raw_value}">
+
+                            <!-- Coloured top banner with avatar + status icon -->
+                            <div class="o_dep_banner">
+                                <div class="o_dep_avatar">
+                                    <t t-out="(record.application_name.value or 'A')[0].toUpperCase()"/>
+                                </div>
+                                <div class="o_dep_banner_icon">
+                                    <t t-if="record.status.raw_value === 'pending'">
+                                        <i class="fa fa-hourglass-half"/>
+                                    </t>
+                                    <t t-elif="record.status.raw_value === 'in_progress'">
+                                        <i class="fa fa-circle-o-notch fa-spin"/>
+                                    </t>
+                                    <t t-elif="record.status.raw_value === 'success'">
+                                        <i class="fa fa-check"/>
+                                    </t>
+                                    <t t-elif="record.status.raw_value === 'failed'">
+                                        <i class="fa fa-times"/>
+                                    </t>
+                                </div>
+                            </div>
+
+                            <!-- App title + ref -->
+                            <div class="o_dep_title_block">
+                                <div class="o_dep_title_row">
+                                    <div class="o_dep_app_title">
+                                        <t t-out="record.application_name.value"/>
+                                    </div>
+                                    <span t-attf-class="o_dep_action_chip o_dep_action_#{record.action_type.raw_value}">
+                                        <t t-if="record.action_type.raw_value === 'uninstall'">
+                                            <i class="fa fa-trash"/> Uninstall
+                                        </t>
+                                        <t t-else="">
+                                            <i class="fa fa-download"/> Install
+                                        </t>
+                                    </span>
+                                </div>
+                                <div class="o_dep_ref_id">
+                                    <t t-out="record.name.value"/>
+                                </div>
+                            </div>
+
+                            <!-- Divider -->
+                            <div class="o_dep_divider"/>
+
+                            <!-- Info grid -->
+                            <div class="o_dep_info_grid">
+
+                                <!-- Row 1: Device (full width) -->
+                                <div class="o_dep_info_cell o_dep_info_full">
+                                    <span class="o_dep_info_label">
+                                        <i class="fa fa-desktop"/> Device
+                                    </span>
+                                    <span class="o_dep_info_val">
+                                        <t t-out="record.device_name.value or '—'"/>
+                                    </span>
+                                </div>
+
+                                <!-- Row 2: Serial (full width) -->
+                                <div class="o_dep_info_cell o_dep_info_full">
+                                    <span class="o_dep_info_label">
+                                        <i class="fa fa-barcode"/> Serial
+                                    </span>
+                                    <span class="o_dep_info_val o_dep_mono">
+                                        <t t-out="record.serial_number.value or '—'"/>
+                                    </span>
+                                </div>
+
+                                <!-- Row 3: Package Manager | Created (half + half) -->
+                                <div class="o_dep_info_cell">
+                                    <span class="o_dep_info_label">
+                                        <i class="fa fa-wrench"/> Package Manager
+                                    </span>
+                                    <span t-attf-class="o_dep_pkg_chip o_dep_s_#{record.status.raw_value}">
+                                        <t t-out="record.package_manager.value or '—'"/>
+                                    </span>
+                                </div>
+                                <div class="o_dep_info_cell">
+                                    <span class="o_dep_info_label">
+                                        <i class="fa fa-calendar"/> Created
+                                    </span>
+                                    <span class="o_dep_info_val">
+                                        <t t-out="record.deployment_created.value"/>
+                                    </span>
+                                </div>
+
+                            </div>
+
+                            <!-- Error box (failed only) -->
+                            <div t-if="record.error_message.value" class="o_dep_err_box">
+                                <i class="fa fa-exclamation-triangle o_dep_err_icon"/>
+                                <span class="o_dep_err_text">
+                                    <t t-out="record.error_message.value"/>
+                                </span>
+                            </div>
+
+                            <!-- Footer: deployer + retry -->
+                            <div class="o_dep_card_foot">
+                                <div class="o_dep_deployer">
+                                    <div class="o_dep_deployer_avatar">
+                                        <i class="fa fa-user"/>
+                                    </div>
+                                    <span class="o_dep_deployer_name">
+                                        <t t-out="record.created_by.value"/>
+                                    </span>
+                                </div>
+                                <button t-if="record.status.raw_value === 'failed'"
+                                        name="action_retry_deployment"
+                                        type="object"
+                                        class="o_dep_retry_pill"
+                                        title="Retry deployment">
+                                    <i class="fa fa-redo"/> Retry
+                                </button>
+                            </div>
+
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         APP DEPLOYMENT - LIST VIEW
+         ===================================================== -->
+    <record id="view_app_deployment_tree" model="ir.ui.view">
+        <field name="name">asset.management.app.deployment.list</field>
+        <field name="model">asset_management.app_deployment</field>
+        <field name="arch" type="xml">
+            <list string="App Deployments" create="false" delete="false" decoration-success="status=='success'" decoration-danger="status=='failed'" decoration-info="status=='in_progress'">
+                <field name="name"/>
+                <field name="device_name"/>
+                <field name="serial_number"/>
+                <field name="application_name"/>
+                <field name="action_type" widget="badge"
+                       decoration-success="action_type == 'install'"
+                       decoration-danger="action_type == 'uninstall'"/>
+                <field name="application_source" widget="badge"
+                       decoration-info="application_source == 'url'"/>
+                <field name="package_manager" invisible="application_source == 'url'"/>
+                <field name="installer_url" string="Installer URL" optional="show"
+                       invisible="application_source != 'url'"/>
+                <field name="status" widget="badge"
+                       decoration-warning="status == 'pending'"
+                       decoration-info="status == 'in_progress'"
+                       decoration-success="status == 'success'"
+                       decoration-danger="status == 'failed'"/>
+                <field name="deployment_created"/>
+                <field name="completed"/>
+                <field name="error_message"/>
+                <button name="action_retry_deployment"
+                        string="Retry"
+                        type="object"
+                        icon="fa-refresh"
+                        invisible="status != 'failed'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         APP DEPLOYMENT - FORM VIEW
+         ===================================================== -->
+    <record id="view_app_deployment_form" model="ir.ui.view">
+        <field name="name">asset.management.app.deployment.form</field>
+        <field name="model">asset_management.app_deployment</field>
+        <field name="arch" type="xml">
+            <form string="Deployment Details" create="false" edit="false" delete="false">
+                <header>
+                    <field name="status" widget="statusbar"
+                           statusbar_visible="pending,in_progress,success"/>
+                    <button name="action_retry_deployment"
+                            string="Retry Deployment"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="status != 'failed'"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" icon="fa-desktop" type="object" name="action_view_device">
+                            <field name="device_name" widget="statinfo" string="Device"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <notebook>
+                        <page string="Deployment Overview" name="overview">
+                            <group>
+                                <group string="Target Device">
+                                    <field name="device_id"/>
+                                    <field name="device_name"/>
+                                    <field name="serial_number"/>
+                                </group>
+                                <group string="Application Details">
+                                    <field name="application_name"/>
+                                    <field name="action_type"/>
+                                    <field name="application_source"/>
+                                    <field name="package_manager"
+                                           invisible="application_source == 'url'"/>
+                                    <field name="installer_url"
+                                           invisible="application_source != 'url'"/>
+                                    <field name="installer_type"
+                                           invisible="application_source != 'url'"/>
+                                    <field name="installer_args"
+                                           invisible="application_source != 'url'"/>
+                                </group>
+                            </group>
+
+                            <group>
+                                <group string="Deployment Details">
+                                    <field name="created_by"/>
+                                    <field name="deployment_created"/>
+                                    <field name="completed"/>
+                                </group>
+                                <group string="Installation Command">
+                                    <field name="install_command" widget="text"/>
+                                </group>
+                            </group>
+
+                            <group invisible="not notes">
+                                <field name="notes" placeholder="Deployment notes..." nolabel="1" colspan="2"/>
+                            </group>
+                        </page>
+
+                        <page string="Error Details" name="error_details" invisible="not error_message">
+                            <div class="alert alert-danger" role="alert">
+                                <i class="fa fa-exclamation-triangle"/>
+                                <strong>Deployment Failed</strong>
+                            </div>
+                            <field name="error_message"
+                                   readonly="1"
+                                   placeholder="Error message will appear here..."
+                                   nolabel="1"
+                                   colspan="2"
+                                   style="background: #f8d7da; padding: 10px; border-radius: 4px;"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    
+    <!-- ODOO19_DISABLED-->
+
+    <!-- =====================================================
+         APP DEPLOYMENT - DASHBOARD ACTION (OWL Component)
+         ===================================================== -->
+    <record id="action_app_deployment_dashboard" model="ir.actions.client">
+        <field name="name">App Deployment</field>
+        <field name="tag">asset_management.app_deployment_dashboard</field>
+        <field name="context">{}</field>
+    </record>
+
+    <!-- Windows App Deployment Dashboard -->
+    <record id="action_app_deployment_dashboard_windows" model="ir.actions.client">
+        <field name="name">Windows App Deployment</field>
+        <field name="tag">asset_management.app_deployment_dashboard</field>
+        <field name="context">{'default_platform': 'windows'}</field>
+    </record>
+
+    <!-- Linux App Deployment Dashboard -->
+    <record id="action_app_deployment_dashboard_linux" model="ir.actions.client">
+        <field name="name">Linux App Deployment</field>
+        <field name="tag">asset_management.app_deployment_dashboard</field>
+        <field name="context">{'default_platform': 'linux'}</field>
+    </record>
+
+    <!-- macOS App Deployment Dashboard -->
+    <record id="action_app_deployment_dashboard_macos" model="ir.actions.client">
+        <field name="name">macOS App Deployment</field>
+        <field name="tag">asset_management.app_deployment_dashboard</field>
+        <field name="context">{'default_platform': 'macos'}</field>
+    </record>
+
+    <!-- =====================================================
+         APP DEPLOYMENT - WINDOW ACTION (Legacy List View)
+         ===================================================== -->
+    <record id="action_app_deployment" model="ir.actions.act_window">
+        <field name="name">App Deployment History</field>
+        <field name="res_model">asset_management.app_deployment</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_pending_today': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No deployment tasks yet
+            </p>
+            <p>
+                Click "Deploy Application" to push software to a device.
+            </p>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         APP DEPLOYMENT WIZARD - FORM VIEW
+         Enhanced with dropdown selects matching Base44 design
+         ===================================================== -->
+    <record id="view_app_deployment_wizard_form" model="ir.ui.view">
+        <field name="name">app.deployment.wizard.form</field>
+        <field name="model">asset_management.app_deployment_wizard</field>
+        <field name="arch" type="xml">
+            <form string="Deploy Application">
+                <sheet>
+                    <div class="alert alert-info" role="alert" invisible="device_online">
+                        <i class="fa fa-info-circle"/>
+                        <strong>Note:</strong> The selected device appears to be offline.
+                        The deployment will be queued and executed when the device comes online.
+                    </div>
+
+                    <group>
+                        <group>
+                            <!-- Hidden technical fields -->
+                            <field name="platform_filter" invisible="1"/>
+                            <field name="device_id" invisible="1"/>
+                            <field name="device_platform" readonly="1" invisible="1"/>
+                            <field name="device_online" readonly="1" invisible="1"/>
+
+                            <!-- Row 1: Action (Install / Uninstall) -->
+                            <field name="action_type" string="Action"
+                                   widget="radio"
+                                   options="{'horizontal': true}"/>
+
+                            <!-- Row 2: Installation Method (Package Manager / URL) -->
+                            <field name="application_source" string="Method"
+                                   widget="radio"
+                                   options="{'horizontal': true}"/>
+
+                            <!-- ── PRESET MODE ─────────────────────────────── -->
+                            <field name="application_preset" string="Application"
+                                   placeholder="Pick from common apps or choose Custom..."
+                                   widget="selection"
+                                   invisible="application_source != 'preset'"
+                                   required="application_source == 'preset'"
+                                   options="{'no_create': True}"/>
+
+                            <field name="application_name" string="Application Name"
+                                   placeholder="e.g. Google Chrome"
+                                   invisible="application_source == 'preset' and application_preset != 'custom'"
+                                   required="application_source == 'url' or application_preset == 'custom'"/>
+
+                            <!-- Package Manager (show only for preset mode) -->
+                            <field name="package_manager" string="Package Manager"
+                                   invisible="application_source != 'preset' or platform_filter"
+                                   required="application_source == 'preset' and not platform_filter"
+                                   widget="selection" options="{'no_create': True}"/>
+                            <field name="package_manager_windows" string="Package Manager"
+                                   invisible="application_source != 'preset' or platform_filter != 'windows'"
+                                   required="application_source == 'preset' and platform_filter == 'windows'"
+                                   widget="selection" options="{'no_create': True}"/>
+                            <field name="package_manager_linux" string="Package Manager"
+                                   invisible="application_source != 'preset' or platform_filter != 'linux'"
+                                   required="application_source == 'preset' and platform_filter == 'linux'"
+                                   widget="selection" options="{'no_create': True}"/>
+                            <field name="package_manager_macos" string="Package Manager"
+                                   invisible="application_source != 'preset' or platform_filter != 'macos'"
+                                   required="application_source == 'preset' and platform_filter == 'macos'"
+                                   widget="selection" options="{'no_create': True}"/>
+
+                            <!-- ── URL INSTALLER MODE ──────────────────────── -->
+                            <field name="installer_url" string="Installer URL"
+                                   invisible="application_source != 'url' or action_type == 'uninstall'"
+                                   required="application_source == 'url' and action_type == 'install'"
+                                   placeholder="https://github.com/.../releases/download/v1.0/setup.exe"/>
+
+                            <!-- Windows: exe, msi, zip only -->
+                            <field name="installer_type_windows" string="Installer Type"
+                                   invisible="application_source != 'url' or action_type == 'uninstall' or platform_filter != 'windows'"
+                                   widget="selection" options="{'no_create': True}"/>
+                            <!-- Linux: deb, rpm, appimage, zip only -->
+                            <field name="installer_type_linux" string="Installer Type"
+                                   invisible="application_source != 'url' or action_type == 'uninstall' or platform_filter != 'linux'"
+                                   widget="selection" options="{'no_create': True}"/>
+                            <!-- macOS: pkg, dmg, zip only -->
+                            <field name="installer_type_macos" string="Installer Type"
+                                   invisible="application_source != 'url' or action_type == 'uninstall' or platform_filter != 'macos'"
+                                   widget="selection" options="{'no_create': True}"/>
+                            <!-- No platform context: show all options -->
+                            <field name="installer_type" string="Installer Type"
+                                   invisible="application_source != 'url' or action_type == 'uninstall' or platform_filter"
+                                   widget="selection" options="{'no_create': True}"/>
+
+                            <!-- ── COMMAND (both modes) ────────────────────── -->
+                            <field name="install_command"
+                                   string="Install Command"
+                                   invisible="action_type == 'uninstall'"
+                                   placeholder="Auto-generated or type your command..."
+                                   widget="text"
+                                   required="action_type == 'install'"/>
+                            <field name="install_command"
+                                   string="Uninstall Command"
+                                   invisible="action_type != 'uninstall'"
+                                   placeholder="e.g., winget uninstall AppName"
+                                   widget="text"
+                                   required="action_type == 'uninstall'"/>
+
+                            <field name="notes" string="Notes (optional)"
+                                   placeholder="Reason for deployment..."
+                                   widget="textarea"
+                                   colspan="2"/>
+                        </group>
+                    </group>
+                </sheet>
+                <footer>
+                    <button string="Deploy Now" type="object" name="deploy_application" class="btn-primary" icon="fa-rocket"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel" icon="fa-times"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         APP DEPLOYMENT WIZARD - ACTION
+         ===================================================== -->
+    <record id="action_app_deployment_wizard" model="ir.actions.act_window">
+        <field name="name">Deploy Application</field>
+        <field name="res_model">asset_management.app_deployment_wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{}</field>
+    </record>
+
+    <!-- =====================================================
+         SEQUENCE FOR DEPLOYMENT REFERENCE
+         ===================================================== -->
+    <record id="seq_app_deployment" model="ir.sequence">
+        <field name="name">App Deployment Sequence</field>
+        <field name="code">app.deployment</field>
+        <field name="prefix">DEP-</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

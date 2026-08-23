@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Offline import wizard -->
+    <record id="view_cve_import_wizard_form" model="ir.ui.view">
+        <field name="name">asset.cve.import.wizard.form</field>
+        <field name="model">asset.cve.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Offline CVE Import">
+                <div class="alert alert-info" role="status">
+                    <p><b>Use this when the Odoo server has no internet access.</b></p>
+                    <p>On any machine that <i>does</i> have internet, run:</p>
+                    <pre>curl -o cves.json "https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=2000"</pre>
+                    <p>Then open <code>cves.json</code>, copy everything, and paste it below.</p>
+                </div>
+                <group>
+                    <field name="json_data" nolabel="1"
+                           placeholder="Paste the complete NVD JSON response here…"
+                           widget="text"/>
+                </group>
+                <group invisible="not result_message">
+                    <field name="result_message" nolabel="1" readonly="1"/>
+                </group>
+                <footer>
+                    <button name="action_import" type="object" string="Import"
+                            class="btn-primary"/>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_cve_import_wizard" model="ir.actions.act_window">
+        <field name="name">Offline CVE Import</field>
+        <field name="res_model">asset.cve.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Add diagnostic buttons to the CVE list view -->
+    <record id="action_cve_test_connectivity" model="ir.actions.server">
+        <field name="name">Test NVD Connectivity</field>
+        <field name="model_id" ref="asset_patch_vuln.model_asset_cve"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_test_connectivity()</field>
+    </record>
+
+    <record id="action_cve_manual_sync" model="ir.actions.server">
+        <field name="name">Sync from NVD Now</field>
+        <field name="model_id" ref="asset_patch_vuln.model_asset_cve"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_manual_sync()</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Uninstall Confirmation Wizard -->
+    <record id="view_asset_app_uninstall_wizard_form" model="ir.ui.view">
+        <field name="name">asset.app.uninstall.wizard.form</field>
+        <field name="model">asset.app.uninstall.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Confirm Application Uninstall">
+                <group>
+                    <field name="asset_name" readonly="1"/>
+                    <field name="app_name" readonly="1"/>
+                    <field name="app_publisher" readonly="1"/>
+                    <field name="app_version" readonly="1"/>
+                </group>
+                <div class="alert alert-warning" role="alert">
+                    <strong>Warning:</strong> This will permanently uninstall the application from the asset.
+                    This action cannot be undone automatically. The agent will attempt to uninstall silently.
+                </div>
+                <group>
+                    <field name="confirm_checkbox" string="I understand this will uninstall the application"/>
+                </group>
+                <footer>
+                    <button name="action_confirm_uninstall" string="Confirm Uninstall" type="object" class="btn-danger" icon="fa-trash"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel" icon="fa-times"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_asset_app_uninstall_wizard" model="ir.actions.act_window">
+        <field name="name">Confirm Application Uninstall</field>
+        <field name="res_model">asset.app.uninstall.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Main Installed Applications List View -->
+    <record id="view_asset_installed_application_list" model="ir.ui.view">
+        <field name="name">asset.installed.application.list</field>
+        <field name="model">asset.installed.application</field>
+        <field name="arch" type="xml">
+            <list string="Installed Applications" editable="bottom" create="1" delete="1" class="compact_apps_list">
+                <field name="asset_id" column_invisible="True"/>
+                <field name="asset_platform" column_invisible="True"/>
+                <field name="name" string="Name" class="text-start"/>
+                <field name="publisher" string="Publisher" class="text-start"/>
+                <field name="installed_date_formatted" string="Installed On" class="text-center"/>
+                <field name="size" string="Size" class="text-end"/>
+                <field name="version" string="Version" class="text-start"/>
+
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_installed_application_form" model="ir.ui.view">
+        <field name="name">asset.installed.application.form</field>
+        <field name="model">asset.installed.application</field>
+        <field name="arch" type="xml">
+            <form string="Installed Application">
+                <header>
+                    <button name="open_uninstall_wizard"
+                            string="Uninstall Application"
+                            type="object"
+                            class="btn-danger"
+                            invisible="asset_platform != 'windows' or uninstall_status in ['uninstalling', 'uninstalled']"/>
+                    <button name="action_reset_uninstall_status"
+                            string="Retry Uninstall"
+                            type="object"
+                            class="btn-warning"
+                            invisible="uninstall_status != 'failed'"/>
+                    <field name="uninstall_status" widget="statusbar"
+                           statusbar_visible="pending,uninstalling,uninstalled"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-warning" role="alert"
+                         invisible="uninstall_status != 'failed'">
+                        <strong>Uninstall Failed:</strong>
+                        <field name="uninstall_error_message" readonly="1"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="version"/>
+                            <field name="asset_id"/>
+                        </group>
+                        <group>
+                            <field name="publisher"/>
+                            <field name="installed_date"/>
+                            <field name="size"/>
+                            <field name="asset_platform" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Uninstall Information"
+                           invisible="uninstall_status == 'pending'">
+                        <group>
+                            <field name="uninstall_status"/>
+                            <field name="uninstall_date"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action for installed applications -->
+    <record id="action_asset_installed_application" model="ir.actions.act_window">
+        <field name="name">Installed Applications</field>
+        <field name="res_model">asset.installed.application</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_group_by_asset': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No applications found
+            </p>
+            <p>
+                Applications installed on your assets will appear here after the agent syncs.
+            </p>
+        </field>
+    </record>
+
+</odoo>

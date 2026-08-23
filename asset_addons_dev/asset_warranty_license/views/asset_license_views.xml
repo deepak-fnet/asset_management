@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_asset_license_list" model="ir.ui.view">
+        <field name="name">asset.license.list</field>
+        <field name="model">asset.license</field>
+        <field name="arch" type="xml">
+            <list string="Licenses"
+                  decoration-danger="is_over_deployed or state == 'expired'"
+                  decoration-warning="state == 'expiring'"
+                  decoration-muted="state == 'cancelled'">
+                <field name="reference"/>
+                <field name="name"/>
+                <field name="publisher" optional="show"/>
+                <field name="license_type"/>
+                <field name="total_seats" string="Seats"/>
+                <field name="assigned_seats" string="Used"/>
+                <field name="available_seats" string="Free"/>
+                <field name="seat_usage_pct" widget="progressbar" string="Usage"/>
+                <field name="is_over_deployed" string="Over"/>
+                <field name="expiry_date"/>
+                <field name="days_to_expiry" string="Days Left" optional="show"/>
+                <field name="cost" optional="hide" sum="Total"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'active'"
+                       decoration-warning="state == 'expiring'"
+                       decoration-danger="state == 'expired'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_license_form" model="ir.ui.view">
+        <field name="name">asset.license.form</field>
+        <field name="model">asset.license</field>
+        <field name="arch" type="xml">
+            <form string="License">
+                <header>
+                    <button name="action_assign_asset" type="object"
+                            string="Assign to Asset" class="btn-primary"
+                            invisible="state in ['expired','cancelled']"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,active,expiring,expired"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_assignments" type="object"
+                                class="oe_stat_button" icon="fa-laptop">
+                            <field name="assigned_seats" widget="statinfo"
+                                   string="Assigned"/>
+                        </button>
+                    </div>
+
+                    <widget name="web_ribbon" title="Over-Deployed"
+                            bg_color="text-bg-danger"
+                            invisible="not is_over_deployed"/>
+                    <widget name="web_ribbon" title="Expired"
+                            bg_color="text-bg-danger"
+                            invisible="state != 'expired'"/>
+
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Microsoft 365 Business Standard"/></h1>
+                        <field name="reference" readonly="1" class="text-muted"/>
+                    </div>
+
+                    <div class="alert alert-danger" role="alert"
+                         invisible="not is_over_deployed">
+                        <b>Over-deployed.</b>
+                        <field name="assigned_seats" readonly="1" nolabel="1" class="oe_inline"/>
+                        assets are using this license but only
+                        <field name="total_seats" readonly="1" nolabel="1" class="oe_inline"/>
+                        seat(s) were purchased. This is the gap an audit would charge for.
+                    </div>
+
+                    <group>
+                        <group string="Product">
+                            <field name="software_name"/>
+                            <field name="version"/>
+                            <field name="publisher"/>
+                            <field name="license_type"/>
+                            <field name="license_key" password="True"
+                                   groups="base.group_system"/>
+                        </group>
+                        <group string="Seats">
+                            <field name="total_seats"/>
+                            <field name="is_unlimited" readonly="1"/>
+                            <field name="assigned_seats" readonly="1"/>
+                            <field name="available_seats" readonly="1"
+                                   invisible="is_unlimited"/>
+                            <field name="seat_usage_pct" widget="progressbar"
+                                   readonly="1" invisible="is_unlimited"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Validity">
+                            <field name="purchase_date"/>
+                            <field name="start_date"/>
+                            <field name="expiry_date"
+                                   placeholder="Leave empty for perpetual"/>
+                            <field name="days_to_expiry" readonly="1"
+                                   invisible="not expiry_date"/>
+                            <field name="auto_renew"/>
+                        </group>
+                        <group string="Commercial">
+                            <field name="vendor_id"/>
+                            <field name="po_reference"/>
+                            <field name="cost"/>
+                            <field name="cost_per_seat" readonly="1"
+                                   invisible="is_unlimited"/>
+                            <field name="renewal_cost"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Assigned Assets" name="assignments">
+                            <field name="assignment_ids"
+                                   context="{'default_license_id': id}">
+                                <list editable="bottom"
+                                      decoration-muted="state == 'released'">
+                                    <field name="asset_id"
+                                           options="{'no_create': True}"/>
+                                    <field name="asset_code" readonly="1"/>
+                                    <field name="employee_id" readonly="1"/>
+                                    <field name="department_id" readonly="1"
+                                           optional="hide"/>
+                                    <field name="assigned_date"/>
+                                    <field name="released_date" readonly="1"
+                                           optional="hide"/>
+                                    <field name="notes"/>
+                                    <field name="state" widget="badge"/>
+                                    <button name="action_release" type="object"
+                                            string="Release" icon="fa-times"
+                                            invisible="state != 'active'"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes"/>
+                        </page>
+                        <page string="Document" name="document">
+                            <group>
+                                <field name="attachment_file"
+                                       filename="attachment_filename"/>
+                                <field name="attachment_filename" invisible="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_asset_license_search" model="ir.ui.view">
+        <field name="name">asset.license.search</field>
+        <field name="model">asset.license</field>
+        <field name="arch" type="xml">
+            <search string="Licenses">
+                <field name="name"/>
+                <field name="reference"/>
+                <field name="software_name"/>
+                <field name="publisher"/>
+                <field name="vendor_id"/>
+                <filter name="f_active" string="Active"
+                        domain="[('state','=','active')]"/>
+                <filter name="f_expiring" string="Expiring Soon"
+                        domain="[('state','=','expiring')]"/>
+                <filter name="f_expired" string="Expired"
+                        domain="[('state','=','expired')]"/>
+                <separator/>
+                <filter name="f_over" string="Over-Deployed"
+                        domain="[('is_over_deployed','=',True)]"/>
+                <filter name="f_free_seats" string="Has Free Seats"
+                        domain="[('available_seats','>',0),('is_unlimited','=',False)]"/>
+                <filter name="f_autorenew" string="Auto-Renew"
+                        domain="[('auto_renew','=',True)]"/>
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter name="g_state" string="Status"-->
+<!--                            context="{'group_by':'state'}"/>-->
+<!--                    <filter name="g_type" string="License Type"-->
+<!--                            context="{'group_by':'license_type'}"/>-->
+<!--                    <filter name="g_publisher" string="Publisher"-->
+<!--                            context="{'group_by':'publisher'}"/>-->
+<!--                    <filter name="g_expiry" string="Expiry Month"-->
+<!--                            context="{'group_by':'expiry_date:month'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <record id="action_asset_license" model="ir.actions.act_window">
+        <field name="name">Licenses</field>
+        <field name="res_model">asset.license</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_asset_license_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Record your first license</p>
+            <p>Enter what you bought and how many seats. Assign each seat to an
+               asset, and the register tells you when you are over-deployed
+               before an audit does.</p>
+        </field>
+    </record>
+
+    <record id="action_asset_license_over_deployed" model="ir.actions.act_window">
+        <field name="name">Over-Deployed</field>
+        <field name="res_model">asset.license</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_over_deployed','=',True)]</field>
+        <field name="search_view_id" ref="view_asset_license_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No over-deployed licenses</p>
+            <p>Every license has at least as many seats as assets using it.</p>
+        </field>
+    </record>
+
+    <record id="action_asset_license_expiring" model="ir.actions.act_window">
+        <field name="name">Expiring Soon</field>
+        <field name="res_model">asset.license</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state','in',['expiring','expired'])]</field>
+        <field name="search_view_id" ref="view_asset_license_search"/>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         ASSIGNMENTS
+         ══════════════════════════════════════════════════════════════════ -->
+    <record id="view_license_assignment_list" model="ir.ui.view">
+        <field name="name">asset.license.assignment.list</field>
+        <field name="model">asset.license.assignment</field>
+        <field name="arch" type="xml">
+            <list string="License Assignments"
+                  decoration-muted="state == 'released'"
+                  decoration-danger="license_state == 'expired' and state == 'active'">
+                <field name="license_id"/>
+                <field name="asset_id"/>
+                <field name="asset_code" optional="show"/>
+                <field name="serial_number" optional="hide"/>
+                <field name="employee_id"/>
+                <field name="department_id" optional="hide"/>
+                <field name="assigned_date"/>
+                <field name="released_date" optional="hide"/>
+                <field name="expiry_date" optional="show"/>
+                <field name="license_state" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'active'"/>
+                <button name="action_release" type="object" string="Release"
+                        icon="fa-times" invisible="state != 'active'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_license_assignment_form" model="ir.ui.view">
+        <field name="name">asset.license.assignment.form</field>
+        <field name="model">asset.license.assignment</field>
+        <field name="arch" type="xml">
+            <form string="License Assignment">
+                <header>
+                    <button name="action_release" type="object" string="Release Seat"
+                            class="btn-primary" invisible="state != 'active'"/>
+                    <button name="action_reactivate" type="object" string="Reactivate"
+                            invisible="state != 'released'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="license_id" options="{'no_create': True}"/>
+                            <field name="asset_id" options="{'no_create': True}"/>
+                            <field name="asset_code" readonly="1"/>
+                            <field name="serial_number" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="employee_id" readonly="1"/>
+                            <field name="department_id" readonly="1"/>
+                            <field name="assigned_date"/>
+                            <field name="released_date" readonly="1"/>
+                            <field name="notes"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_license_assignment_search" model="ir.ui.view">
+        <field name="name">asset.license.assignment.search</field>
+        <field name="model">asset.license.assignment</field>
+        <field name="arch" type="xml">
+            <search string="License Assignments">
+                <field name="license_id"/>
+                <field name="asset_id"/>
+                <field name="employee_id"/>
+                <field name="serial_number"/>
+                <filter name="f_active" string="Active"
+                        domain="[('state','=','active')]"/>
+                <filter name="f_released" string="Released"
+                        domain="[('state','=','released')]"/>
+                <separator/>
+                <filter name="f_expired_lic" string="On Expired License"
+                        domain="[('license_state','=','expired'),('state','=','active')]"/>
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter name="g_license" string="License"-->
+<!--                            context="{'group_by':'license_id'}"/>-->
+<!--                    <filter name="g_employee" string="User"-->
+<!--                            context="{'group_by':'employee_id'}"/>-->
+<!--                    <filter name="g_dept" string="Department"-->
+<!--                            context="{'group_by':'department_id'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <record id="action_license_assignment" model="ir.actions.act_window">
+        <field name="name">License Assignments</field>
+        <field name="res_model">asset.license.assignment</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_license_assignment_search"/>
+        <field name="context">{'search_default_f_active': 1}</field>
+    </record>
+</odoo>

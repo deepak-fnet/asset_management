@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_asset_category_mapping_user,asset.category.mapping user,model_asset_category_mapping,asset_management.group_asset_user,1,0,0,0
+access_asset_category_mapping_manager,asset.category.mapping manager,model_asset_category_mapping,asset_management.group_asset_manager,1,1,1,1
+access_asset_category_mapping_purchase,asset.category.mapping purchase,model_asset_category_mapping,purchase.group_purchase_user,1,0,0,0

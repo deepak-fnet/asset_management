@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Seed OS release catalogue.
+
+         This is the reference the server compares reported device versions
+         against, because neither Android nor iOS lets an ordinary app ask
+         "is there an update?".
+
+         KEEP THIS UPDATED. When a new major version ships, add a row, set
+         is_latest on it and unset it on the previous one. Untick is_supported
+         when a version stops receiving security patches. Everything is
+         editable under Mobile Devices > Configuration > OS Releases.
+
+         noupdate="1" so your edits survive a module upgrade.
+    -->
+    <data noupdate="1">
+
+        <record id="os_android_16" model="mobile.os.release">
+            <field name="name">16</field>
+            <field name="platform">android</field>
+            <field name="sequence">160</field>
+            <field name="released_on">2025-09-01</field>
+            <field name="is_latest" eval="True"/>
+            <field name="is_supported" eval="True"/>
+        </record>
+
+        <record id="os_android_15" model="mobile.os.release">
+            <field name="name">15</field>
+            <field name="platform">android</field>
+            <field name="sequence">150</field>
+            <field name="released_on">2024-10-15</field>
+            <field name="is_latest" eval="False"/>
+            <field name="is_supported" eval="True"/>
+        </record>
+
+        <record id="os_android_14" model="mobile.os.release">
+            <field name="name">14</field>
+            <field name="platform">android</field>
+            <field name="sequence">140</field>
+            <field name="released_on">2023-10-04</field>
+            <field name="is_latest" eval="False"/>
+            <field name="is_supported" eval="True"/>
+        </record>
+
+        <record id="os_android_13" model="mobile.os.release">
+            <field name="name">13</field>
+            <field name="platform">android</field>
+            <field name="sequence">130</field>
+            <field name="released_on">2022-08-15</field>
+            <field name="is_latest" eval="False"/>
+            <field name="is_supported" eval="True"/>
+        </record>
+
+        <record id="os_android_12" model="mobile.os.release">
+            <field name="name">12</field>
+            <field name="platform">android</field>
+            <field name="sequence">120</field>
+            <field name="released_on">2021-10-04</field>
+            <field name="is_latest" eval="False"/>
+            <field name="is_supported" eval="False"/>
+        </record>
+
+        <record id="os_android_11" model="mobile.os.release">
+            <field name="name">11</field>
+            <field name="platform">android</field>
+            <field name="sequence">110</field>
+            <field name="released_on">2020-09-08</field>
+            <field name="is_latest" eval="False"/>
+            <field name="is_supported" eval="False"/>
+        </record>
+
+        <record id="os_android_10" model="mobile.os.release">
+            <field name="name">10</field>
+            <field name="platform">android</field>
+            <field name="sequence">100</field>
+            <field name="released_on">2019-09-03</field>
+            <field name="is_latest" eval="False"/>
+            <field name="is_supported" eval="False"/>
+        </record>
+
+        <record id="os_android_9" model="mobile.os.release">
+            <field name="name">9</field>
+            <field name="platform">android</field>
+            <field name="sequence">90</field>
+            <field name="released_on">2018-08-06</field>
+            <field name="is_latest" eval="False"/>
+            <field name="is_supported" eval="False"/>
+        </record>
+
+        <record id="os_ios_26" model="mobile.os.release">
+            <field name="name">26</field>
+            <field name="platform">ios</field>
+            <field name="sequence">260</field>
+            <field name="released_on">2025-09-15</field>
+            <field name="is_latest" eval="True"/>
+            <field name="is_supported" eval="True"/>
+        </record>
+
+        <record id="os_ios_18" model="mobile.os.release">
+            <field name="name">18</field>
+            <field name="platform">ios</field>
+            <field name="sequence">180</field>
+            <field name="released_on">2024-09-16</field>
+            <field name="is_latest" eval="False"/>
+            <field name="is_supported" eval="True"/>
+        </record>
+
+        <record id="os_ios_17" model="mobile.os.release">
+            <field name="name">17</field>
+            <field name="platform">ios</field>
+            <field name="sequence">170</field>
+            <field name="released_on">2023-09-18</field>
+            <field name="is_latest" eval="False"/>
+            <field name="is_supported" eval="True"/>
+        </record>
+
+        <record id="os_ios_16" model="mobile.os.release">
+            <field name="name">16</field>
+            <field name="platform">ios</field>
+            <field name="sequence">160</field>
+            <field name="released_on">2022-09-12</field>
+            <field name="is_latest" eval="False"/>
+            <field name="is_supported" eval="False"/>
+        </record>
+
+        <record id="os_ios_15" model="mobile.os.release">
+            <field name="name">15</field>
+            <field name="platform">ios</field>
+            <field name="sequence">150</field>
+            <field name="released_on">2021-09-20</field>
+            <field name="is_latest" eval="False"/>
+            <field name="is_supported" eval="False"/>
+        </record>
+
+    </data>
+</odoo>

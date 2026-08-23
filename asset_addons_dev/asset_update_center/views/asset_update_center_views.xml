@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Update Center tab on the asset form -->
+    <record id="view_asset_form_update_center" model="ir.ui.view">
+        <field name="name">asset.asset.form.update.center</field>
+        <field name="model">asset.asset</field>
+        <field name="inherit_id" ref="asset_management.view_asset_asset_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Update Center" name="update_center">
+
+                    <div class="alert alert-info d-flex justify-content-between align-items-center"
+                         role="status">
+                        <div>
+                            <b>Status: </b><field name="update_summary" readonly="1"
+                                                  class="oe_inline"/>
+                        </div>
+                        <div>
+                            <button name="action_update_everything" type="object"
+                                    string="Update Everything"
+                                    class="btn btn-primary"
+                                    invisible="total_update_pending_count == 0"
+                                    confirm="This queues every pending OS patch and application update on this machine. The agent installs them on its next poll. Continue?"
+                                    groups="asset_management.group_asset_manager"/>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Pending">
+                            <field name="os_update_pending_count" readonly="1"/>
+                            <field name="app_update_pending_count" readonly="1"/>
+                            <field name="total_update_pending_count" readonly="1"/>
+                        </group>
+                        <group string="Quick Actions">
+                            <button name="action_view_os_updates" type="object"
+                                    string="View OS Patches" class="btn-link"/>
+                            <button name="action_upgrade_all_apps" type="object"
+                                    string="Upgrade All Apps" class="btn-link"
+                                    invisible="app_update_pending_count == 0"
+                                    groups="asset_management.group_asset_manager"/>
+                        </group>
+                    </group>
+
+                    <separator string="Application Updates"/>
+                    <p class="text-muted">
+                        Third-party applications (Chrome, Firefox, Zoom…) reported
+                        as outdated by the agent. These are separate from OS
+                        patches, which live on the Windows/Linux Updates tab.
+                    </p>
+                    <field name="app_update_ids" readonly="1">
+                        <list create="false"
+                              decoration-warning="status == 'available'"
+                              decoration-info="status in ('queued','updating')"
+                              decoration-success="status == 'updated'"
+                              decoration-danger="status == 'failed'">
+                            <field name="app_name"/>
+                            <field name="installed_version"/>
+                            <field name="available_version"/>
+                            <field name="source"/>
+                            <field name="status" widget="badge"/>
+                            <button name="action_queue_update" type="object"
+                                    string="Update" icon="fa-arrow-circle-up"
+                                    invisible="status not in ('available','failed')"
+                                    groups="asset_management.group_asset_manager"/>
+                            <button name="action_block" type="object"
+                                    string="Block" icon="fa-ban"
+                                    invisible="status in ('blocked','updating')"
+                                    groups="asset_management.group_asset_manager"/>
+                        </list>
+                    </field>
+                </page>
+
+                <!-- Vulnerability report tab -->
+                <page string="Vulnerability Report" name="vuln_report">
+                    <div class="alert alert-secondary" role="status">
+                        <b>Method:</b> agent-based software correlation against the
+                        CVE database. This is not a network port scan — it sees every
+                        installed application, but cannot test whether a listening
+                        service is actually exploitable from the network.
+                    </div>
+
+                    <group>
+                        <group string="Summary">
+                            <field name="vuln_critical_count" readonly="1"/>
+                            <field name="vuln_high_count" readonly="1"/>
+                            <field name="vuln_medium_count" readonly="1"/>
+                            <field name="vuln_low_count" readonly="1"/>
+                            <field name="vuln_total_count" readonly="1"/>
+                            <field name="vuln_review_count" readonly="1"
+                                   string="Awaiting Review"/>
+                        </group>
+                        <group string="Scan">
+                            <field name="last_vuln_scan" readonly="1"/>
+                            <button name="action_scan_this_asset" type="object"
+                                    string="Scan This Asset" class="btn-primary"
+                                    groups="asset_management.group_asset_manager"/>
+                            <button name="action_view_vulnerabilities" type="object"
+                                    string="View All Findings" class="btn-link"/>
+                        </group>
+                    </group>
+
+                    <separator string="Findings"/>
+                    <field name="vulnerability_ids" readonly="1">
+                        <list create="false"
+                              decoration-danger="severity == 'critical'"
+                              decoration-warning="severity == 'high'"
+                              decoration-muted="state in ('ignored','false_positive','remediated')">
+                            <field name="cve_ref"/>
+                            <field name="cvss_score"/>
+                            <field name="severity" widget="badge"/>
+                            <field name="software_name"/>
+                            <field name="software_version"/>
+                            <field name="confidence" widget="badge"/>
+                            <field name="state" widget="badge"/>
+                            <button name="action_apply_patch" type="object"
+                                    string="Apply Patch" icon="fa-wrench"
+                                    invisible="state in ('remediated','ignored','false_positive')"/>
+                        </list>
+                    </field>
+
+                    <separator string="Listening Ports"/>
+                    <p class="text-muted">
+                        Reported by the agent from the local socket table. Requires
+                        the port-reporting snippet in the agent.
+                    </p>
+                    <field name="listening_port_ids" readonly="1">
+                        <list create="false">
+                            <field name="port"/>
+                            <field name="service_name"/>
+                            <field name="risk_note"/>
+                            <field name="last_seen"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

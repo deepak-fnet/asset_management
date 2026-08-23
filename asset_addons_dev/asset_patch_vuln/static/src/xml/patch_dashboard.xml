@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="asset_patch_vuln.PatchDashboard">
+    <div class="pv-dashboard">
+
+        <!-- Header -->
+        <div class="pv-header">
+            <div>
+                <h1 class="pv-title">Patch Management</h1>
+                <p class="pv-subtitle">Overview of patch status across your environment</p>
+            </div>
+            <div class="pv-header-actions">
+                <button class="pv-btn pv-btn-light" t-on-click="onRefresh">
+                    <i class="fa fa-refresh"/> Refresh
+                </button>
+                <button class="pv-btn pv-btn-light" t-on-click="openPolicies">
+                    <i class="fa fa-cogs"/> Policies
+                </button>
+                <button class="pv-btn pv-btn-primary" t-on-click="openDeployments">
+                    <i class="fa fa-rocket"/> Deployments
+                </button>
+            </div>
+        </div>
+
+        <div t-if="state.loading" class="pv-loading">
+            <i class="fa fa-circle-o-notch fa-spin fa-2x"/>
+            <p>Loading patch data…</p>
+        </div>
+
+        <div t-else="">
+
+            <!-- KPI row -->
+            <div class="pv-kpi-row">
+                <div class="pv-kpi pv-kpi-danger pv-clickable" t-on-click="openMissingPatches">
+                    <div class="pv-kpi-head">
+                        <span class="pv-kpi-label">Missing Patches</span>
+                        <i class="fa fa-exclamation-circle pv-kpi-icon pv-icon-danger"/>
+                    </div>
+                    <div class="pv-kpi-value" t-esc="state.kpis.missing_total"/>
+                    <div class="pv-kpi-sub">
+                        Critical: <b t-esc="state.kpis.missing_critical"/>
+                        &#160;&#160;High: <b t-esc="state.kpis.missing_high"/>
+                    </div>
+                </div>
+
+                <div class="pv-kpi pv-clickable" t-on-click="openApproved">
+                    <div class="pv-kpi-head">
+                        <span class="pv-kpi-label">Approved / Queued</span>
+                        <i class="fa fa-clipboard-check pv-kpi-icon pv-icon-warning"/>
+                    </div>
+                    <div class="pv-kpi-value" t-esc="state.kpis.approved"/>
+                    <div class="pv-kpi-sub">Waiting for agent pickup</div>
+                </div>
+
+                <div class="pv-kpi pv-clickable" t-on-click="openDeployed">
+                    <div class="pv-kpi-head">
+                        <span class="pv-kpi-label">Deployed</span>
+                        <i class="fa fa-check-circle pv-kpi-icon pv-icon-success"/>
+                    </div>
+                    <div class="pv-kpi-value" t-esc="state.kpis.deployed"/>
+                    <div class="pv-kpi-sub">Successfully installed</div>
+                </div>
+
+                <div class="pv-kpi pv-clickable" t-on-click="openFailed">
+                    <div class="pv-kpi-head">
+                        <span class="pv-kpi-label">Failed</span>
+                        <i class="fa fa-times-circle pv-kpi-icon pv-icon-info"/>
+                    </div>
+                    <div class="pv-kpi-value" t-esc="state.kpis.failed"/>
+                    <div class="pv-kpi-sub">Installation failed</div>
+                </div>
+
+                <div class="pv-kpi pv-clickable" t-on-click="openCompliance">
+                    <div class="pv-kpi-head">
+                        <span class="pv-kpi-label">Compliance</span>
+                        <i class="fa fa-shield pv-kpi-icon pv-icon-purple"/>
+                    </div>
+                    <div class="pv-kpi-value">
+                        <t t-esc="state.kpis.compliance_pct"/>%
+                    </div>
+                    <div class="pv-kpi-sub">No outstanding critical patches</div>
+                </div>
+            </div>
+
+            <!-- Charts row -->
+            <div class="pv-grid-3">
+                <div class="pv-card">
+                    <h3 class="pv-card-title">Missing Patches by Severity</h3>
+                    <div class="pv-donut-wrap">
+                        <div class="pv-donut">
+                            <canvas t-ref="severityChart"/>
+                            <div class="pv-donut-center">
+                                <div class="pv-donut-num" t-esc="state.by_severity.total"/>
+                                <div class="pv-donut-lbl">Total</div>
+                            </div>
+                        </div>
+                        <div class="pv-legend">
+                            <div class="pv-legend-item pv-clickable"
+                                 t-foreach="state.by_severity.items"
+                                 t-as="item" t-key="item.label"
+                                 t-on-click="() => this.openBySeverity(item.label)">
+                                <span class="pv-dot" t-attf-style="background:{{item.color}}"/>
+                                <span class="pv-legend-label" t-esc="item.label"/>
+                                <span class="pv-legend-val">
+                                    <t t-esc="item.count"/> (<t t-esc="item.pct"/>%)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pv-card">
+                    <h3 class="pv-card-title">Missing Patches by Platform</h3>
+                    <div class="pv-bars">
+                        <div class="pv-bar-row pv-clickable"
+                             t-foreach="state.by_platform.items"
+                             t-as="p" t-key="p.platform"
+                             t-on-click="() => this.openByPlatform(p.platform, p.label)">
+                            <span class="pv-bar-label" t-esc="p.label"/>
+                            <div class="pv-bar-track">
+                                <div class="pv-bar-fill"
+                                     t-attf-style="width:{{p.pct}}%"/>
+                            </div>
+                            <span class="pv-bar-val">
+                                <t t-esc="p.count"/> (<t t-esc="p.pct"/>%)
+                            </span>
+                        </div>
+                        <div t-if="!state.by_platform.items.length" class="pv-empty">
+                            No missing patches detected.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pv-card">
+                    <h3 class="pv-card-title">Compliance Over Time</h3>
+                    <div t-if="state.trend.has_data" class="pv-chart-box">
+                        <canvas t-ref="trendChart"/>
+                    </div>
+                    <div t-else="" class="pv-empty">
+                        <p>No history yet.</p>
+                        <p class="pv-muted">
+                            The daily snapshot cron builds this chart. The first
+                            point appears after it runs tonight.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deployments -->
+            <div class="pv-grid-2">
+                <div class="pv-card">
+                    <h3 class="pv-card-title">Deployment Summary</h3>
+                    <div class="pv-mini-row">
+                        <div class="pv-mini pv-clickable"
+                             t-on-click="() => this.openDeploymentsByState(['in_progress'], 'Deployments In Progress')">
+                            <div class="pv-mini-num pv-text-info"
+                                 t-esc="state.deployment_summary.in_progress"/>
+                            <div class="pv-mini-lbl">In Progress</div>
+                        </div>
+                        <div class="pv-mini pv-clickable"
+                             t-on-click="() => this.openDeploymentsByState(['draft','pending'], 'Pending Deployments')">
+                            <div class="pv-mini-num pv-text-warning"
+                                 t-esc="state.deployment_summary.pending"/>
+                            <div class="pv-mini-lbl">Pending</div>
+                        </div>
+                        <div class="pv-mini pv-clickable"
+                             t-on-click="() => this.openDeploymentsByState(['successful'], 'Successful Deployments')">
+                            <div class="pv-mini-num pv-text-success"
+                                 t-esc="state.deployment_summary.successful"/>
+                            <div class="pv-mini-lbl">Successful</div>
+                        </div>
+                        <div class="pv-mini pv-clickable"
+                             t-on-click="() => this.openDeploymentsByState(['failed','partial'], 'Failed Deployments')">
+                            <div class="pv-mini-num pv-text-danger"
+                                 t-esc="state.deployment_summary.failed"/>
+                            <div class="pv-mini-lbl">Failed</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pv-card">
+                    <h3 class="pv-card-title">Recent Deployments</h3>
+                    <table class="pv-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th><th>Platform</th><th>Patches</th>
+                                <th>Targets</th><th>Status</th><th>Started By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="state.recent_deployments" t-as="d" t-key="d.id"
+                                t-on-click="() => this.openDeployment(d.id)"
+                                class="pv-clickable">
+                                <td t-esc="d.name"/>
+                                <td t-esc="d.platform"/>
+                                <td t-esc="d.patches"/>
+                                <td t-esc="d.targets"/>
+                                <td>
+                                    <span t-attf-class="pv-badge {{stateBadge(d.state)}}"
+                                          t-esc="d.state"/>
+                                </td>
+                                <td t-esc="d.started_by"/>
+                            </tr>
+                            <tr t-if="!state.recent_deployments.length">
+                                <td colspan="6" class="pv-empty">No deployments yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tables -->
+            <div class="pv-grid-2">
+                <div class="pv-card">
+                    <h3 class="pv-card-title">Top Missing Patches</h3>
+                    <table class="pv-table">
+                        <thead>
+                            <tr>
+                                <th>Patch</th><th>Name</th>
+                                <th>Severity</th><th>Affects</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="state.top_missing" t-as="p" t-key="p.patch_id"
+                                class="pv-clickable"
+                                t-on-click="() => this.openPatchAcrossAssets(p.patch_id, p.platform)">
+                                <td><b t-esc="p.patch_id"/></td>
+                                <td class="pv-truncate" t-esc="p.name"/>
+                                <td>
+                                    <span t-attf-class="pv-badge {{severityBadge(p.severity)}}"
+                                          t-esc="p.severity"/>
+                                </td>
+                                <td t-esc="p.affects"/>
+                            </tr>
+                            <tr t-if="!state.top_missing.length">
+                                <td colspan="4" class="pv-empty">
+                                    Nothing missing — fleet is fully patched.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pv-card">
+                    <h3 class="pv-card-title">Automated Policy Status</h3>
+                    <table class="pv-table">
+                        <thead>
+                            <tr>
+                                <th>Policy</th><th>Last Run</th>
+                                <th>Approved</th><th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="state.policies" t-as="p" t-key="p.id"
+                                class="pv-clickable"
+                                t-on-click="() => this.openPolicy(p.id)">
+                                <td t-esc="p.name"/>
+                                <td t-esc="p.last_run"/>
+                                <td t-esc="p.total_approved"/>
+                                <td>
+                                    <span t-if="p.active" class="pv-badge pv-badge-success">Enabled</span>
+                                    <span t-else="" class="pv-badge pv-badge-muted">Disabled</span>
+                                </td>
+                            </tr>
+                            <tr t-if="!state.policies.length">
+                                <td colspan="4" class="pv-empty">
+                                    No policies configured.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="pv-footer" t-if="state.lastRefresh">
+                Last refreshed <t t-esc="state.lastRefresh"/>
+            </div>
+        </div>
+    </div>
+</t>
+
+</templates>

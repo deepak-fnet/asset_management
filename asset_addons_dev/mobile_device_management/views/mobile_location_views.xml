@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_mobile_location_list" model="ir.ui.view">
+        <field name="name">mobile.location.list</field>
+        <field name="model">mobile.location</field>
+        <field name="arch" type="xml">
+            <list string="Location History" decoration-warning="is_mock">
+                <field name="recorded_at"/>
+                <field name="device_id"/>
+                <field name="employee_id" optional="show"/>
+                <field name="latitude"/>
+                <field name="longitude"/>
+                <field name="accuracy_m"/>
+                <field name="source"/>
+                <field name="is_mock" optional="show"/>
+                <field name="address" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mobile_location_form" model="ir.ui.view">
+        <field name="name">mobile.location.form</field>
+        <field name="model">mobile.location</field>
+        <field name="arch" type="xml">
+            <form string="Location">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="device_id" readonly="1"/>
+                            <field name="recorded_at" readonly="1"/>
+                            <field name="source"/>
+                            <field name="is_mock"/>
+                        </group>
+                        <group>
+                            <field name="latitude"/>
+                            <field name="longitude"/>
+                            <field name="accuracy_m"/>
+                            <field name="altitude_m"/>
+                            <field name="speed_kmh"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="address"/>
+                        <field name="map_url" widget="url" string="Open in Map"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_mobile_location" model="ir.actions.act_window">
+        <field name="name">Location History</field>
+        <field name="res_model">mobile.location</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

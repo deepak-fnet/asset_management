@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_mobile_os_release_list" model="ir.ui.view">
+        <field name="name">mobile.os.release.list</field>
+        <field name="model">mobile.os.release</field>
+        <field name="arch" type="xml">
+            <list string="OS Releases" editable="bottom"
+                  decoration-success="is_latest"
+                  decoration-muted="not is_supported">
+                <field name="platform"/>
+                <field name="name"/>
+                <field name="sequence"/>
+                <field name="released_on"/>
+                <field name="is_latest" widget="boolean_toggle"/>
+                <field name="is_supported" widget="boolean_toggle"/>
+                <field name="notes"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_mobile_os_release" model="ir.actions.act_window">
+        <field name="name">OS Releases</field>
+        <field name="res_model">mobile.os.release</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">The OS release catalogue</p>
+            <p>Mobile platforms will not tell an ordinary app whether an update
+               exists, so update detection compares each device's reported version
+               against this list. When a new version ships, add a row, tick
+               <b>Latest</b> on it and untick the previous one.</p>
+        </field>
+    </record>
+</odoo>

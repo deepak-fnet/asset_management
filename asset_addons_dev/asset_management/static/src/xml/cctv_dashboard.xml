@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="cctv_dashboard.Dashboard" owl="1">
+        <div class="cctv-dashboard-container">
+            <div class="dashboard-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-0"><i class="fa fa-video-camera me-2"/>CCTV Asset Monitoring</h2>
+                    <p class="text-muted mb-0">Real-time monitoring and analytics</p>
+                </div>
+                    <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted small me-3">Last updated: <t t-esc="state.lastUpdated"/></span>
+                    
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-warning dropdown-toggle" type="button" id="quickActions" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa fa-bolt me-1"/> Quick Actions
+                        </button>
+                        <ul class="dropdown-menu shadow border-0" aria-labelledby="quickActions">
+                            <li><a class="dropdown-item" href="#" t-on-click="() => this.viewAllCameras()">View All Cameras</a></li>
+                            <li><a class="dropdown-item" href="#" t-on-click="() => this.viewAllEvents()">View All Events</a></li>
+                            <li><hr class="dropdown-divider"/></li>
+                            <li><a class="dropdown-item" href="#" t-on-click="() => this.refreshData()">Force Refresh</a></li>
+                        </ul>
+                    </div>
+
+                    <button class="btn btn-sm btn-outline-danger" t-on-click="() => this.downloadPDF()">
+                        <i class="fa fa-file-pdf-o me-1"/> Download PDF
+                    </button>
+                    
+                    <button class="btn btn-sm btn-outline-primary" t-on-click="() => this.refreshData()">
+                        <i class="fa fa-refresh me-1"/> Refresh
+                    </button>
+
+                    <button t-att-class="'btn btn-sm ' + (state.autoRefresh ? 'btn-success' : 'btn-outline-secondary')" t-on-click="() => this.toggleAutoRefresh()">
+                        <i t-att-class="'fa ' + (state.autoRefresh ? 'fa-pause' : 'fa-play') + ' me-1'"/>
+                        Auto-refresh <t t-if="state.autoRefresh">ON</t><t t-else="">OFF</t>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Stats Cards (Windows UI KPI Style) -->
+            <div class="row g-4 mb-4">
+                <!-- TOTAL CAMERAS -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="kpi_card kpi_primary" t-on-click="() => this.viewAllCameras()" style="cursor: pointer;">
+                        <div class="kpi_body">
+                            <div class="kpi_icon">
+                                <i class="fa fa-video-camera"/>
+                            </div>
+                            <div class="kpi_text">
+                                <span class="kpi_label">TOTAL CAMERAS</span>
+                                <span class="kpi_value" t-esc="state.stats.total"/>
+                            </div>
+                        </div>
+                        <div class="kpi_bottom"/>
+                    </div>
+                </div>
+                
+                <!-- ONLINE -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="kpi_card kpi_success" t-on-click="() => this.viewOnlineCameras()" style="cursor: pointer;">
+                        <div class="kpi_body">
+                            <div class="kpi_icon">
+                                <i class="fa fa-check-circle"/>
+                            </div>
+                            <div class="kpi_text">
+                                <span class="kpi_label">ONLINE</span>
+                                <span class="kpi_value" t-esc="state.stats.online"/>
+                            </div>
+                        </div>
+                        <div class="kpi_bottom"/>
+                    </div>
+                </div>
+                
+                <!-- OFFLINE -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="kpi_card kpi_danger" t-on-click="() => this.viewOfflineCameras()" style="cursor: pointer;">
+                        <div class="kpi_body">
+                            <div class="kpi_icon">
+                                <i class="fa fa-times-circle"/>
+                            </div>
+                            <div class="kpi_text">
+                                <span class="kpi_label">OFFLINE</span>
+                                <span class="kpi_value" t-esc="state.stats.offline"/>
+                            </div>
+                        </div>
+                        <div class="kpi_bottom"/>
+                    </div>
+                </div>
+                
+                <!-- RECORDING -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="kpi_card kpi_warning" t-on-click="() => this.viewRecordingCameras()" style="cursor: pointer;">
+                        <div class="kpi_body">
+                            <div class="kpi_icon">
+                                <i class="fa fa-dot-circle-o"/>
+                            </div>
+                            <div class="kpi_text">
+                                <span class="kpi_label">RECORDING</span>
+                                <span class="kpi_value" t-esc="state.stats.recording"/>
+                            </div>
+                        </div>
+                        <div class="kpi_bottom"/>
+                    </div>
+                </div>
+                
+                <!-- RECENTLY ACTIVE -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="kpi_card kpi_info" t-on-click="() => this.viewRecentlyActiveCameras()" style="cursor: pointer;">
+                        <div class="kpi_body">
+                            <div class="kpi_icon">
+                                <i class="fa fa-clock-o"/>
+                            </div>
+                            <div class="kpi_text">
+                                <span class="kpi_label">RECENTLY ACTIVE</span>
+                                <span class="kpi_value" t-esc="state.stats.recentlyActive || 0"/>
+                            </div>
+                        </div>
+                        <div class="kpi_bottom"/>
+                    </div>
+                </div>
+                
+                <!-- RECORDING DISABLED -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="kpi_card kpi_amber" t-on-click="() => this.viewRecordingDisabledCameras()" style="cursor: pointer;">
+                        <div class="kpi_body">
+                            <div class="kpi_icon">
+                                <i class="fa fa-pause-circle"/>
+                            </div>
+                            <div class="kpi_text">
+                                <span class="kpi_label">RECORDING DISABLED</span>
+                                <span class="kpi_value" t-esc="state.stats.recordingDisabled || 0"/>
+                            </div>
+                        </div>
+                        <div class="kpi_bottom"/>
+                    </div>
+                </div>
+                
+                <!-- ALERTS -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="kpi_card kpi_danger" t-on-click="() => this.viewAlerts()" style="cursor: pointer;">
+                        <div class="kpi_body">
+                            <div class="kpi_icon">
+                                <i class="fa fa-bell"/>
+                            </div>
+                            <div class="kpi_text">
+                                <span class="kpi_label">ALERTS</span>
+                                <span class="kpi_value" t-esc="state.stats.alerts || 0"/>
+                            </div>
+                        </div>
+                        <div class="kpi_bottom"/>
+                    </div>
+                </div>
+                
+                <!-- SCRAPPED -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="kpi_card kpi_danger" t-on-click="() => this.viewScrappedCameras()" style="cursor: pointer;">
+                        <div class="kpi_body">
+                            <div class="kpi_icon">
+                                <i class="fa fa-trash"/>
+                            </div>
+                            <div class="kpi_text">
+                                <span class="kpi_label">SCRAPPED</span>
+                                <span class="kpi_value" t-esc="state.stats.scrapped || 0"/>
+                            </div>
+                        </div>
+                        <div class="kpi_bottom"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Donut Charts Row -->
+            <div class="row g-4 mb-4">
+                <!-- CAMERA STATUS OVERVIEW -->
+                <div class="col-lg-6 col-md-6">
+                    <div class="card dashboard_card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fa fa-video-camera me-2"/>
+                                <strong>Camera Status Overview</strong>
+                            </div>
+                            <button class="btn btn-sm btn-link" t-on-click="() => this.viewAllCameras()">
+                                View All <i class="fa fa-arrow-right"/>
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-wrapper">
+                                <canvas id="cameraStatusChart"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MONITORING ALERTS -->
+                <div class="col-lg-6 col-md-6">
+                    <div class="card dashboard_card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fa fa-bell me-2"/>
+                                <strong>Monitoring Alerts</strong>
+                            </div>
+                            <button class="btn btn-sm btn-link" t-on-click="() => this.viewAllEvents()">
+                                View All <i class="fa fa-arrow-right"/>
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-wrapper">
+                                <canvas id="cameraMonitoringChart"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Activity Sections -->
+            <div class="row g-4">
+                <!-- Active Camera Alerts -->
+                <div class="col-lg-6">
+                    <div class="card dashboard_card h-100 shadow-sm border-0 rounded-lg">
+                        <div class="card-header d-flex justify-content-between align-items-center bg-white border-bottom-0 pt-3 px-4 pb-0">
+                            <div class="d-flex align-items-center">
+                                <i class="fa fa-exclamation-triangle me-2 text-danger"/>
+                                <h5 class="card-title mb-0 font-weight-bold">Active Camera Alerts</h5>
+                                <span class="badge bg-danger rounded-pill ms-2" t-esc="state.alerts.length"/>
+                            </div>
+                            <button class="btn btn-sm btn-link p-0 text-muted" t-on-click="() => this.viewAllEvents()">
+                                View All <i class="fa fa-arrow-right ms-1"/>
+                            </button>
+                        </div>
+                        <div class="card-body px-4 pb-4">
+                            <div class="alert_list">
+                                <t t-foreach="state.alerts" t-as="alert" t-key="alert.id">
+                                    <div class="alert_item_enhanced mb-3 p-3 border rounded shadow-sm position-relative d-flex align-items-center" style="cursor: pointer; transition: all 0.2s; background: #fff; border-left: 4px solid #dc3545 !important;">
+                                        <div class="alert_image_wrapper me-3" style="width: 54px; height: 54px; overflow: hidden; border-radius: 10px; flex-shrink: 0; border: 1px solid #f0f0f0;">
+                                            <img t-att-src="this.resolveCameraImage(alert.camera_id_raw)" class="alert_asset_img w-100 h-100" style="object-fit: cover;" alt="Camera"/>
+                                            <div class="alert_icon_badge position-absolute" style="bottom: 15px; left: 58px; background: #fff; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 10px; border: 1px solid #eee; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                                <i class="fa fa-video-camera text-muted"/>
+                                            </div>
+                                        </div>
+                                        <div class="alert_content flex-grow-1 min-width-0">
+                                            <div class="d-flex align-items-center flex-wrap mb-1">
+                                                <strong class="text-dark me-2" style="font-size: 14px;"><t t-esc="alert.camera_name"/></strong>
+                                                <span class="badge bg-light text-muted border me-2" style="font-size: 10px; font-weight: 500;"><t t-esc="alert.camera_code"/></span>
+                                                <span t-att-class="'badge ms-2 ' + (alert.severity === 'critical' ? 'bg-danger' : 'bg-warning text-dark')" style="font-size: 10px; padding: 3px 10px; border-radius: 4px; font-weight: 600;">
+                                                    <t t-esc="alert.severity.toUpperCase()"/>
+                                                </span>
+                                            </div>
+                                            <div class="text-muted small mb-1" style="font-size: 11px;"><t t-esc="alert.event_time"/></div>
+                                            <div class="text-muted small text-truncate" style="font-size: 12px;"><t t-esc="alert.event_message"/></div>
+                                        </div>
+                                        <div class="alert_action ms-2">
+                                            <button class="btn btn-outline-danger btn-sm rounded-pill" style="font-size: 10px;" t-on-click="() => this.acknowledgeAlert(alert.id)">
+                                                ACK
+                                            </button>
+                                        </div>
+                                    </div>
+                                </t>
+                                <t t-if="state.alerts.length === 0">
+                                    <div class="empty_state text-center py-5">
+                                        <div class="rounded-circle bg-success-light d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px; background: rgba(40, 167, 69, 0.1);">
+                                            <i class="fa fa-check text-success fa-2x"/>
+                                        </div>
+                                        <p class="text-muted mb-0">No active alerts</p>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Camera Events -->
+                <div class="col-lg-6">
+                    <div class="card dashboard_card h-100 shadow-sm border-0 rounded-lg">
+                        <div class="card-header d-flex justify-content-between align-items-center bg-white border-bottom-0 pt-3 px-4 pb-0">
+                            <div class="d-flex align-items-center">
+                                <i class="fa fa-history me-2 text-primary"/>
+                                <h5 class="card-title mb-0 font-weight-bold">Recent Camera Events</h5>
+                            </div>
+                            <button class="btn btn-sm btn-link p-0 text-muted" t-on-click="() => this.viewAllEvents()">
+                                View All <i class="fa fa-arrow-right ms-1"/>
+                            </button>
+                        </div>
+                        <div class="card-body px-4 pb-4">
+                            <div class="sync_timeline ps-2">
+                                <t t-foreach="state.events" t-as="event" t-key="event.id">
+                                    <div class="sync_timeline_item d-flex pb-4 position-relative">
+                                        <t t-if="!event_last">
+                                            <div class="timeline_line position-absolute" style="left: 14px; top: 30px; bottom: 0; width: 2px; background: #eee;"/>
+                                        </t>
+                                        <div class="sync_status_icon me-3 position-relative" style="z-index: 1;">
+                                            <div t-att-class="'rounded-circle d-flex align-items-center justify-content-center ' + (event.event_type === 'offline' ? 'bg-danger text-white' : 'bg-success text-white')" style="width: 28px; height: 28px; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                                                <i t-att-class="getEventDisplayIcon(event.event_type)"/>
+                                            </div>
+                                        </div>
+                                        <div class="sync_item_content flex-grow-1">
+                                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                                <strong class="text-dark" style="font-size: 14px;"><t t-esc="event.camera_name"/></strong>
+                                                <span t-att-class="'badge ' + (event.severity === 'critical' ? 'bg-danger' : event.severity === 'warning' ? 'bg-warning text-dark' : 'bg-info')" style="font-size: 10px; padding: 4px 10px; border-radius: 4px;">
+                                                    <t t-esc="event.event_type.replace('_', ' ')"/>
+                                                </span>
+                                            </div>
+                                            <div class="text-muted small" style="font-size: 12px;">
+                                                <t t-esc="event.camera_code"/> • <t t-esc="event.event_time"/>
+                                            </div>
+                                            <div class="text-muted small mt-1"><t t-esc="event.event_message"/></div>
+                                        </div>
+                                    </div>
+                                </t>
+                                <t t-if="state.events.length === 0">
+                                    <div class="text-center py-5 text-muted">
+                                        <i class="fa fa-refresh fa-2x mb-2 opacity-25 d-block"/>
+                                        No recent events found
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

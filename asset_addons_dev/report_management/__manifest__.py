@@ -1,0 +1,22 @@
+{
+    "name": "Report Management",
+    "version": "19.0.1.0.1",
+    "category": "Reporting",
+    "depends": ["purchase","stock"],
+    "data": [
+        "security/ir.model.access.csv",
+        "report/paper_format.xml",
+        "report/purchase_order.xml",
+        "report/purchase_quotation.xml",
+        # "report/sale_order.xml",
+        # "report/sale_quotation.xml",
+        "report/goods_receipt.xml",
+        # "report/payslip.xml",
+        # "report/aged_recievable.xml",
+    ],
+    "post_init_hook": "post_init_hook",
+    "installable": True,
+    "application": True,
+    "sequence": 1,
+    "auto_install": False,
+}

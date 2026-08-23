@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- System Configuration Parameters -->
+    
+    <!-- Agent Heartbeat Timeout (in seconds) - 3 minutes -->
+    <record id="config_agent_heartbeat_timeout" model="ir.config_parameter">
+        <field name="key">asset_management.agent_heartbeat_timeout</field>
+        <field name="value">180</field>
+    </record>
+
+</odoo>

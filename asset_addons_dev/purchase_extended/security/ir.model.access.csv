@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_cancel_bid_wizard,cancel.bid.wizard,model_cancel_bid_wizard,purchase.group_purchase_user,1,1,1,1
+access_po_confirm_wizard,po.confirm.wizard,model_po_confirm_wizard,purchase.group_purchase_user,1,1,1,1
+access_last_grn_wizard,last.grn.wizard,model_last_grn_wizard,purchase.group_purchase_user,1,1,1,1

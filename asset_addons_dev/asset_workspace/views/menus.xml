@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             The reorganised navigation.
+
+             Only actions verified to exist in asset_management are referenced
+             here. Anything from a module whose XML IDs cannot be confirmed is
+             wired by hooks.py, which reports rather than raises if it cannot
+             find them.
+             ══════════════════════════════════════════════════════════════════ -->
+
+        <!-- ── 1. Dashboard (single entry point) ─────────────────────────── -->
+        <menuitem id="asset_management.menu_asset_root"
+                  name="Asset Management"
+                  web_icon="asset_management,static/description/icon.png"
+                  sequence="10"/>
+
+        <menuitem id="menu_ws_dashboard"
+                  name="Dashboard"
+                  parent="asset_management.menu_asset_root"
+                  action="action_asset_hub_dashboard"
+                  sequence="1"/>
+
+        <!-- ── 2. Lifecycle ──────────────────────────────────────────────── -->
+        <menuitem id="menu_ws_lifecycle"
+                  name="Lifecycle"
+                  parent="asset_management.menu_asset_root"
+                  sequence="10"/>
+
+        <menuitem id="menu_ws_lifecycle_join"
+                  name="Joining Process"
+                  parent="menu_ws_lifecycle"
+                  action="asset_management.action_asset_joining_process"
+                  sequence="10"/>
+
+        <menuitem id="menu_ws_lifecycle_assign"
+                  name="Assign / Replace Process"
+                  parent="menu_ws_lifecycle"
+                  action="asset_management.action_asset_assign_process"
+                  sequence="20"/>
+
+        <menuitem id="menu_ws_lifecycle_exit"
+                  name="Exit Process"
+                  parent="menu_ws_lifecycle"
+                  action="asset_management.action_asset_exit_process"
+                  sequence="30"/>
+
+        <!-- Asset movement and disposal, from general_asset.
+             These are NOT declared here as static menuitems: general_asset is
+             not a dependency of this module, so referencing its actions
+             directly would make asset_workspace fail to install wherever it
+             is absent. hooks.py wires them at install time instead, and
+             silently skips them when the module is not there.
+
+             They were previously missing entirely, which is why Asset
+             Transfer never appeared: this module hides
+             asset_management.menu_lifecycle_root, and general_asset hangs
+             its own menus underneath it - so hiding the parent hid the
+             children too. -->
+
+        <!-- ── 3. Help Desk (children wired by hooks.py) ─────────────────── -->
+        <menuitem id="menu_ws_helpdesk"
+                  name="Help Desk"
+                  parent="asset_management.menu_asset_root"
+                  sequence="20"/>
+        <menuitem id="menu_repair_management"
+                  name="Repair Management"
+                  parent="asset_management.menu_asset_root"
+                  sequence="21"/>
+
+        <!-- ── 4. Assets ─────────────────────────────────────────────────── -->
+        <menuitem id="menu_ws_assets"
+                  name="Assets"
+                  parent="asset_management.menu_asset_root"
+                  sequence="30"/>
+
+        <menuitem id="menu_ws_assets_windows"
+                  name="Windows Assets"
+                  parent="menu_ws_assets"
+                  action="asset_management.action_asset_asset"
+                  sequence="10"/>
+
+        <menuitem id="menu_ws_assets_linux"
+                  name="Linux Assets"
+                  parent="menu_ws_assets"
+                  action="asset_management.action_ubuntu_asset"
+                  sequence="20"/>
+
+        <menuitem id="menu_ws_assets_mac"
+                  name="macOS Assets"
+                  parent="menu_ws_assets"
+                  action="asset_management.action_mac_asset"
+                  sequence="30"/>
+
+        <menuitem id="menu_ws_assets_cctv"
+                  name="CCTV"
+                  parent="menu_ws_assets"
+                  action="asset_management.action_asset_camera"
+                  sequence="40"/>
+
+        <menuitem id="menu_ws_assets_network"
+                  name="Network Devices"
+                  parent="menu_ws_assets"
+                  action="asset_management.action_asset_network_device"
+                  sequence="50"/>
+
+        <menuitem id="menu_asset_network_device_unmanaged"
+              name="Unmanaged Endpoints"
+              action="asset_management.action_asset_network_device_unmanaged"
+              sequence="50"
+              parent="menu_ws_assets"/>
+
+    <menuitem id="menu_asset_peripheral"
+              name="Peripherals"
+              parent="menu_ws_assets"
+              action="asset_management.action_asset_peripheral"
+              sequence="60"/>
+
+        <!-- ── 5. Asset Request ──────────────────────────────────────────── -->
+        <menuitem id="menu_ws_request"
+                  name="Asset Request"
+                  parent="asset_management.menu_asset_root"
+                  sequence="40"/>
+
+        <menuitem id="menu_ws_request_list"
+                  name="Asset Requests"
+                  parent="menu_ws_request"
+                  action="asset_management.action_asset_request"
+                  sequence="10"/>
+
+        <!--    <menuitem id="menu_ws_request_po"-->
+        <!--              name="Purchase Orders"-->
+        <!--              parent="menu_ws_request"-->
+        <!--              action="asset_management.action_asset_purchase_order"-->
+        <!--              sequence="20"/>-->
+
+        <menuitem id="menu_ws_request_assetlist"
+                  name="Asset List"
+                  parent="menu_ws_request"
+                  action="asset_management.action_asset_list"
+                  sequence="30"/>
+
+        <!-- ── 6. Security — left exactly as-is, provided by asset_patch_vuln
+                    and asset_security_console. No changes here on purpose. ── -->
+
+        <!-- ── 7. Agent Telemetry ────────────────────────────────────────── -->
+        <menuitem id="menu_ws_telemetry"
+                  name="Agent Telemetry"
+                  parent="asset_management.menu_asset_root"
+                  sequence="60"/>
+
+        <!-- ── 8. Configuration (children wired by hooks.py) ─────────────── -->
+        <menuitem id="menu_ws_config"
+                  name="Configuration"
+                  parent="asset_management.menu_asset_root"
+                  sequence="90"
+                  groups="asset_management.group_asset_manager"/>
+        <menuitem
+                id="menu_product_asset_menu"
+                name="Asset Products"
+                action="asset_helpdesk.action_product_asset"
+                parent="menu_ws_config"/>
+
+        <menuitem id="menu_asset_location"
+                  name="Locations"
+                  parent="menu_ws_config"
+                  action="asset_management.action_asset_location"/>
+
+        <menuitem id="menu_asset_helpdesk_categories"
+              name="Categories"
+              parent="menu_ws_config"
+              action="asset_helpdesk.action_asset_helpdesk_category"
+              sequence="30"/>
+
+    </data>
+</odoo>

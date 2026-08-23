@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+        <t t-name="asset_management.NetworkDashboard" owl="1">
+            <div class="o_network_dashboard">
+                <!-- Header -->
+                <div class="nd_dashboard_header">
+                    <div class="row align-items-center g-0">
+                        <div class="col-md-6">
+                            <h1><i class="fa fa-sitemap me-2"/>Network Dashboard</h1>
+                            <p class="text-muted mb-0">Overview of all network devices and their status</p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <div class="dashboard_controls">
+                                <span class="refresh_status me-3" t-if="state.last_refresh">
+                                    <i class="fa fa-clock me-1"/>
+                                    Last updated: <t t-esc="state.last_refresh"/>
+                                </span>
+
+                                <!-- Quick Actions Dropdown -->
+                                <div class="btn-group me-2">
+                                    <button class="btn btn-sm btn-warning dropdown-toggle" data-bs-toggle="dropdown">
+                                        <i class="fa fa-bolt"/> Quick Actions
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" t-on-click="() => this.viewAllDevices()">
+                                                <i class="fa fa-server text-primary"/> View All Devices
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" t-on-click="() => this.viewOfflineDevices()">
+                                                <i class="fa fa-times-circle text-danger"/> View Offline Devices
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"/></li>
+                                        <li>
+                                            <a class="dropdown-item" t-on-click="() => this.exportData()">
+                                                <i class="fa fa-download text-info"/> Export Data
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <button class="btn btn-sm btn-outline-danger me-2"
+                                        t-on-click="() => this.downloadPDF()"
+                                        t-att-disabled="state.loading">
+                                    <i class="fa fa-file-pdf-o"/>
+                                    Download PDF
+                                </button>
+
+                                <button class="btn btn-sm btn-outline-primary me-2"
+                                        t-on-click="() => this.refreshData()"
+                                        t-att-disabled="state.loading">
+                                    <i class="fa fa-sync" t-att-class="{'fa-spin': state.loading}"/>
+                                    Refresh
+                                </button>
+                                <button class="btn btn-sm"
+                                        t-att-class="state.auto_refresh ? 'btn-success' : 'btn-outline-secondary'"
+                                        t-on-click="() => this.toggleAutoRefresh()">
+                                    <i class="fa" t-att-class="state.auto_refresh ? 'fa-pause' : 'fa-play'"/>
+                                    <t t-if="state.auto_refresh">Auto-refresh ON</t>
+                                    <t t-else="">Auto-refresh OFF</t>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Cards Row 1: Primary Status -->
+                <div class="nd_summary_cards">
+                    <div class="nd_summary_card nd_card_total" t-on-click="() => this.viewTotalDevices()">
+                        <div class="nd_card_icon">
+                            <i class="fa fa-server"/>
+                        </div>
+                        <div class="nd_card_content">
+                            <div class="nd_card_value" t-esc="state.stats.total"/>
+                            <div class="nd_card_label">Total Devices</div>
+                        </div>
+                    </div>
+
+                    <div class="nd_summary_card nd_card_online" t-on-click="() => this.viewOnlineDevices()">
+                        <div class="nd_card_icon">
+                            <i class="fa fa-check-circle"/>
+                        </div>
+                        <div class="nd_card_content">
+                            <div class="nd_card_value" t-esc="state.stats.online"/>
+                            <div class="nd_card_label">Online</div>
+                        </div>
+                    </div>
+
+                    <div class="nd_summary_card nd_card_offline" t-on-click="() => this.viewOfflineDevices()">
+                        <div class="nd_card_icon">
+                            <i class="fa fa-times-circle"/>
+                        </div>
+                        <div class="nd_card_content">
+                            <div class="nd_card_value" t-esc="state.stats.offline"/>
+                            <div class="nd_card_label">Offline</div>
+                        </div>
+                    </div>
+
+                    <div class="nd_summary_card nd_card_warning" t-on-click="() => this.viewUnreachableDevices()">
+                        <div class="nd_card_icon">
+                            <i class="fa fa-exclamation-triangle"/>
+                        </div>
+                        <div class="nd_card_content">
+                            <div class="nd_card_value" t-esc="state.stats.unreachable"/>
+                            <div class="nd_card_label">Unreachable</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Cards Row 2: Resource Monitoring -->
+                <div class="nd_summary_cards">
+                    <div class="nd_summary_card nd_card_cpu" t-on-click="() => this.viewHighCPUDevices()">
+                        <div class="nd_card_icon">
+                            <i class="fa fa-microchip"/>
+                        </div>
+                        <div class="nd_card_content">
+                            <div class="nd_card_value" t-esc="state.stats.highCPU"/>
+                            <div class="nd_card_label">High CPU (>80%)</div>
+                        </div>
+                    </div>
+
+                    <div class="nd_summary_card nd_card_memory" t-on-click="() => this.viewHighMemoryDevices()">
+                        <div class="nd_card_icon">
+                            <i class="fa fa-tasks"/>
+                        </div>
+                        <div class="nd_card_content">
+                            <div class="nd_card_value" t-esc="state.stats.highMemory"/>
+                            <div class="nd_card_label">High Memory (>80%)</div>
+                        </div>
+                    </div>
+
+                    <div class="nd_summary_card nd_card_temp" t-on-click="() => this.viewCriticalTemperature()">
+                        <div class="nd_card_icon">
+                            <i class="fa fa-thermometer-three-quarters"/>
+                        </div>
+                        <div class="nd_card_content">
+                            <div class="nd_card_value" t-esc="state.stats.criticalDisk"/>
+                            <div class="nd_card_label">High Disk (>90%)</div>
+                        </div>
+                    </div>
+
+                    <div class="nd_summary_card nd_card_total" t-on-click="() => this.viewAllDevices()">
+                        <div class="nd_card_icon">
+                            <i class="fa fa-history"/>
+                        </div>
+                        <div class="nd_card_content">
+                            <div class="nd_card_value" t-esc="state.recentDevices.length"/>
+                            <div class="nd_card_label">Recent Activity</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="nd_charts_row">
+                    <!-- Device Type Distribution -->
+                    <div class="nd_chart_card">
+                        <h5><i class="fa fa-pie-chart me-2"/>Device Type Distribution</h5>
+                        <div class="nd_chart_container">
+                            <canvas id="deviceTypeChart"/>
+                        </div>
+                    </div>
+
+                    <!-- Status Distribution -->
+                    <div class="nd_chart_card">
+                        <h5><i class="fa fa-bar-chart me-2"/>Status Overview</h5>
+                        <div class="nd_chart_container">
+                            <canvas id="statusChart"/>
+                        </div>
+                    </div>
+
+                    <!-- Manufacturer Distribution -->
+                    <div class="nd_chart_card">
+                        <h5><i class="fa fa-building me-2"/>By Manufacturer</h5>
+                        <div class="nd_chart_container">
+                            <canvas id="manufacturerChart"/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Cards Row 3: Quick Filter by Type -->
+                <div class="nd_summary_cards mt-3">
+                    <div class="nd_summary_card nd_card_router" t-on-click="() => this.viewRouters()">
+                        <div class="nd_card_icon">
+                            <i class="fa fa-random"/>
+                        </div>
+                        <div class="nd_card_content">
+                            <div class="nd_card_value" t-esc="state.stats.routers"/>
+                            <div class="nd_card_label">Routers</div>
+                        </div>
+                    </div>
+
+                    <div class="nd_summary_card nd_card_switch" t-on-click="() => this.viewSwitches()">
+                        <div class="nd_card_icon">
+                            <i class="fa fa-sitemap"/>
+                        </div>
+                        <div class="nd_card_content">
+                            <div class="nd_card_value" t-esc="state.stats.switches"/>
+                            <div class="nd_card_label">Switches</div>
+                        </div>
+                    </div>
+
+                    <div class="nd_summary_card nd_card_firewall" t-on-click="() => this.viewFirewalls()">
+                        <div class="nd_card_icon">
+                            <i class="fa fa-shield"/>
+                        </div>
+                        <div class="nd_card_content">
+                            <div class="nd_card_value" t-esc="state.stats.firewalls"/>
+                            <div class="nd_card_label">Firewalls</div>
+                        </div>
+                    </div>
+
+                    <div class="nd_summary_card nd_card_ap" t-on-click="() => this.viewAccessPoints()">
+                        <div class="nd_card_icon">
+                            <i class="fa fa-rss"/>
+                        </div>
+                        <div class="nd_card_content">
+                            <div class="nd_card_value" t-esc="state.stats.accessPoints"/>
+                            <div class="nd_card_label">Access Points</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Device Lists Row -->
+                <div class="nd_lists_row">
+                    <!-- Offline Devices -->
+                    <div class="nd_list_card">
+                        <h5><i class="fa fa-exclamation-circle me-2 text-danger"/>Offline Devices</h5>
+                        <div class="nd_list_content">
+                            <t t-if="state.offlineDevices.length === 0">
+                                <div class="nd_empty_state">
+                                    <i class="fa fa-check-circle text-success"/>
+                                    <p>All devices are online!</p>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <t t-foreach="state.offlineDevices" t-as="device" t-key="device.id">
+                                    <div class="nd_list_item nd_list_item_danger" t-on-click="() => this.viewOfflineDevices()">
+                                        <div class="nd_list_item_icon">
+                                            <i class="fa fa-times-circle text-danger"/>
+                                        </div>
+                                        <div class="nd_list_item_content">
+                                            <div class="nd_list_item_title" t-esc="device.name"/>
+                                            <div class="nd_list_item_subtitle">
+                                                <span t-esc="device.ip_address"/> • <span t-esc="device.device_type_label"/>
+                                            </div>
+                                        </div>
+                                        <div class="nd_list_item_badge">
+                                            <span class="badge bg-danger">Offline</span>
+                                        </div>
+                                    </div>
+                                </t>
+                            </t>
+                        </div>
+                    </div>
+
+                    <!-- High Resource Usage -->
+                    <div class="nd_list_card">
+                        <h5><i class="fa fa-thermometer-full me-2 text-warning"/>High Resource Usage</h5>
+                        <div class="nd_list_content">
+                            <t t-if="state.highUsageDevices.length === 0">
+                                <div class="nd_empty_state">
+                                    <i class="fa fa-thumbs-up text-success"/>
+                                    <p>All devices running normally</p>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <t t-foreach="state.highUsageDevices" t-as="device" t-key="device.id">
+                                    <div class="nd_list_item nd_list_item_warning" t-on-click="() => this.viewHighCPUDevices()">
+                                        <div class="nd_list_item_icon">
+                                            <i class="fa fa-exclamation-triangle text-warning"/>
+                                        </div>
+                                        <div class="nd_list_item_content">
+                                            <div class="nd_list_item_title" t-esc="device.name"/>
+                                            <div class="nd_list_item_subtitle">
+                                                CPU: <t t-esc="device.cpu_usage.toFixed(1)"/>% • Memory: <t t-esc="device.memory_usage.toFixed(1)"/>%
+                                            </div>
+                                        </div>
+                                        <div class="nd_list_item_badge">
+                                            <span class="badge bg-warning text-dark">High Usage</span>
+                                        </div>
+                                    </div>
+                                </t>
+                            </t>
+                        </div>
+                    </div>
+
+                    <!-- Recently Checked -->
+                    <div class="nd_list_card">
+                        <h5><i class="fa fa-clock-o me-2 text-info"/>Recently Checked</h5>
+                        <div class="nd_list_content">
+                            <t t-if="state.recentDevices.length === 0">
+                                <div class="nd_empty_state">
+                                    <i class="fa fa-info-circle text-muted"/>
+                                    <p>No recent activity</p>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <t t-foreach="state.recentDevices" t-as="device" t-key="device.id">
+                                    <div class="nd_list_item" t-on-click="() => this.viewTotalDevices()">
+                                        <div class="nd_list_item_icon">
+                                            <i t-att-class="device.connection_status === 'online' ? 'fa fa-check-circle text-success' : 'fa fa-times-circle text-danger'"/>
+                                        </div>
+                                        <div class="nd_list_item_content">
+                                            <div class="nd_list_item_title" t-esc="device.name"/>
+                                            <div class="nd_list_item_subtitle" t-esc="device.last_check_formatted"/>
+                                        </div>
+                                        <div class="nd_list_item_badge">
+                                            <span class="badge" t-att-class="device.connection_status === 'online' ? 'bg-success' : 'bg-danger'">
+                                                <t t-esc="device.connection_status"/>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </t>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Device Type Summary Table -->
+                <div class="nd_table_card">
+                    <h5><i class="fa fa-table me-2"/>Device Summary by Type</h5>
+                    <table class="nd_summary_table">
+                        <thead>
+                            <tr>
+                                <th>Device Type</th>
+                                <th>Total</th>
+                                <th>Online</th>
+                                <th>Offline</th>
+                                <th>Avg CPU</th>
+                                <th>Avg Memory</th>
+                                <th>Health</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="state.deviceTypeSummary" t-as="summary" t-key="summary.type">
+                                <tr class="cursor-pointer" t-on-click="() => this[summary.clickHandler]()">
+                                    <td class="fw-bold"><t t-esc="summary.label"/></td>
+                                    <td><t t-esc="summary.total"/></td>
+                                    <td class="text-success"><t t-esc="summary.online"/></td>
+                                    <td class="text-danger"><t t-esc="summary.offline"/></td>
+                                    <td><t t-esc="summary.avgCpu.toFixed(1)"/>%</td>
+                                    <td><t t-esc="summary.avgMemory.toFixed(1)"/>%</td>
+                                    <td>
+                                        <div class="nd_health_bar">
+                                            <div class="nd_health_fill" t-att-style="'width: ' + summary.healthPercent + '%;'" t-att-class="getHealthClass(summary.healthPercent)"/>
+                                        </div>
+                                        <span class="nd_health_text"><t t-esc="summary.healthPercent.toFixed(0)"/>%</span>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </t>
+    </templates>

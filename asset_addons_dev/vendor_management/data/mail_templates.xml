@@ -1,0 +1,158 @@
+<odoo>
+    <record id="mail_template_doc_expiry_reminder" model="mail.template">
+        <field name="name">Vendor Document Expiry Reminder</field>
+        <field name="model_id" ref="vendor_management.model_vendor_document"/>
+        <field name="subject">Upcoming Document Expiration: {{ object.doc_type_id.name }}</field>
+        <field name="email_to">{{ object.vendor_id.email }}</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    Dear {{ object.vendor_id.name }},<br/><br/>
+                    This is a reminder that your document <strong>{{ object.doc_type_id.name }}</strong> 
+                    (Number: {{ object.document_number or 'N/A' }}) is set to expire on <strong>{{ object.expiry_date }}</strong>.
+                    <br/><br/>
+                    Please log in to the vendor portal to upload an updated version of this document to ensure 
+                    continued compliance and avoid any disruption in our business relationship.
+                    <br/><br/>
+                    Best regards,<br/>
+                    Vendor Management Team
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <record id="mail_template_doc_expired" model="mail.template">
+        <field name="name">Vendor Document Expired</field>
+        <field name="model_id" ref="vendor_management.model_vendor_document"/>
+        <field name="subject">ACTION REQUIRED: Your document has expired</field>
+        <field name="email_to">{{ object.vendor_id.email }}</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    Dear {{ object.vendor_id.name }},<br/><br/>
+                    Your document <strong>{{ object.doc_type_id.name }}</strong> has expired as of {{ object.expiry_date }}.
+                    <br/><br/>
+                    Your compliance status has been updated, and this may affect your ability to receive new orders. 
+                    Please upload the renewed document immediately through the vendor portal.
+                    <br/><br/>
+                    Best regards,<br/>
+                    Vendor Management Team
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <record id="mail_template_performance_review_reminder" model="mail.template">
+        <field name="name">Vendor Performance Review Reminder</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="subject">Performance Review Due: {{ object.name }}</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    Hello,<br/><br/>
+                    A periodic performance review is now due for the vendor <strong>{{ object.name }}</strong>.
+                    <br/><br/>
+                    Last review date: {{ object.performance_ids[0].review_date if object.performance_ids else 'Never' }}
+                    <br/><br/>
+                    Please complete the review in the Vendor Management system.
+                    <br/><br/>
+                    Best regards,<br/>
+                    System Automations
+                </p>
+            </div>
+        </field>
+    </record>
+    <record id="mail_template_vendor_approved" model="mail.template">
+        <field name="name">Vendor Approved</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="subject">Welcome! Your Vendor Application has been Approved</field>
+        <field name="email_to">{{ object.email }}</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    Dear {{ object.name }},<br/><br/>
+                    We are pleased to inform you that your vendor application has been approved. 
+                    You are now an active vendor in our system.
+                    <br/><br/>
+                    Best regards,<br/>
+                    Vendor Management Team
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <record id="mail_template_po_created" model="mail.template">
+        <field name="name">Purchase Order Created</field>
+        <field name="model_id" ref="purchase.model_purchase_order"/>
+        <field name="subject">New Purchase Order: {{ object.name }}</field>
+        <field name="email_to">{{ object.partner_id.email }}</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    Dear {{ object.partner_id.name }},<br/><br/>
+                    A new purchase order <strong>{{ object.name }}</strong> has been created for you.
+                    <br/><br/>
+                    Best regards,<br/>
+                    Purchase Department
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <record id="mail_template_bill_paid" model="mail.template">
+        <field name="name">Bill Paid</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="subject">Payment Confirmation: {{ object.name }}</field>
+        <field name="email_to">{{ object.partner_id.email }}</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    Dear {{ object.partner_id.name }},<br/><br/>
+                    We have processed the payment for bill <strong>{{ object.name }}</strong>.
+                    <br/><br/>
+                    Best regards,<br/>
+                    Accounts Department
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <record id="mail_template_transaction_review" model="mail.template">
+        <field name="name">Transaction Review Triggered</field>
+        <field name="model_id" ref="purchase.model_purchase_order"/>
+        <field name="subject">Vendor Review Required: {{ object.partner_id.name }}</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    Hello,<br/><br/>
+                    A purchase order <strong>{{ object.name }}</strong> for vendor <strong>{{ object.partner_id.name }}</strong> 
+                    has exceeded the threshold, triggering a mandatory vendor review.
+                    <br/><br/>
+                    Please complete the review in the system.
+                    <br/><br/>
+                    Best regards,<br/>
+                    System Automations
+                </p>
+            </div>
+        </field>
+    </record>
+
+    <record id="mail_template_rfq_invitation" model="mail.template">
+        <field name="name">RFQ Invitation</field>
+        <field name="model_id" ref="purchase.model_purchase_order"/>
+        <field name="subject">Invitation to Quote: {{ object.name }}</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    Dear Vendor,<br/><br/>
+                    You have been invited to submit a quotation for <strong>{{ object.name }}</strong>.
+                    <br/><br/>
+                    Please log in to the vendor portal to view details and submit your price.
+                    <br/><br/>
+                    Best regards,<br/>
+                    Purchase Department
+                </p>
+            </div>
+        </field>
+    </record>
+</odoo>

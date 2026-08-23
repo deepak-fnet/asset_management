@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- List View -->
+    <record id="view_vendor_comparison_list" model="ir.ui.view">
+        <field name="name">vendor.comparison.list</field>
+        <field name="model">vendor.comparison</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="state" decoration-info="state == 'draft'" widget="badge"
+                       decoration-warning="state in ['rfq_created']"
+                       decoration-success="state in ['po_done','receipt_done']"
+                       decoration-danger="state in ['cancel']"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_vendor_comparison_form" model="ir.ui.view">
+        <field name="name">vendor.comparison.form</field>
+        <field name="model">vendor.comparison</field>
+        <field name="arch" type="xml">
+            <form string="Vendor Comparison">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,rfq_created"/>
+                    <button name="action_create_rfq"
+                            type="object"
+                            string="Create RFQ"
+                            class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_export_vendor_comparison_xlsx"
+                            string="Export Excel"
+                            type="object" class="btn-primary"
+                            icon="fa-file-excel-o"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object" invisible="purchase_count == 0"
+                                name="action_view_purchase" icon="fa-shopping-cart">
+                            <div class="o_stat_info">
+                                <field name="purchase_count"/>
+                                <span class="o_stat_text">RFQ</span>
+                            </div>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="name" readonly="True"/>
+                        </group>
+                        <group>
+                            <field name="vendor_count" readonly="True"/>
+                            <field name="product_count" readonly="True"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Products">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="product_qty"/>
+                                    <field name="product_uom_id"/>
+                                    <field name="partner_ids" widget="many2many_tags"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Vendor Price Comparison">
+                            <div style="overflow-x: auto; width: 100%;">
+                                <field name="vendor_comparison_table" widget="html" readonly="1"/>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+</odoo>

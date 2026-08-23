@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="paperformat_inventory_report_landscape" model="report.paperformat">
+        <field name="name">Inventory Report Landscape</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">28</field>
+        <field name="margin_bottom">20</field>
+        <field name="margin_left">6</field>
+        <field name="margin_right">6</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">20</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="action_report_inventory_movement" model="ir.actions.report">
+        <field name="name">Inventory Report</field>
+        <field name="model">inventory.report.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">inventory_report.report_inventory_movement</field>
+        <field name="report_file">inventory_report.report_inventory_movement</field>
+        <field name="paperformat_id" ref="paperformat_inventory_report_landscape"/>
+        <field name="print_report_name">
+            'Inventory %s %s to %s' % (object._report_title(), object.date_from, object.date_to)
+        </field>
+        <field name="binding_model_id" eval="False"/>
+    </record>
+
+</odoo>

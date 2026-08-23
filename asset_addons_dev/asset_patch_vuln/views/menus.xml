@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Security section under the existing Asset Management root -->
+    <menuitem id="menu_security_root"
+              name="Security ▾"
+              parent="asset_management.menu_asset_root"
+              sequence="55"/>
+
+    <!-- Patch Management -->
+    <menuitem id="menu_patch_root"
+              name="Patch Management"
+              parent="menu_security_root"
+              sequence="10"/>
+
+    <menuitem id="menu_patch_dashboard"
+              name="Patch Dashboard"
+              parent="menu_patch_root"
+              action="action_patch_dashboard"
+              sequence="1"/>
+
+    <menuitem id="menu_patch_deployments"
+              name="Deployments"
+              parent="menu_patch_root"
+              action="action_patch_deployment"
+              sequence="2"/>
+
+    <menuitem id="menu_patch_compliance"
+              name="Compliance History"
+              parent="menu_patch_root"
+              action="action_compliance_snapshot"
+              sequence="3"/>
+
+    <!-- Vulnerability Management -->
+    <menuitem id="menu_vuln_root"
+              name="Vulnerability Management"
+              parent="menu_security_root"
+              sequence="20"/>
+
+    <menuitem id="menu_vuln_dashboard"
+              name="Vulnerability Dashboard"
+              parent="menu_vuln_root"
+              action="action_vulnerability_dashboard"
+              sequence="1"/>
+
+    <menuitem id="menu_vuln_findings"
+              name="Vulnerabilities"
+              parent="menu_vuln_root"
+              action="action_vulnerability"
+              sequence="2"/>
+
+    <menuitem id="menu_vuln_review"
+              name="Review Queue"
+              parent="menu_vuln_root"
+              action="action_vulnerability_review"
+              sequence="3"/>
+
+    <menuitem id="menu_vuln_scans"
+              name="Scan History"
+              parent="menu_vuln_root"
+              action="action_vuln_scan"
+              sequence="4"/>
+
+    <menuitem id="menu_vuln_cve_db"
+              name="CVE Database"
+              parent="menu_vuln_root"
+              action="action_cve"
+              sequence="5"
+              groups="asset_management.group_asset_manager"/>
+
+</odoo>

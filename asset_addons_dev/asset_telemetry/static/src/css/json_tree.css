@@ -1,0 +1,120 @@
+/* ==========================================================================
+   JSON list viewer — prefix jt- to avoid colliding with anything else
+   ========================================================================== */
+
+.jt-wrap {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 12.5px;
+    background: #fbfcfd;
+    border: 1px solid #e3e7eb;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.jt-toolbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 10px;
+    background: #f2f4f7;
+    border-bottom: 1px solid #e3e7eb;
+}
+
+.jt-filter {
+    flex: 1;
+    min-width: 120px;
+    padding: 5px 9px;
+    border: 1px solid #d3d9df;
+    border-radius: 4px;
+    font-size: 12.5px;
+    font-family: inherit;
+}
+.jt-filter:focus {
+    outline: none;
+    border-color: #7c93a8;
+}
+
+.jt-btn {
+    padding: 5px 10px;
+    border: 1px solid #d3d9df;
+    background: #fff;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: inherit;
+}
+.jt-btn:hover { background: #eef1f4; }
+
+.jt-list {
+    padding: 10px 12px;
+    max-height: 620px;
+    overflow: auto;
+}
+
+.jt-node { line-height: 1.65; }
+
+.jt-row {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    padding: 1px 0;
+    border-radius: 3px;
+}
+.jt-clickable { cursor: pointer; }
+.jt-clickable:hover { background: #eef2f6; }
+
+.jt-caret {
+    display: inline-block;
+    width: 12px;
+    color: #7b8794;
+    flex-shrink: 0;
+    user-select: none;
+}
+.jt-caret-blank { visibility: hidden; }
+
+.jt-key    { color: #1f3a5f; font-weight: 600; }
+.jt-colon  { color: #9aa5b1; }
+.jt-count  { color: #9aa5b1; font-style: italic; font-size: 11.5px; }
+
+.jt-value {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+.jt-string { color: #0b7285; }
+.jt-number { color: #a61e4d; }
+.jt-bool   { color: #5f3dc4; font-weight: 600; }
+.jt-null   { color: #adb5bd; font-style: italic; }
+.jt-other  { color: #495057; }
+
+.jt-children {
+    margin-left: 15px;
+    padding-left: 9px;
+    border-left: 1px solid #e3e7eb;
+}
+
+.jt-pre {
+    margin: 3px 0 6px 26px;
+    padding: 9px 11px;
+    background: #1f2933;
+    color: #e4e7eb;
+    border-radius: 5px;
+    font-size: 11.5px;
+    line-height: 1.5;
+    max-height: 340px;
+    overflow: auto;
+    white-space: pre;
+}
+
+.jt-empty {
+    color: #adb5bd;
+    font-style: italic;
+    padding: 3px 0 3px 26px;
+}
+
+.jt-none {
+    padding: 22px;
+    text-align: center;
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+.jt-none p { margin: 4px 0; }

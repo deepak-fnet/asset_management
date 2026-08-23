@@ -1,0 +1,35 @@
+<odoo>
+    <record id="view_vendor_audit_log_list" model="ir.ui.view">
+        <field name="name">vendor.audit.log.list</field>
+        <field name="model">vendor.audit.log</field>
+        <field name="arch" type="xml">
+            <list string="Audit Trail" create="false" edit="false">
+                <field name="create_date" string="Timestamp" widget="datetime"/>
+                <field name="changed_by" widget="many2one_avatar_user"/>
+                <field name="vendor_id"/>
+                <field name="event_type" widget="badge" decoration-info="event_type == 'state_change'" decoration-warning="event_type == 'risk_change'" decoration-danger="event_type == 'blacklist'" decoration-success="event_type == 'approval'"/>
+                <field name="action"/>
+                <field name="old_value" decoration-muted="1"/>
+                <field name="new_value" decoration-bf="1"/>
+                <field name="note" string="Description"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vendor_audit_log_search" model="ir.ui.view">
+        <field name="name">vendor.audit.log.search</field>
+        <field name="model">vendor.audit.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="vendor_id"/>
+                <field name="event_type"/>
+                <field name="changed_by"/>
+                <group>
+                    <filter string="Vendor" name="group_by_vendor" context="{'group_by': 'vendor_id'}"/>
+                    <filter string="Event Type" name="group_by_event" context="{'group_by': 'event_type'}"/>
+                    <filter string="User" name="group_by_user" context="{'group_by': 'changed_by'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

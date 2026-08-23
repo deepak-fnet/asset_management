@@ -1,0 +1,23 @@
+{
+    "name": "Vendor Comparison",
+    "version": "19.0.1.0.0",
+    "category": "Inventory/Purchase",
+    "summary": "Compare vendors for purchase orders",
+    "description": "Manage vendor comparison for purchase orders",
+    "author": "",
+    "license": "LGPL-3",
+    "depends": ["purchase", "stock"],
+    "data": [
+        "security/ir.model.access.csv",
+        "data/sequence.xml",
+        "views/vendor_comparison_views.xml",
+        "views/purchase_order_views.xml",
+        "views/menu.xml",
+        "wizard/purchase_qty_exceed_views.xml",
+    ],
+    "external_dependencies": {"python": ["openpyxl"]},
+    "installable": True,
+    "application": True,
+    "sequence": 1,
+    "auto_install": False,
+}

@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_telemetry_snapshot_user,telemetry.snapshot user,model_asset_telemetry_snapshot,asset_management.group_asset_user,1,0,0,0
+access_telemetry_snapshot_manager,telemetry.snapshot manager,model_asset_telemetry_snapshot,asset_management.group_asset_manager,1,1,1,1

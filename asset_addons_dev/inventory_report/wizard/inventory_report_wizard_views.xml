@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record model="ir.ui.view" id="inventory_report_wizard_view_form">
+        <field name="name">inventory.report.wizard.form</field>
+        <field name="model">inventory.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Inventory Report">
+                <group>
+                    <group string="Period">
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                    </group>
+                    <group string="Selection">
+                        <field name="picking_type_code"/>
+                        <field name="state"/>
+                        <field name="report_format" widget="radio"/>
+                    </group>
+                </group>
+                <group string="Optional Filters">
+                    <group>
+                        <field name="warehouse_id" options="{'no_create': True}"/>
+                    </group>
+                    <group>
+                        <field name="product_id" options="{'no_create': True}"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_generate_report" type="object"
+                            string="Download" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_inventory_report_wizard">
+        <field name="name">Inventory Report</field>
+        <field name="res_model">inventory.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_inventory_report_wizard"
+              name="Inventory Report"
+              parent="stock.menu_warehouse_report"
+              action="action_inventory_report_wizard"
+              groups="stock.group_stock_user"
+              sequence="95"/>
+
+</odoo>

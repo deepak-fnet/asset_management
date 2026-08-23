@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_remote_recording_list" model="ir.ui.view">
+        <field name="name">remote.assistance.recording.list</field>
+        <field name="model">remote.assistance.recording</field>
+        <field name="arch" type="xml">
+            <list string="Recordings">
+                <field name="name"/>
+                <field name="session_id"/>
+                <field name="partner_id"/>
+                <field name="create_date"/>
+                <field name="duration"/>
+                <field name="file_size"/>
+                <field name="recorded_by"/>
+                <button name="action_view" type="object" string="View"
+                        icon="fa-play"/>
+                <button name="action_download" type="object" string="Download"
+                        icon="fa-download"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_remote_recording_form" model="ir.ui.view">
+        <field name="name">remote.assistance.recording.form</field>
+        <field name="model">remote.assistance.recording</field>
+        <field name="arch" type="xml">
+            <form string="Recording">
+                <header>
+                    <button name="action_view" type="object"
+                            string="View" class="btn-primary" icon="fa-play"/>
+                    <button name="action_download" type="object"
+                            string="Download" icon="fa-download"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="session_id" readonly="1"/>
+                            <field name="partner_id" readonly="1"/>
+                            <field name="recorded_by" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="create_date" readonly="1"/>
+                            <field name="duration" readonly="1"/>
+                            <field name="file_size" readonly="1"/>
+                            <field name="attachment_id" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_remote_recording_search" model="ir.ui.view">
+        <field name="name">remote.assistance.recording.search</field>
+        <field name="model">remote.assistance.recording</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="session_id"/>
+                <field name="partner_id"/>
+                <field name="recorded_by"/>
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter name="g_session" string="Session"-->
+<!--                            context="{'group_by':'session_id'}"/>-->
+<!--                    <filter name="g_user" string="Recorded By"-->
+<!--                            context="{'group_by':'recorded_by'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <record id="action_remote_recording" model="ir.actions.act_window">
+        <field name="name">Recordings</field>
+        <field name="res_model">remote.assistance.recording</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_remote_recording_search"/>
+    </record>
+
+    <menuitem id="menu_remote_assistance_recordings"
+              name="Recordings"
+              parent="menu_remote_assistance_root"
+              action="action_remote_recording"
+              sequence="20"/>
+</odoo>

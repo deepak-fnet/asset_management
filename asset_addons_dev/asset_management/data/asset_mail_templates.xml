@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- =====================================================
+         EMAIL: ASSET ASSIGNMENT
+         ===================================================== -->
+    <record id="email_template_asset_assignment" model="mail.template">
+        <field name="name">Asset Assignment Notification</field>
+        <field name="model_id" ref="model_asset_asset"/>
+        <field name="subject">Asset Assigned: {{ object.asset_code }} - {{ object.asset_name }}</field>
+        <field name="email_to">{{ object.assigned_employee_id.work_email }}</field>
+        <field name="body_html" type="html">
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; color: white;">
+                    <h1 style="margin: 0; font-size: 28px;">Asset Assigned</h1>
+                </div>
+
+                <div style="padding: 30px; background: #f8f9fa;">
+                    <p style="font-size: 16px; color: #333;">Dear <strong>{{ object.assigned_employee_id.name }}</strong>,</p>
+
+                    <p style="font-size: 14px; color: #666;">
+                        The following asset has been assigned to you. Please review the details below:
+                    </p>
+
+                    <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 10px; border-bottom: 1px solid #e9ecef; color: #6c757d; font-weight: 600;">Asset Code:</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #e9ecef; color: #212529;">{{ object.asset_code }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border-bottom: 1px solid #e9ecef; color: #6c757d; font-weight: 600;">Asset Name:</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #e9ecef; color: #212529;">{{ object.asset_name }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border-bottom: 1px solid #e9ecef; color: #6c757d; font-weight: 600;">Serial Number:</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #e9ecef; color: #212529;">{{ object.serial_number }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border-bottom: 1px solid #e9ecef; color: #6c757d; font-weight: 600;">Assignment Date:</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #e9ecef; color: #212529;">{{ object.assignment_date }}</td>
+                            </tr>
+                            <tr t-if="object.processor">
+                                <td style="padding: 10px; border-bottom: 1px solid #e9ecef; color: #6c757d; font-weight: 600;">Processor:</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #e9ecef; color: #212529;">{{ object.processor }}</td>
+                            </tr>
+                            <tr t-if="object.ram_size">
+                                <td style="padding: 10px; border-bottom: 1px solid #e9ecef; color: #6c757d; font-weight: 600;">RAM:</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #e9ecef; color: #212529;">{{ object.ram_size }} GB</td>
+                            </tr>
+                            <tr t-if="object.os_name">
+                                <td style="padding: 10px; color: #6c757d; font-weight: 600;">OS:</td>
+                                <td style="padding: 10px; color: #212529;">{{ object.os_name }}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                        <p style="margin: 0; color: #856404; font-size: 14px;">
+                            <strong>⚠️ Important:</strong> You are responsible for this asset. Please take good care of it and report any issues immediately.
+                        </p>
+                    </div>
+
+                    <p style="font-size: 14px; color: #666;">
+                        If you have any questions, please contact the IT department.
+                    </p>
+
+                    <p style="font-size: 14px; color: #666;">
+                        Best regards,<br/>
+                        <strong>IT Department</strong>
+                    </p>
+                </div>
+
+                <div style="background: #212529; padding: 20px; text-align: center; color: #6c757d; font-size: 12px;">
+                    <p style="margin: 0;">This is an automated message. Please do not reply to this email.</p>
+                </div>
+            </div>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         EMAIL: WARRANTY EXPIRY WARNING
+         ===================================================== -->
+    <record id="email_template_warranty_expiry" model="mail.template">
+        <field name="name">Warranty Expiry Warning</field>
+        <field name="model_id" ref="model_asset_asset"/>
+        <field name="subject">⚠️ Warranty Expiring Soon: {{ object.asset_code }}</field>
+        <field name="email_to">{{ user.email }}</field>
+        <field name="body_html" type="html">
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 30px; text-align: center; color: white;">
+                    <h1 style="margin: 0; font-size: 28px;">⚠️ Warranty Expiring</h1>
+                </div>
+
+                <div style="padding: 30px; background: #f8f9fa;">
+                    <p style="font-size: 16px; color: #333;">Dear IT Team,</p>
+
+                    <p style="font-size: 14px; color: #666;">
+                        The warranty for the following asset is expiring soon:
+                    </p>
+
+                    <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 10px; border-bottom: 1px solid #e9ecef; color: #6c757d; font-weight: 600;">Asset Code:</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #e9ecef; color: #212529;">{{ object.asset_code }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border-bottom: 1px solid #e9ecef; color: #6c757d; font-weight: 600;">Asset Name:</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #e9ecef; color: #212529;">{{ object.asset_name }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border-bottom: 1px solid #e9ecef; color: #6c757d; font-weight: 600;">Warranty End:</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #e9ecef; color: #dc3545; font-weight: bold;">{{ object.warranty_end_date }}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; color: #6c757d; font-weight: 600;">Assigned To:</td>
+                                <td style="padding: 10px; color: #212529;">{{ object.assigned_employee_id.name or 'Unassigned' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                        <p style="margin: 0; color: #856404; font-size: 14px;">
+                            <strong>Action Required:</strong> Please review and renew the warranty if necessary.
+                        </p>
+                    </div>
+
+                    <p style="font-size: 14px; color: #666;">
+                        Best regards,<br/>
+                        <strong>Asset Management System</strong>
+                    </p>
+                </div>
+
+                <div style="background: #212529; padding: 20px; text-align: center; color: #6c757d; font-size: 12px;">
+                    <p style="margin: 0;">This is an automated message from Asset Management System.</p>
+                </div>
+            </div>
+        </field>
+    </record>
+
+</odoo>

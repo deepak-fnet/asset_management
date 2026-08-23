@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <!--
+            Odoo 19: res.groups.category_id was removed. A group now points
+            at a res.groups.privilege, and the privilege carries the
+            ir.module.category. The privilege renders as a single dropdown
+            on the user form, with its groups as the selectable levels.
+        -->
+        <record id="module_category_oneit" model="ir.module.category">
+            <field name="name">OneIT AD Automation</field>
+            <field name="description">Access levels for the AD lifecycle workflow.</field>
+            <field name="sequence">30</field>
+        </record>
+
+        <record id="privilege_oneit" model="res.groups.privilege">
+            <field name="name">AD Automation</field>
+            <field name="category_id" ref="module_category_oneit"/>
+            <field name="sequence">10</field>
+            <field name="description">Which stage of the AD request workflow this user takes part in.</field>
+        </record>
+
+        <!-- Requester: can raise onboarding / offboarding / team-update requests -->
+        <record id="group_oneit_hr" model="res.groups">
+            <field name="name">HR / Requester</field>
+            <field name="privilege_id" ref="privilege_oneit"/>
+            <field name="comment">Can create and submit requests, and follow their own.</field>
+        </record>
+
+        <!-- First approver: selects the AD access -->
+        <record id="group_oneit_team_lead" model="res.groups">
+            <field name="name">Team Lead</field>
+            <field name="privilege_id" ref="privilege_oneit"/>
+            <field name="implied_ids" eval="[(4, ref('group_oneit_hr'))]"/>
+            <field name="comment">First approval stage. Selects the exact AD groups to grant.</field>
+        </record>
+
+        <!-- Final approver: triggers execution -->
+        <record id="group_oneit_bu_head" model="res.groups">
+            <field name="name">BU Head</field>
+            <field name="privilege_id" ref="privilege_oneit"/>
+            <field name="implied_ids" eval="[(4, ref('group_oneit_team_lead'))]"/>
+            <field name="comment">Final approval stage. Approval triggers the AD change.</field>
+        </record>
+
+        <!-- Administrator: configuration + revert -->
+        <record id="group_oneit_it_admin" model="res.groups">
+            <field name="name">IT Administrator</field>
+            <field name="privilege_id" ref="privilege_oneit"/>
+            <field name="implied_ids" eval="[(4, ref('group_oneit_bu_head'))]"/>
+            <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+            <field name="comment">Manages teams, AD groups and settings. Can revert offboardings.</field>
+        </record>
+
+    </data>
+</odoo>

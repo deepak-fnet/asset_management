@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_patch_cleanup_form" model="ir.ui.view">
+        <field name="name">asset.patch.cleanup.wizard.form</field>
+        <field name="model">asset.patch.cleanup.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Clean Up Misfiled Patch Records">
+                <div class="alert alert-warning" role="alert">
+                    <p class="mb-1"><b>Do this in the right order.</b></p>
+                    <ol class="mb-0" style="padding-left:18px;">
+                        <li>Repoint Linux/macOS agents at
+                            <code>/api/asset/os_updates/report</code></li>
+                        <li>Rebuild and redeploy those agents</li>
+                        <li>Only then run this cleanup</li>
+                    </ol>
+                    <p class="mb-0 mt-2">
+                        Delete first and the old agents simply recreate the rows
+                        on their next sync.
+                    </p>
+                </div>
+
+                <field name="preview_html" nolabel="1" readonly="1"/>
+                <field name="misfiled_count" invisible="1"/>
+
+                <group invisible="misfiled_count == 0">
+                    <field name="confirmed"/>
+                </group>
+
+                <group invisible="not result_message">
+                    <field name="result_message" nolabel="1" readonly="1"/>
+                </group>
+
+                <footer>
+                    <button name="action_cleanup" type="object"
+                            string="Delete Misfiled Records"
+                            class="btn-danger"
+                            invisible="misfiled_count == 0"
+                            confirm="This permanently deletes the listed records. Continue?"/>
+                    <button name="action_refresh_preview" type="object"
+                            string="Refresh" class="btn-secondary"/>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_patch_cleanup" model="ir.actions.act_window">
+        <field name="name">Clean Up Misfiled Patches</field>
+        <field name="res_model">asset.patch.cleanup.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

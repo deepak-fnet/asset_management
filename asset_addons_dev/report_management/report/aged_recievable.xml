@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="pdf_export_main" inherit_id="account_reports.pdf_export_main">
+        <xpath expr="//head/t[@t-call-assets]" position="after">
+            <style type="text/css">
+
+                /* ================= GLOBAL ================= */
+                body {
+                font-family: Arial, sans-serif;
+                font-size: 12px;
+                color: #1f2937;
+                background: #ffffff;
+                }
+
+                /* ================= REPORT PADDING ================= */
+                .o_content {
+                padding: 10px 20px;
+                }
+
+
+                /* ================= COMPANY HEADER ================= */
+                .company-header {
+                width: 100%;
+                border-bottom: 2px solid black;
+                display: table;
+                }
+
+                .company-left {
+                display: table-cell;
+                width: 70%;
+                vertical-align: top;
+                padding-left: 0;
+                }
+
+                .company-right {
+                display: table-cell;
+                width: 30%;
+                text-align: right;
+                vertical-align: top;
+                }
+
+                .company-name {
+                font-size: 25px;
+                margin: 0;
+                padding: 0;
+                color: black;
+                font-weight: bold;
+                font-family: 'Baskervville SC', serif;
+                font-style: normal;
+                }
+
+
+                /* Strip all Odoo-generated margin/padding from address widget */
+                .company-address {
+                font-family: 'Baskervville SC', serif;
+                font-style: normal;
+                font-size: 65px;
+
+                }
+
+                .company-tax {
+                font-size: 15px;
+                margin: 4px 0 0 0;
+                padding: 0;
+                color: black;
+                font-weight: bold;
+                font-family: 'Baskervville SC', serif;
+                font-style: normal;
+                }
+
+                /* ================= REPORT TITLE ================= */
+                .o_report_title_bar {
+                background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+                padding: 18px 24px;
+                text-align: center;
+                margin-bottom: 18px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+                }
+
+                .o_report_title_bar .o_report_name {
+                font-size: 30px;
+                font-weight: 800;
+                color: #ffffff !important;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                }
+
+                .o_report_title_bar .o_report_dates {
+                font-size: 15px;
+                color: #dbeafe !important;
+                margin-top: 5px;
+                }
+
+                .o_title {
+                font-size: 40px;
+                color: black;
+                letter-spacing: 2px;
+                text-align: center;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                width: 100%;
+                border: 1px solid #A8A8A8;
+                background: #f1f5f9;
+                border-radius: 6px;
+                }
+
+                /* ================= TABLE ================= */
+                .o_table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 11.5px;
+                border: 1px solid #2c3e50;
+                table-layout: fixed;
+                }
+
+                .o_table th,
+                .o_table td {
+                padding: 8px 20px;
+                }
+
+                /* TABLE HEADER */
+                .o_table thead th {
+                background: #34495e;
+                color: white !important;
+                padding: 11px 12px;
+                font-weight: 700;
+                border: 1px solid #93c5fd;
+                text-align: center;
+                text-transform: uppercase;
+                font-size: 13px;
+                }
+
+                .o_table thead th:first-child {
+                text-align: left;
+                }
+
+                /* TABLE BODY */
+                .o_table tbody td {
+                padding: 10px 12px;
+                border: 1px solid #c7d2fe;
+                vertical-align: middle;
+                }
+
+                /* Alternate rows */
+                .o_table tbody tr:nth-child(even) td {
+                background: #f8fbff;
+                }
+
+                /* GROUP ROW */
+                .o_line_level_0 td {
+                background: #e8f0ff !important;
+                font-weight: 700;
+                color: #1e3a8a !important;
+                border: 1px solid #c7d2fe;
+                }
+
+                /* TOTAL ROW */
+                .o_fw_bold td,
+                .o_line_total td {
+                background: #e0e7ff !important;
+                font-weight: 800;
+                color: #1e3a8a !important;
+                border-top: 2px solid #1e3a8a;
+                border-bottom: 2px solid #1e3a8a;
+                }
+
+                /* Numeric alignment */
+                .o_line_cell_value_number,
+                td.text-right {
+                text-align: right !important;
+                font-weight: 600;
+                font-variant-numeric: tabular-nums;
+                }
+
+                /* ================= FOOTER ================= */
+                footer {
+                border-top: 2px solid #1e3a8a;
+                padding-top: 8px;
+                font-size: 10px;
+                color: #475569;
+                }
+
+                /* ================= PRINT FIX ================= */
+                @media print {
+                * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                }
+                }
+
+            </style>
+        </xpath>
+    </template>
+</odoo>

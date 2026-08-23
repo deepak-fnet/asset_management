@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- =====================================================
+         SCHEDULED ACTION: Check Agent Sync Status
+         DISABLED: Agent status now computed from heartbeat automatically
+         ===================================================== -->
+    <record id="ir_cron_check_agent_sync" model="ir.cron">
+        <field name="name">Asset: Check Agent Sync Status (Disabled)</field>
+        <field name="model_id" ref="model_asset_asset"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_check_agent_sync_status()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">minutes</field>
+        <field name="active" eval="False"/>
+    </record>
+
+    <!-- =====================================================
+         SCHEDULED ACTION: Check Warranty Expiry
+         Runs daily to check for expiring warranties
+         ===================================================== -->
+    <record id="ir_cron_check_warranty_expiry" model="ir.cron">
+        <field name="name">Asset: Check Warranty Expiry</field>
+        <field name="model_id" ref="model_asset_asset"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_check_warranty_expiry()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <!-- =====================================================
+         SCHEDULED ACTION: Check Maintenance Due
+         Runs daily to check for assets needing maintenance
+         ===================================================== -->
+    <record id="ir_cron_check_maintenance_due" model="ir.cron">
+        <field name="name">Asset: Check Maintenance Due</field>
+        <field name="model_id" ref="model_asset_asset"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_check_maintenance_due()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <!-- =====================================================
+         SCHEDULED ACTION: Update Agent Online Status
+         Runs every 5 minutes to update is_online field based on heartbeat
+         ===================================================== -->
+    <record id="ir_cron_update_agent_status" model="ir.cron">
+        <field name="name">Asset: Update Agent Online Status</field>
+        <field name="model_id" ref="model_asset_live_monitoring"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_update_is_online()</field>
+        <field name="interval_number">5</field>
+        <field name="interval_type">minutes</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <!-- =====================================================
+         SCHEDULED ACTION: Cleanup Stale Live Monitoring Records
+         Runs daily to remove monitoring records older than 30 days
+         ===================================================== -->
+    <record id="ir_cron_cleanup_live_monitoring" model="ir.cron">
+        <field name="name">Asset: Cleanup Stale Live Monitoring Records</field>
+        <field name="model_id" ref="model_asset_live_monitoring"/>
+        <field name="state">code</field>
+        <field name="code">model.cleanup_stale_records()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <!-- =====================================================
+         SCHEDULED ACTION: Reverse Geocode Missing Addresses
+         Runs daily to geocode assets that have coordinates but no address.
+         Uses Nominatim (OpenStreetMap) - free, no API key required.
+         Processes 100 records at a time to respect API rate limits.
+         DISABLED by default - enable manually when needed.
+         ===================================================== -->
+    <record id="ir_cron_reverse_geocode_assets" model="ir.cron">
+        <field name="name">Asset: Reverse Geocode Missing Addresses</field>
+        <field name="model_id" ref="model_asset_asset"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_reverse_geocode_missing_addresses()</field>
+        <!-- Every 30 minutes, and ENABLED. It was disabled and daily, which
+             was fine while sync_from_agent() geocoded inline. Now that the
+             inline call is gone this cron is the only thing that fills in
+             addresses, so leaving it off would mean they never appear. -->
+        <field name="interval_number">30</field>
+        <field name="interval_type">minutes</field>
+        <field name="active" eval="True"/>
+    </record>
+
+
+    <!-- Housekeeping moved off the request path. Both of these used to run
+         inline on every agent heartbeat, which is what made the sync endpoint
+         slow enough to collide with itself. -->
+    <record id="ir_cron_trim_agent_logs" model="ir.cron">
+        <field name="name">Asset: trim old agent sync logs</field>
+        <field name="model_id" ref="model_asset_asset"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_trim_agent_logs()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <record id="param_live_metrics_throttle" model="ir.config_parameter">
+        <field name="key">asset_management.live_metrics_throttle_seconds</field>
+        <field name="value">15</field>
+    </record>
+
+</odoo>

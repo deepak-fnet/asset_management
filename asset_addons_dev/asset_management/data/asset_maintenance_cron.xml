@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="ir_cron_check_maintenance_due" model="ir.cron">
+        <field name="name">Asset: Check Maintenance Due</field>
+        <field name="model_id" ref="model_asset_asset"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_check_maintenance_due()</field>
+        <field name="interval_number">24</field>
+        <field name="interval_type">hours</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates id="template" xml:space="preserve">
+  <t t-name="asset.asset_dashboard_template">
+    <div class="o_asset_dashboard_container">
+      <div class="o_asset_header row align-items-center">
+        <div class="col-md-9">
+          <h2>Asset Overview</h2>
+            <p class="o_subtitle">Summary &amp; insights for assets — KPIs, charts and quick actions</p>
+        </div>
+          <div class="col-md-3 text-end">
+          <!-- user supplied screenshot (local path to convert into url) -->
+              <img src="/mnt/data/9ec0da8f-dc83-4c03-8bb3-b342dbb23de9.png" alt="example"
+                   class="o_dashboard_preview_img"/>
+        </div>
+      </div>
+
+        <!-- KPI row -->
+        <div class="row o_kpi_row">
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <div class="o_kpi_card">
+            <div class="o_kpi_title">Total Assets</div>
+              <div class="o_kpi_value" t-att-id="'total_assets'">0</div>
+          </div>
+        </div>
+            <div class="col-lg-3 col-md-4 col-sm-6">
+          <div class="o_kpi_card">
+            <div class="o_kpi_title">Total AMC</div>
+              <div class="o_kpi_value" t-att-id="'total_amc'">0</div>
+          </div>
+        </div>
+            <div class="col-lg-3 col-md-4 col-sm-6">
+          <div class="o_kpi_card">
+            <div class="o_kpi_title">AMC Expiring Soon</div>
+              <div class="o_kpi_value" t-att-id="'amc_expiring'">0</div>
+          </div>
+        </div>
+            <div class="col-lg-3 col-md-4 col-sm-6">
+          <div class="o_kpi_card">
+            <div class="o_kpi_title">Verification Due</div>
+              <div class="o_kpi_value" t-att-id="'verification_due'">0</div>
+          </div>
+        </div>
+
+            <div class="col-lg-3 col-md-4 col-sm-6">
+          <div class="o_kpi_card">
+            <div class="o_kpi_title">Pending Approvals</div>
+              <div class="o_kpi_value" t-att-id="'pending_approvals'">0</div>
+          </div>
+        </div>
+
+            <div class="col-lg-3 col-md-4 col-sm-6">
+          <div class="o_kpi_card">
+            <div class="o_kpi_title">Warranty Expiring</div>
+              <div class="o_kpi_value" t-att-id="'warranty_expiring'">0</div>
+          </div>
+        </div>
+
+            <div class="col-lg-3 col-md-4 col-sm-6">
+          <div class="o_kpi_card">
+            <div class="o_kpi_title">License Expiring</div>
+              <div class="o_kpi_value" t-att-id="'licence_expiring'">0</div>
+          </div>
+        </div>
+
+            <div class="col-lg-3 col-md-4 col-sm-6">
+          <div class="o_kpi_card">
+            <div class="o_kpi_title">Open Transfers</div>
+              <div class="o_kpi_value" t-att-id="'open_transfers'">0</div>
+          </div>
+        </div>
+      </div>
+
+        <!-- Charts row -->
+        <div class="row o_charts_row">
+        <div class="col-lg-6">
+          <div class="o_card">
+            <div class="o_card_header">Assets by Department (Bar)</div>
+              <div class="o_card_body">
+              <canvas id="chart_assets_by_department" height="200"></canvas>
+            </div>
+          </div>
+        </div>
+
+            <div class="col-lg-6">
+          <div class="o_card">
+            <div class="o_card_header">Asset Types (Donut)</div>
+              <div class="o_card_body">
+              <canvas id="chart_asset_types" height="200"></canvas>
+            </div>
+          </div>
+        </div>
+
+            <div class="col-lg-6">
+          <div class="o_card">
+            <div class="o_card_header">Asset Additions (Line)</div>
+              <div class="o_card_body">
+              <canvas id="chart_additions_by_month" height="200"></canvas>
+            </div>
+          </div>
+        </div>
+
+            <div class="col-lg-6">
+          <div class="o_card">
+            <div class="o_card_header">Assets by Plant (Stacked Bar)</div>
+              <div class="o_card_body">
+              <canvas id="chart_assets_by_plant" height="200"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+        <!-- Large footer KPI / gauge -->
+        <div class="row o_footer_row">
+        <div class="col-md-6">
+          <div class="o_card">
+            <div class="o_card_header">Pending Approvals Progress</div>
+              <div class="o_card_body">
+              <canvas id="chart_pending_progress" height="80"></canvas>
+                  <div class="o_progress_label">
+                <span id="pending_progress_text">0%</span>
+                      approvals completed
+              </div>
+            </div>
+          </div>
+        </div>
+
+            <div class="col-md-6">
+          <div class="o_card">
+            <div class="o_card_header">Quick Actions</div>
+              <div class="o_card_body">
+              <button type="button" class="btn btn-primary" id="btn_new_asset">Create Asset</button>
+                  <button type="button" class="btn btn-outline-secondary"
+                          id="btn_verify_assets">Run Verifications</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </t>
+</templates>

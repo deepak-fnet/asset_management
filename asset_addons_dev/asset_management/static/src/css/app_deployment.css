@@ -1,0 +1,1639 @@
+@charset "UTF-8";
+.o_app_deployment_dashboard {
+  background: #f5f7fa;
+  height: 100%;
+  padding: 24px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  overflow-y: auto;
+  box-sizing: border-box;
+  /* =====================================================
+     HEADER SECTION
+     ===================================================== */
+}
+.o_app_deployment_dashboard .o_deployment_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  padding: 8px 0;
+}
+.o_app_deployment_dashboard .o_header_left {
+  flex: 1;
+}
+.o_app_deployment_dashboard .o_page_title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.5px;
+}
+.o_app_deployment_dashboard .o_page_subtitle {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+  font-weight: 400;
+}
+.o_app_deployment_dashboard .o_header_right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.o_app_deployment_dashboard .refresh_time {
+  font-size: 13px;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+}
+.o_app_deployment_dashboard .refresh_time i {
+  font-size: 14px;
+}
+.o_app_deployment_dashboard .o_deploy_btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.2);
+}
+.o_app_deployment_dashboard .o_deploy_btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.25);
+}
+.o_app_deployment_dashboard .o_deploy_btn:active {
+  transform: translateY(0);
+}
+.o_app_deployment_dashboard {
+  /* =====================================================
+     STATISTICS CARDS
+     ===================================================== */
+}
+.o_app_deployment_dashboard .o_stats_container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.o_app_deployment_dashboard .o_stat_card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+.o_app_deployment_dashboard .o_stat_card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.o_app_deployment_dashboard .o_stat_card_content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.o_app_deployment_dashboard .o_stat_icon_wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.o_app_deployment_dashboard .o_stat_info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.o_app_deployment_dashboard .o_stat_label {
+  font-size: 13px;
+  color: #666;
+  font-weight: 500;
+}
+.o_app_deployment_dashboard .o_stat_value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1;
+}
+.o_app_deployment_dashboard {
+  /* Pending Card - Yellow */
+}
+.o_app_deployment_dashboard .o_stat_card.o_stat_pending .o_stat_icon_wrapper {
+  background: rgba(255, 193, 7, 0.12);
+  color: #f59e0b;
+}
+.o_app_deployment_dashboard .o_stat_card.o_stat_pending .o_stat_value {
+  color: #f59e0b;
+}
+.o_app_deployment_dashboard {
+  /* In Progress Card - Blue */
+}
+.o_app_deployment_dashboard .o_stat_card.o_stat_in_progress .o_stat_icon_wrapper {
+  background: rgba(37, 99, 235, 0.12);
+  color: #2563eb;
+}
+.o_app_deployment_dashboard .o_stat_card.o_stat_in_progress .o_stat_value {
+  color: #2563eb;
+}
+.o_app_deployment_dashboard {
+  /* Success Card - Green */
+}
+.o_app_deployment_dashboard .o_stat_card.o_stat_success .o_stat_icon_wrapper {
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+}
+.o_app_deployment_dashboard .o_stat_card.o_stat_success .o_stat_value {
+  color: #22c55e;
+}
+.o_app_deployment_dashboard {
+  /* Failed Card - Red */
+}
+.o_app_deployment_dashboard .o_stat_card.o_stat_failed .o_stat_icon_wrapper {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+.o_app_deployment_dashboard .o_stat_card.o_stat_failed .o_stat_value {
+  color: #ef4444;
+}
+.o_app_deployment_dashboard {
+  /* =====================================================
+     SEARCH AND FILTER BAR
+     ===================================================== */
+}
+.o_app_deployment_dashboard .o_filter_bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  align-items: center;
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.o_app_deployment_dashboard .o_search_wrapper {
+  flex: 1;
+  position: relative;
+}
+.o_app_deployment_dashboard .o_search_icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  font-size: 15px;
+  pointer-events: none;
+}
+.o_app_deployment_dashboard .o_search_input {
+  width: 100%;
+  padding: 11px 14px 11px 42px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1a1a1a;
+  background: white;
+  transition: all 0.2s ease;
+}
+.o_app_deployment_dashboard .o_search_input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+.o_app_deployment_dashboard .o_search_input::placeholder {
+  color: #9ca3af;
+}
+.o_app_deployment_dashboard .o_status_filter_wrapper {
+  min-width: 160px;
+}
+.o_app_deployment_dashboard .o_status_filter {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1a1a1a;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 40px;
+}
+.o_app_deployment_dashboard .o_status_filter:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+.o_app_deployment_dashboard {
+  /* =====================================================
+     MAIN CONTENT AREA
+     ===================================================== */
+}
+.o_app_deployment_dashboard .o_deployment_content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  min-height: 500px;
+  overflow: visible;
+}
+.o_app_deployment_dashboard .o_loading_state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: #6b7280;
+}
+.o_app_deployment_dashboard .o_loading_state i {
+  color: #2563eb;
+  margin-bottom: 16px;
+}
+.o_app_deployment_dashboard .o_loading_state p {
+  font-size: 14px;
+  margin: 0;
+}
+.o_app_deployment_dashboard .o_empty_state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+}
+.o_app_deployment_dashboard .o_empty_icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+.o_app_deployment_dashboard .o_empty_icon i {
+  font-size: 40px;
+  color: #9ca3af;
+}
+.o_app_deployment_dashboard .o_empty_title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+}
+.o_app_deployment_dashboard .o_empty_text {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 24px 0;
+}
+.o_app_deployment_dashboard .o_empty_deploy_btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 11px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.2);
+}
+.o_app_deployment_dashboard .o_empty_deploy_btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.25);
+}
+.o_app_deployment_dashboard {
+  /* =====================================================
+     DEPLOYMENTS TABLE
+     ===================================================== */
+}
+.o_app_deployment_dashboard .o_deployments_list {
+  width: 100%;
+}
+.o_app_deployment_dashboard .o_deployments_table {
+  width: 100%;
+}
+.o_app_deployment_dashboard .o_table_header {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr 1.5fr 1fr 100px;
+  gap: 16px;
+  padding: 14px 20px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.o_app_deployment_dashboard .o_table_body {
+  display: block;
+}
+.o_app_deployment_dashboard .o_table_row {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr 1.5fr 1fr 100px;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  align-items: center;
+}
+.o_app_deployment_dashboard .o_table_row:hover {
+  background: #f9fafb;
+}
+.o_app_deployment_dashboard .o_table_row:last-child {
+  border-bottom: none;
+}
+.o_app_deployment_dashboard {
+  /* Application Column */
+}
+.o_app_deployment_dashboard .o_col_application {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.o_app_deployment_dashboard .o_app_icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.o_app_deployment_dashboard .o_app_icon i {
+  font-size: 18px;
+  color: #6b7280;
+}
+.o_app_deployment_dashboard .o_app_name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+.o_app_deployment_dashboard {
+  /* Device Column */
+}
+.o_app_deployment_dashboard .o_col_device {
+  font-size: 14px;
+  color: #1a1a1a;
+}
+.o_app_deployment_dashboard .o_device_name {
+  font-weight: 500;
+}
+.o_app_deployment_dashboard {
+  /* Status Column */
+}
+.o_app_deployment_dashboard .o_col_status {
+  display: flex;
+  align-items: center;
+}
+.o_app_deployment_dashboard .o_status_badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.o_app_deployment_dashboard .o_status_pending {
+  background: rgba(255, 193, 7, 0.12);
+  color: #f59e0b;
+}
+.o_app_deployment_dashboard .o_status_in_progress {
+  background: rgba(37, 99, 235, 0.12);
+  color: #2563eb;
+}
+.o_app_deployment_dashboard .o_status_success {
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+}
+.o_app_deployment_dashboard .o_status_failed {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+.o_app_deployment_dashboard {
+  /* Package Manager Column */
+}
+.o_app_deployment_dashboard .o_col_package {
+  font-size: 13px;
+  color: #6b7280;
+}
+.o_app_deployment_dashboard .o_package_name {
+  font-weight: 400;
+}
+.o_app_deployment_dashboard {
+  /* Date Column */
+}
+.o_app_deployment_dashboard .o_col_date {
+  font-size: 13px;
+  color: #6b7280;
+}
+.o_app_deployment_dashboard .o_date_text {
+  white-space: nowrap;
+}
+.o_app_deployment_dashboard {
+  /* Actions Column */
+}
+.o_app_deployment_dashboard .o_col_actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+.o_app_deployment_dashboard .btn-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.o_app_deployment_dashboard .btn-icon:hover {
+  background: #f3f4f6;
+  color: #1a1a1a;
+}
+.o_app_deployment_dashboard .btn-icon:active {
+  transform: scale(0.95);
+}
+.o_app_deployment_dashboard {
+  /* =====================================================
+     RESPONSIVE DESIGN
+     ===================================================== */
+}
+@media (max-width: 1400px) {
+  .o_app_deployment_dashboard .o_stats_container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 1024px) {
+  .o_app_deployment_dashboard .o_deployment_header {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .o_app_deployment_dashboard .o_header_right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .o_app_deployment_dashboard .o_table_header,
+  .o_app_deployment_dashboard .o_table_row {
+    grid-template-columns: 2fr 1fr 1fr 80px;
+    gap: 12px;
+  }
+  .o_app_deployment_dashboard .o_col_package,
+  .o_app_deployment_dashboard .o_col_date {
+    display: none;
+  }
+}
+@media (max-width: 768px) {
+  .o_app_deployment_dashboard .o_app_deployment_dashboard {
+    padding: 16px;
+  }
+  .o_app_deployment_dashboard .o_stats_container {
+    grid-template-columns: 1fr;
+  }
+  .o_app_deployment_dashboard .o_filter_bar {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .o_app_deployment_dashboard .o_search_wrapper {
+    width: 100%;
+  }
+  .o_app_deployment_dashboard .o_status_filter_wrapper {
+    width: 100%;
+  }
+  .o_app_deployment_dashboard .o_table_header,
+  .o_app_deployment_dashboard .o_table_row {
+    grid-template-columns: 1fr 80px;
+  }
+  .o_app_deployment_dashboard .o_col_device,
+  .o_app_deployment_dashboard .o_col_package,
+  .o_app_deployment_dashboard .o_col_date {
+    display: none;
+  }
+}
+.o_app_deployment_dashboard {
+  /* =====================================================
+     AVAILABLE ASSETS SECTION
+     ===================================================== */
+}
+.o_app_deployment_dashboard .o_available_assets_section {
+  margin-top: 24px;
+  padding: 20px;
+  background: #f9fafb;
+  border-radius: 12px;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_section_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_section_header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_section_header h3 i {
+  color: #2563eb;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_section_header .o_header_actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_section_header .o_header_actions .o_select_all_label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_section_header .o_header_actions .o_select_all_label:hover {
+  background: #f3f4f6;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_section_header .o_header_actions .o_select_all_label .o_select_all_checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #2563eb;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_section_header .badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.o_app_deployment_dashboard .o_available_assets_section {
+  /* ── Selection Action Bar ─────────────────────────────── */
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_selection_action_bar {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-left: 4px solid #2563eb;
+  border-radius: 12px;
+  padding: 10px 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.08);
+  animation: slideDown 0.18s ease;
+}
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.o_app_deployment_dashboard .o_available_assets_section {
+  /* Count badge + label */
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_sel_left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_sel_badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(37, 99, 235, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_sel_badge .fa {
+  font-size: 13px;
+  color: #2563eb;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_sel_label {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_sel_count {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_sel_text {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 400;
+}
+.o_app_deployment_dashboard .o_available_assets_section {
+  /* Vertical divider */
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_sel_divider {
+  width: 1px;
+  height: 28px;
+  background: #e2e8f0;
+  margin: 0 18px;
+  flex-shrink: 0;
+}
+.o_app_deployment_dashboard .o_available_assets_section {
+  /* Action buttons group */
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_sel_actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+.o_app_deployment_dashboard .o_available_assets_section {
+  /* Shared button base */
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_sel_btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: all 0.15s ease;
+  letter-spacing: 0.1px;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_sel_btn .fa {
+  font-size: 12px;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_sel_btn span {
+  line-height: 1;
+}
+.o_app_deployment_dashboard .o_available_assets_section {
+  /* Deploy — solid blue matching the UI primary */
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_sel_btn_deploy {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.25);
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_sel_btn_deploy:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.35);
+  transform: translateY(-1px);
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_sel_btn_deploy:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+.o_app_deployment_dashboard .o_available_assets_section {
+  /* Uninstall — light red outline, fills on hover */
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_sel_btn_uninstall {
+  background: #fff5f5;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_sel_btn_uninstall:hover {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
+  box-shadow: 0 3px 10px rgba(220, 38, 38, 0.25);
+  transform: translateY(-1px);
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_sel_btn_uninstall:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+.o_app_deployment_dashboard .o_available_assets_section {
+  /* Clear — icon-only, pushed to the right */
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_sel_btn_clear {
+  margin-left: auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_sel_btn_clear .fa {
+  font-size: 12px;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_sel_btn_clear:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_assets_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_empty_assets {
+  grid-column: 1/-1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #6b7280;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_empty_assets i {
+  font-size: 48px;
+  color: #9ca3af;
+  margin-bottom: 16px;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_empty_assets p {
+  margin: 0;
+  font-size: 14px;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_card.o_asset_online {
+  border-color: rgba(34, 197, 94, 0.3);
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_card.o_asset_offline {
+  border-color: rgba(239, 68, 68, 0.3);
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_card {
+  /* Selected state */
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_card.o_asset_selected {
+  border-color: #2563eb;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%);
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_selection {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_selection .o_asset_checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #2563eb;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_card:hover .o_asset_checkbox {
+  opacity: 1;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_image {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_image:not(:has(img)) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_image .o_asset_img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.2s ease;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_image .o_asset_fallback_icon {
+  font-size: 24px;
+  color: white;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_status_badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_status_badge.badge_online {
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_status_badge.badge_online .fa-circle {
+  animation: pulse-green 2s infinite;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_status_badge.badge_offline {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+@keyframes pulse-green {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_body {
+  flex: 1;
+  margin-bottom: 16px;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_code {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 12px;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_detail_row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #6b7280;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_detail_row i {
+  width: 16px;
+  color: #9ca3af;
+  font-size: 14px;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_detail_row span {
+  flex: 1;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_footer {
+  display: flex;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #f3f4f6;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_footer button {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_footer button.btn-primary {
+  background: #2563eb;
+  color: white;
+  border: none;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_footer button.btn-primary:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.25);
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_footer button.btn-outline-secondary {
+  background: white;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+}
+.o_app_deployment_dashboard .o_available_assets_section .o_asset_footer button.btn-outline-secondary:hover {
+  background: #f9fafb;
+  color: #1a1a1a;
+  border-color: #d1d5db;
+}
+.o_app_deployment_dashboard {
+  /* =====================================================
+     PLATFORM TABS
+     ===================================================== */
+}
+.o_app_deployment_dashboard .o_platform_tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  background: #e5e7eb;
+  padding: 4px;
+  border-radius: 12px;
+  width: fit-content;
+}
+.o_app_deployment_dashboard .o_platform_tabs .o_tab_btn {
+  background: transparent;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.o_app_deployment_dashboard .o_platform_tabs .o_tab_btn i {
+  font-size: 16px;
+}
+.o_app_deployment_dashboard .o_platform_tabs .o_tab_btn:hover {
+  color: #1a1a1a;
+  background: rgba(255, 255, 255, 0.5);
+}
+.o_app_deployment_dashboard .o_platform_tabs .o_tab_btn.active {
+  background: white;
+  color: #2563eb;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+.o_app_deployment_dashboard {
+  /* =====================================================
+     ASSETS TABLE VIEW
+     ===================================================== */
+}
+.o_app_deployment_dashboard .o_assets_table_view {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 24px;
+}
+.o_app_deployment_dashboard .o_assets_table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.o_app_deployment_dashboard .o_assets_table thead tr {
+  background: #f8fafc;
+  border-bottom: 2px solid #eef2f6;
+}
+.o_app_deployment_dashboard .o_assets_table thead th {
+  padding: 16px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-align: left;
+  letter-spacing: 1px;
+}
+.o_app_deployment_dashboard .o_assets_table tbody tr {
+  border-bottom: 1px solid #f1f5f9;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+.o_app_deployment_dashboard .o_assets_table tbody tr:hover {
+  background: #f8fafc;
+}
+.o_app_deployment_dashboard .o_assets_table tbody tr.o_asset_row_selected {
+  background: #eff6ff;
+}
+.o_app_deployment_dashboard .o_assets_table tbody tr:last-child {
+  border-bottom: none;
+}
+.o_app_deployment_dashboard .o_assets_table tbody td {
+  padding: 14px 16px;
+  vertical-align: middle;
+  font-size: 14px;
+}
+.o_app_deployment_dashboard .o_assets_table {
+  /* Column Widths */
+}
+.o_app_deployment_dashboard .o_assets_table .o_col_check {
+  width: 50px;
+  text-align: center;
+  white-space: nowrap;
+}
+.o_app_deployment_dashboard .o_assets_table .o_col_icon {
+  width: 64px;
+  white-space: nowrap;
+}
+.o_app_deployment_dashboard .o_assets_table .o_col_name {
+  width: auto;
+  min-width: 160px;
+  max-width: 240px;
+}
+.o_app_deployment_dashboard .o_assets_table .o_col_code {
+  width: 140px;
+  white-space: nowrap;
+}
+.o_app_deployment_dashboard .o_assets_table .o_col_platform {
+  width: 120px;
+  white-space: nowrap;
+}
+.o_app_deployment_dashboard .o_assets_table .o_col_status {
+  width: 110px;
+  white-space: nowrap;
+}
+.o_app_deployment_dashboard .o_assets_table .o_col_dep_status {
+  width: 150px;
+  white-space: nowrap;
+}
+.o_app_deployment_dashboard .o_assets_table .o_col_app_count {
+  width: 140px;
+  white-space: nowrap;
+}
+.o_app_deployment_dashboard .o_assets_table .o_col_actions {
+  width: 120px;
+  text-align: right;
+  white-space: nowrap;
+}
+.o_app_deployment_dashboard .o_assets_table .o_empty_row {
+  padding: 80px 20px;
+  text-align: center;
+  color: #94a3b8;
+}
+.o_app_deployment_dashboard .o_assets_table .o_empty_row i {
+  margin-bottom: 16px;
+  opacity: 0.3;
+  display: block;
+}
+.o_app_deployment_dashboard .o_assets_table .o_empty_row p {
+  margin: 0;
+  font-size: 14px;
+}
+.o_app_deployment_dashboard {
+  /* Asset Row Elements */
+}
+.o_app_deployment_dashboard .o_asset_icon_wrapper {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  background: #f1f5f9;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #64748b;
+}
+.o_app_deployment_dashboard .o_asset_icon_wrapper .o_asset_mini_img {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  object-fit: cover;
+}
+.o_app_deployment_dashboard .o_asset_icon_wrapper .o_os_icon_badge {
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: #1e293b;
+  border: 1px solid #f1f5f9;
+}
+.o_app_deployment_dashboard .o_device_name_info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.o_app_deployment_dashboard .o_device_name_info .o_main_name {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.o_app_deployment_dashboard .o_device_name_info .o_sub_info {
+  font-size: 12px;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.o_app_deployment_dashboard .o_platform_badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  display: inline-block;
+}
+.o_app_deployment_dashboard .o_platform_badge.o_platform_windows {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+.o_app_deployment_dashboard .o_platform_badge.o_platform_linux {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.o_app_deployment_dashboard .o_platform_badge.o_platform_macos {
+  background: #f1f5f9;
+  color: #475569;
+}
+.o_app_deployment_dashboard .o_status_dot_badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.o_app_deployment_dashboard .o_status_dot_badge:before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.o_app_deployment_dashboard .o_status_dot_badge.online {
+  color: #15803d;
+}
+.o_app_deployment_dashboard .o_status_dot_badge.online:before {
+  background: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+}
+.o_app_deployment_dashboard .o_status_dot_badge.offline {
+  color: #b91c1c;
+}
+.o_app_deployment_dashboard .o_status_dot_badge.offline:before {
+  background: #ef4444;
+}
+.o_app_deployment_dashboard {
+  /* DEP. STATUS pill badges */
+}
+.o_app_deployment_dashboard .o_dep_status_pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.o_app_deployment_dashboard .o_dep_status_pill.o_dep_status_pending {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+.o_app_deployment_dashboard .o_dep_status_pill.o_dep_status_pending i {
+  color: #d97706;
+}
+.o_app_deployment_dashboard .o_dep_status_pill.o_dep_status_in_progress {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+.o_app_deployment_dashboard .o_dep_status_pill.o_dep_status_in_progress i {
+  color: #3b82f6;
+}
+.o_app_deployment_dashboard .o_dep_status_pill.o_dep_status_success {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+.o_app_deployment_dashboard .o_dep_status_pill.o_dep_status_success i {
+  color: #22c55e;
+}
+.o_app_deployment_dashboard .o_dep_status_pill.o_dep_status_failed {
+  background: #fff1f2;
+  color: #be123c;
+  border: 1px solid #fecdd3;
+}
+.o_app_deployment_dashboard .o_dep_status_pill.o_dep_status_failed i {
+  color: #ef4444;
+}
+.o_app_deployment_dashboard .o_dep_status_none {
+  color: #cbd5e1;
+  font-size: 14px;
+  font-weight: 500;
+}
+.o_app_deployment_dashboard {
+  /* Installed apps clickable button */
+}
+.o_app_deployment_dashboard .o_app_count_btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4f46e5;
+  background: #eef2ff;
+  border: 1.5px solid #c7d2fe;
+  padding: 5px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.o_app_deployment_dashboard .o_app_count_btn i {
+  font-size: 11px;
+  color: #6366f1;
+}
+.o_app_deployment_dashboard .o_app_count_btn .o_app_count_num {
+  font-size: 13px;
+  font-weight: 700;
+  color: #3730a3;
+}
+.o_app_deployment_dashboard .o_app_count_btn .o_app_count_label {
+  color: #6366f1;
+  font-weight: 500;
+}
+.o_app_deployment_dashboard .o_app_count_btn:hover {
+  background: #e0e7ff;
+  border-color: #a5b4fc;
+  color: #3730a3;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+  transform: translateY(-1px);
+}
+.o_app_deployment_dashboard .o_app_count_btn:active {
+  transform: translateY(0);
+}
+.o_app_deployment_dashboard {
+  /* Deploy action button in asset row */
+}
+.o_app_deployment_dashboard .o_deploy_action_btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  transition: background 0.2s ease;
+}
+.o_app_deployment_dashboard .o_deploy_action_btn i {
+  font-size: 11px;
+}
+.o_app_deployment_dashboard .o_deploy_action_btn:hover {
+  background: #1d4ed8;
+  color: #ffffff;
+}
+.o_app_deployment_dashboard .btn-icon-only {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  margin-left: 6px;
+  transition: all 0.2s ease;
+}
+.o_app_deployment_dashboard .btn-icon-only:hover {
+  background: #f8fafc;
+  color: #1e293b;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+/* =====================================================
+   APP DEPLOYMENT - KANBAN VIEW  (v2 — banner design)
+   ===================================================== */
+.o_app_deployment_kanban {
+  background: #f0f4f8;
+  padding: 16px;
+}
+.o_app_deployment_kanban .o_kanban_renderer {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  gap: 20px !important;
+  align-items: flex-start !important;
+}
+.o_app_deployment_kanban .o_kanban_record {
+  width: calc(25% - 16px) !important;
+  min-width: 260px;
+  max-width: 340px;
+  flex-shrink: 0;
+  margin: 0 !important;
+}
+.o_app_deployment_kanban .o_dep_card {
+  background: #ffffff;
+  border-radius: 14px;
+  overflow: hidden;
+  border: none;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  transition: box-shadow 0.22s ease, transform 0.22s ease;
+  cursor: pointer;
+}
+.o_app_deployment_kanban .o_dep_card:hover {
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.13);
+  transform: translateY(-3px);
+}
+.o_app_deployment_kanban .o_dep_banner {
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  position: relative;
+}
+.o_app_deployment_kanban .o_dep_s_pending .o_dep_banner {
+  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+}
+.o_app_deployment_kanban .o_dep_s_in_progress .o_dep_banner {
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+}
+.o_app_deployment_kanban .o_dep_s_success .o_dep_banner {
+  background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+}
+.o_app_deployment_kanban .o_dep_s_failed .o_dep_banner {
+  background: linear-gradient(135deg, #dc2626 0%, #f87171 100%);
+}
+.o_app_deployment_kanban .o_dep_avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+}
+.o_app_deployment_kanban .o_dep_banner_icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 14px;
+}
+.o_app_deployment_kanban .o_dep_title_block {
+  padding: 12px 16px 0;
+}
+.o_app_deployment_kanban .o_dep_title_row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.o_app_deployment_kanban .o_dep_app_title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+  flex: 1;
+  min-width: 0;
+}
+.o_app_deployment_kanban .o_dep_action_chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+.o_app_deployment_kanban .o_dep_action_chip.o_dep_action_install {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+}
+.o_app_deployment_kanban .o_dep_action_chip.o_dep_action_uninstall {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+}
+.o_app_deployment_kanban .o_dep_ref_id {
+  font-size: 11px;
+  color: #94a3b8;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  margin-top: 2px;
+}
+.o_app_deployment_kanban .o_dep_divider {
+  height: 1px;
+  background: #f1f5f9;
+  margin: 12px 16px 0;
+}
+.o_app_deployment_kanban .o_dep_info_grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  padding: 8px 16px 4px;
+}
+.o_app_deployment_kanban .o_dep_info_full {
+  grid-column: 1/-1;
+  border-bottom: 1px dashed #f1f5f9;
+  margin-bottom: 2px;
+}
+.o_app_deployment_kanban .o_dep_info_cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px 0;
+}
+.o_app_deployment_kanban .o_dep_info_label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.o_app_deployment_kanban .o_dep_info_label .fa {
+  font-size: 9px;
+}
+.o_app_deployment_kanban .o_dep_info_val {
+  font-size: 12px;
+  font-weight: 500;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.o_app_deployment_kanban .o_dep_mono {
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 11px;
+}
+.o_app_deployment_kanban .o_dep_pkg_chip {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-top: 1px;
+  font-family: "SFMono-Regular", Consolas, monospace;
+}
+.o_app_deployment_kanban .o_dep_pkg_chip.o_dep_s_pending {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+}
+.o_app_deployment_kanban .o_dep_pkg_chip.o_dep_s_in_progress {
+  background: rgba(37, 99, 235, 0.12);
+  color: #1d4ed8;
+}
+.o_app_deployment_kanban .o_dep_pkg_chip.o_dep_s_success {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+}
+.o_app_deployment_kanban .o_dep_pkg_chip.o_dep_s_failed {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+}
+.o_app_deployment_kanban .o_dep_err_box {
+  margin: 6px 16px 0;
+  padding: 7px 10px;
+  background: rgba(239, 68, 68, 0.07);
+  border: 1px solid rgba(239, 68, 68, 0.18);
+  border-radius: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 11px;
+  color: #b91c1c;
+  overflow: hidden;
+}
+.o_app_deployment_kanban .o_dep_err_icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  font-size: 11px;
+}
+.o_app_deployment_kanban .o_dep_err_text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.5;
+}
+.o_app_deployment_kanban .o_dep_card_foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px 12px;
+  margin-top: 8px;
+  border-top: 1px solid #f1f5f9;
+}
+.o_app_deployment_kanban .o_dep_deployer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+}
+.o_app_deployment_kanban .o_dep_deployer_avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.o_app_deployment_kanban .o_dep_deployer_avatar .fa {
+  font-size: 11px;
+  color: #64748b;
+}
+.o_app_deployment_kanban .o_dep_deployer_name {
+  font-size: 12px;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.o_app_deployment_kanban .o_dep_retry_pill {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.09);
+  border: 1.5px solid rgba(239, 68, 68, 0.28);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.o_app_deployment_kanban .o_dep_retry_pill:hover {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+  box-shadow: 0 3px 10px rgba(239, 68, 68, 0.35);
+}

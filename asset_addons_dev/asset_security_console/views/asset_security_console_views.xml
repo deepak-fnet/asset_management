@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_asset_security_console_list" model="ir.ui.view">
+        <field name="name">asset.asset.security.console.list</field>
+        <field name="model">asset.asset</field>
+        <field name="arch" type="xml">
+            <list string="Asset Security Console" create="false"
+                  decoration-danger="security_status == 'at_risk'"
+                  decoration-warning="security_status == 'attention'"
+                  decoration-muted="security_status == 'unknown'">
+                <field name="asset_name"/>
+                <field name="serial_number"/>
+                <field name="platform"/>
+                <field name="os_name" optional="hide"/>
+
+                <field name="patch_pending_count" string="Pending"/>
+                <field name="patch_inflight_count" string="Queued"/>
+                <field name="patch_completed_count" string="Installed"/>
+                <field name="patch_failed_count" string="Failed" optional="show"/>
+
+                <field name="app_update_pending_count" string="Apps"/>
+
+                <field name="vuln_critical_count" string="Crit"/>
+                <field name="vuln_high_count" string="High"/>
+                <field name="vuln_total_count" string="Vulns" optional="hide"/>
+                <field name="last_vuln_scan" string="Last Scan"/>
+
+                <field name="security_status" widget="badge"
+                       decoration-success="security_status == 'good'"
+                       decoration-warning="security_status == 'attention'"
+                       decoration-danger="security_status == 'at_risk'"
+                       decoration-muted="security_status == 'unknown'"/>
+                <field name="security_note" optional="show"/>
+                <field name="security_last_refresh" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_security_console_search" model="ir.ui.view">
+        <field name="name">asset.asset.security.console.search</field>
+        <field name="model">asset.asset</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="asset_name"/>
+                <field name="serial_number"/>
+
+                <filter name="f_at_risk" string="At Risk"
+                        domain="[('security_status','=','at_risk')]"/>
+                <filter name="f_attention" string="Needs Attention"
+                        domain="[('security_status','=','attention')]"/>
+                <filter name="f_good" string="Good"
+                        domain="[('security_status','=','good')]"/>
+                <separator/>
+                <filter name="f_has_pending" string="Has Pending Patches"
+                        domain="[('patch_pending_count','&gt;',0)]"/>
+                <filter name="f_has_apps" string="Has App Updates"
+                        domain="[('app_update_pending_count','&gt;',0)]"/>
+                <separator/>
+                <filter name="f_windows" string="Windows"
+                        domain="[('platform','=','windows')]"/>
+                <filter name="f_linux" string="Linux"
+                        domain="[('platform','=','linux')]"/>
+                <filter name="f_macos" string="macOS"
+                        domain="[('platform','=','macos')]"/>
+                <separator/>
+<!--                <filter name="f_never_scanned" string="Never Scanned"-->
+<!--                        domain="[('last_vuln_scan','=',False)]"/>-->
+
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter name="g_status" string="Security Status"-->
+<!--                            context="{'group_by':'security_status'}"/>-->
+<!--                    <filter name="g_platform" string="Platform"-->
+<!--                            context="{'group_by':'platform'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <record id="action_bulk_scan_server" model="ir.actions.server">
+        <field name="name">Scan Selected for Vulnerabilities</field>
+        <field name="model_id" ref="asset_management.model_asset_asset"/>
+        <field name="binding_model_id" ref="asset_management.model_asset_asset"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_bulk_scan()</field>
+<!--        <field name="groups_id" eval="[(4, ref('asset_management.group_asset_manager'))]"/>-->
+    </record>
+
+    <record id="action_bulk_approve_server" model="ir.actions.server">
+        <field name="name">Approve All Pending Patches</field>
+        <field name="model_id" ref="asset_management.model_asset_asset"/>
+        <field name="binding_model_id" ref="asset_management.model_asset_asset"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_bulk_approve_patches()</field>
+<!--        <field name="groups_id" eval="[(4, ref('asset_management.group_asset_manager'))]"/>-->
+    </record>
+
+    <record id="action_refresh_posture_server" model="ir.actions.server">
+        <field name="name">Refresh Security Status</field>
+        <field name="model_id" ref="asset_management.model_asset_asset"/>
+        <field name="binding_model_id" ref="asset_management.model_asset_asset"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_refresh_posture()</field>
+    </record>
+
+    <record id="action_asset_security_console" model="ir.actions.act_window">
+        <field name="name">Asset Security Console</field>
+        <field name="res_model">asset.asset</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_asset_security_console_list"/>
+        <field name="search_view_id" ref="view_asset_security_console_search"/>
+        <field name="domain">[('platform','in',('windows','linux','macos'))]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No managed assets found</p>
+            <p>
+                Assets appear here once an agent reports and sets their platform.
+                Run <b>Security → Setup &amp; Health Check</b> to see what is
+                missing.
+            </p>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Advanced Analytics Dashboard Menu under Asset Module -->
+    <menuitem 
+        id="menu_asset_advanced_dashboard"
+        name="Analytics Dashboard"
+        parent="asset.menu_asset_root"
+        action="action_asset_advanced_dashboard"
+        sequence="0"
+    />
+</odoo>

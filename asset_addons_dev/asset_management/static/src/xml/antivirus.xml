@@ -1,0 +1,1750 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<!-- =========================================================
+     ANTIVIRUS TRACKING DASHBOARD TEMPLATE - ULTRA PROFESSIONAL
+     ========================================================= -->
+<t t-name="antivirus_management.AntivirusTrackingDashboard" owl="1">
+    <div class="o_antivirus_tracking container-fluid">
+
+        <!-- =========================
+             HEADER WITH CONTROLS
+             ========================= -->
+        <div class="tracking_header mb-4 px-4 py-3">
+            <div class="row align-items-center g-0">
+                <div class="col-md-8">
+                    <h2 class="tracking_title mb-1">
+                        <i class="fa fa-radar me-2"/>
+                        Antivirus Threat &amp; Product Tracking
+                    </h2>
+                    <p class="tracking_subtitle text-muted mb-0">
+                        Comprehensive threat monitoring, antivirus product analytics, and device protection status
+                    </p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="tracking_controls">
+                        <span class="refresh_status me-3" t-if="state.last_refresh">
+                            <i class="fa fa-clock me-1"/>
+                            <t t-esc="state.last_refresh"/>
+                        </span>
+
+                        <div class="btn-group me-2">
+                            <button class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
+                                <i class="fa fa-filter"/> Filter
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><h6 class="dropdown-header">Filter by Status</h6></li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="() => this.filterByStatus('all')">
+                                        <i class="fa fa-list"/> All Threats
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="() => this.filterByStatus('active')">
+                                        <i class="fa fa-exclamation-circle text-danger"/> Active
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="() => this.filterByStatus('quarantined')">
+                                        <i class="fa fa-lock text-success"/> Quarantined
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="() => this.filterByStatus('cleaning')">
+                                        <i class="fa fa-sync text-warning"/> Cleaning
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="() => this.filterByStatus('removed')">
+                                        <i class="fa fa-check-circle text-info"/> Removed
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"/></li>
+                                <li><h6 class="dropdown-header">Filter by Severity</h6></li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="() => this.filterBySeverity('all')">
+                                        <i class="fa fa-list"/> All Severities
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="() => this.filterBySeverity('critical')">
+                                        <i class="fa fa-circle text-danger"/> Critical
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="() => this.filterBySeverity('high')">
+                                        <i class="fa fa-circle text-warning"/> High
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="() => this.filterBySeverity('medium')">
+                                        <i class="fa fa-circle text-info"/> Medium
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="() => this.filterBySeverity('low')">
+                                        <i class="fa fa-circle text-muted"/> Low
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <button class="btn btn-sm btn-outline-danger me-2"
+                                t-on-click="() => this.exportReport()">
+                            <i class="fa fa-file-excel-o"/>
+                            Export
+                        </button>
+
+                        <button class="btn btn-sm btn-outline-primary me-2"
+                                t-on-click="() => this.refreshData()"
+                                t-att-disabled="state.loading">
+                            <i class="fa fa-sync" t-att-class="{'fa-spin': state.loading}"/>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========================
+             NAVIGATION TABS
+             ========================= -->
+        <div class="tracking_tabs mb-4">
+            <div class="btn-group" role="group">
+                <button class="btn btn-lg"
+                        t-on-click="() => this.setActiveTab('overview')"
+                        t-att-class="state.activeTab === 'overview' ? 'btn-primary' : 'btn-outline-primary'">
+                    <i class="fa fa-dashboard me-2"/>Overview
+                </button>
+                <button class="btn btn-lg"
+                        t-on-click="() => this.setActiveTab('products')"
+                        t-att-class="state.activeTab === 'products' ? 'btn-primary' : 'btn-outline-primary'">
+                    <i class="fa fa-shield me-2"/>Antivirus Products
+                </button>
+                <button class="btn btn-lg"
+                        t-on-click="() => this.setActiveTab('devices')"
+                        t-att-class="state.activeTab === 'devices' ? 'btn-primary' : 'btn-outline-primary'">
+                    <i class="fa fa-desktop me-2"/>Devices
+                </button>
+
+            </div>
+        </div>
+
+        <!-- =========================
+             OVERVIEW TAB (PROFESSIONAL UI)
+             ========================= -->
+        <div t-if="state.activeTab === 'overview'">
+            <!-- Page Header -->
+            <div class="card mb-4 border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                <div class="card-body px-4 py-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h2 class="mb-1" style="color: white; font-weight: 700; font-size: 24px;">
+                                <i class="fa fa-download me-2"/>Antivirus Installer Management
+                            </h2>
+                            <p class="mb-0" style="color: rgba(255,255,255,0.85); font-size: 14px;">
+                                Configure and manage antivirus installers for your organization
+                            </p>
+                        </div>
+                        <button t-on-click="() => this.refreshData()" class="btn btn-light btn-sm" style="border-radius: 8px; font-weight: 600;">
+                            <i class="fa fa-sync me-1"/> Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Cards Row -->
+            <div class="row g-4 mb-4">
+                <!-- Total Devices -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden; cursor: pointer;" t-on-click="() => this.openAllDevices()">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <div style="font-size: 13px; color: #6b7280; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">
+                                        <i class="fa fa-desktop me-1"/> Total Devices
+                                    </div>
+                                    <div style="font-size: 32px; font-weight: 700; color: #111827;" t-esc="state.total_devices"/>
+                                </div>
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <i class="fa fa-server text-white" style="font-size: 24px;"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Protected Devices -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden; cursor: pointer;" t-on-click="() => this.openProtectedDevices()">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <div style="font-size: 13px; color: #6b7280; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">
+                                        <i class="fa fa-shield-check me-1"/> Protected
+                                    </div>
+                                    <div style="font-size: 32px; font-weight: 700; color: #10b981;" t-esc="state.protected_devices"/>
+                                </div>
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                                    <i class="fa fa-shield text-white" style="font-size: 24px;"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Unprotected Devices -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden; cursor: pointer;" t-on-click="() => this.openUnprotectedDevices()">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <div style="font-size: 13px; color: #6b7280; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">
+                                        <i class="fa fa-shield-exclamation me-1"/> Unprotected
+                                    </div>
+                                    <div style="font-size: 32px; font-weight: 700; color: #ef4444;" t-esc="state.unprotected_devices"/>
+                                </div>
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                                    <i class="fa fa-exclamation-triangle text-white" style="font-size: 24px;"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Threats -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden; cursor: pointer;" t-on-click="() => this.openThreats()">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <div style="font-size: 13px; color: #6b7280; font-weight: 600; text-transform: uppercase; margin-bottom: 8px;">
+                                        <i class="fa fa-bug me-1"/> Threats
+                                    </div>
+                                    <div style="font-size: 32px; font-weight: 700; color: #f59e0b;" t-esc="state.total_threats"/>
+                                </div>
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                                    <i class="fa fa-bug text-white" style="font-size: 24px;"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Left Column: Installer Configuration -->
+                <div class="col-lg-8">
+                    <!-- Platform Selector Tabs -->
+                    <div class="card border-0 shadow-sm mb-3" t-if="state.show_platform_selector" style="border-radius: 12px; overflow: hidden;">
+                        <div class="card-body p-2">
+                            <div class="btn-group w-100" role="group">
+                                <button class="btn btn-sm py-2"
+                                        t-on-click="() => this.setInstallerPlatform('windows')"
+                                        t-att-class="state.installer_platform === 'windows' ? 'btn-primary' : 'btn-light'"
+                                        style="border-radius: 8px; font-weight: 600; flex: 1;">
+                                    <i class="fa fa-windows me-2"/>Windows
+                                </button>
+                                <button class="btn btn-sm py-2"
+                                        t-on-click="() => this.setInstallerPlatform('linux')"
+                                        t-att-class="state.installer_platform === 'linux' ? 'btn-primary' : 'btn-light'"
+                                        style="border-radius: 8px; font-weight: 600; flex: 1;">
+                                    <i class="fa fa-linux me-2"/>Linux
+                                </button>
+                                <button class="btn btn-sm py-2"
+                                        t-on-click="() => this.setInstallerPlatform('macos')"
+                                        t-att-class="state.installer_platform === 'macos' ? 'btn-primary' : 'btn-light'"
+                                        style="border-radius: 8px; font-weight: 600; flex: 1;">
+                                    <i class="fa fa-apple me-2"/>macOS
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Installer Card -->
+                    <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                        <!-- Windows Card Header -->
+                        <div t-if="state.installer_platform === 'windows'" class="card-header border-0" style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); padding: 24px;">
+                            <div class="text-center">
+                                <div style="font-size: 48px; margin-bottom: 12px;">🪟</div>
+                                <h4 class="mb-1" style="color: white; font-weight: 700; font-size: 20px;">Windows Installer</h4>
+                                <p class="mb-0" style="color: rgba(255,255,255,0.85); font-size: 13px;">.exe or .msi package</p>
+                            </div>
+                        </div>
+
+                        <!-- Linux Card Header -->
+                        <div t-if="state.installer_platform === 'linux'" class="card-header border-0" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); padding: 24px;">
+                            <div class="text-center">
+                                <div style="font-size: 48px; margin-bottom: 12px;">🐧</div>
+                                <h4 class="mb-1" style="color: white; font-weight: 700; font-size: 20px;">Linux Installer</h4>
+                                <p class="mb-0" style="color: rgba(255,255,255,0.85); font-size: 13px;">.deb or .rpm package</p>
+                            </div>
+                        </div>
+
+                        <!-- macOS Card Header -->
+                        <div t-if="state.installer_platform === 'macos'" class="card-header border-0" style="background: linear-gradient(135deg, #607d8b 0%, #455a64 100%); padding: 24px;">
+                            <div class="text-center">
+                                <div style="font-size: 48px; margin-bottom: 12px;">🍎</div>
+                                <h4 class="mb-1" style="color: white; font-weight: 700; font-size: 20px;">macOS Installer</h4>
+                                <p class="mb-0" style="color: rgba(255,255,255,0.85); font-size: 13px;">.dmg or .pkg package</p>
+                            </div>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="card-body p-4">
+                            <div class="mb-4">
+                                <label class="form-label" style="font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+                                    <i class="fa fa-link me-1 text-muted"/>Installer Download URL
+                                </label>
+                                <div class="input-group">
+                                    <input type="text" 
+                                           t-model="state.config.installer_windows" 
+                                           t-if="state.installer_platform === 'windows'"
+                                           class="form-control form-control-lg" 
+                                           placeholder="https://server.com/installers/kaspersky_win.exe"
+                                           style="border-radius: 8px; border: 2px solid #e5e7eb; font-size: 14px;"/>
+                                    <input type="text" 
+                                           t-model="state.config.installer_linux" 
+                                           t-if="state.installer_platform === 'linux'"
+                                           class="form-control form-control-lg" 
+                                           placeholder="https://server.com/installers/kaspersky_linux.deb"
+                                           style="border-radius: 8px; border: 2px solid #e5e7eb; font-size: 14px;"/>
+                                    <input type="text" 
+                                           t-model="state.config.installer_macos" 
+                                           t-if="state.installer_platform === 'macos'"
+                                           class="form-control form-control-lg" 
+                                           placeholder="https://server.com/installers/kaspersky_mac.pkg"
+                                           style="border-radius: 8px; border: 2px solid #e5e7eb; font-size: 14px;"/>
+                                    <button class="btn btn-outline-secondary" type="button" style="border-radius: 8px;" title="Test URL">
+                                        <i class="fa fa-external-link"/>
+                                    </button>
+                                </div>
+                                <small class="text-muted" style="font-size: 12px; display: block; margin-top: 8px;">
+                                    <i class="fa fa-info-circle me-1"/> Ensure the URL is publicly accessible for all devices to download
+                                </small>
+                            </div>
+
+                            <div class="d-grid">
+                                <button t-on-click="() => this.saveInstallerConfig(state.installer_platform)" 
+                                        class="btn btn-primary btn-lg"
+                                        style="border-radius: 8px; font-weight: 600; padding: 12px 24px;">
+                                    <i class="fa fa-save me-2"/> Save <t t-if="state.installer_platform === 'windows'">Windows</t><t t-elif="state.installer_platform === 'linux'">Linux</t><t t-else="">macOS</t> Installer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Quick Actions & Info -->
+                <div class="col-lg-4">
+                    <!-- Quick Deployment Card -->
+                    <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px; overflow: hidden;">
+                        <div class="card-header border-0" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 16px 20px;">
+                            <h5 class="mb-0" style="color: white; font-weight: 700; font-size: 16px;">
+                                <i class="fa fa-rocket me-2"/>Quick Deployment
+                            </h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <p class="text-muted mb-3" style="font-size: 13px; line-height: 1.6;">
+                                Deploy antivirus to all unprotected devices in your organization with a single click.
+                            </p>
+                            <button t-on-click="() => this.deployAllAntivirus()" 
+                                    class="btn btn-success w-100"
+                                    style="border-radius: 8px; font-weight: 600; padding: 12px 20px;">
+                                <i class="fa fa-shield me-2"/> Deploy to All Devices
+                            </button>
+                            <div class="alert alert-info mt-3" style="font-size: 12px; border-radius: 8px; background: #eff6ff; border-color: #bfdbfe; color: #1e40af;">
+                                <i class="fa fa-info-circle me-1"/> Deployment will only affect devices without active antivirus protection
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status Summary Card -->
+                    <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                        <div class="card-header border-0 bg-white p-3" style="border-bottom: 1px solid #e5e7eb;">
+                            <h5 class="mb-0" style="font-weight: 700; font-size: 15px; color: #111827;">
+                                <i class="fa fa-chart-pie me-2 text-primary"/>Protection Status
+                            </h5>
+                        </div>
+                        <div class="card-body p-3">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px; background: #d1fae5;">
+                                        <i class="fa fa-shield-check text-success" style="font-size: 16px;"/>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 12px; color: #6b7280; font-weight: 500;">Protected</div>
+                                        <div style="font-size: 18px; font-weight: 700; color: #10b981;" t-esc="state.protected_devices"/>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px; background: #fee2e2;">
+                                        <i class="fa fa-shield-exclamation text-danger" style="font-size: 16px;"/>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 12px; color: #6b7280; font-weight: 500;">Unprotected</div>
+                                        <div style="font-size: 18px; font-weight: 700; color: #ef4444;" t-esc="state.unprotected_devices"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="progress" style="height: 8px; border-radius: 4px;">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     t-att-style="'width: ' + (state.total_devices > 0 ? (state.protected_devices / state.total_devices * 100) : 0) + '%'"
+                                     style="border-radius: 4px;"/>
+                            </div>
+                            <div class="text-center mt-2">
+                                <span style="font-size: 12px; color: #6b7280;">
+                                    Coverage: <strong t-esc="state.total_devices > 0 ? Math.round((state.protected_devices / state.total_devices) * 100) : 0"/>%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========================
+             PRODUCTS TAB (FIRST)
+             ========================= -->
+        <div t-if="state.activeTab === 'products'">
+            <!-- KPI CARDS ROW -->
+            <div class="row g-4 mb-4">
+
+                <!-- TOTAL THREATS -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="tracking_kpi_card kpi_total" t-on-click="() => this.filterByStatus('all')">
+                        <div class="kpi_body">
+                            <div class="kpi_icon">
+                                <i class="fa fa-shield"/>
+                            </div>
+                            <div class="kpi_text">
+                                <span class="kpi_label">TOTAL THREATS</span>
+                                <span class="kpi_value" t-esc="state.total_threats"/>
+                            </div>
+                        </div>
+                        <div class="kpi_bottom"/>
+                        <div class="kpi_trend trend-neutral">
+                            <i class="fa fa-minus"/> <span>All time</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ACTIVE THREATS -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="tracking_kpi_card kpi_active" t-on-click="() => this.filterByStatus('active')">
+                        <div class="kpi_body">
+                            <div class="kpi_icon">
+                                <i class="fa fa-exclamation-triangle"/>
+                            </div>
+                            <div class="kpi_text">
+                                <span class="kpi_label">ACTIVE THREATS</span>
+                                <span class="kpi_value" t-esc="state.active_threats"/>
+                            </div>
+                        </div>
+                        <div class="kpi_bottom"/>
+                        <div class="kpi_trend trend-negative" t-if="state.active_threats > 0">
+                            <i class="fa fa-arrow-up"/> Requires attention
+                        </div>
+                        <div class="kpi_trend trend-positive" t-else="">
+                            <i class="fa fa-check-circle"/> All clear
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QUARANTINED -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="tracking_kpi_card kpi_quarantined" t-on-click="() => this.filterByStatus('quarantined')">
+                        <div class="kpi_body">
+                            <div class="kpi_icon">
+                                <i class="fa fa-lock"/>
+                            </div>
+                            <div class="kpi_text">
+                                <span class="kpi_label">QUARANTINED</span>
+                                <span class="kpi_value" t-esc="state.quarantined_threats"/>
+                            </div>
+                        </div>
+                        <div class="kpi_bottom"/>
+                        <div class="kpi_trend trend-positive">
+                            <i class="fa fa-check"/> Secured
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CRITICAL THREATS -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="tracking_kpi_card kpi_critical" t-on-click="() => this.filterBySeverity('critical')">
+                        <div class="kpi_body">
+                            <div class="kpi_icon">
+                                <i class="fa fa-bug"/>
+                            </div>
+                            <div class="kpi_text">
+                                <span class="kpi_label">CRITICAL</span>
+                                <span class="kpi_value" t-esc="state.critical_threats"/>
+                            </div>
+                        </div>
+                        <div class="kpi_bottom"/>
+                        <div class="kpi_trend trend-negative" t-if="state.critical_threats > 0">
+                            <i class="fa fa-exclamation-circle"/> Immediate action
+                        </div>
+                        <div class="kpi_trend trend-positive" t-else="">
+                            <i class="fa fa-check-circle"/> None detected
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        <!-- =========================
+             MAIN CONTENT AREA
+             ========================= -->
+        <div class="row g-4 mb-4">
+
+            <!-- THREAT TIMELINE -->
+            <div class="col-lg-8">
+                <div class="card tracking_card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fa fa-timeline me-2"/>
+                            <strong>Threat Timeline</strong>
+                        </div>
+                        <div class="card_header_actions">
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-secondary"
+                                        t-on-click="() => this.setViewMode('timeline')"
+                                        t-att-class="state.viewMode === 'timeline' ? 'active' : ''">
+                                    <i class="fa fa-list"/>
+                                </button>
+                                <button class="btn btn-outline-secondary"
+                                        t-on-click="() => this.setViewMode('grid')"
+                                        t-att-class="state.viewMode === 'grid' ? 'active' : ''">
+                                    <i class="fa fa-th"/>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline_container" t-if="state.viewMode === 'timeline'">
+                            <t t-if="state.filtered_threats.length === 0">
+                                <div class="empty_state text-center py-5">
+                                    <i class="fa fa-shield-check text-success" style="font-size: 64px; opacity: 0.3;"/>
+                                    <h5 class="text-muted mt-3">No threats found</h5>
+                                    <p class="text-muted">All systems are clean or adjust your filters</p>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <div class="timeline">
+                                    <t t-foreach="state.filtered_threats" t-as="threat" t-key="threat.id">
+                                        <div class="timeline_item"
+                                             t-att-class="'severity-' + (threat.severity || 'medium')">
+                                            <div class="timeline_marker">
+                                                <i class="fa" t-att-class="this.getThreatIcon(threat.threat_type)"/>
+                                            </div>
+                                            <div class="timeline_content">
+                                                <div class="timeline_header">
+                                                    <div class="timeline_title">
+                                                        <strong t-esc="threat.threat_name"/>
+                                                        <span class="badge"
+                                                              t-att-class="this.getSeverityBadge(threat.severity)">
+                                                            <t t-esc="threat.severity?.toUpperCase()"/>
+                                                        </span>
+                                                        <span class="badge bg-secondary ms-2"
+                                                              t-esc="threat.threat_type"/>
+                                                    </div>
+                                                    <div class="timeline_time">
+                                                        <i class="fa fa-clock"/>
+                                                        <t t-esc="this.formatDateTime(threat.detected_date)"/>
+                                                    </div>
+                                                </div>
+                                                <div class="timeline_body">
+                                                    <div class="device_info">
+                                                        <i class="fa fa-desktop"/>
+                                                        <strong t-esc="threat.device_name"/>
+                                                        <span class="text-muted ms-2" t-esc="threat.device_code"/>
+                                                    </div>
+                                                    <div class="threat_details" t-if="threat.summary">
+                                                        <i class="fa fa-info-circle"/>
+                                                        <t t-esc="threat.summary"/>
+                                                    </div>
+                                                </div>
+                                                <div class="timeline_footer">
+                                                    <div class="status_badge"
+                                                         t-att-class="this.getStatusClass(threat.status)">
+                                                        <i class="fa" t-att-class="this.getStatusIcon(threat.status)"/>
+                                                        <t t-esc="this.getStatusLabel(threat.status)"/>
+                                                    </div>
+                                                    <div class="timeline_actions">
+                                                        <button class="btn btn-sm btn-outline-success"
+                                                                t-on-click="() => this.quarantineThreat(threat.id)"
+                                                                t-att-disabled="threat.status === 'quarantined'"
+                                                                title="Quarantine">
+                                                            <i class="fa fa-lock"/>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-info"
+                                                                t-on-click="() => this.viewThreatDetails(threat.id)"
+                                                                title="View Details">
+                                                            <i class="fa fa-eye"/>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-danger"
+                                                                t-on-click="() => this.removeThreat(threat.id)"
+                                                                t-att-disabled="threat.status === 'removed'"
+                                                                title="Remove">
+                                                            <i class="fa fa-trash"/>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </div>
+                            </t>
+                        </div>
+
+                        <!-- GRID VIEW -->
+                        <div class="grid_container" t-if="state.viewMode === 'grid'">
+                            <t t-if="state.filtered_threats.length === 0">
+                                <div class="empty_state text-center py-5">
+                                    <i class="fa fa-shield-check text-success" style="font-size: 64px; opacity: 0.3;"/>
+                                    <h5 class="text-muted mt-3">No threats found</h5>
+                                    <p class="text-muted">All systems are clean or adjust your filters</p>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <div class="threat_grid">
+                                    <t t-foreach="state.filtered_threats" t-as="threat" t-key="threat.id">
+                                        <div class="threat_card"
+                                             t-att-class="'severity-' + (threat.severity || 'medium')"
+                                             t-on-click="() => this.viewThreatDetails(threat.id)">
+                                            <div class="threat_card_header">
+                                                <div class="threat_type_icon">
+                                                    <i class="fa" t-att-class="this.getThreatIcon(threat.threat_type)"/>
+                                                </div>
+                                                <span class="threat_card_status"
+                                                      t-att-class="this.getStatusClass(threat.status)">
+                                                    <i class="fa" t-att-class="this.getStatusIcon(threat.status)"/>
+                                                </span>
+                                            </div>
+                                            <div class="threat_card_body">
+                                                <h5 class="threat_card_title" t-esc="threat.threat_name"/>
+                                                <div class="threat_card_severity">
+                                                    <span class="badge"
+                                                          t-att-class="this.getSeverityBadge(threat.severity)">
+                                                        <t t-esc="threat.severity?.toUpperCase()"/>
+                                                    </span>
+                                                </div>
+                                                <div class="threat_card_device">
+                                                    <i class="fa fa-desktop"/>
+                                                    <span t-esc="threat.device_name"/>
+                                                </div>
+                                                <div class="threat_card_time">
+                                                    <i class="fa fa-clock"/>
+                                                    <t t-esc="this.formatDateTime(threat.detected_date)"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SIDEBAR - THREAT ANALYTICS -->
+            <div class="col-lg-4">
+                <div class="row g-4">
+
+
+                    <!-- SEVERITY BREAKDOWN -->
+                    <div class="col-12">
+                        <div class="card tracking_card">
+                            <div class="card-header">
+                                <i class="fa fa-exclamation-circle me-2"/>
+                                <strong>Severity Breakdown</strong>
+                            </div>
+                            <div class="card-body">
+                                <div class="severity_breakdown">
+                                    <div class="severity_item severity-critical" t-on-click="() => this.filterBySeverity('critical')">
+                                        <div class="severity_icon">
+                                            <i class="fa fa-circle"/>
+                                        </div>
+                                        <div class="severity_info">
+                                            <span class="severity_label">Critical</span>
+                                            <span class="severity_count" t-esc="state.critical_threats"/>
+                                        </div>
+                                        <div class="severity_bar">
+                                            <div class="severity_progress"
+                                                 t-att-style="'width: ' + this.calculateSeverityPercent(state.critical_threats) + '%'"/>
+                                        </div>
+                                    </div>
+                                    <div class="severity_item severity-high" t-on-click="() => this.filterBySeverity('high')">
+                                        <div class="severity_icon">
+                                            <i class="fa fa-circle"/>
+                                        </div>
+                                        <div class="severity_info">
+                                            <span class="severity_label">High</span>
+                                            <span class="severity_count" t-esc="state.high_threats"/>
+                                        </div>
+                                        <div class="severity_bar">
+                                            <div class="severity_progress"
+                                                 t-att-style="'width: ' + this.calculateSeverityPercent(state.high_threats) + '%'"/>
+                                        </div>
+                                    </div>
+                                    <div class="severity_item severity-medium" t-on-click="() => this.filterBySeverity('medium')">
+                                        <div class="severity_icon">
+                                            <i class="fa fa-circle"/>
+                                        </div>
+                                        <div class="severity_info">
+                                            <span class="severity_label">Medium</span>
+                                            <span class="severity_count" t-esc="state.medium_threats"/>
+                                        </div>
+                                        <div class="severity_bar">
+                                            <div class="severity_progress"
+                                                 t-att-style="'width: ' + this.calculateSeverityPercent(state.medium_threats) + '%'"/>
+                                        </div>
+                                    </div>
+                                    <div class="severity_item severity-low" t-on-click="() => this.filterBySeverity('low')">
+                                        <div class="severity_icon">
+                                            <i class="fa fa-circle"/>
+                                        </div>
+                                        <div class="severity_info">
+                                            <span class="severity_label">Low</span>
+                                            <span class="severity_count" t-esc="state.low_threats"/>
+                                        </div>
+                                        <div class="severity_bar">
+                                            <div class="severity_progress"
+                                                 t-att-style="'width: ' + this.calculateSeverityPercent(state.low_threats) + '%'"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AFFECTED DEVICES -->
+                    <div class="col-12">
+                        <div class="card tracking_card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fa fa-desktop me-2"/>
+                                    <strong>Affected Devices</strong>
+                                </div>
+                                <span class="badge bg-primary" t-esc="state.affected_devices_count"/>
+                            </div>
+                            <div class="card-body">
+                                <div class="affected_devices_list">
+                                    <t t-if="state.affected_devices.length === 0">
+                                        <p class="text-muted text-center">No affected devices</p>
+                                    </t>
+                                    <t t-else="">
+                                        <t t-foreach="state.affected_devices.slice(0, 5)" t-as="device" t-key="device.id">
+                                            <div class="affected_device_item" t-on-click="() => this.openDevice(device.id)">
+                                                <div class="device_avatar">
+                                                    <i class="fa fa-desktop"/>
+                                                </div>
+                                                <div class="device_info">
+                                                    <strong t-esc="device.name"/>
+                                                    <span class="device_code" t-esc="device.code"/>
+                                                </div>
+                                                <span class="threat_count_badge" t-esc="device.threat_count"/>
+                                            </div>
+                                        </t>
+                                        <div class="text-center mt-2" t-if="state.affected_devices.length > 5">
+                                            <a href="#" class="btn btn-sm btn-link" t-on-click="() => this.viewAllDevices()">
+                                                View all <i class="fa fa-arrow-right"/>
+                                            </a>
+                                        </div>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        </div>
+        <!-- End Products Tab -->
+
+
+
+
+        <!-- =========================
+             DEVICES TAB
+             ========================= -->
+        <div t-if="state.activeTab === 'devices'">
+            <!-- Installer Configuration Section -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                        <div class="card-header border-0" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 20px 24px;">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px; background: rgba(255,255,255,0.2);">
+                                        <i class="fa fa-download text-white" style="font-size: 20px;"/>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-0" style="color: white; font-weight: 700; font-size: 18px;">Installer Configuration</h5>
+                                        <p class="mb-0" style="color: rgba(255,255,255,0.85); font-size: 13px;">Configure antivirus installer packages for deployment</p>
+                                    </div>
+                                </div>
+                                <span class="badge" style="background: rgba(255,255,255,0.2); color: white; font-size: 13px; padding: 6px 12px; border-radius: 8px;">
+                                    <i class="fa fa-check-circle me-1"/> Configured
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body p-4" style="background: #f8f9fa;">
+                            <div class="row g-3">
+                                <!-- Windows Installer Card -->
+                                <div class="col-lg-4">
+                                    <div class="card border-0 h-100" style="border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(33, 150, 243, 0.08); border: 1px solid rgba(33, 150, 243, 0.1);">
+                                        <div class="card-header border-0 text-center" style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); padding: 20px;">
+                                            <div style="font-size: 36px; margin-bottom: 8px;">🪟</div>
+                                            <h6 class="mb-0" style="color: white; font-weight: 700; font-size: 15px;">Windows</h6>
+                                            <small style="color: rgba(255,255,255,0.85); font-size: 12px;">.exe / .msi</small>
+                                        </div>
+                                        <div class="card-body p-3">
+                                            <label class="form-label" style="font-size: 12px; font-weight: 600; color: #6c757d; margin-bottom: 6px;">
+                                                INSTALLER URL
+                                            </label>
+                                            <input type="text"
+                                                   t-model="state.config.installer_windows"
+                                                   class="form-control form-control-sm mb-3"
+                                                   placeholder="https://..."
+                                                   style="border-radius: 8px; border: 2px solid #e5e7eb; font-size: 13px;"/>
+                                            <button t-on-click="() => this.saveInstallerConfig('windows')"
+                                                    class="btn btn-sm w-100"
+                                                    style="background: #1e293b; color: white; border-radius: 8px; font-weight: 600; padding: 10px 16px;">
+                                                <i class="fa fa-save me-2"/> Save Windows Installer
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Linux Installer Card -->
+                                <div class="col-lg-4">
+                                    <div class="card border-0 h-100" style="border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(255, 152, 0, 0.08); border: 1px solid rgba(255, 152, 0, 0.1);">
+                                        <div class="card-header border-0 text-center" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); padding: 20px;">
+                                            <div style="font-size: 36px; margin-bottom: 8px;">🐧</div>
+                                            <h6 class="mb-0" style="color: white; font-weight: 700; font-size: 15px;">Linux</h6>
+                                            <small style="color: rgba(255,255,255,0.85); font-size: 12px;">.deb / .rpm</small>
+                                        </div>
+                                        <div class="card-body p-3">
+                                            <label class="form-label" style="font-size: 12px; font-weight: 600; color: #6c757d; margin-bottom: 6px;">
+                                                INSTALLER URL
+                                            </label>
+                                            <input type="text"
+                                                   t-model="state.config.installer_linux"
+                                                   class="form-control form-control-sm mb-3"
+                                                   placeholder="https://..."
+                                                   style="border-radius: 8px; border: 2px solid #e5e7eb; font-size: 13px;"/>
+                                            <button t-on-click="() => this.saveInstallerConfig('linux')"
+                                                    class="btn btn-sm w-100"
+                                                    style="background: #1e293b; color: white; border-radius: 8px; font-weight: 600; padding: 10px 16px;">
+                                                <i class="fa fa-save me-2"/> Save Linux Installer
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- macOS Installer Card -->
+                                <div class="col-lg-4">
+                                    <div class="card border-0 h-100" style="border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(96, 125, 139, 0.08); border: 1px solid rgba(96, 125, 139, 0.1);">
+                                        <div class="card-header border-0 text-center" style="background: linear-gradient(135deg, #607d8b 0%, #455a64 100%); padding: 20px;">
+                                            <div style="font-size: 36px; margin-bottom: 8px;">🍎</div>
+                                            <h6 class="mb-0" style="color: white; font-weight: 700; font-size: 15px;">macOS</h6>
+                                            <small style="color: rgba(255,255,255,0.85); font-size: 12px;">.dmg / .pkg</small>
+                                        </div>
+                                        <div class="card-body p-3">
+                                            <label class="form-label" style="font-size: 12px; font-weight: 600; color: #6c757d; margin-bottom: 6px;">
+                                                INSTALLER URL
+                                            </label>
+                                            <input type="text"
+                                                   t-model="state.config.installer_macos"
+                                                   class="form-control form-control-sm mb-3"
+                                                   placeholder="https://..."
+                                                   style="border-radius: 8px; border: 2px solid #e5e7eb; font-size: 13px;"/>
+                                            <button t-on-click="() => this.saveInstallerConfig('macos')"
+                                                    class="btn btn-sm w-100"
+                                                    style="background: #1e293b; color: white; border-radius: 8px; font-weight: 600; padding: 10px 16px;">
+                                                <i class="fa fa-save me-2"/> Save macOS Installer
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Devices List Section -->
+            <div class="row g-4 mb-4">
+                <div class="col-12">
+                    <div class="card tracking_card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fa fa-desktop me-2"/>
+                                <strong>All Devices by Antivirus Status</strong>
+                            </div>
+                            <span class="badge bg-primary" t-esc="state.total_devices"/>
+                        </div>
+                        <div class="card-body">
+                            <t t-if="state.antivirus_products.length === 0">
+                                <div class="empty_state text-center py-5">
+                                    <i class="fa fa-desktop text-muted" style="font-size: 64px; opacity: 0.3;"/>
+                                    <h5 class="text-muted mt-3">No devices found</h5>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <div class="devices_by_product">
+                                    <t t-foreach="state.antivirus_products" t-as="product" t-key="product.name">
+                                        <div class="product_section">
+                                            <div class="product_section_header">
+                                                <i class="fa" t-att-class="this.getProductIcon(product.name)"/>
+                                                <strong t-esc="product.name"/>
+                                                <span class="badge bg-primary" t-esc="product.count"/>
+                                            </div>
+                                            <div class="device_list">
+                                                <t t-foreach="product.devices.slice(0, 10)" t-as="device" t-key="device.id">
+                                                    <div class="device_row" t-on-click="() => this.openDevice(device.id)">
+                                                        <div class="device_avatar">
+                                                            <i class="fa fa-desktop"/>
+                                                        </div>
+                                                        <div class="device_details">
+                                                            <strong class="device_name" t-esc="device.name"/>
+                                                            <span class="device_code" t-esc="device.code"/>
+                                                        </div>
+                                                        <div class="device_serial">
+                                                            <i class="fa fa-barcode"/>
+                                                            <span t-esc="device.serial_number || 'N/A'"/>
+                                                        </div>
+                                                        <div class="device_status">
+                                                            <t t-set="statusBadge" t-value="this.getProtectionStatusBadge(device.status, device.running)"/>
+                                                            <span class="badge" t-att-class="statusBadge.class" t-esc="statusBadge.label"/>
+                                                        </div>
+                                                        <div class="device_version">
+                                                            <i class="fa fa-code-branch"/>
+                                                            <span t-esc="device.version || 'N/A'"/>
+                                                        </div>
+                                                    </div>
+                                                </t>
+                                                <div t-if="product.devices.length > 10" class="text-center mt-2">
+                                                    <button class="btn btn-sm btn-link" t-on-click="() => this.viewProductDetails(product.name)">
+                                                        View all <t t-esc="product.count"/> devices <i class="fa fa-arrow-right"/>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End Devices Tab -->
+
+    </div>
+</t>
+
+<!-- =========================================================
+     ANTIVIRUS DASHBOARD TEMPLATE
+     ========================================================= -->
+<t t-name="antivirus_management.AntivirusDashboard" owl="1">
+    <div class="o_antivirus_dashboard container-fluid">
+
+        <!-- =========================
+             HEADER WITH QUICK ACTIONS
+             ========================= -->
+        <div class="dashboard_header mb-4 px-4 py-3">
+            <div class="row align-items-center g-0">
+                <div class="col-md-6">
+                    <h2 class="dashboard_title mb-1">
+                        <i class="fa fa-shield me-2"/>
+                        Antivirus Management Dashboard
+                    </h2>
+                    <p class="dashboard_subtitle text-muted mb-0">
+                        Real-time protection monitoring and threat analytics
+                    </p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <div class="dashboard_controls">
+                        <span class="refresh_status me-3" t-if="state.last_refresh">
+                            <i class="fa fa-clock me-1"/>
+                            Last updated: <t t-esc="state.last_refresh"/>
+                        </span>
+
+                        <!-- Quick Actions Dropdown -->
+                        <div class="btn-group me-2">
+                            <button class="btn btn-sm btn-warning dropdown-toggle" data-bs-toggle="dropdown">
+                                <i class="fa fa-bolt"/> Quick Actions
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" t-on-click="() => this.runFullScan()">
+                                        <i class="fa fa-search text-warning"/> Run Full Scan
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="() => this.updateDefinitions()">
+                                        <i class="fa fa-download text-success"/> Update Definitions
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"/></li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="() => this.quarantineAll()">
+                                        <i class="fa fa-lock text-danger"/> Quarantine Threats
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <button class="btn btn-sm btn-outline-danger me-2"
+                                t-on-click="() => this.downloadPDF()"
+                                t-att-disabled="state.loading">
+                            <i class="fa fa-file-pdf-o"/>
+                            Download PDF
+                        </button>
+
+                        <button class="btn btn-sm btn-outline-primary me-2"
+                                t-on-click="() => this.refreshData()"
+                                t-att-disabled="state.loading">
+                            <i class="fa fa-sync" t-att-class="{'fa-spin': state.loading}"/>
+                            Refresh
+                        </button>
+                        <button class="btn btn-sm"
+                                t-att-class="state.auto_refresh ? 'btn-success' : 'btn-outline-secondary'"
+                                t-on-click="() => this.toggleAutoRefresh()">
+                            <i class="fa" t-att-class="state.auto_refresh ? 'fa-pause' : 'fa-play'"/>
+                            <t t-if="state.auto_refresh">Auto-refresh ON</t>
+                            <t t-else="">Auto-refresh OFF</t>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========================
+             TOP KPI ROW - DEVICE COUNTS BY PLATFORM
+             ========================= -->
+        <div class="row g-4 mb-4">
+
+            <!-- TOTAL DEVICES -->
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_primary" t-on-click="() => this.openAllDevices()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon">
+                            <i class="fa fa-desktop"/>
+                        </div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">TOTAL DEVICES</span>
+                            <span class="kpi_value" t-esc="state.total_devices"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+
+            <!-- WINDOWS DEVICES -->
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_windows" t-on-click="() => this.openDevicesByPlatform('windows')">
+                    <div class="kpi_body">
+                        <div class="kpi_icon">
+                            <i class="fa fa-windows"/>
+                        </div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">WINDOWS</span>
+                            <span class="kpi_value" t-esc="state.windows_count"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+
+            <!-- LINUX DEVICES -->
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_linux" t-on-click="() => this.openDevicesByPlatform('linux')">
+                    <div class="kpi_body">
+                        <div class="kpi_icon">
+                            <i class="fa fa-linux"/>
+                        </div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">LINUX</span>
+                            <span class="kpi_value" t-esc="state.linux_count"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+
+            <!-- MACOS DEVICES -->
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_macos" t-on-click="() => this.openDevicesByPlatform('macos')">
+                    <div class="kpi_body">
+                        <div class="kpi_icon">
+                            <i class="fa fa-apple"/>
+                        </div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">MACOS</span>
+                            <span class="kpi_value" t-esc="state.macos_count"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- =========================
+             PROTECTION STATUS KPIs
+             ========================= -->
+        <div class="row g-4 mb-4">
+
+            <!-- PROTECTED DEVICES -->
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_success" t-on-click="() => this.openProtectedDevices()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon">
+                            <i class="fa fa-check-circle"/>
+                        </div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">PROTECTED DEVICES</span>
+                            <span class="kpi_value" t-esc="state.protected_count"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+
+            <!-- UNPROTECTED DEVICES -->
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_danger" t-on-click="() => this.openUnprotectedDevices()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon">
+                            <i class="fa fa-exclamation-triangle"/>
+                        </div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">UNPROTECTED DEVICES</span>
+                            <span class="kpi_value" t-esc="state.unprotected_count"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+
+            <!-- THREATS DETECTED -->
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_warning" t-on-click="() => this.openThreats()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon">
+                            <i class="fa fa-bug"/>
+                        </div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">THREATS DETECTED</span>
+                            <span class="kpi_value" t-esc="state.threats_count"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+
+            <!-- PROTECTION COVERAGE -->
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_info" t-on-click="() => this.openProtectedDevices()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon">
+                            <i class="fa fa-shield"/>
+                        </div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">PROTECTION COVERAGE</span>
+                            <span class="kpi_value">
+                                <t t-if="state.total_devices > 0">
+                                    <t t-esc="Math.round((state.protected_count / state.total_devices) * 100)"/>%
+                                </t>
+                                <t t-else="">0%</t>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- =========================
+             LICENSE & COVERAGE KPIs
+             ========================= -->
+        <div class="row g-4 mb-4">
+
+            <!-- TOTAL LICENSE -->
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_info" t-on-click="() => this.openLicenseDetails()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon">
+                            <i class="fa fa-key"/>
+                        </div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">TOTAL LICENSE</span>
+                            <span class="kpi_value" t-esc="state.total_license"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+
+            <!-- USED LICENSE -->
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_success" t-on-click="() => this.openLicenseDetails()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon">
+                            <i class="fa fa-check-square"/>
+                        </div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">USED LICENSE</span>
+                            <span class="kpi_value">
+                                <t t-esc="state.total_license - state.balance_license"/>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+
+            <!-- BALANCE LICENSE -->
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_purple" t-on-click="() => this.openBalanceLicense()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon">
+                            <i class="fa fa-cubes"/>
+                        </div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">BALANCE LICENSE</span>
+                            <span class="kpi_value" t-esc="state.balance_license"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+
+            <!-- EXPIRING SOON -->
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_amber" t-on-click="() => this.openExpiringLicenses()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon">
+                            <i class="fa fa-clock-o"/>
+                        </div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">EXPIRING SOON</span>
+                            <span class="kpi_value" t-esc="state.expiring_soon"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- =========================
+             MAIN CHARTS ROW
+             ========================= -->
+        <div class="row g-4 mb-4">
+
+            <!-- PROTECTION STATUS DONUT -->
+            <div class="col-lg-6 col-md-6">
+                <div class="card dashboard_card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fa fa-chart-pie me-2"/>
+                            <strong>Protection Status Overview</strong>
+                        </div>
+                        <button class="btn btn-sm btn-link" t-on-click="() => this.openAllDevices()">
+                            View All <i class="fa fa-arrow-right"/>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-wrapper">
+                            <canvas id="protection_status_donut"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LICENSE UTILIZATION DONUT -->
+            <div class="col-lg-6 col-md-6">
+                <div class="card dashboard_card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fa fa-key me-2"/>
+                            <strong>License Utilization</strong>
+                        </div>
+                        <button class="btn btn-sm btn-link" t-on-click="() => this.openLicenseDetails()">
+                            View Details <i class="fa fa-arrow-right"/>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-wrapper">
+                            <canvas id="license_donut"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- =========================
+             THREATS AND RECENT ACTIVITY
+             ========================= -->
+        <div class="row g-4 mb-4">
+
+            <!-- THREATS DETECTED -->
+            <div class="col-lg-6">
+                <div class="card dashboard_card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fa fa-bug me-2 text-danger"/>
+                            <strong>Threats Detected</strong>
+                            <span class="badge bg-danger ms-2" t-if="state.threats_count > 0">
+                                <t t-esc="state.threats_count"/>
+                            </span>
+                        </div>
+                        <button class="btn btn-sm btn-link" t-on-click="() => this.openThreats()">
+                            View All <i class="fa fa-arrow-right"/>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="threat_list">
+                            <t t-if="state.threat_list.length === 0">
+                                <div class="empty_state text-center py-4">
+                                    <i class="fa fa-check-circle text-success" style="font-size: 48px;"/>
+                                    <p class="text-muted mt-3">No threats detected</p>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <t t-foreach="state.threat_list" t-as="threat" t-key="threat.id">
+                                    <div class="threat_item"
+                                         t-att-class="'severity-' + (threat.severity || 'high')"
+                                         t-on-click="() => this.openDevice(threat.device_id)">
+                                        <div class="threat_image_wrapper">
+                                            <img t-att-src="this.resolveDeviceImage(threat)" class="threat_device_img" alt="Device"/>
+                                        </div>
+                                        <div class="threat_icon_badge">
+                                            <i class="fa" t-att-class="this.resolveThreatIcon(threat) + ' ' + (threat.severity === 'critical' ? 'text-danger' : threat.severity === 'high' ? 'text-warning' : 'text-info')"/>
+                                        </div>
+                                        <div class="threat_content">
+                                            <div class="threat_title">
+                                                <strong t-esc="threat.device_name"/>
+                                                <span class="badge bg-secondary ms-2" t-esc="threat.device_code"/>
+                                                <span class="badge ms-2"
+                                                      t-att-class="{
+                                                          'bg-danger': threat.severity === 'critical',
+                                                          'bg-warning text-dark': threat.severity === 'high',
+                                                          'bg-info': threat.severity === 'medium'
+                                                      }">
+                                                    <t t-if="threat.severity === 'critical'">🔴 CRITICAL</t>
+                                                    <t t-elif="threat.severity === 'high'">🟠 HIGH</t>
+                                                    <t t-else="">🟢 MEDIUM</t>
+                                                </span>
+                                            </div>
+                                            <div class="threat_details text-muted">
+                                                <small>
+                                                    <i class="fa fa-bug me-1"/>
+                                                    <t t-esc="threat.threat_name"/>
+                                                </small>
+                                            </div>
+                                            <div class="threat_details text-muted">
+                                                <small>
+                                                    <i class="fa fa-clock me-1"/>
+                                                    <t t-esc="formatDateTime(threat.detected_date)"/>
+                                                </small>
+                                            </div>
+                                            <div class="threat_status" t-if="threat.status">
+                                                <small>
+                                                    Status:
+                                                    <span t-att-class="{
+                                                        'text-success': threat.status === 'quarantined',
+                                                        'text-danger': threat.status === 'active',
+                                                        'text-warning': threat.status === 'cleaning'
+                                                    }">
+                                                        <t t-esc="threat.status"/>
+                                                    </span>
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div class="threat_action">
+                                            <i class="fa fa-chevron-right"/>
+                                        </div>
+                                    </div>
+                                </t>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RECENT SCAN ACTIVITY -->
+            <div class="col-lg-6">
+                <div class="card dashboard_card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fa fa-shield me-2 text-success"/>
+                            <strong>Recent Scan Activity</strong>
+                        </div>
+                        <button class="btn btn-sm btn-link" t-on-click="() => this.openScanLogs()">
+                            View All <i class="fa fa-arrow-right"/>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="scan_list">
+                            <t t-if="state.recent_scans.length === 0">
+                                <div class="empty_state text-center py-4">
+                                    <i class="fa fa-inbox text-muted" style="font-size: 48px;"/>
+                                    <p class="text-muted mt-3">No recent scans</p>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <t t-foreach="state.recent_scans" t-as="scan" t-key="scan.id">
+                                    <div class="scan_item">
+                                        <div class="scan_icon">
+                                            <i class="fa" t-att-class="{
+                                                'fa-check-circle text-success': scan.result === 'clean',
+                                                'fa-exclamation-circle text-warning': scan.result === 'threats_found',
+                                                'fa-times-circle text-danger': scan.result === 'failed'
+                                            }"/>
+                                        </div>
+                                        <div class="scan_content">
+                                            <div class="scan_title">
+                                                <strong t-esc="scan.device_name" t-on-click="() => this.openDevice(scan.device_id)" style="cursor: pointer;"/>
+                                                <span class="badge" t-att-class="{
+                                                    'bg-success': scan.result === 'clean',
+                                                    'bg-warning': scan.result === 'threats_found',
+                                                    'bg-danger': scan.result === 'failed'
+                                                }" t-esc="scan.result"/>
+                                            </div>
+                                            <div class="scan_details text-muted">
+                                                <small>
+                                                    <i class="fa fa-clock me-1"/>
+                                                    <t t-esc="formatDateTime(scan.scan_time)"/>
+                                                </small>
+                                            </div>
+                                            <div class="scan_details text-muted">
+                                                <small>
+                                                    <i class="fa fa-search me-1"/>
+                                                    Scan Type: <t t-esc="scan.scan_type"/>
+                                                </small>
+                                            </div>
+                                            <div class="scan_summary" t-if="scan.summary">
+                                                <small t-esc="scan.summary"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </t>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</t>
+
+<!-- =========================================================
+     ANTIVIRUS ASSETS TABS HEADER TEMPLATE
+     ========================================================= -->
+<t t-name="asset_management.AntivirusAssetsTabsHeader" t-inherit="web.ListRenderer" t-inherit-mode="extension" owl="1">
+    <xpath expr="//div[hasclass('o_list_renderer')]" position="before">
+        <t t-if="this.isAvView()">
+            <div class="o_antivirus_assets_tabs_container px-4 py-2 bg-view border-bottom d-flex align-items-center justify-content-between">
+                <div class="os_tabs d-flex align-items-center">
+                    <t t-foreach="['windows', 'linux', 'macos']" t-as="tabId" t-key="tabId">
+                        <t t-set="tab" t-value="this.getAvTabData(tabId)"/>
+                        <div class="os_tab_item me-4 d-flex align-items-center cursor-pointer"
+                             t-att-class="{'active text-primary border-primary': this.isAvTabActive(tabId)}"
+                             t-on-click="() => this.onAvTabClick(tabId)">
+                            <div class="tab_icon_wrapper me-2 px-2 py-1 rounded-3"
+                                 t-att-style="'background-color: ' + (this.isAvTabActive(tabId) ? tab.color : '#f1f3f5')">
+                                <i t-att-class="'fa ' + tab.icon" t-att-style="'color: ' + (this.isAvTabActive(tabId) ? '#ffffff' : '#6c757d')"/>
+                            </div>
+                            <span class="tab_label fw-bold" t-esc="tab.label" t-att-style="'color: ' + (this.isAvTabActive(tabId) ? tab.color : '#495057')"/>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- Deployment Button on the Right -->
+                <div class="av_actions_right">
+                    <button class="btn btn-primary btn-lg rounded-pill px-4 d-flex align-items-center shadow-sm"
+                            t-on-click="() => this.onDeployClick()"
+                            t-att-disabled="!props.list.selection.length">
+                        <i class="fa fa-shield me-2"/>
+                        <span>Deploy Antivirus</span>
+                    </button>
+                </div>
+            </div>
+        </t>
+    </xpath>
+</t>
+ 
+ <!-- =========================================================
+      ANTIVIRUS UNIFIED DASHBOARD TEMPLATE
+      ========================================================= -->
+     <t t-name="antivirus.UnifiedDashboard" owl="1">
+         <div class="o_antivirus_unified_dashboard" style="padding: 16px; background: #f8f9fa; height: 100%; overflow-y: auto; display: flex; flex-direction: column;">
+             <!-- Dashboard Header Card -->
+             <div t-att-style="'margin-bottom: 24px; padding: 20px 24px; background: white; border: 1px solid #e0e0e0; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; border-top: 5px solid ' + (state.platform === 'windows' ? '#2196f3' : state.platform === 'linux' ? '#ff9800' : '#607d8b')">
+                 <div>
+                     <h2 style="margin: 0; font-weight: 700; color: #111827; font-size: 24px;">Antivirus Overview</h2>
+                     <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">Monitor and manage security protection across your devices</p>
+                 </div>
+                 <div style="display: flex; gap: 12px;">
+                     <button t-on-click="() => this.refreshAssets()" class="btn btn-outline-secondary" style="border-radius: 8px; padding: 8px 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; border: 1px solid #d1d5db; background: white; color: #374151;">
+                         <i class="fa fa-refresh"/> Refresh Data
+                     </button>
+                 </div>
+             </div>
+ 
+             <!-- Configuration Section -->
+             <div style="margin-bottom: 24px; flex-shrink: 0; display: flex; gap: 24px; align-items: stretch;">
+                 <!-- Left Column: Installer Card -->
+                 <div style="flex: 0 0 450px;">
+                     <!-- Windows Card -->
+                     <div t-if="state.platform === 'windows'" style="height: 100%; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(33, 150, 243, 0.12); border: 1px solid rgba(33, 150, 243, 0.1);">
+                         <div style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); padding: 16px 20px; text-align: center;">
+                             <img src="/asset_management/static/description/windows.png" style="width: 48px; height: 48px; margin-bottom: 8px;" t-if="false"/>
+                             <span style="font-size: 36px; display: block; margin-bottom: 8px;">🪟</span>
+                             <h3 style="color: white; font-weight: 700; margin: 0; font-size: 16px;">Windows Installer</h3>
+                             <p style="color: rgba(255,255,255,0.85); font-size: 12px; margin: 4px 0 0 0;">.exe or .msi package</p>
+                         </div>
+                         <div style="padding: 16px 20px;">
+                             <div style="margin-bottom: 16px;">
+                                 <div style="font-size: 12px; font-weight: 700; color: #333; margin-bottom: 6px;">Installer URL</div>
+                                 <input type="text" t-model="state.config.installer_windows" class="form-control" placeholder="https://server.com/installers/kaspersky_win.exe" style="width: 100%; border: 2px solid #e0e0e0; border-radius: 8px; padding: 10px 14px; font-size: 13px;"/>
+                             </div>
+                             <div style="text-align: center;">
+                                 <button t-on-click="() => this.saveConfig('windows')" class="btn btn-primary" style="background: linear-gradient(135deg, #2196f3, #1976d2); border: none; padding: 8px 24px; color: white; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">Save Windows</button>
+                             </div>
+                         </div>
+                     </div>
+ 
+                     <!-- Linux Card -->
+                     <div t-if="state.platform === 'linux'" style="height: 100%; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(255, 152, 0, 0.12); border: 1px solid rgba(255, 152, 0, 0.1);">
+                         <div style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); padding: 16px 20px; text-align: center;">
+                             <span style="font-size: 36px; display: block; margin-bottom: 8px;">🐧</span>
+                             <h3 style="color: white; font-weight: 700; margin: 0; font-size: 16px;">Linux Installer</h3>
+                             <p style="color: rgba(255,255,255,0.85); font-size: 12px; margin: 4px 0 0 0;">.deb or .rpm package</p>
+                         </div>
+                         <div style="padding: 16px 20px;">
+                             <div style="margin-bottom: 16px;">
+                                 <div style="font-size: 12px; font-weight: 700; color: #333; margin-bottom: 6px;">Installer URL</div>
+                                 <input type="text" t-model="state.config.installer_linux" class="form-control" placeholder="https://server.com/installers/kaspersky_linux.deb" style="width: 100%; border: 2px solid #e0e0e0; border-radius: 8px; padding: 10px 14px; font-size: 13px;"/>
+                             </div>
+                             <div style="text-align: center;">
+                                 <button t-on-click="() => this.saveConfig('linux')" class="btn btn-primary" style="background: linear-gradient(135deg, #ff9800, #f57c00); border: none; padding: 8px 24px; color: white; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">Save Linux</button>
+                             </div>
+                         </div>
+                     </div>
+ 
+                     <!-- macOS Card -->
+                     <div t-if="state.platform === 'macos'" style="height: 100%; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(96, 125, 139, 0.12); border: 1px solid rgba(96, 125, 139, 0.1);">
+                         <div style="background: linear-gradient(135deg, #607d8b 0%, #455a64 100%); padding: 16px 20px; text-align: center;">
+                             <span style="font-size: 36px; display: block; margin-bottom: 8px;">🍎</span>
+                             <h3 style="color: white; font-weight: 700; margin: 0; font-size: 16px;">macOS Installer</h3>
+                             <p style="color: rgba(255,255,255,0.85); font-size: 12px; margin: 4px 0 0 0;">.dmg or .pkg package</p>
+                         </div>
+                         <div style="padding: 16px 20px;">
+                             <div style="margin-bottom: 16px;">
+                                 <div style="font-size: 12px; font-weight: 700; color: #333; margin-bottom: 6px;">Installer URL</div>
+                                 <input type="text" t-model="state.config.installer_macos" class="form-control" placeholder="https://server.com/installers/kaspersky_mac.pkg" style="width: 100%; border: 2px solid #e0e0e0; border-radius: 8px; padding: 10px 14px; font-size: 13px;"/>
+                             </div>
+                             <div style="text-align: center;">
+                                 <button t-on-click="() => this.saveConfig('macos')" class="btn btn-primary" style="background: linear-gradient(135deg, #607d8b, #455a64); border: none; padding: 8px 24px; color: white; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12px;">Save macOS</button>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+ 
+                 <!-- Right Column: KPI Cards Grid -->
+                 <div style="flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                     <!-- Total License -->
+                     <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e0e0e0; border-left: 5px solid #2196f3; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                         <div style="background: rgba(33, 150, 243, 0.1); width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #1976d2;">
+                             <i class="fa fa-key"/>
+                         </div>
+                         <div>
+                             <div style="font-size: 12px; color: #616161; font-weight: 600;">Total License</div>
+                             <div style="font-size: 24px; font-weight: 700; color: #333;" t-esc="state.kpis.total_license"/>
+                         </div>
+                     </div>
+ 
+                     <!-- Used License -->
+                     <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e0e0e0; border-left: 5px solid #4caf50; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                         <div style="background: rgba(76, 175, 80, 0.1); width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #388e3c;">
+                             <i class="fa fa-key"/>
+                         </div>
+                         <div>
+                             <div style="font-size: 12px; color: #616161; font-weight: 600;">Used License</div>
+                             <div style="font-size: 24px; font-weight: 700; color: #333;" t-esc="state.kpis.used_licenses"/>
+                         </div>
+                     </div>
+ 
+                     <!-- Protected Devices -->
+                     <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e0e0e0; border-left: 5px solid #4caf50; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                         <div style="background: rgba(76, 175, 80, 0.1); width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #388e3c;">
+                             <i class="fa fa-shield"/>
+                         </div>
+                         <div>
+                             <div style="font-size: 12px; color: #616161; font-weight: 600;">Protected Devices</div>
+                             <div style="font-size: 24px; font-weight: 700; color: #333;" t-esc="state.kpis.protected_count"/>
+                         </div>
+                     </div>
+ 
+                     <!-- Balance License -->
+                     <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e0e0e0; border-left: 5px solid #757575; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                         <div style="background: #f5f5f5; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #757575;">
+                             <i class="fa fa-key"/>
+                         </div>
+                         <div>
+                             <div style="font-size: 12px; color: #616161; font-weight: 600;">Balance License</div>
+                             <div style="font-size: 24px; font-weight: 700; color: #333;" t-esc="state.kpis.balance_license"/>
+                         </div>
+                     </div>
+ 
+                     <!-- Threat Alerts -->
+                     <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e0e0e0; border-left: 5px solid #f44336; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                         <div style="background: #fff5f5; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #f44336;">
+                             <i class="fa fa-exclamation-triangle"/>
+                         </div>
+                         <div>
+                             <div style="font-size: 12px; color: #616161; font-weight: 600;">Threat Alerts</div>
+                             <div style="font-size: 24px; font-weight: 700; color: #c62828;" t-esc="state.kpis.threats_count"/>
+                         </div>
+                     </div>
+ 
+                     <!-- Unprotected Devices -->
+                     <div style="background: white; border-radius: 12px; padding: 16px; border: 1px solid #e0e0e0; border-left: 5px solid #b71c1c; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                         <div style="background: #fff5f5; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #c62828;">
+                             <i class="fa fa-shield"/>
+                         </div>
+                         <div>
+                             <div style="font-size: 12px; color: #616161; font-weight: 600;">Unprotected Devices</div>
+                             <div style="font-size: 24px; font-weight: 700; color: #b71c1c;" t-esc="state.kpis.unprotected_count"/>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+ 
+             <!-- Assets List Section -->
+             <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); overflow: hidden; display: flex; flex-direction: column; min-height: 700px; flex: 1;">
+                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #e9ecef; flex-shrink: 0;">
+                     <div style="display: flex; align-items: center; gap: 12px;">
+                         <h2 style="font-size: 18px; font-weight: 700; color: #333; margin: 0;">
+                             <i class="fa fa-desktop" style="color: #667eea; margin-right: 8px;"/>
+                             <t t-if="!state.isUnified" t-esc="state.platform.charAt(0).toUpperCase() + state.platform.slice(1)"/>
+                             Antivirus Assets
+                         </h2>
+                         <button t-on-click="() => this.deployAll()" class="btn btn-success" style="border-radius: 8px; padding: 8px 16px; font-weight: 600; font-size: 13px;">
+                             <i class="fa fa-shield"/> Deploy All
+                         </button>
+                     </div>
+                     <div t-if="state.isUnified" style="display: flex; gap: 8px;">
+                         <button t-on-click="() => this.switchPlatform('windows')" class="btn" t-att-class="state.platform === 'windows' ? 'btn-primary' : 'btn-secondary'" style="border-radius: 8px; padding: 8px 16px; font-weight: 600;">
+                             <i class="fa fa-windows"/> Windows
+                         </button>
+                         <button t-on-click="() => this.switchPlatform('linux')" class="btn" t-att-class="state.platform === 'linux' ? 'btn-primary' : 'btn-secondary'" style="border-radius: 8px; padding: 8px 16px; font-weight: 600;">
+                             <i class="fa fa-linux"/> Linux
+                         </button>
+                         <button t-on-click="() => this.switchPlatform('macos')" class="btn" t-att-class="state.platform === 'macos' ? 'btn-primary' : 'btn-secondary'" style="border-radius: 8px; padding: 8px 16px; font-weight: 600;">
+                             <i class="fa fa-apple"/> macOS
+                         </button>
+                     </div>
+                 </div>
+ 
+                 <!-- Search Bar -->
+                 <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-shrink: 0;">
+                     <input type="text" t-model="state.search" placeholder="Search assets..." class="form-control" style="flex: 1; border: 2px solid #e0e0e0; border-radius: 8px; padding: 10px 16px; font-size: 14px;"/>
+                     <button t-on-click="() => this.refreshAssets()" class="btn btn-secondary" style="border-radius: 8px; padding: 10px 20px;">
+                         <i class="fa fa-refresh"/>
+                     </button>
+                 </div>
+ 
+                 <!-- Assets Table - Scrollable -->
+                 <div style="overflow-y: auto; flex: 1; min-height: 500px; border: 1px solid #e9ecef; border-radius: 8px;">
+                     <table class="table" style="margin: 0;">
+                         <thead>
+                             <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6; position: sticky; top: 0; z-index: 10;">
+                                 <th style="padding: 12px; width: 40px; text-align: center;">
+                                     <input type="checkbox" t-on-click="() => this.toggleSelectAll()" t-att-checked="state.selectAll" style="width: 16px; height: 16px; cursor: pointer;"/>
+                                 </th>
+                                 <th style="padding: 12px; font-weight: 600; color: #555;">Asset Code</th>
+                                 <th style="padding: 12px; font-weight: 600; color: #555;">Device Name</th>
+                                 <th style="padding: 12px; font-weight: 600; color: #555;">Serial Number</th>
+                                 <th style="padding: 12px; font-weight: 600; color: #555;">Agent Status</th>
+                                 <th style="padding: 12px; font-weight: 600; color: #555;">Antivirus Status</th>
+                                 <th style="padding: 12px; font-weight: 600; color: #555; text-align: right;">
+                                     Actions
+                                     <i class="fa fa-sliders" style="margin-left: 8px; color: #888; cursor: pointer;"/>
+                                 </th>
+                             </tr>
+                         </thead>
+                         <tbody>
+                             <t t-foreach="filteredAssets" t-as="asset" t-key="asset.id">
+                                 <tr style="border-bottom: 1px solid #e9ecef;">
+                                     <td style="padding: 12px; text-align: center;">
+                                         <input type="checkbox" t-att-checked="state.selectedAssets.has(asset.id)" t-on-click="() => this.toggleAssetSelection(asset.id)" style="width: 16px; height: 16px; cursor: pointer;"/>
+                                     </td>
+                                     <td style="padding: 12px; font-weight: 600; color: #333;"><t t-esc="asset.asset_code"/></td>
+                                     <td style="padding: 12px; color: #555;"><t t-esc="asset.asset_name"/></td>
+                                     <td style="padding: 12px; color: #555;"><t t-esc="asset.serial_number"/></td>
+                                     <td style="padding: 12px;">
+                                         <span class="badge" t-att-class="asset.agent_status === 'online' || asset.agent_status === 'idle' ? 'bg-success' : 'bg-danger'" style="border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 600;">
+                                             <t t-esc="asset.agent_status"/>
+                                         </span>
+                                     </td>
+                                     <td style="padding: 12px;">
+                                         <span class="badge" t-att-class="asset.antivirus_status === 'protected' ? 'bg-success' : 'bg-danger'" style="border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 600;">
+                                             <t t-esc="asset.antivirus_status"/>
+                                         </span>
+                                     </td>
+                                     <td style="padding: 12px; text-align: right;">
+                                         <button t-if="asset.antivirus_status !== 'protected'" t-on-click="() => this.deployAntivirus(asset.id)" class="btn btn-success" style="border-radius: 6px; padding: 6px 16px; font-size: 12px; font-weight: 600;">
+                                             <i class="fa fa-shield"/> DEPLOY
+                                         </button>
+                                         <button t-if="asset.antivirus_status === 'protected'" t-on-click="() => this.removeAntivirus(asset.id)" class="btn btn-danger" style="border-radius: 6px; padding: 6px 16px; font-size: 12px; font-weight: 600; margin-left: 4px;">
+                                             <i class="fa fa-trash"/> REMOVE
+                                         </button>
+                                     </td>
+                                 </tr>
+                             </t>
+                             <t t-if="filteredAssets.length === 0">
+                                 <tr>
+                                     <td colspan="7" style="padding: 40px; text-align: center; color: #888;">
+                                         <i class="fa fa-inbox" style="font-size: 48px; margin-bottom: 16px; display: block; opacity: 0.3;"/>
+                                         No assets found for this platform
+                                     </td>
+                                 </tr>
+                             </t>
+                         </tbody>
+                     </table>
+                 </div>
+ 
+                 <!-- Pagination -->
+                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 16px; border-top: 2px solid #e9ecef; flex-shrink: 0;">
+                     <div style="color: #666; font-size: 13px;">
+                         Showing <t t-esc="filteredAssets.length"/> of <t t-esc="state.assets.length"/> assets
+                     </div>
+                     <div style="display: flex; gap: 8px;">
+                         <button t-on-click="() => this.previousPage()" class="btn btn-secondary" t-att-disabled="state.page === 1" style="border-radius: 6px; padding: 8px 16px;">
+                             <i class="fa fa-chevron-left"/> Previous
+                         </button>
+                         <button t-on-click="() => this.nextPage()" class="btn btn-secondary" t-att-disabled="state.page * state.pageSize >= state.assets.length" style="border-radius: 6px; padding: 8px 16px;">
+                             Next <i class="fa fa-chevron-right"/>
+                         </button>
+                     </div>
+                 </div>
+             </div>
+         </div>
+     </t>
+ 
+ </templates>
+

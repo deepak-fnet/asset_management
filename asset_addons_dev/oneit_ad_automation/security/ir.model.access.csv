@@ -1,0 +1,17 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_oneit_request_hr,oneit.request.hr,model_oneit_request,oneit_ad_automation.group_oneit_hr,1,1,1,1
+access_oneit_request_team_lead,oneit.request.team.lead,model_oneit_request,oneit_ad_automation.group_oneit_team_lead,1,1,1,0
+access_oneit_request_bu_head,oneit.request.bu.head,model_oneit_request,oneit_ad_automation.group_oneit_bu_head,1,1,1,0
+access_oneit_request_it,oneit.request.it,model_oneit_request,oneit_ad_automation.group_oneit_it_admin,1,1,1,1
+access_oneit_approval_hr,oneit.approval.hr,model_oneit_approval,oneit_ad_automation.group_oneit_hr,1,0,0,0
+access_oneit_approval_team_lead,oneit.approval.team.lead,model_oneit_approval,oneit_ad_automation.group_oneit_team_lead,1,1,0,0
+access_oneit_approval_it,oneit.approval.it,model_oneit_approval,oneit_ad_automation.group_oneit_it_admin,1,1,1,1
+access_oneit_team_hr,oneit.team.hr,model_oneit_team,oneit_ad_automation.group_oneit_hr,1,0,0,0
+access_oneit_team_it,oneit.team.it,model_oneit_team,oneit_ad_automation.group_oneit_it_admin,1,1,1,1
+access_oneit_ad_group_hr,oneit.ad.group.hr,model_oneit_ad_group,oneit_ad_automation.group_oneit_hr,1,0,0,0
+access_oneit_ad_group_it,oneit.ad.group.it,model_oneit_ad_group,oneit_ad_automation.group_oneit_it_admin,1,1,1,1
+access_oneit_dashboard_hr,oneit.dashboard.hr,model_oneit_dashboard,oneit_ad_automation.group_oneit_hr,1,0,0,0
+access_oneit_ad_person_hr,oneit.ad.person.hr,model_oneit_ad_person,oneit_ad_automation.group_oneit_hr,1,0,0,0
+access_oneit_ad_person_it,oneit.ad.person.it,model_oneit_ad_person,oneit_ad_automation.group_oneit_it_admin,1,1,1,1
+access_oneit_ad_membership_hr,oneit.ad.membership.hr,model_oneit_ad_membership,oneit_ad_automation.group_oneit_hr,1,0,0,0
+access_oneit_ad_membership_it,oneit.ad.membership.it,model_oneit_ad_membership,oneit_ad_automation.group_oneit_it_admin,1,1,1,1

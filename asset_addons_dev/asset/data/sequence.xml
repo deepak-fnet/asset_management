@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="seq_asset_addition_code" model="ir.sequence">
+        <field name="name">Asset Addition Code</field>
+        <field name="code">asset.addition</field>
+        <field name="prefix">A</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="physical_verification_code" model="ir.sequence">
+        <field name="name">physical verification code</field>
+        <field name="code">physical.verification</field>
+        <field name="prefix">PV/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="seq_asset_rfid_comparison" model="ir.sequence">
+        <field name="name">RFID Comparison Sequence</field>
+        <field name="code">asset.rfid.comparison</field>
+        <field name="prefix">RFID/COMP/</field>
+        <field name="padding">4</field>
+        <field name="number_next">1</field>
+        <field name="number_increment">1</field>
+    </record>
+
+    <record id="seq_asset_assignment" model="ir.sequence">
+        <field name="name">Asset Assignment</field>
+        <field name="code">asset.assignment</field>
+        <field name="prefix">AS/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="seq_asset_removal" model="ir.sequence">
+        <field name="name">Asset Removal</field>
+        <field name="code">asset.removal</field>
+        <field name="prefix">RM/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

@@ -1,0 +1,18 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_asset_addition,Asset Addition,model_asset_addition,,1,1,1,1
+access_asset_internal_transfer,Asset Internal Transfer,model_asset_internal_transfer,,1,1,1,1
+access_asset_removal,asset removal,model_asset_removal,,1,1,1,1
+access_physical_location,physical location,model_physical_location,,1,1,1,1
+access_plant_master,plant master,model_plant_master,,1,1,1,1
+access_physical_verification,physical verification,model_physical_verification,,1,1,1,1
+access_from_location,From Location,model_from_location,,1,1,1,1
+access_to_location,To Location,model_to_location,,1,1,1,1
+access_history_asset,history.asset,model_history_asset,,1,1,1,1
+access_unified_asset_kanban,unified.asset.kanban,model_unified_asset_kanban,,1,1,1,1
+access_laptop_age_dashboard,laptop.age.dashboard,model_laptop_age_dashboard,,1,1,1,1
+access_machine_type,machine.type,model_machine_type,,1,1,1,1
+access_asset_rfid_comparison,asset.rfid.comparison,model_asset_rfid_comparison,,1,1,1,1
+access_asset_rfid_comparison_line,asset.rfid.comparison.line,model_asset_rfid_comparison_line,,1,1,1,1
+access_asset_category,asset.category,model_asset_category,,1,1,1,1
+access_asset_sub_category,asset.sub.category,model_asset_sub_category,,1,1,1,1
+access_asset_assignment,asset.assignment,model_asset_assignment,,1,1,1,1

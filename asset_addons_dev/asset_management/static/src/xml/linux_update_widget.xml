@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="asset_management.LinuxUpdateWidget" owl="1">
+        <div class="wu-root">
+
+            <!-- LOADING -->
+            <t t-if="state.loading">
+                <div class="wu-loading">
+                    <div class="wu-spinner"/>
+                    <span>Loading Linux Updates...</span>
+                </div>
+            </t>
+
+            <t t-else="">
+
+                <!-- ══════════════════════════════════════
+                     HEADER
+                     ══════════════════════════════════════ -->
+                <div class="wu-header">
+                    <div class="wu-header-left">
+                        <!-- Linux Tux-inspired logo -->
+                        <div class="wu-os-logo wu-linux-logo">
+                            <span class="wu-linux-icon">🐧</span>
+                        </div>
+                        <div>
+                            <div class="wu-title">Linux Update Management</div>
+                            <div class="wu-subtitle">Remote update control · Agent syncs every 5 minutes</div>
+                        </div>
+                    </div>
+                    <t t-if="state.isAdmin">
+                        <div t-attf-class="wu-lock-toggle {{ state.isLocked ? 'locked' : 'unlocked' }}"
+                             t-on-click="() => this.toggleLock()">
+                            <span class="wu-lock-ico">
+                                <t t-if="state.isLocked">🔒</t>
+                                <t t-else="">🔓</t>
+                            </span>
+                            <div class="wu-toggle-track">
+                                <div class="wu-toggle-thumb"/>
+                            </div>
+                            <span class="wu-toggle-label">
+                                <t t-if="state.isLocked">LOCKED</t>
+                                <t t-else="">UNLOCKED</t>
+                            </span>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- LOCKED BANNER -->
+                <t t-if="state.isLocked">
+                    <div class="wu-banner-locked">
+                        <span class="wu-banner-icon">⚠</span>
+                        <div>
+                            <div class="wu-banner-title">Device Updates Locked</div>
+                            <div class="wu-banner-msg">The agent will not install or process any updates on this device until unlocked by an administrator.</div>
+                        </div>
+                    </div>
+                </t>
+
+                <!-- ══════════════════════════════════════
+                     STATS BAR
+                     ══════════════════════════════════════ -->
+                <div class="wu-stats-bar">
+                    <div class="wu-stat-item">
+                        <div class="wu-stat-value" t-esc="state.updateCount"/>
+                        <div class="wu-stat-label">Detected</div>
+                    </div>
+                    <div class="wu-stat-sep"/>
+                    <div class="wu-stat-item">
+                        <div class="wu-stat-value wu-c-amber" t-esc="getCountByStatus('pending')"/>
+                        <div class="wu-stat-label">Pending</div>
+                    </div>
+                    <div class="wu-stat-sep"/>
+                    <div class="wu-stat-item">
+                        <div class="wu-stat-value wu-c-green" t-esc="getCountByStatus('installed')"/>
+                        <div class="wu-stat-label">Installed</div>
+                    </div>
+                </div>
+
+                <!-- ══════════════════════════════════════
+                     EMPTY STATE
+                     ══════════════════════════════════════ -->
+                <t t-if="state.updates.length === 0">
+                    <div class="wu-empty">
+                        <div class="wu-empty-check">✓</div>
+                        <div class="wu-empty-title">System is Up to Date</div>
+                        <div class="wu-empty-sub">No pending Linux updates detected. The agent scans every 5 minutes and will report new updates automatically.</div>
+                    </div>
+                </t>
+
+                <!-- ══════════════════════════════════════
+                     UPDATE TABLE
+                     ══════════════════════════════════════ -->
+                <t t-if="state.updates.length > 0">
+                    <div class="wu-table-wrap">
+                        <table class="wu-updates-table">
+                            <thead>
+                                <tr>
+                                    <th class="wu-th-kb">PACKAGE NAME</th>
+                                    <th class="wu-th-title">UPDATE TITLE</th>
+                                    <th class="wu-th-date">DETECTED</th>
+                                    <th class="wu-th-sev">SEVERITY</th>
+                                    <th class="wu-th-size">SIZE</th>
+                                    <th class="wu-th-status">STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="state.updates" t-as="update" t-key="update.id">
+                                    <tr t-attf-class="wu-tr wu-tr-{{ update.status }}">
+
+                                        <!-- PACKAGE NAME -->
+                                        <td class="wu-td-kb">
+                                            <div class="wu-kb-wrap">
+                                                <div t-attf-class="wu-kb-dot wu-dot-{{ update.severity }}"/>
+                                                <span class="wu-kb-code" t-esc="update.package_name"/>
+                                            </div>
+                                        </td>
+
+                                        <!-- TITLE -->
+                                        <td class="wu-td-title">
+                                            <div class="wu-update-title" t-esc="update.title or update.package_name"/>
+                                            <t t-if="update.new_version and update.new_version !== 'N/A'">
+                                                <div class="wu-update-ver">New Version: <t t-esc="update.new_version"/></div>
+                                            </t>
+                                        </td>
+
+                                        <!-- DETECTED DATE -->
+                                        <td class="wu-td-date" t-esc="update.detected_date"/>
+
+                                        <!-- SEVERITY -->
+                                        <td class="wu-td-sev">
+                                            <span t-attf-class="wu-sev wu-sev-{{ update.severity }}">
+                                                <t t-esc="(update.severity or 'optional').charAt(0).toUpperCase() + (update.severity or 'optional').slice(1)"/>
+                                            </span>
+                                        </td>
+
+                                        <!-- SIZE -->
+                                        <td class="wu-td-size" t-esc="update.size or '—'"/>
+
+                                        <!-- STATUS -->
+                                        <td class="wu-td-status">
+                                            <div t-attf-class="wu-status wu-status-{{ update.status }}">
+                                                <span class="wu-status-pulse"/>
+                                                <t t-esc="getStatusLabel(update.status)"/>
+                                            </div>
+                                            <t t-if="update.action_by">
+                                                <div class="wu-action-by">by <t t-esc="update.action_by"/></div>
+                                            </t>
+                                        </td>
+
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+
+                <!-- ══════════════════════════════════════
+                     ACTIVITY LOG
+                     ══════════════════════════════════════ -->
+                <t t-if="state.isAdmin">
+                    <div class="wu-activity">
+
+                        <div class="wu-activity-hdr" t-on-click="() => this.toggleActivity()">
+                            <div class="wu-activity-hdr-left">
+                                <span t-attf-class="wu-chevron {{ state.isActivityOpen ? 'wu-chevron-open' : '' }}">›</span>
+                                <span class="wu-activity-hdr-title">Admin Activity Log</span>
+                                <span class="wu-activity-badge" t-esc="state.activityLog.length"/>
+                            </div>
+                            <button class="wu-ghost-btn" t-on-click.stop="() => this.viewUpdateHistory()">
+                                ⊙ Full History
+                            </button>
+                        </div>
+
+                        <t t-if="state.isActivityOpen">
+                            <div class="wu-activity-body">
+                                <t t-if="state.activityLog.length === 0">
+                                    <div class="wu-activity-empty">
+                                        No admin actions have been recorded yet. Actions will appear here when you install, block, or uninstall updates.
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <table class="wu-log-table">
+                                        <thead>
+                                            <tr>
+                                                <th>PACKAGE NAME</th>
+                                                <th>TITLE</th>
+                                                <th>ACTION</th>
+                                                <th>PERFORMED BY</th>
+                                                <th>TIMESTAMP</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="state.activityLog" t-as="log" t-key="log.id">
+                                                <tr class="wu-log-row">
+                                                    <td class="wu-log-kb" t-esc="log.package_name"/>
+                                                    <td class="wu-log-title" t-esc="log.title"/>
+                                                    <td>
+                                                        <span t-attf-class="wu-status wu-status-{{ log.status }}">
+                                                            <span class="wu-status-pulse"/>
+                                                            <t t-esc="getStatusLabel(log.status)"/>
+                                                        </span>
+                                                    </td>
+                                                    <td class="wu-log-user">
+                                                        <div class="wu-avatar" t-esc="getInitials(log.action_by)"/>
+                                                        <span t-esc="log.action_by"/>
+                                                    </td>
+                                                    <td class="wu-log-time" t-esc="log.action_date"/>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </t>
+                            </div>
+                        </t>
+
+                    </div>
+                </t>
+
+            </t>
+        </div>
+    </t>
+
+</templates>

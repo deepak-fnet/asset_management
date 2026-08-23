@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="0">
+
+    <!-- These reference asset_telemetry / asset_telemetry_alert, which are
+         declared dependencies, so the XML IDs are safe to use directly. -->
+
+    <menuitem id="menu_ws_telemetry_snapshots"
+              name="Telemetry Data"
+              parent="asset_workspace.menu_ws_telemetry"
+              action="asset_telemetry.action_telemetry_snapshot"
+              sequence="10"/>
+
+    <menuitem id="menu_ws_telemetry_alerts_active"
+              name="Active Alerts"
+              parent="asset_workspace.menu_ws_telemetry"
+              action="asset_telemetry_alert.action_telemetry_alert_log"
+              sequence="20"/>
+
+    <menuitem id="menu_ws_telemetry_alert_rules"
+              name="Alert Rules"
+              parent="asset_workspace.menu_ws_telemetry"
+              action="asset_telemetry_alert.action_telemetry_alert_rule"
+              sequence="30"
+              groups="asset_management.group_asset_manager"/>
+
+    </data>
+</odoo>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record model="ir.ui.view" id="view_picking_form_inh_extended">
+        <field name="name">stock.picking.form.inh</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='move_ids_without_package']" position="attributes">
+                <attribute name="create">0</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='move_ids_without_package']//field[@name='product_uom_qty']"
+                   position="attributes">
+                <attribute name="digits">[16, 1]</attribute>
+            </xpath>
+            <xpath expr="//field[@name='move_ids_without_package']//field[@name='quantity']"
+                   position="attributes">
+                <attribute name="digits">[16, 1]</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

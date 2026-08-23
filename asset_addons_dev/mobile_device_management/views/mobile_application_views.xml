@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_mobile_application_list" model="ir.ui.view">
+        <field name="name">mobile.application.list</field>
+        <field name="model">mobile.application</field>
+        <field name="arch" type="xml">
+            <list string="Installed Apps" decoration-danger="is_blocklisted">
+                <field name="device_id"/>
+                <field name="name"/>
+                <field name="package_name"/>
+                <field name="version_name"/>
+                <field name="platform" optional="show"/>
+                <field name="is_system" optional="show"/>
+                <field name="is_blocklisted" optional="show"/>
+                <field name="size_mb" optional="hide" sum="Total MB"/>
+                <field name="employee_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mobile_application_form" model="ir.ui.view">
+        <field name="name">mobile.application.form</field>
+        <field name="model">mobile.application</field>
+        <field name="arch" type="xml">
+            <form string="Application">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                        <field name="package_name" readonly="1" class="text-muted"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="device_id" readonly="1"/>
+                            <field name="platform"/>
+                            <field name="version_name"/>
+                            <field name="version_code"/>
+                        </group>
+                        <group>
+                            <field name="is_system"/>
+                            <field name="is_blocklisted"/>
+                            <field name="size_mb"/>
+                            <field name="installed_on"/>
+                            <field name="updated_on"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Permissions">
+                            <field name="permissions" readonly="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_mobile_application_search" model="ir.ui.view">
+        <field name="name">mobile.application.search</field>
+        <field name="model">mobile.application</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="package_name"/>
+                <field name="device_id"/>
+                <filter name="f_user_apps" string="User Apps" domain="[('is_system','=',False)]"/>
+                <filter name="f_system" string="System Apps" domain="[('is_system','=',True)]"/>
+                <filter name="f_blocked" string="Blocklisted" domain="[('is_blocklisted','=',True)]"/>
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter name="g_package" string="Package" context="{'group_by':'package_name'}"/>-->
+<!--                    <filter name="g_device" string="Device" context="{'group_by':'device_id'}"/>-->
+<!--                    <filter name="g_platform" string="Platform" context="{'group_by':'platform'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <record id="action_mobile_application" model="ir.actions.act_window">
+        <field name="name">Installed Apps</field>
+        <field name="res_model">mobile.application</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_mobile_application_search"/>
+        <field name="context">{'search_default_f_user_apps': 1, 'search_default_g_package': 1}</field>
+    </record>
+</odoo>

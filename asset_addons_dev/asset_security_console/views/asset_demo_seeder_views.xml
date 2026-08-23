@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_demo_seeder_form" model="ir.ui.view">
+        <field name="name">asset.security.demo.seeder.form</field>
+        <field name="model">asset.security.demo.seeder</field>
+        <field name="arch" type="xml">
+            <form string="Demo Data">
+                <div class="alert alert-warning" role="alert">
+                    <p><b>For testing only.</b></p>
+                    <p>
+                        Creates clearly-marked sample records on one asset so you
+                        can verify every screen works before the agent snippets
+                        are deployed. Demo CVEs are prefixed
+                        <code>CVE-DEMO-</code> and demo patches
+                        <code>DEMO-KB…</code>, so <b>Remove Demo Data</b> can
+                        delete them without touching real agent data.
+                    </p>
+                    <p class="mb-0">
+                        Remove it before going live, or your dashboards will
+                        show fake numbers.
+                    </p>
+                </div>
+
+                <group>
+                    <field name="asset_id" options="{'no_create': True}"/>
+                    <field name="existing_demo_count" readonly="1"
+                           string="Demo records currently present"/>
+                </group>
+
+                <group string="What to create">
+                    <field name="seed_patches"/>
+                    <field name="seed_apps"/>
+                    <field name="seed_cves"/>
+                </group>
+
+                <group invisible="not result_message">
+                    <field name="result_message" nolabel="1" readonly="1"/>
+                </group>
+
+                <footer>
+                    <button name="action_seed" type="object"
+                            string="Create Demo Data" class="btn-primary"/>
+                    <button name="action_remove_demo" type="object"
+                            string="Remove Demo Data" class="btn-danger"
+                            confirm="Delete all demo-marked records? Real agent data is not affected."/>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_demo_seeder" model="ir.actions.act_window">
+        <field name="name">Demo Data (Testing)</field>
+        <field name="res_model">asset.security.demo.seeder</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

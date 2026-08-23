@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="res_groups_privilege_warranty_license" model="res.groups.privilege">
+            <field name="name">Warranty &amp; Licenses</field>
+            <field name="sequence">20</field>
+            <field name="category_id" ref="asset_management.module_category_asset_management"/>
+        </record>
+
+        <record id="group_warranty_license_user" model="res.groups">
+            <field name="name">Warranty/License User</field>
+            <field name="sequence">10</field>
+            <field name="privilege_id" ref="res_groups_privilege_warranty_license"/>
+            <field name="implied_ids" eval="[(4, ref('asset_management.group_asset_user'))]"/>
+        </record>
+
+        <record id="group_warranty_license_manager" model="res.groups">
+            <field name="name">Warranty/License Manager</field>
+            <field name="sequence">20</field>
+            <field name="privilege_id" ref="res_groups_privilege_warranty_license"/>
+            <field name="implied_ids" eval="[(4, ref('group_warranty_license_user')), (4, ref('asset_management.group_asset_manager'))]"/>
+        </record>
+    </data>
+</odoo>

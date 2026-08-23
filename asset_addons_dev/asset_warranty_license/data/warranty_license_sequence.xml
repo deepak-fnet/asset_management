@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_warranty_claim" model="ir.sequence">
+            <field name="name">Warranty Claim</field>
+            <field name="code">asset.warranty.claim</field>
+            <field name="prefix">WCL-</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        <record id="seq_asset_license" model="ir.sequence">
+            <field name="name">Software License</field>
+            <field name="code">asset.license</field>
+            <field name="prefix">LIC-</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        <record id="param_warranty_alert_days" model="ir.config_parameter">
+            <field name="key">asset_warranty_license.warranty_alert_days</field>
+            <field name="value">30</field>
+        </record>
+        <record id="param_license_alert_days" model="ir.config_parameter">
+            <field name="key">asset_warranty_license.license_alert_days</field>
+            <field name="value">30</field>
+        </record>
+    </data>
+</odoo>

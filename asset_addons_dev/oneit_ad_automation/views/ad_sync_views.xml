@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ================================================================
+         AD GROUPS - sync status columns
+         ================================================================ -->
+
+    <record id="view_oneit_ad_group_tree_sync" model="ir.ui.view">
+        <field name="name">oneit.ad.group.list.sync</field>
+        <field name="model">oneit.ad.group</field>
+        <field name="inherit_id" ref="view_oneit_ad_group_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <field name="synced_from_ad" optional="show"/>
+                <field name="last_synced_on" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_oneit_ad_group_form_sync" model="ir.ui.view">
+        <field name="name">oneit.ad.group.form.sync</field>
+        <field name="model">oneit.ad.group</field>
+        <field name="inherit_id" ref="view_oneit_ad_group_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <div class="alert alert-info" role="alert"
+                     invisible="not synced_from_ad">
+                    This group was discovered in Active Directory. Name and
+                    Distinguished Name are managed there - editing them here
+                    will be overwritten by the next sync.
+                    <strong>Type</strong> is yours to correct: the sync
+                    guesses it from the name and never overwrites your
+                    correction.
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='active']" position="after">
+                <field name="synced_from_ad" readonly="1"/>
+                <field name="last_synced_on" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Sync entry point: appears under the Action menu on the AD Groups
+         list. Select any row (or tick the header box) to enable it. -->
+    <record id="action_oneit_ad_group_sync" model="ir.actions.server">
+        <field name="name">Sync from Active Directory</field>
+        <field name="model_id" ref="model_oneit_ad_group"/>
+        <field name="binding_model_id" ref="model_oneit_ad_group"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = model.action_sync_from_ad()</field>
+    </record>
+
+
+    <!-- ================================================================
+         REQUEST - current access panel for Existing User Access
+         ================================================================ -->
+
+    <record id="view_oneit_request_form_current_access" model="ir.ui.view">
+        <field name="name">oneit.request.form.current.access</field>
+        <field name="model">oneit.request</field>
+        <field name="inherit_id" ref="view_oneit_request_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//header" position="inside">
+                <button name="action_fetch_current_access"
+                        string="Fetch Current Access"
+                        type="object"
+                        class="btn-secondary"
+                        invisible="request_type != 'team_update' or state in ['done', 'rejected']"/>
+            </xpath>
+
+            <xpath expr="//notebook" position="inside">
+                <page string="Current AD Access"
+                      invisible="request_type != 'team_update'">
+
+                    <div class="alert alert-warning" role="alert"
+                         invisible="current_access_fetched_on">
+                        Access has not been fetched yet. Click
+                        <strong>Fetch Current Access</strong> in the header
+                        to read this user's live memberships from Active
+                        Directory before deciding what to change.
+                    </div>
+
+                    <group>
+                        <field name="current_access_fetched_on" readonly="1"
+                               invisible="not current_access_fetched_on"/>
+                    </group>
+
+                    <group string="Currently in Active Directory">
+                        <field name="current_ad_group_ids" nolabel="1"
+                               readonly="1">
+                            <list>
+                                <field name="name"/>
+                                <field name="group_type"/>
+                                <field name="distinguished_name"/>
+                            </list>
+                        </field>
+                    </group>
+
+                    <group col="2">
+                        <group string="Will Be Added">
+                            <field name="groups_to_add_ids" nolabel="1"
+                                   readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="group_type"/>
+                                </list>
+                            </field>
+                        </group>
+                        <group string="Will Be Removed">
+                            <field name="groups_to_remove_ids" nolabel="1"
+                                   readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="group_type"/>
+                                </list>
+                            </field>
+                        </group>
+                    </group>
+
+                    <group string="Unmapped Memberships"
+                           invisible="not unmapped_group_dns">
+                        <div class="alert alert-warning" role="alert">
+                            This user belongs to groups with no matching
+                            record in Odoo. They are shown for information
+                            only and will NOT be touched. Run Configuration
+                            &gt; AD Groups &gt; Sync from Active Directory
+                            to pick them up.
+                        </div>
+                        <field name="unmapped_group_dns" nolabel="1"
+                               readonly="1"/>
+                    </group>
+
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Access selection readonly-for-pure-HR logic has moved to the base
+         request form, driven by the can_edit_ad_access compute field on
+         oneit.request (see models/request.py). A groups_id-scoped view
+         does not work here: group_oneit_hr is implied by team_lead /
+         bu_head / it_admin, so scoping a view to "members of HR" also
+         caught every approver above HR in the hierarchy. -->
+
+</odoo>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data noupdate="1">
+
+    <record id="seq_asset_joining_process" model="ir.sequence">
+        <field name="name">Asset Joining Process</field>
+        <field name="code">asset.joining.process</field>
+        <field name="prefix">JOIN/%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="seq_asset_assign_process" model="ir.sequence">
+        <field name="name">Asset Assign Process</field>
+        <field name="code">asset.assign.process</field>
+        <field name="prefix">ASGN/%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="seq_asset_exit_process" model="ir.sequence">
+        <field name="name">Asset Exit Process</field>
+        <field name="code">asset.exit.process</field>
+        <field name="prefix">EXIT/%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+</data>
+</odoo>

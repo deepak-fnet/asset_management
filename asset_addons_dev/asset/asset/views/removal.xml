@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Form View -->
+    <record id="view_asset_removal_form" model="ir.ui.view">
+        <field name="name">asset.removal.form</field>
+        <field name="model">asset.removal</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_submit" type="object" string="Submit" class="oe_highlight"
+                            invisible="state not in 'draft'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group col="4">
+                        <field name="asset_id"/>
+                        <field name="location_from_id"/>
+                        <field name="location_to_id"/>
+                        <field name="reason"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- list View -->
+    <record id="view_asset_removal_list" model="ir.ui.view">
+        <field name="name">asset.removal.list</field>
+        <field name="model">asset.removal</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="asset_id"/>
+                <field name="location_from_id"/>
+                <field name="location_to_id"/>
+                <field name="reason"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_asset_removal" model="ir.actions.act_window">
+        <field name="name">Asset removal</field>
+        <field name="res_model">asset.removal</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_physical_verification_form" model="ir.ui.view">
+        <field name="name">physical.verification.form</field>
+        <field name="model">physical.verification</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_submit" type="object" string="Submit" class="oe_highlight"
+                            invisible="state not in 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="submit,dept_approved,incharge_approved"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="asset_id"/>
+                            <field name="schedule_date"/>
+                            <field name="plant_id"/>
+                            <field name="department_id"/>
+                            <field name="physical_location_id"/>
+                        </group>
+                        <group>
+                            <div align="right">
+                                <field style="padding-left: 5px;" name="qr_code" nolabel="1" widget="image" class="oe_avatar"/>
+                                <button name="action_download_qr" class="oe_stat_button" type="object" icon="fa-download"/>
+                            </div>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- list View -->
+    <record id="view_physical_verification_list" model="ir.ui.view">
+        <field name="name">physical.verification.list</field>
+        <field name="model">physical.verification</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="asset_id"/>
+                <field name="plant_id"/>
+                <field name="department_id"/>
+                <field name="physical_location_id"/>
+                <field name="schedule_date"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_physical_verification" model="ir.actions.act_window">
+        <field name="name">Physical Verification</field>
+        <field name="res_model">physical.verification</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

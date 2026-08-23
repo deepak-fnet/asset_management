@@ -1,0 +1,320 @@
+<odoo>
+    <record id="action_report_sales_quotation" model="ir.actions.report">
+        <field name="name">Sales Quotation</field>
+        <field name="model">sale.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">report_management.report_sales_quotation</field>
+        <field name="report_file">report_management.report_sales_quotation</field>
+        <field name="print_report_name">'Sales Quotation - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="report_management.custom_paperformat"/>
+    </record>
+    <template id="sale_quotation_report_header">
+        <t t-if="doc and 'company_id' in doc">
+            <t t-set="company" t-value="doc.company_id"></t>
+        </t>
+        <t t-if="not doc or not 'company_id' in doc">
+            <t t-set="company" t-value="res_company"></t>
+        </t>
+        <div class="header">
+            <table style="width: 100%; font-size: 15px; border-collapse: collapse;">
+                <tr style="vertical-align: top;">
+                    <td style="text-align: left; width: 50%;">
+                        <h2 style="font-size: 25px; margin: 0; font-weight: bold; font-family: Baskervville SC; serif; font-style: normal;">
+                            <span t-esc="doc.company_id.name"/>
+                        </h2>
+                        <t t-if="doc.company_id.street">
+                            <span t-field="doc.company_id.street"/>,
+                        </t>
+                        <t t-if="doc.company_id.street2">
+                            <span t-field="doc.company_id.street2"/>,
+                        </t>
+                        <br/>
+                        <t t-if="doc.company_id.city">
+                            <span t-field="doc.company_id.city"/>,
+                        </t>
+                        <t t-if="doc.company_id.state_id">
+                            <span t-field="doc.company_id.state_id.name"/>,
+                        </t>
+                        <t t-if="doc.company_id.country_id">
+                            <span t-field="doc.company_id.country_id.name"/>
+                        </t>
+                        <br/>
+                        <t t-if="doc.company_id.phone">Phone:
+                            <span t-field="doc.company_id.phone"/>
+                        </t>
+                        <br/>
+                        <t t-if="doc.company_id.email">Email:
+                            <span t-field="doc.company_id.email"/>
+                        </t>
+                        <br/>
+                    </td>
+                    <td style="max-width:100%; text-align: right;">
+                        <t t-if="doc.company_id.logo">
+                            <right style="margin-left: 30px;">
+                                <img t-if="company.logo" t-att-src="image_data_uri(company.logo)"
+                                     style="width:150px;"
+                                     alt="Logo"/>
+                            </right>
+                        </t>
+                    </td>
+                </tr>
+            </table>
+            <table style="width: 100%; font-size: 15px; border-collapse: collapse; padding-bottom: 2px;">
+                <tr>
+                    <td style="padding: 2px; border-top: 2px solid #007FDE;">Quotation Number</td>
+                    <td style="padding: 2px; border-top: 2px solid #007FDE;">Document Date</td>
+                    <td style="padding: 2px; border-top: 2px solid #007FDE; text-align: right;">Page</td>
+                </tr>
+                <tr>
+                    <td style="padding: 2px; border-bottom: 2px solid #007FDE;">
+                        <b>
+                            <span t-esc="doc.name"/>
+                        </b>
+                    </td>
+                    <td style="padding: 2px; border-bottom: 2px solid #007FDE;">
+                        <b>
+                            <span t-esc="doc.date_order and doc.date_order.strftime('%d/%m/%Y')"/>
+                        </b>
+                    </td>
+                    <td style="padding: 2px; text-align: right; border-bottom: 2px solid #007FDE;">
+                        <strong>
+                            <span class="page"/>
+                            /
+                            <span class="topage"/>
+                        </strong>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <t t-if="doc._table=='sale_order'">
+            <div style="font-size: 11px;" class="footer">
+                <span>
+                    <p>
+                        This is an electronically generated document and does not require signature.
+                        <br/>
+                        <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%d-%m-%y %H:%M')"/>
+                    </p>
+                </span>
+            </div>
+        </t>
+        <t t-if="doc.state == 'draft'">
+            <div class="watermark"
+                 style="position:absolute;left:-105px;top:385px;text-align:center;opacity:0.25;z-index:1000;transform:rotate(310deg);-webkit-transform:rotate(310deg);width:130%;">
+                <p style="font-size:160px;color:black;">D R A F T</p>
+            </div>
+        </t>
+    </template>
+    <template id="report_sales_quotation_main">
+        <t t-call="web.html_container">
+            <t t-call="web.basic_layout">
+                <t t-call="report_management.sale_quotation_report_header"/>
+                <div class="page" style="font-size: 11px;">
+                    <span t-set="current_page" t-value="currentPage"/>
+                    <span t-set="total_pages" t-value="totalPages"/>
+                    <table style="width:100%; border-collapse: collapse;">
+                        <tr>
+                            <td rowspan="3"
+                                style="vertical-align: top; width: 40%; padding-top: 2px;">
+                                <span style="border-left: 5px solid #FF0000; font-size: 18px;">
+                                    <strong style="margin-left: 3px">SALES QUOTATION</strong>
+                                </span>
+                                <br/>
+                                <br/>
+                                <strong>
+                                    Customer:
+                                    <br/>
+                                    <span t-esc="doc.partner_id.name"/>
+                                </strong>
+                                <br/>
+                                <t t-if="doc.partner_id.name">
+                                    <t t-if="doc.partner_id.street">
+                                        <span t-esc="doc.partner_id.street"/>,
+                                    </t>
+                                    <t t-if="doc.partner_id.street2">
+                                        <span t-esc="doc.partner_id.street2"/>,
+                                    </t>
+                                    <t t-if="doc.partner_id.zip">
+                                        <span t-esc="doc.partner_id.zip"/>,
+                                    </t>
+                                    <t t-if="doc.partner_id.city">
+                                        <span t-esc="doc.partner_id.city"/>,
+                                    </t>
+                                    <t t-if="doc.partner_id.state_id.name">
+                                        <span t-esc="doc.partner_id.state_id.name"/>,
+                                    </t>
+                                    <t t-if="doc.partner_id.country_id.name">
+                                        <span t-esc="doc.partner_id.country_id.name"/>
+                                    </t>
+                                </t>
+                                <br/>
+                                <t t-if="doc.partner_id.phone">
+                                    Phone:
+                                    <span t-esc="doc.partner_id.phone"/>
+                                    <br/>
+                                </t>
+                            </td>
+                            <td style="vertical-align: top; width:100%; padding-top: 0px; padding: 2px; ">
+                                Project/Customer
+                                Reference
+                                <br/>
+                                <br/>
+                                <strong>
+                                    <span t-esc="doc.opportunity_id.name"/>
+                                </strong>
+                            </td>
+                            <td style="padding: 2px;">
+                                    <br/>
+                                    <br/>
+                                    <strong>
+                                    </strong>
+                            </td>
+                        </tr>
+                        <tr>
+
+                                <td style="padding: 2px; width: 50%; vertical-align: top; border-top: 2px solid #007FDE; ">
+                                Technical Sales Specialist
+                                <br/>
+                                <br/>
+                                <strong>
+                                    <t t-esc="doc.user_id.name or '-No Sales Employee-'"/>
+                                </strong>
+                            </td>
+                             <td style="padding: 2px; width: 50%; vertical-align: top; border-top: 2px solid #007FDE; ">
+                                <t t-if="doc.user_id.login">
+                                    E-Mail
+                                    <br/>
+                                    <br/>
+                                    <strong>
+                                        <t t-esc="doc.user_id.login"/>
+                                    </strong>
+                                </t>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table style="width: 100%; border-collapse: collapse; font-size: 11px;border-top:1px solid #4CA5E7;">
+                        <thead>
+                            <tr style="background-color: rgb(240,244,247);">
+                                <th style="border-bottom:1px solid #4CA5E7; padding: 4px; width: 4%; text-align: center; vertical-align: middle;">
+                                    #
+                                </th>
+                                <th style="border-bottom:1px solid #4CA5E7; padding: 4px; width: 41%; text-align: center; vertical-align: middle;">
+                                    Description
+                                </th>
+                                <th style="border-bottom:1px solid #4CA5E7; padding: 4px; width: 10%; text-align: center; vertical-align: middle;">
+                                    Quantity
+                                </th>
+                                <th style="border-bottom:1px solid #4CA5E7; padding: 4px; width: 10%; text-align: center; vertical-align: middle;">
+                                    Unit Price
+                                    <br/>
+                                    <t t-esc="doc.currency_id.name"/>
+                                </th>
+                                <th style="border-bottom:1px solid #4CA5E7; padding: 4px; width: 10%; text-align: center; vertical-align: middle;">
+                                    Discount (%)
+                                </th>
+                                <th style="border-bottom:1px solid #4CA5E7; padding: 4px; width: 15%; text-align: center; vertical-align: middle;">
+                                    Total Amount
+                                    <br/>
+                                    <t t-esc="doc.currency_id.name"/>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-set="counter" t-value="1"/>
+                            <t t-foreach="doc.order_line" t-as="line">
+                                <tr>
+                                    <td style="border-bottom:1px solid #4CA5E7; padding: 4px; text-align: center; vertical-align: middle;">
+                                        <t t-esc="counter"/>
+                                        <t t-set="counter" t-value="counter+1"/>
+                                    </td>
+                                    <td style="border-bottom:1px solid #4CA5E7; padding: 4px; text-align: center; vertical-align: middle;">
+                                        <t t-if="line.product_id">
+                                            <t t-esc="line.product_id.name"/>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="line.product_name or 'N/A'"/>
+                                        </t>
+                                    </td>
+                                    <td style="border-bottom:1px solid #4CA5E7; padding: 4px; text-align: center; vertical-align: middle;">
+                                        <t t-esc="line.product_uom_qty"/>
+                                    </td>
+                                    <td style="border-bottom:1px solid #4CA5E7; padding: 4px; text-align: center; vertical-align: middle;">
+                                        <t t-esc="'{:.2f}'.format(line.price_unit)"/>
+                                    </td>
+                                    <td style="border-bottom:1px solid #4CA5E7; padding: 4px; text-align: center; vertical-align: middle;">
+                                        <t t-esc="'{:.2f}'.format(line.discount or 0)"/>
+                                    </td>
+                                    <td style="border-bottom:1px solid #4CA5E7; padding: 4px; text-align: center; vertical-align: middle;">
+                                        <t t-esc="'{:.2f}'.format(line.price_subtotal)"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+
+
+                    <!-- Totals Table -->
+                    <table style="width: 30%; float: right; border-collapse: collapse; margin-top: 10px;">
+                        <tr>
+                            <td style="padding: 2px; border-bottom: 1px solid #007FDE;">Subtotal</td>
+                            <td style="padding: 2px; border-bottom: 1px solid #007FDE; text-align: right;">
+                                <t t-esc="doc.currency_id.name"/>
+                                <t t-esc="'{:.2f}'.format(doc.amount_untaxed)"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 2px; border-bottom: 1px solid #007FDE;">VAT Amount</td>
+                            <td style="padding: 2px; border-bottom: 1px solid #007FDE; text-align: right;">
+                                <t t-esc="doc.currency_id.name"/>
+                                <t t-esc="'{:.2f}'.format(doc.amount_tax)"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 2px;">
+                                <strong>Total Amount</strong>
+                            </td>
+                            <td style="padding: 2px; text-align: right;">
+                                <strong>
+                                    <t t-esc="doc.currency_id.name"/>
+                                    <t t-esc="'{:.2f}'.format(doc.amount_total)"/>
+                                </strong>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- Amount in Words -->
+                    <table style="width: 100%; margin-top: 50px; border-collapse: collapse;">
+                        <tr>
+                            <td style="width: 50%;">
+                                <span style="border-left: 5px solid #FF0000; font-size: 14px;">
+                                    <strong style="border-bottom: 2px solid #007FDE; padding-bottom: 2px; margin-left: 3px">
+                                        Amount in Words:
+                                    </strong>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding-top: 5px;">
+                                <strong>
+                                    <span t-esc="doc.currency_id.full_name"/>
+                                    <t t-esc="doc.amount_total_in_words()"/>
+                                    Only
+                                </strong>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+    <template id="report_sales_quotation">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="report_management.report_sales_quotation_main"/>
+            </t>
+        </t>
+    </template>
+
+</odoo>

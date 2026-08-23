@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- ═══════════════════════════════════════════════════════════════════════
+             JOINING PROCESS
+             ═══════════════════════════════════════════════════════════════════════ -->
+
+        <record id="view_asset_joining_process_form" model="ir.ui.view">
+            <field name="name">asset.joining.process.form</field>
+            <field name="model">asset.joining.process</field>
+            <field name="arch" type="xml">
+                <form string="Joining Process">
+                    <header>
+                        <button name="action_confirm" type="object"
+                                string="Submit for Approval"
+                                class="btn-primary"
+                                groups="asset_management.group_asset_user_hr"
+                                invisible="state != 'draft'"/>
+                        <button name="action_validate" type="object"
+                                string="Validate"
+                                class="btn-success"
+                                groups="asset_management.group_asset_user_it"
+                                invisible="state != 'confirmed'"/>
+
+                        <button name="action_approve" type="object"
+                                string="Approve"
+                                class="btn-success"
+                                groups="asset_management.group_asset_manager"
+                                invisible="state != 'validate'"/>
+
+                        <button name="action_assign_assets" type="object"
+                                string="Assign Asset" groups="asset_management.group_asset_user_it"
+                                class="btn-primary"
+                                invisible="state != 'approved'"/>
+
+<!--                        <button name="action_cancel" type="object"-->
+<!--                                string="Cancel"-->
+<!--                                class="btn-danger"-->
+<!--                                invisible="state in ('done', 'cancelled')"/>-->
+
+                        <button name="action_raise_asset_request" string="Asset Request" type="object"
+                                invisible="state not in 'confirmed' or asset_request_id" groups="asset_management.group_asset_user_it"/>
+
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="draft,confirmed,approved,done"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button type="object"
+                                    name="action_raise_asset_request"
+                                    class="oe_stat_button"
+                                    invisible="not asset_request_id"
+                                    icon="fa-tasks">
+                                <span class="o_stat_text">Asset request</span>
+                            </button>
+                        </div>
+
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+
+                        <group>
+                            <group string="Employee Details">
+                                <field name="employee_id"
+                                       readonly="state not in ('draft',)"/>
+                                <field name="department_id"/>
+                                <field name="joining_date"
+                                       readonly="state not in ('draft',)"/>
+                            </group>
+                            <group string="Assigned Assets"
+                                   invisible="state != 'done'">
+                                <field name="assigned_asset_ids"
+                                       widget="many2many_tags" readonly="1"/>
+                                <field name="asset_request_id" invisible="1"/>
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page string="Asset Requirements" name="requirements">
+                                <field name="requirement_ids">
+                                    <list editable="bottom"
+                                          decoration-success="assets_match"
+                                          decoration-danger="not assets_match and selected_count > 0">
+                                        <field name="category_id" options="{'no_create': True, 'no_create_edit':True}" readonly="parent.state not in ('draft',)"/>
+                                        <field name="quantity" readonly="parent.state not in ('draft',)"/>
+                                        <field name="asset_ids"
+                                               widget="many2many_tags"
+                                               readonly="parent.state != 'approved'"
+                                               domain="[('category_id', '=', category_id), ('asset_list_id', '!=', False), ('state', '=', 'draft')]"
+                                               options="{'no_create': True}"/>
+                                        <field name="selected_count" string="Picked" optional="hide"/>
+                                        <field name="assets_match" string="OK" widget="boolean_toggle" optional="hide"
+                                               readonly="1"/>
+                                        <field name="notes"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Notes" name="notes_page">
+                                <field name="notes"
+                                       placeholder="Additional requirements or remarks…"
+                                       readonly="state not in ('draft',)"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_asset_joining_process_list" model="ir.ui.view">
+            <field name="name">asset.joining.process.list</field>
+            <field name="model">asset.joining.process</field>
+            <field name="arch" type="xml">
+                <list string="Joining Processes"
+                      decoration-success="state == 'done'"
+                      decoration-info="state == 'approved'"
+                      decoration-warning="state == 'confirmed'">
+                    <field name="name"/>
+                    <field name="employee_id"/>
+                    <field name="department_id"/>
+                    <field name="joining_date"/>
+                    <field name="assigned_asset_ids" optional="show" widget="many2many_tags"/>
+                    <field name="state" widget="badge"
+                           decoration-success="state == 'done'"
+                           decoration-info="state == 'approved'"
+                           decoration-warning="state == 'confirmed'"
+                           decoration-danger="state == 'cancelled'"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="action_asset_joining_process" model="ir.actions.act_window">
+            <field name="name">Joining Process</field>
+            <field name="res_model">asset.joining.process</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+
+        <!-- ═══════════════════════════════════════════════════════════════════════
+             ASSIGN / REPLACE PROCESS
+             ═══════════════════════════════════════════════════════════════════════ -->
+
+        <record id="view_asset_assign_process_form" model="ir.ui.view">
+            <field name="name">asset.assign.process.form</field>
+            <field name="model">asset.assign.process</field>
+            <field name="arch" type="xml">
+                <form string="Assign / Replace Process">
+                    <header>
+                        <button name="action_open_replace_wizard" type="object"
+                                string="Replace Laptop"
+                                class="btn-primary"
+                                invisible="state != 'draft'"/>
+                        <button name="action_return_replacement" type="object"
+                                string="Return Replacement"
+                                class="btn-warning"
+                                invisible="state != 'replaced'"/>
+                        <button name="action_mark_done" type="object"
+                                string="Mark Done"
+                                class="btn-success"
+                                invisible="state != 'returned'"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="draft,replaced,returned,done"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+
+                        <!-- Info banner when a replacement has been assigned -->
+                        <div class="alert alert-info" role="alert"
+                             invisible="state != 'replaced'">
+                            <i class="fa fa-info-circle me-1"/>
+                            A replacement laptop is currently assigned. When the
+                            repair ticket is closed as <strong>Done</strong>, the
+                            replacement will be
+                            <strong>automatically returned</strong>
+                            and the repaired laptop will be re-assigned to the employee.
+                        </div>
+
+                        <group>
+                            <group string="Repair Ticket">
+                                <field name="repair_ticket_id"
+                                       readonly="state != 'draft'"/>
+                                <field name="asset_id" readonly="1"/>
+                            </group>
+                            <group string="Employee &amp; Replacement">
+                                <field name="employee_id" readonly="1"/>
+                                <field name="replacement_asset_id" readonly="1"/>
+                            </group>
+                        </group>
+
+                        <group string="Notes">
+                            <field name="notes" nolabel="1"
+                                   placeholder="Optional notes…"
+                                   readonly="state not in ('draft',)"/>
+                        </group>
+                    </sheet>
+                <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_asset_assign_process_list" model="ir.ui.view">
+            <field name="name">asset.assign.process.list</field>
+            <field name="model">asset.assign.process</field>
+            <field name="arch" type="xml">
+                <list string="Assign / Replace Processes"
+                      decoration-info="state == 'replaced'"
+                      decoration-success="state == 'done'">
+                    <field name="name"/>
+                    <field name="repair_ticket_id"/>
+                    <field name="asset_id"/>
+                    <field name="employee_id"/>
+                    <field name="replacement_asset_id" optional="show"/>
+                    <field name="state" widget="badge"
+                           decoration-info="state == 'replaced'"
+                           decoration-success="state == 'done'"
+                           decoration-warning="state == 'returned'"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="action_asset_assign_process" model="ir.actions.act_window">
+            <field name="name">Assign / Replace Process</field>
+            <field name="res_model">asset.assign.process</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+
+        <!-- ═══════════════════════════════════════════════════════════════════════
+             EXIT PROCESS
+             ═══════════════════════════════════════════════════════════════════════ -->
+
+        <record id="view_asset_exit_process_form" model="ir.ui.view">
+            <field name="name">asset.exit.process.form</field>
+            <field name="model">asset.exit.process</field>
+            <field name="arch" type="xml">
+                <form string="Exit Process">
+                    <header>
+                        <button name="action_start" type="object"
+                                string="Start Recovery"
+                                class="btn-primary"
+                                invisible="state != 'draft'"/>
+                        <button name="action_complete" type="object"
+                                string="Complete Exit"
+                                class="btn-success"
+                                invisible="state != 'in_progress'"/>
+                        <button name="action_cancel" type="object"
+                                string="Cancel"
+                                class="btn-danger"
+                                invisible="state in ('done', 'cancelled')"/>
+                        <button name="action_reset_to_draft" type="object"
+                                string="Reset to Draft"
+                                invisible="state not in ('cancelled',)"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="draft,in_progress,done"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+
+                        <div class="alert alert-warning" role="alert"
+                             invisible="state != 'in_progress'">
+                            <i class="fa fa-exclamation-triangle me-1"/>
+                            Check each asset as <strong>Recovered</strong> before
+                            clicking <strong>Complete Exit</strong>. All assets will
+                            be returned to the <em>Available</em> state.
+                        </div>
+
+                        <group>
+                            <group string="Employee">
+                                <field name="employee_id"
+                                       readonly="state != 'draft'"/>
+                                <field name="exit_date"
+                                       readonly="state != 'draft'"/>
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page string="Assets to Recover" name="recovery">
+                                <field name="recovery_line_ids"
+                                       readonly="state == 'done'">
+                                    <list editable="bottom">
+                                        <field name="asset_id"/>
+                                        <field name="asset_category_id" options="{'no_create': True}"/>
+                                        <field name="serial_number"/>
+                                        <field name="recovered" widget="boolean_toggle"/>
+                                        <field name="recovery_notes"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Notes" name="notes_page">
+                                <field name="notes"
+                                       placeholder="Exit remarks, pending items…"
+                                       readonly="state == 'done'"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_asset_exit_process_list" model="ir.ui.view">
+            <field name="name">asset.exit.process.list</field>
+            <field name="model">asset.exit.process</field>
+            <field name="arch" type="xml">
+                <list string="Exit Processes"
+                      decoration-success="state == 'done'"
+                      decoration-warning="state == 'in_progress'"
+                      decoration-danger="state == 'cancelled'">
+                    <field name="name"/>
+                    <field name="employee_id"/>
+                    <field name="exit_date"/>
+                    <field name="state" widget="badge"
+                           decoration-success="state == 'done'"
+                           decoration-warning="state == 'in_progress'"
+                           decoration-danger="state == 'cancelled'"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="action_asset_exit_process" model="ir.actions.act_window">
+            <field name="name">Exit Process</field>
+            <field name="res_model">asset.exit.process</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+    </data>
+</odoo>

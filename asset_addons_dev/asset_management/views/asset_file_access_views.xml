@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- ================================================================
+             ACTIONS (must be defined FIRST before any view references them)
+             ================================================================ -->
+
+        <record id="action_asset_file_access_record" model="ir.actions.act_window">
+            <field name="name">File Access Records</field>
+            <field name="res_model">asset.file.access.record</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_asset_file_access_policy" model="ir.actions.act_window">
+            <field name="name">File Access Policies</field>
+            <field name="res_model">asset.file.access.policy</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_asset_file_access_violation" model="ir.actions.act_window">
+            <field name="name">File Access Violations</field>
+            <field name="res_model">asset.file.access.violation</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <!-- THIS action must come before the inherited form view that references it -->
+        <record id="action_create_file_access_policy" model="ir.actions.act_window">
+            <field name="name">Block File Access</field>
+            <field name="res_model">asset.file.access.policy</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <!-- ================================================================
+             FILE ACCESS RECORD VIEWS
+             ================================================================ -->
+
+        <!-- File Access Record Tree View -->
+        <record id="view_asset_file_access_record_list" model="ir.ui.view">
+            <field name="name">asset.file.access.record.list</field>
+            <field name="model">asset.file.access.record</field>
+            <field name="arch" type="xml">
+                <list string="File Access Records" decoration-danger="is_blocked==True">
+                    <field name="record_type" string="Type"/>
+                    <field name="name" string="Name"/>
+                    <field name="parent_folder" string="Folder"/>
+                    <field name="size_kb" string="Size (KB)" sum="Total Size"/>
+                    <field name="last_modified" string="Last Modified"/>
+                    <field name="is_blocked" string="Blocked" widget="boolean_toggle"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- File Access Record Form View -->
+        <record id="view_asset_file_access_record_form" model="ir.ui.view">
+            <field name="name">asset.file.access.record.form</field>
+            <field name="model">asset.file.access.record</field>
+            <field name="arch" type="xml">
+                <form string="File Access Record">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="asset_id" options="{'no_create': True}"/>
+                                <field name="record_type"/>
+                                <field name="name"/>
+                                <field name="parent_folder"/>
+                            </group>
+                            <group>
+                                <field name="path"/>
+                                <field name="size_kb"/>
+                                <field name="last_modified"/>
+                                <field name="is_blocked"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- ================================================================
+             FILE ACCESS POLICY VIEWS
+             ================================================================ -->
+
+        <!-- File Access Policy Tree View -->
+        <record id="view_asset_file_access_policy_list" model="ir.ui.view">
+            <field name="name">asset.file.access.policy.list</field>
+            <field name="model">asset.file.access.policy</field>
+            <field name="arch" type="xml">
+                <list string="File Access Policies" decoration-danger="is_blocked==True">
+                    <field name="asset_id"/>
+                    <field name="path"/>
+                    <field name="is_blocked" widget="boolean_toggle"/>
+                    <field name="reason"/>
+                    <field name="created_by"/>
+                    <field name="created_date"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- File Access Policy Form View -->
+        <record id="view_asset_file_access_policy_form" model="ir.ui.view">
+            <field name="name">asset.file.access.policy.form</field>
+            <field name="model">asset.file.access.policy</field>
+            <field name="arch" type="xml">
+                <form string="File Access Policy">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="asset_id" options="{'no_create': True}"/>
+                                <field name="path" placeholder="C:\Users\...\Desktop\secret.txt"/>
+                                <field name="is_blocked"/>
+                            </group>
+                            <group>
+                                <field name="created_by" readonly="1"/>
+                                <field name="created_date" readonly="1"/>
+                            </group>
+                        </group>
+                        <group>
+                            <field name="reason" placeholder="Reason for blocking this file/folder..."/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- ================================================================
+             FILE ACCESS VIOLATION VIEWS
+             ================================================================ -->
+
+        <!-- File Access Violation Tree View -->
+        <record id="view_asset_file_access_violation_list" model="ir.ui.view">
+            <field name="name">asset.file.access.violation.list</field>
+            <field name="model">asset.file.access.violation</field>
+            <field name="arch" type="xml">
+                <list string="File Access Violations" decoration-danger="action_taken=='blocked'">
+                    <field name="violation_time"/>
+                    <field name="asset_id"/>
+                    <field name="path"/>
+                    <field name="filename"/>
+                    <field name="action_taken"/>
+                    <field name="username"/>
+                    <field name="process_name"/>
+                </list>
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_patch_deployment_list" model="ir.ui.view">
+        <field name="name">asset.patch.deployment.list</field>
+        <field name="model">asset.patch.deployment</field>
+        <field name="arch" type="xml">
+            <list decoration-success="state == 'successful'"
+                  decoration-danger="state == 'failed'"
+                  decoration-warning="state == 'partial'"
+                  decoration-info="state == 'in_progress'"
+                  decoration-muted="state == 'cancelled'">
+                <field name="name"/>
+                <field name="platform"/>
+                <field name="patch_count" string="Patches"/>
+                <field name="target_count" string="Targets"/>
+                <field name="success_count" string="OK"/>
+                <field name="failed_count" string="Failed"/>
+                <field name="progress_pct" widget="progressbar"/>
+                <field name="state" widget="badge"/>
+                <field name="started_by"/>
+                <field name="started_at"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_patch_deployment_form" model="ir.ui.view">
+        <field name="name">asset.patch.deployment.form</field>
+        <field name="model">asset.patch.deployment</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_deploy" type="object" string="Deploy"
+                            class="btn-primary"
+                            invisible="state not in ('draft','pending')"
+                            confirm="This will queue every pending line for installation on the target machines. Continue?"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state in ('successful','failed','cancelled')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,in_progress,successful"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_lines" type="object"
+                                class="oe_stat_button" icon="fa-list">
+                            <field name="line_count" widget="statinfo" string="Lines"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. June Security Updates — Windows"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="platform"/>
+                            <field name="patch_count" readonly="1"/>
+                            <field name="target_count" readonly="1"/>
+                            <field name="source_policy_id" readonly="1"
+                                   invisible="not source_policy_id"/>
+                        </group>
+                        <group>
+                            <field name="started_by" readonly="1"/>
+                            <field name="started_at" readonly="1"/>
+                            <field name="completed_at" readonly="1"/>
+                            <field name="progress_pct" widget="progressbar" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Lines" name="lines">
+                            <field name="line_ids">
+                                <list decoration-success="state == 'success'"
+                                      decoration-danger="state == 'failed'"
+                                      decoration-info="state == 'installing'">
+                                    <field name="asset_id"/>
+                                    <field name="patch_ref"/>
+                                    <field name="patch_title"/>
+                                    <field name="severity"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="error_message" optional="hide"/>
+                                    <field name="completed_at" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_patch_deployment" model="ir.actions.act_window">
+        <field name="name">Patch Deployments</field>
+        <field name="res_model">asset.patch.deployment</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_patch_deployment_line_list" model="ir.ui.view">
+        <field name="name">asset.patch.deployment.line.list</field>
+        <field name="model">asset.patch.deployment.line</field>
+        <field name="arch" type="xml">
+            <list create="false">
+                <field name="deployment_id"/>
+                <field name="asset_id"/>
+                <field name="patch_ref"/>
+                <field name="severity"/>
+                <field name="state" widget="badge"/>
+                <field name="error_message"/>
+                <field name="completed_at"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_compliance_snapshot_list" model="ir.ui.view">
+        <field name="name">asset.patch.compliance.snapshot.list</field>
+        <field name="model">asset.patch.compliance.snapshot</field>
+        <field name="arch" type="xml">
+            <list create="false">
+                <field name="snapshot_date"/>
+                <field name="total_assets"/>
+                <field name="compliant_assets"/>
+                <field name="compliance_pct" widget="progressbar"/>
+                <field name="missing_total"/>
+                <field name="missing_critical"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_compliance_snapshot" model="ir.actions.act_window">
+        <field name="name">Compliance History</field>
+        <field name="res_model">asset.patch.compliance.snapshot</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

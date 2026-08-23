@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Inherits general_asset's general-asset form, not the old
+         asset.addition form. The traceability fields themselves are declared
+         in general_asset; this only surfaces them. -->
+    <record id="view_asset_general_form_purchase" model="ir.ui.view">
+        <field name="name">asset.asset.general.form.purchase</field>
+        <field name="model">asset.asset</field>
+        <field name="inherit_id" ref="general_asset.view_asset_general_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//notebook" position="inside">
+                <page string="Purchase Source" name="purchase_source"
+                      invisible="not stock_move_id">
+                    <group>
+                        <group string="Purchase" name="purchase_details">
+                            <field name="procurement_vendor_id" readonly="1"/>
+                            <field name="purchase_date" readonly="1"/>
+                            <field name="invoice_ref" readonly="1"/>
+                            <field name="purchase_cost" readonly="1"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Receipt" name="receipt_details">
+                            <field name="purchase_order_id" readonly="1"/>
+                            <field name="picking_id" readonly="1"/>
+                            <field name="receipt_date" readonly="1"/>
+                        </group>
+                        <group string="Product" name="product_details">
+                            <field name="product_id" readonly="1"/>
+                            <field name="lot_id" readonly="1" invisible="not lot_id"/>
+                        </group>
+                        <group string="Stock Reference" name="stock_details">
+                            <field name="stock_move_id" readonly="1"/>
+                            <field name="stock_move_line_id" readonly="1"
+                                   invisible="not stock_move_line_id"/>
+                        </group>
+                    </group>
+                    <div>
+                        <button name="action_open_source_picking" type="object"
+                                string="Open Receipt" class="btn-link"
+                                icon="fa-arrow-right" invisible="not picking_id"/>
+                    </div>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+    <record id="view_asset_general_list_purchase" model="ir.ui.view">
+        <field name="name">asset.asset.general.list.purchase</field>
+        <field name="model">asset.asset</field>
+        <field name="inherit_id" ref="general_asset.view_asset_general_list"/>
+        <field name="arch" type="xml">
+            <field name="location_id" position="after">
+                <field name="purchase_order_id" optional="hide"/>
+                <field name="picking_id" optional="hide"/>
+                <field name="product_id" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_asset_general_search_purchase" model="ir.ui.view">
+        <field name="name">asset.asset.general.search.purchase</field>
+        <field name="model">asset.asset</field>
+        <field name="inherit_id" ref="general_asset.view_asset_general_search"/>
+        <field name="arch" type="xml">
+            <field name="plant_id" position="after">
+                <field name="purchase_order_id"/>
+                <field name="picking_id"/>
+                <field name="product_id"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

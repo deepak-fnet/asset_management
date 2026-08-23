@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_vendor_performance_review_wizard_form" model="ir.ui.view">
+        <field name="name">vendor.performance.review.wizard.form</field>
+        <field name="model">vendor.performance.review.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Performance Review">
+                <sheet>
+                    <div class="vendor_section_card">
+                        <h3>Periodic Performance Review</h3>
+                        <group>
+                            <field name="vendor_id"/>
+                            <field name="review_date"/>
+                        </group>
+                    </div>
+                    
+                    <div class="vendor_section_card">
+                        <h4>Rating Criteria</h4>
+                        <group col="2">
+                            <field name="reliability" widget="priority"/>
+                            <field name="compliance" widget="priority"/>
+                            <field name="behavior" widget="priority"/>
+                            <field name="partnership" widget="priority"/>
+                        </group>
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="action_submit_review" string="Submit Review" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,381 @@
+/* =========================================================
+   PROFESSIONAL NAVBAR DROPDOWN STYLING
+   Asset Management Module - Windows, Linux, CCTV, Network Menus
+   ========================================================= */
+
+/* =========================
+   MAIN NAVBAR DROPDOWN MENUS
+   ========================= */
+
+/* Target the dropdown menus in the main navbar */
+.o_main_navbar .dropdown-menu,
+.o_main_navbar .o-dropdown--menu {
+    min-width: 220px;
+    padding: 8px 0;
+    margin-top: 4px;
+    background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+    border: 1px solid #e1e4e8;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12),
+                0 4px 8px rgba(0, 0, 0, 0.08),
+                0 1px 2px rgba(0, 0, 0, 0.04);
+    animation: dropdownFadeIn 0.15s ease-out;
+}
+
+/* Dropdown animation */
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================
+   DROPDOWN MENU ITEMS
+   ========================= */
+
+/* Dropdown menu items styling */
+.o_main_navbar .dropdown-menu .dropdown-item,
+.o_main_navbar .o-dropdown--menu .dropdown-item,
+.o_main_navbar .o-dropdown--menu > a,
+.o_main_navbar .dropdown-menu > a {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    margin: 2px 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* =========================
+   ICON BASE STYLES
+   ========================= */
+
+/* Add icons before menu items using CSS */
+.o_main_navbar .o-dropdown--menu > a::before,
+.o_main_navbar .dropdown-menu .dropdown-item::before {
+    font-family: "Font Awesome 5 Free", "FontAwesome", sans-serif;
+    font-weight: 900;
+    margin-right: 12px;
+    font-size: 14px;
+    width: 20px;
+    text-align: center;
+    opacity: 0.7;
+    transition: all 0.15s ease;
+    color: #714B67;
+}
+
+/* =========================
+   WINDOWS MENU ICONS
+   ========================= */
+
+/* Agent Dashboard - Tachometer icon */
+.o_main_navbar .o-dropdown--menu > a:nth-child(1)::before {
+    content: "\f0e4"; /* fa-tachometer-alt */
+}
+
+/* Assets - Desktop icon */
+.o_main_navbar .o-dropdown--menu > a:nth-child(2)::before {
+    content: "\f108"; /* fa-desktop */
+}
+
+/* Live Monitoring - Chart line icon */
+.o_main_navbar .o-dropdown--menu > a:nth-child(3)::before {
+    content: "\f201"; /* fa-chart-line */
+}
+
+/* =========================
+   MENU-SPECIFIC ICONS BY XMLID
+   ========================= */
+
+/* Windows Menu Items */
+.o_main_navbar a[data-menu-xmlid="asset_management.menu_asset_dashboard"]::before {
+    content: "\f0e4" !important; /* fa-tachometer-alt */
+}
+
+.o_main_navbar a[data-menu-xmlid="asset_management.menu_asset_assets"]::before {
+    content: "\f108" !important; /* fa-desktop */
+}
+
+.o_main_navbar a[data-menu-xmlid="asset_management.menu_windows_live_monitoring"]::before {
+    content: "\f201" !important; /* fa-chart-line */
+}
+
+/* Linux Menu Items */
+.o_main_navbar a[data-menu-xmlid="asset_management.menu_ubuntu_agent_dashboard"]::before {
+    content: "\f0e4" !important; /* fa-tachometer-alt */
+}
+
+.o_main_navbar a[data-menu-xmlid="asset_management.menu_ubuntu_assets"]::before {
+    content: "\f233" !important; /* fa-server */
+}
+
+.o_main_navbar a[data-menu-xmlid="asset_management.menu_ubuntu_live_monitoring"]::before {
+    content: "\f201" !important; /* fa-chart-line */
+}
+
+/* CCTV Menu Items */
+.o_main_navbar a[data-menu-xmlid="asset_management.menu_cctv_dashboard"]::before {
+    content: "\f03d" !important; /* fa-video */
+}
+
+.o_main_navbar a[data-menu-xmlid="asset_management.menu_cctv_cameras"]::before {
+    content: "\f030" !important; /* fa-camera */
+}
+
+.o_main_navbar a[data-menu-xmlid="asset_management.menu_cctv_live_monitoring"]::before {
+    content: "\f26c" !important; /* fa-tv */
+}
+
+/* Network Devices Menu Items */
+.o_main_navbar a[data-menu-xmlid*="network"]::before {
+    content: "\f6ff" !important; /* fa-network-wired */
+}
+
+/* Categories */
+.o_main_navbar a[data-menu-xmlid="asset_management.menu_asset_categories"]::before {
+    content: "\f07b" !important; /* fa-folder */
+}
+
+/* =========================
+   HOVER STATES
+   ========================= */
+
+/* Hover state for dropdown items */
+.o_main_navbar .dropdown-menu .dropdown-item:hover,
+.o_main_navbar .o-dropdown--menu .dropdown-item:hover,
+.o_main_navbar .o-dropdown--menu > a:hover,
+.o_main_navbar .dropdown-menu > a:hover {
+    background: linear-gradient(90deg, #714B67 0%, #8a5f7d 100%);
+    color: #ffffff;
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(113, 75, 103, 0.3);
+}
+
+/* Icon styling on hover */
+.o_main_navbar .dropdown-menu .dropdown-item:hover::before,
+.o_main_navbar .o-dropdown--menu .dropdown-item:hover::before,
+.o_main_navbar .o-dropdown--menu > a:hover::before,
+.o_main_navbar .dropdown-menu > a:hover::before {
+    opacity: 1;
+    color: #ffffff;
+}
+
+/* Active/Current item state */
+.o_main_navbar .dropdown-menu .dropdown-item.active,
+.o_main_navbar .dropdown-menu .dropdown-item:active,
+.o_main_navbar .o-dropdown--menu .dropdown-item.active,
+.o_main_navbar .o-dropdown--menu .dropdown-item:active,
+.o_main_navbar .o-dropdown--menu > a.active,
+.o_main_navbar .o-dropdown--menu > a:active {
+    background: linear-gradient(90deg, #714B67 0%, #8a5f7d 100%);
+    color: #ffffff;
+}
+
+.o_main_navbar .dropdown-menu .dropdown-item.active::before,
+.o_main_navbar .o-dropdown--menu .dropdown-item.active::before,
+.o_main_navbar .o-dropdown--menu > a.active::before {
+    color: #ffffff;
+    opacity: 1;
+}
+
+/* Focus state for accessibility */
+.o_main_navbar .dropdown-menu .dropdown-item:focus,
+.o_main_navbar .o-dropdown--menu .dropdown-item:focus,
+.o_main_navbar .o-dropdown--menu > a:focus {
+    outline: none;
+    background: #f3f4f6;
+    box-shadow: 0 0 0 2px rgba(113, 75, 103, 0.2);
+}
+
+/* =========================
+   DROPDOWN TOGGLE BUTTONS
+   ========================= */
+
+/* Style the dropdown toggle buttons in navbar */
+.o_main_navbar .dropdown-toggle,
+.o_main_navbar .o-dropdown > .dropdown-toggle,
+.o_main_navbar .o_menu_sections > .dropdown > a,
+.o_main_navbar .o_menu_sections > .o-dropdown > button,
+.o_main_navbar .o_menu_sections .o-dropdown-toggle {
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+/* Hover state for toggle buttons */
+.o_main_navbar .dropdown-toggle:hover,
+.o_main_navbar .o-dropdown > .dropdown-toggle:hover,
+.o_main_navbar .o_menu_sections > .dropdown > a:hover,
+.o_main_navbar .o_menu_sections > .o-dropdown > button:hover,
+.o_main_navbar .o_menu_sections .o-dropdown-toggle:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Open/Active state for toggle buttons */
+.o_main_navbar .dropdown.show > .dropdown-toggle,
+.o_main_navbar .o-dropdown.show > .dropdown-toggle,
+.o_main_navbar .o_menu_sections > .dropdown.show > a,
+.o_main_navbar .o_menu_sections > .o-dropdown.show > button,
+.o_main_navbar .o_menu_sections .o-dropdown.show .o-dropdown-toggle {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* =========================
+   DROPDOWN DIVIDERS
+   ========================= */
+
+.o_main_navbar .dropdown-menu .dropdown-divider,
+.o_main_navbar .o-dropdown--menu .dropdown-divider {
+    margin: 8px 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
+/* =========================
+   DROPDOWN HEADER
+   ========================= */
+
+.o_main_navbar .dropdown-menu .dropdown-header,
+.o_main_navbar .o-dropdown--menu .dropdown-header {
+    padding: 8px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6b7280;
+}
+
+/* =========================
+   EXISTING ICONS IN ITEMS
+   ========================= */
+
+.o_main_navbar .dropdown-menu .dropdown-item i,
+.o_main_navbar .dropdown-menu .dropdown-item .fa,
+.o_main_navbar .o-dropdown--menu .dropdown-item i,
+.o_main_navbar .o-dropdown--menu .dropdown-item .fa,
+.o_main_navbar .o-dropdown--menu > a i,
+.o_main_navbar .o-dropdown--menu > a .fa {
+    margin-right: 10px;
+    font-size: 14px;
+    width: 18px;
+    text-align: center;
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+}
+
+.o_main_navbar .dropdown-menu .dropdown-item:hover i,
+.o_main_navbar .dropdown-menu .dropdown-item:hover .fa,
+.o_main_navbar .o-dropdown--menu .dropdown-item:hover i,
+.o_main_navbar .o-dropdown--menu .dropdown-item:hover .fa,
+.o_main_navbar .o-dropdown--menu > a:hover i,
+.o_main_navbar .o-dropdown--menu > a:hover .fa {
+    opacity: 1;
+}
+
+/* =========================
+   MENU ITEM BADGES
+   ========================= */
+
+.o_main_navbar .dropdown-menu .badge,
+.o_main_navbar .o-dropdown--menu .badge {
+    margin-left: auto;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+/* =========================
+   RESPONSIVE ADJUSTMENTS
+   ========================= */
+
+@media (max-width: 992px) {
+    .o_main_navbar .dropdown-menu,
+    .o_main_navbar .o-dropdown--menu {
+        min-width: 200px;
+    }
+
+    .o_main_navbar .dropdown-menu .dropdown-item,
+    .o_main_navbar .o-dropdown--menu .dropdown-item,
+    .o_main_navbar .o-dropdown--menu > a {
+        padding: 12px 14px;
+        font-size: 14px;
+    }
+}
+
+/* =========================
+   DARK MODE SUPPORT
+   ========================= */
+
+.o_dark .o_main_navbar .dropdown-menu,
+.o_dark .o_main_navbar .o-dropdown--menu,
+html[data-color-scheme="dark"] .o_main_navbar .dropdown-menu,
+html[data-color-scheme="dark"] .o_main_navbar .o-dropdown--menu {
+    background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+    border-color: #374151;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4),
+                0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.o_dark .o_main_navbar .dropdown-menu .dropdown-item,
+.o_dark .o_main_navbar .o-dropdown--menu .dropdown-item,
+.o_dark .o_main_navbar .o-dropdown--menu > a,
+html[data-color-scheme="dark"] .o_main_navbar .dropdown-menu .dropdown-item,
+html[data-color-scheme="dark"] .o_main_navbar .o-dropdown--menu .dropdown-item,
+html[data-color-scheme="dark"] .o_main_navbar .o-dropdown--menu > a {
+    color: #e5e7eb;
+}
+
+.o_dark .o_main_navbar .o-dropdown--menu > a::before,
+.o_dark .o_main_navbar .dropdown-menu .dropdown-item::before,
+html[data-color-scheme="dark"] .o_main_navbar .o-dropdown--menu > a::before,
+html[data-color-scheme="dark"] .o_main_navbar .dropdown-menu .dropdown-item::before {
+    color: #a78bfa;
+}
+
+.o_dark .o_main_navbar .dropdown-menu .dropdown-item:hover,
+.o_dark .o_main_navbar .o-dropdown--menu .dropdown-item:hover,
+.o_dark .o_main_navbar .o-dropdown--menu > a:hover,
+html[data-color-scheme="dark"] .o_main_navbar .dropdown-menu .dropdown-item:hover,
+html[data-color-scheme="dark"] .o_main_navbar .o-dropdown--menu .dropdown-item:hover,
+html[data-color-scheme="dark"] .o_main_navbar .o-dropdown--menu > a:hover {
+    background: linear-gradient(90deg, #714B67 0%, #8a5f7d 100%);
+    color: #ffffff;
+}
+
+.o_dark .o_main_navbar .dropdown-menu .dropdown-divider,
+.o_dark .o_main_navbar .o-dropdown--menu .dropdown-divider,
+html[data-color-scheme="dark"] .o_main_navbar .dropdown-menu .dropdown-divider,
+html[data-color-scheme="dark"] .o_main_navbar .o-dropdown--menu .dropdown-divider {
+    border-top-color: #374151;
+}
+
+/* =========================
+   ARROW/CARET STYLING
+   ========================= */
+
+.o_main_navbar .dropdown-toggle::after,
+.o_main_navbar .o-dropdown-toggle::after {
+    margin-left: 6px;
+    transition: transform 0.2s ease;
+}
+
+.o_main_navbar .dropdown.show > .dropdown-toggle::after,
+.o_main_navbar .o-dropdown.show > .o-dropdown-toggle::after,
+.o_main_navbar .o-dropdown.show .o-dropdown-toggle::after {
+    transform: rotate(180deg);
+}

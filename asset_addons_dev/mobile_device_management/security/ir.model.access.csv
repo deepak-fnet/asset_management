@@ -1,0 +1,20 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_mobile_device_user,mobile.device user,model_mobile_device,group_mdm_user,1,0,0,0
+access_mobile_device_manager,mobile.device manager,model_mobile_device,group_mdm_manager,1,1,1,1
+access_mobile_application_user,mobile.application user,model_mobile_application,group_mdm_user,1,0,0,0
+access_mobile_application_manager,mobile.application manager,model_mobile_application,group_mdm_manager,1,1,1,1
+access_mobile_location_user,mobile.location user,model_mobile_location,group_mdm_user,1,0,0,0
+access_mobile_location_manager,mobile.location manager,model_mobile_location,group_mdm_manager,1,1,1,1
+access_mobile_os_update_user,mobile.os.update user,model_mobile_os_update,group_mdm_user,1,0,0,0
+access_mobile_os_update_manager,mobile.os.update manager,model_mobile_os_update,group_mdm_manager,1,1,1,1
+access_mobile_command_user,mobile.command user,model_mobile_command,group_mdm_user,1,0,0,0
+access_mobile_command_manager,mobile.command manager,model_mobile_command,group_mdm_manager,1,1,1,1
+access_mobile_enrollment_manager,mobile.enrollment manager,model_mobile_enrollment,group_mdm_manager,1,1,1,1
+access_mobile_os_release_user,mobile.os.release user,model_mobile_os_release,group_mdm_user,1,0,0,0
+access_mobile_os_release_manager,mobile.os.release manager,model_mobile_os_release,group_mdm_manager,1,1,1,1
+access_mobile_storage_volume_user,mobile.storage.volume user,model_mobile_storage_volume,group_mdm_user,1,0,0,0
+access_mobile_storage_volume_manager,mobile.storage.volume manager,model_mobile_storage_volume,group_mdm_manager,1,1,1,1
+access_mobile_metric_user,mobile.metric user,model_mobile_metric,group_mdm_user,1,0,0,0
+access_mobile_metric_manager,mobile.metric manager,model_mobile_metric,group_mdm_manager,1,1,1,1
+access_mobile_app_change_user,mobile.app.change user,model_mobile_app_change,group_mdm_user,1,0,0,0
+access_mobile_app_change_manager,mobile.app.change manager,model_mobile_app_change,group_mdm_manager,1,1,1,1

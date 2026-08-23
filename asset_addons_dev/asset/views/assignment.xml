@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_asset_assignment_form" model="ir.ui.view">
+        <field name="name">asset.assignment.form</field>
+        <field name="model">asset.assignment</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_submit" type="object" string="Submit"
+                            class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_department_approve" type="object" string="Department Approve"
+                            class="oe_highlight" invisible="state != 'submit'"/>
+                    <button name="action_approve" type="object" string="Approve"
+                            class="oe_highlight" invisible="state != 'dept_approved'"/>
+                    <button name="action_assign" type="object" string="Assign"
+                            class="oe_highlight" invisible="state != 'approved'"/>
+                    <button name="action_return" type="object" string="Return"
+                            class="oe_highlight" invisible="state != 'assigned'"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state in ('returned', 'cancel')"/>
+                    <button name="action_draft" type="object" string="Reset to Draft"
+                            invisible="state != 'cancel'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,submit,dept_approved,approved,assigned,returned"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Reference"/>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Assignment" name="assignment">
+                            <field name="asset_id" readonly="state != 'draft'"/>
+                            <field name="employee_id" readonly="state not in ('draft', 'submit')"/>
+                            <field name="department_id"/>
+                        </group>
+                        <group string="Dates &amp; Place" name="dates">
+                            <field name="assign_date"/>
+                            <field name="return_date" invisible="not return_date"/>
+                            <field name="plant_id"/>
+                            <field name="physical_location_id"/>
+                        </group>
+                    </group>
+                    <group string="Notes">
+                        <field name="notes" nolabel="1" placeholder="Handover notes..."/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_asset_assignment_list" model="ir.ui.view">
+        <field name="name">asset.assignment.list</field>
+        <field name="model">asset.assignment</field>
+        <field name="arch" type="xml">
+            <list decoration-success="state == 'assigned'" decoration-muted="state in ('returned', 'cancel')">
+                <field name="name"/>
+                <field name="asset_id"/>
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <field name="assign_date"/>
+                <field name="return_date" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'assigned'"
+                       decoration-info="state == 'approved'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_assignment_search" model="ir.ui.view">
+        <field name="name">asset.assignment.search</field>
+        <field name="model">asset.assignment</field>
+        <field name="arch" type="xml">
+            <search string="Search Assignments">
+                <field name="name"/>
+                <field name="asset_id"/>
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <filter string="Currently Assigned" name="assigned" domain="[('state', '=', 'assigned')]"/>
+                <filter string="Returned" name="returned" domain="[('state', '=', 'returned')]"/>
+                <filter string="Pending Approval" name="pending"
+                        domain="[('state', 'in', ('submit', 'dept_approved', 'approved'))]"/>
+                <group>
+                    <filter string="Employee" name="group_employee" context="{'group_by': 'employee_id'}"/>
+                    <filter string="Department" name="group_department" context="{'group_by': 'department_id'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_asset_assignment" model="ir.actions.act_window">
+        <field name="name">Asset Assignment</field>
+        <field name="res_model">asset.assignment</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Assign an asset to an employee</p>
+            <p>Submit, get it approved, then hand the asset over. The asset shows who holds it.</p>
+        </field>
+    </record>
+
+</odoo>

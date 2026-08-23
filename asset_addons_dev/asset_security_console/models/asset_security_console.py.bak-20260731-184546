@@ -1,0 +1,437 @@
+# -*- coding: utf-8 -*-
+"""
+Asset Security Console — corrected.
+
+Bug being fixed
+---------------
+    ValueError: Cannot convert field asset.asset.security_status to SQL
+
+security_status was a computed field with store=False, but the console action
+groups by it and the search view filters on it. Both need a real database
+column. Non-stored computed fields exist only in memory after a read, so
+PostgreSQL has nothing to GROUP BY or WHERE against.
+
+Why this needs explicit triggers
+--------------------------------
+These counters are derived from OTHER models (asset.windows.update,
+asset.linux.update, asset.macos.update). @api.depends cannot follow that —
+there is no relational path from asset.asset to those tables that Odoo can
+watch, because they point inward at the asset rather than the other way round.
+
+So the fields are stored and refreshed by three mechanisms, in order of
+immediacy:
+
+  1. On write/create/unlink of any update record → recompute that one asset
+  2. A nightly cron → full fleet refresh, catching anything missed
+  3. A manual "Refresh Security Status" action → for when you want it now
+
+Stale-by-minutes is acceptable for a security posture column. Stale-by-days is
+not, which is why the cron exists.
+"""
+
+import logging
+
+from odoo import models, fields, api
+from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
+
+OS_UPDATE_MODELS = {
+    'windows': 'asset.windows.update',
+    'linux': 'asset.linux.update',
+    'macos': 'asset.macos.update',
+}
+
+PENDING_STATUSES = ('pending', 'allowed')
+INFLIGHT_STATUSES = ('installing',)
+DONE_STATUSES = ('installed',)
+
+ACTIVE_VULN_STATES = ('open', 'needs_review')
+
+
+class AssetSecurityConsole(models.Model):
+    _inherit = 'asset.asset'
+
+    # ── Patch counters — now STORED ───────────────────────────────────────
+    patch_pending_count = fields.Integer(
+        string='Patches Pending', compute='_compute_security_counters',
+        store=True, readonly=True,
+    )
+    patch_inflight_count = fields.Integer(
+        string='Patches Queued', compute='_compute_security_counters',
+        store=True, readonly=True,
+        help='Approved and waiting for the agent to install.',
+    )
+    patch_completed_count = fields.Integer(
+        string='Patches Installed', compute='_compute_security_counters',
+        store=True, readonly=True,
+    )
+    patch_failed_count = fields.Integer(
+        string='Patches Failed', compute='_compute_security_counters',
+        store=True, readonly=True,
+    )
+
+    security_status = fields.Selection(
+        [('good', 'Good'),
+         ('attention', 'Needs Attention'),
+         ('at_risk', 'At Risk'),
+         ('unknown', 'Not Assessed')],
+        compute='_compute_security_counters', store=True, readonly=True,
+        index=True,
+        help='At Risk = open critical vulnerability, or pending security '
+             'patch. Needs Attention = high-severity items outstanding. '
+             'Unknown = never scanned and no patch data.',
+    )
+    security_note = fields.Char(
+        compute='_compute_security_counters', store=True, readonly=True,
+    )
+    security_last_refresh = fields.Datetime(
+        string='Posture Last Refreshed', readonly=True,
+    )
+
+    # ── Redefine inherited vuln/app counters as stored ────────────────────
+    # These come from asset_update_center as non-stored. Redefining them here
+    # with store=True gives them database columns so they can be sorted,
+    # filtered and grouped in the console.
+    vuln_critical_count = fields.Integer(
+        compute='_compute_security_counters', store=True, readonly=True)
+    vuln_high_count = fields.Integer(
+        compute='_compute_security_counters', store=True, readonly=True)
+    vuln_medium_count = fields.Integer(
+        compute='_compute_security_counters', store=True, readonly=True)
+    vuln_low_count = fields.Integer(
+        compute='_compute_security_counters', store=True, readonly=True)
+    vuln_total_count = fields.Integer(
+        compute='_compute_security_counters', store=True, readonly=True)
+    app_update_pending_count = fields.Integer(
+        compute='_compute_security_counters', store=True, readonly=True)
+
+    def _os_model(self):
+        self.ensure_one()
+        name = OS_UPDATE_MODELS.get(self.platform)
+        if not name or name not in self.env:
+            return None
+        return self.env[name].sudo()
+
+    # ══════════════════════════════════════════════════════════════════════
+    # Compute
+    # ══════════════════════════════════════════════════════════════════════
+    # depends on platform only — everything else is driven by the explicit
+    # triggers below, because there is no relational path Odoo can watch.
+    @api.depends('platform')
+    def _compute_security_counters(self):
+        Vuln = self.env['asset.vulnerability'].sudo() \
+            if 'asset.vulnerability' in self.env else None
+        AppUpd = self.env['asset.app.update'].sudo() \
+            if 'asset.app.update' in self.env else None
+
+        for asset in self:
+            base = [('asset_id', '=', asset.id)]
+
+            # ── OS patches ────────────────────────────────────────────────
+            Model = asset._os_model()
+            if Model is not None:
+                asset.patch_pending_count = Model.search_count(
+                    base + [('status', 'in', PENDING_STATUSES)])
+                asset.patch_inflight_count = Model.search_count(
+                    base + [('status', 'in', INFLIGHT_STATUSES)])
+                asset.patch_completed_count = Model.search_count(
+                    base + [('status', 'in', DONE_STATUSES)])
+                asset.patch_failed_count = Model.search_count(
+                    base + [('status', '=', 'failed')])
+                critical_pending = Model.search_count(
+                    base + [('status', 'in', PENDING_STATUSES),
+                            ('severity', 'in', ('security', 'critical'))])
+            else:
+                asset.patch_pending_count = 0
+                asset.patch_inflight_count = 0
+                asset.patch_completed_count = 0
+                asset.patch_failed_count = 0
+                critical_pending = 0
+
+            # ── Vulnerabilities ───────────────────────────────────────────
+            if Vuln is not None:
+                vbase = base + [('state', 'in', ACTIVE_VULN_STATES)]
+                asset.vuln_critical_count = Vuln.search_count(
+                    vbase + [('severity', '=', 'critical')])
+                asset.vuln_high_count = Vuln.search_count(
+                    vbase + [('severity', '=', 'high')])
+                asset.vuln_medium_count = Vuln.search_count(
+                    vbase + [('severity', '=', 'medium')])
+                asset.vuln_low_count = Vuln.search_count(
+                    vbase + [('severity', '=', 'low')])
+                asset.vuln_total_count = Vuln.search_count(vbase)
+            else:
+                asset.vuln_critical_count = 0
+                asset.vuln_high_count = 0
+                asset.vuln_medium_count = 0
+                asset.vuln_low_count = 0
+                asset.vuln_total_count = 0
+
+            # ── App updates ───────────────────────────────────────────────
+            if AppUpd is not None:
+                asset.app_update_pending_count = AppUpd.search_count(
+                    base + [('status', 'in', ('available', 'failed'))])
+            else:
+                asset.app_update_pending_count = 0
+
+            # ── Verdict ───────────────────────────────────────────────────
+            scanned = bool(getattr(asset, 'last_vuln_scan', False))
+
+            if asset.vuln_critical_count or critical_pending:
+                asset.security_status = 'at_risk'
+                bits = []
+                if asset.vuln_critical_count:
+                    bits.append(f'{asset.vuln_critical_count} critical CVE')
+                if critical_pending:
+                    bits.append(f'{critical_pending} security patch pending')
+                asset.security_note = ', '.join(bits)
+            elif asset.vuln_high_count or asset.patch_pending_count:
+                asset.security_status = 'attention'
+                bits = []
+                if asset.vuln_high_count:
+                    bits.append(f'{asset.vuln_high_count} high CVE')
+                if asset.patch_pending_count:
+                    bits.append(f'{asset.patch_pending_count} patch pending')
+                asset.security_note = ', '.join(bits)
+            elif not scanned and not asset.patch_completed_count:
+                asset.security_status = 'unknown'
+                asset.security_note = 'No patch data and never scanned'
+            else:
+                asset.security_status = 'good'
+                asset.security_note = 'No outstanding critical or high items'
+
+    # ══════════════════════════════════════════════════════════════════════
+    # Refresh plumbing
+    # ══════════════════════════════════════════════════════════════════════
+    def refresh_security_posture(self):
+        """Force a recompute of the stored counters for these assets."""
+        if not self:
+            return True
+        self.invalidate_recordset([
+            'patch_pending_count', 'patch_inflight_count',
+            'patch_completed_count', 'patch_failed_count',
+            'vuln_critical_count', 'vuln_high_count', 'vuln_medium_count',
+            'vuln_low_count', 'vuln_total_count',
+            'app_update_pending_count', 'security_status', 'security_note',
+        ])
+        self._compute_security_counters()
+        self.write({'security_last_refresh': fields.Datetime.now()})
+        return True
+
+    @api.model
+    def cron_refresh_security_posture(self):
+        """Nightly full-fleet refresh — the safety net."""
+        assets = self.sudo().search(
+            [('platform', 'in', tuple(OS_UPDATE_MODELS))])
+        # Batch so a large fleet does not hold one long transaction.
+        batch = 200
+        for i in range(0, len(assets), batch):
+            assets[i:i + batch].refresh_security_posture()
+            self.env.cr.commit()
+        _logger.info('[SecurityConsole] Refreshed posture for %s asset(s).',
+                     len(assets))
+        return True
+
+    def action_refresh_posture(self):
+        """Manual refresh button."""
+        self.refresh_security_posture()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Refreshed',
+                'message': f'Security posture recalculated for '
+                           f'{len(self)} asset(s).',
+                'type': 'success',
+                'sticky': False,
+            },
+        }
+
+    # ══════════════════════════════════════════════════════════════════════
+    # Drill-down
+    # ══════════════════════════════════════════════════════════════════════
+    def _open_patches(self, statuses, title):
+        self.ensure_one()
+        Model = self._os_model()
+        if Model is None:
+            raise UserError(
+                f'No OS update tracking for platform '
+                f'"{self.platform or "unknown"}".'
+            )
+        return {
+            'type': 'ir.actions.act_window',
+            'name': f'{title} — {self.display_name}',
+            'res_model': Model._name,
+            'view_mode': 'list,form',
+            'domain': [('asset_id', '=', self.id),
+                       ('status', 'in', list(statuses))],
+        }
+
+    def action_open_pending_patches(self):
+        return self._open_patches(PENDING_STATUSES, 'Pending Patches')
+
+    def action_open_completed_patches(self):
+        return self._open_patches(DONE_STATUSES, 'Installed Patches')
+
+    def action_open_failed_patches(self):
+        return self._open_patches(('failed',), 'Failed Patches')
+
+    def action_open_queued_patches(self):
+        return self._open_patches(INFLIGHT_STATUSES, 'Queued Patches')
+
+    # ══════════════════════════════════════════════════════════════════════
+    # Bulk actions
+    # ══════════════════════════════════════════════════════════════════════
+    def action_bulk_scan(self):
+        if not self.env.user.has_group('asset_management.group_asset_manager'):
+            raise UserError('Only Asset Managers can run scans.')
+
+        if not self.env['asset.cve'].sudo().search_count([]):
+            raise UserError(
+                'The CVE database is empty, so scanning would find nothing.\n\n'
+                'Go to Security → Setup & Health Check and resolve the CVE '
+                'database step first.'
+            )
+
+        scan = self.env['asset.vulnerability.engine'].run_scan(self.ids)
+        self.refresh_security_posture()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Scan Complete',
+                'message': (
+                    f'{len(self)} asset(s) scanned. '
+                    f'{scan.findings_new} new finding(s), '
+                    f'{scan.critical_count} critical.'
+                ),
+                'type': 'success',
+            },
+        }
+
+    def action_bulk_approve_patches(self):
+        if not self.env.user.has_group('asset_management.group_asset_manager'):
+            raise UserError('Only Asset Managers can approve patches.')
+
+        total = 0
+        for asset in self:
+            Model = asset._os_model()
+            if Model is None:
+                continue
+            pending = Model.search([
+                ('asset_id', '=', asset.id),
+                ('status', 'in', PENDING_STATUSES),
+            ])
+            if pending:
+                pending.write({'status': 'installing',
+                               'action_date': fields.Datetime.now()})
+                total += len(pending)
+
+        if not total:
+            raise UserError('Nothing pending on the selected asset(s).')
+
+        self.refresh_security_posture()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Patches Approved',
+                'message': (
+                    f'{total} patch(es) queued across {len(self)} asset(s). '
+                    'Agents install them on their next poll.'
+                ),
+                'type': 'success',
+            },
+        }
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# Triggers — keep the stored counters fresh
+# ══════════════════════════════════════════════════════════════════════════
+class _SecurityCounterTriggerMixin(models.AbstractModel):
+    """Shared trigger logic for models whose rows feed the console counters."""
+    _name = 'asset.security.counter.trigger'
+    _description = 'Security Counter Refresh Trigger'
+
+    def _touch_assets(self, assets=None):
+        """Recompute posture for the assets these records belong to."""
+        try:
+            targets = assets if assets is not None else self.mapped('asset_id')
+            if targets:
+                targets.sudo().refresh_security_posture()
+        except Exception as exc:
+            # A counter refresh must never block an agent report.
+            _logger.warning('[SecurityConsole] Counter refresh skipped: %s', exc)
+
+
+class AssetWindowsUpdateTrigger(models.Model):
+    _name = 'asset.windows.update'
+    _inherit = ['asset.windows.update', 'asset.security.counter.trigger']
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        records._touch_assets()
+        return records
+
+    def write(self, vals):
+        assets = self.mapped('asset_id')
+        res = super().write(vals)
+        if 'status' in vals or 'severity' in vals:
+            self._touch_assets(assets)
+        return res
+
+    def unlink(self):
+        assets = self.mapped('asset_id')
+        res = super().unlink()
+        self._touch_assets(assets)
+        return res
+
+
+class AssetVulnerabilityTrigger(models.Model):
+    _name = 'asset.vulnerability'
+    _inherit = ['asset.vulnerability', 'asset.security.counter.trigger']
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        records._touch_assets()
+        return records
+
+    def write(self, vals):
+        assets = self.mapped('asset_id')
+        res = super().write(vals)
+        if 'state' in vals:
+            self._touch_assets(assets)
+        return res
+
+    def unlink(self):
+        assets = self.mapped('asset_id')
+        res = super().unlink()
+        self._touch_assets(assets)
+        return res
+
+
+class AssetAppUpdateTrigger(models.Model):
+    _name = 'asset.app.update'
+    _inherit = ['asset.app.update', 'asset.security.counter.trigger']
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        records._touch_assets()
+        return records
+
+    def write(self, vals):
+        assets = self.mapped('asset_id')
+        res = super().write(vals)
+        if 'status' in vals:
+            self._touch_assets(assets)
+        return res
+
+    def unlink(self):
+        assets = self.mapped('asset_id')
+        res = super().unlink()
+        self._touch_assets(assets)
+        return res

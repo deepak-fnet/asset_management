@@ -1,0 +1,10 @@
+id,name,model_id:id,group_id,perm_read,perm_write,perm_create,perm_unlink
+access_asset_addition,Asset Addition,model_asset_addition,,1,1,1,1
+access_asset_internal_transfer,Asset Internal Transfer,model_asset_internal_transfer,,1,1,1,1
+access_asset_removal,asset removal,model_asset_removal,,1,1,1,1
+access_physical_location,physical location,model_physical_location,,1,1,1,1
+access_plant_master,plant master,model_plant_master,,1,1,1,1
+access_physical_verification,physical verification,model_physical_verification,,1,1,1,1
+access_from_location,From Location,model_from_location,,1,1,1,1
+access_to_location,To Location,model_to_location,,1,1,1,1
+access_history_asset,history.asset,model_history_asset,,1,1,1,1

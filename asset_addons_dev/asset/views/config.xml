@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Form View -->
+    <record id="view_physical_location_form" model="ir.ui.view">
+        <field name="name">physical.location.form</field>
+        <field name="model">physical.location</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group col="4">
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_physical_location_list" model="ir.ui.view">
+        <field name="name">physical.location.list</field>
+        <field name="model">physical.location</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_physical_location" model="ir.actions.act_window">
+        <field name="name">Physical Location</field>
+        <field name="res_model">physical.location</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_plant_master_form" model="ir.ui.view">
+        <field name="name">plant.master.form</field>
+        <field name="model">plant.master</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group col="4">
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_plant_master_list" model="ir.ui.view">
+        <field name="name">plant.master.list</field>
+        <field name="model">plant.master</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_plant_master" model="ir.actions.act_window">
+        <field name="name">plant</field>
+        <field name="res_model">plant.master</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!--    From Location-->
+    <record id="view_from_location_form" model="ir.ui.view">
+        <field name="name">from.location.form</field>
+        <field name="model">from.location</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group col="4">
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_from_location_list" model="ir.ui.view">
+        <field name="name">from.location.list</field>
+        <field name="model">from.location</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_from_location" model="ir.actions.act_window">
+        <field name="name">From Location</field>
+        <field name="res_model">from.location</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!--    To Location-->
+    <record id="view_to_location_form" model="ir.ui.view">
+        <field name="name">to.location.form</field>
+        <field name="model">to.location</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group col="4">
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_to_location_list" model="ir.ui.view">
+        <field name="name">to.location.list</field>
+        <field name="model">to.location</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_to_location" model="ir.actions.act_window">
+        <field name="name">To Location</field>
+        <field name="res_model">to.location</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_unified_asset_kanban" model="ir.ui.view">
+        <field name="name">unified.asset.kanban</field>
+        <field name="model">unified.asset.kanban</field>
+        <field name="arch" type="xml">
+
+            <kanban class="o_kanban_view o_unified_asset_kanban" create="false">
+                <field name="name"/>
+                <field name="total_count"/>
+                <field name="state_json"/>
+                <field name="department_json"/>
+                <field name="action_id"/>
+
+                <!-- Make dashboard full-width -->
+                <templates>
+                    <t t-name="card">
+
+                        <div class="dashboard-card-container">
+
+                            <!-- STATE CARD -->
+                            <div class="dashboard-card">
+                                <div class="dashboard-header state">
+                                    <div class="header-icon">
+                                        <i class="fa fa-chart-pie" title="State breakdown"></i>
+                                    </div>
+                                    <div>
+                                        <h4>
+                                            <t t-esc="record.name.value"/>
+                                            — By State
+                                        </h4>
+                                        <span class="subtitle">Overview Summary</span>
+                                    </div>
+                                </div>
+
+                                <div class="dashboard-body">
+                                    <div class="key-value">
+                                        <span>Total Records</span>
+                                        <span class="badge purple">
+                                            <t t-esc="record.total_count.value"/>
+                                        </span>
+                                    </div>
+
+                                    <t t-if="record.state_json.value">
+                                        <t t-set="state_data" t-value="JSON.parse(record.state_json.value)"/>
+                                        <ul class="metrics">
+                                            <t t-foreach="Object.entries(state_data)" t-as="item" t-key="item[0]">
+                                                <t t-if="item[1] > 0">
+                                                    <li>
+                                                        <button type="object"
+                                                                name="action_open_state_records"
+                                                                t-att-context="{'state': item[0]}"
+                                                                class="metric-name">
+                                                            <t t-esc="item[0]"/>
+                                                        </button>
+                                                        <span class="badge grey">
+                                                            <t t-esc="item[1]"/>
+                                                        </span>
+                                                    </li>
+                                                </t>
+                                            </t>
+                                        </ul>
+                                    </t>
+                                </div>
+
+                                <div class="dashboard-footer">
+                                    <button type="object" class="btn-primary" name="action_open_records">
+                                        <i class="fa fa-folder-open"></i>
+                                        View All
+                                    </button>
+                                </div>
+                            </div>
+
+
+                            <!-- DEPARTMENT CARD -->
+                            <div class="dashboard-card">
+                                <div class="dashboard-header dept">
+                                    <div class="header-icon">
+                                        <i class="fa fa-building" title="Department breakdown"></i>
+                                    </div>
+                                    <div>
+                                        <h4>
+                                            <t t-esc="record.name.value"/>
+                                            — By Department
+                                        </h4>
+                                        <span class="subtitle">Grouping by Departments</span>
+                                    </div>
+                                </div>
+
+                                <div class="dashboard-body">
+                                    <div class="key-value">
+                                        <span>Total Records</span>
+                                        <span class="badge green">
+                                            <t t-esc="record.total_count.value"/>
+                                        </span>
+                                    </div>
+
+                                    <t t-if="record.department_json.value">
+                                        <t t-set="dep_data" t-value="JSON.parse(record.department_json.value)"/>
+                                        <ul class="metrics">
+                                            <t t-foreach="Object.entries(dep_data)" t-as="item" t-key="item[0]">
+                                                <t t-if="item[1] > 0">
+                                                    <li>
+                                                        <button type="object"
+                                                                class="metric-name"
+                                                                name="action_open_state_records"
+                                                                t-att-context="{'department': item[0]}">
+                                                            <t t-esc="item[0]"/>
+                                                        </button>
+                                                        <span class="badge teal">
+                                                            <t t-esc="item[1]"/>
+                                                        </span>
+                                                    </li>
+                                                </t>
+                                            </t>
+                                        </ul>
+                                    </t>
+                                </div>
+
+                                <div class="dashboard-footer">
+                                    <button type="object" class="btn-primary" name="action_open_records">
+                                        <i class="fa fa-folder-open"></i>
+                                        View All
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+
+        </field>
+    </record>
+
+
+    <record id="action_unified_asset_kanban" model="ir.actions.act_window">
+        <field name="name">Asset Dashboard</field>
+        <field name="res_model">unified.asset.kanban</field>
+        <field name="view_mode">kanban</field>
+    </record>
+
+
+</odoo>

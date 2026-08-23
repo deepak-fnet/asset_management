@@ -1,0 +1,59 @@
+/* ASSET KANBAN IMAGE FIX
+   This override removes Odoo's default Kanban image filters and
+   prevents the laptop-style screen illusion by resetting object-fit and opacity.
+   Applies to all asset kanban cards (Windows, Linux, CCTV, Network Devices, etc.)
+*/
+
+/* Apply consistent image wrapper styling to ALL asset kanban cards */
+.o_asset_kanban .kanban_image_wrapper,
+.o_asset_kanban .cctv_kanban_image {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    background-color: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 8px 8px 0 0;
+    border-bottom: 1px solid #eee;
+}
+
+/* Force image to show correctly without Odoo filters - applies to ALL asset cards */
+.o_asset_kanban .kanban_image_wrapper img,
+.o_asset_kanban .cctv_kanban_image img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    opacity: 1 !important;
+    filter: none !important;
+    background: transparent !important;
+    transform: none !important;
+}
+
+/* Remove Odoo's default blue/dark overlays if present */
+.o_asset_kanban .kanban_image_wrapper::before,
+.o_asset_kanban .kanban_image_wrapper::after,
+.o_asset_kanban .cctv_kanban_image::before,
+.o_asset_kanban .cctv_kanban_image::after {
+    display: none !important;
+    content: none !important;
+}
+
+/* Default placeholder container fix - applies to ALL asset cards */
+.o_asset_kanban .kanban_image_wrapper .kanban_image_default,
+.o_asset_kanban .cctv_kanban_image .kanban_image_default {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f5f9;
+}
+
+/* Ensure consistent card sizing across all asset types */
+.o_asset_kanban .oe_kanban_card {
+    min-height: 420px !important;
+    max-height: 420px !important;
+    height: 420px !important;
+}

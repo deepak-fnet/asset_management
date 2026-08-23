@@ -1,0 +1,6 @@
+Windows Registry Editor Version 5.00
+
+; Starts the Remote Assistance worker in each user's session at logon.
+; Point this at the worker exe you build (see INTEGRATION.md).
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run]
+"AssetRemoteAssist"="\"C:\\Program Files\\AssetAgent\\RemoteAssistWorker.exe\""

@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="asset_advanced_dashboard.DashboardTemplate">
+        <div class="o_asset_dashboard">
+
+            <t t-if="state.loading">
+                <div class="ad-loading">
+                    <div class="ad-spinner"/>
+                    <span>Loading dashboard…</span>
+                </div>
+            </t>
+
+            <t t-else="">
+                <div class="ad-head">
+                    <div>
+                        <h1>Asset Analytics</h1>
+                        <p>Register health, distribution and risk across your assets</p>
+                    </div>
+                    <div class="ad-tools">
+                        <button class="ad-btn" t-on-click="refreshDashboard">
+                            <i class="fa fa-refresh"/> Refresh
+                        </button>
+                        <button class="ad-btn" t-on-click="printDashboard">
+                            <i class="fa fa-print"/> Print
+                        </button>
+                    </div>
+                </div>
+
+                <!-- filters: one row above the charts -->
+                <div class="ad-filters">
+                    <label class="ad-field">
+                        <span>Department</span>
+                        <select t-on-change="(ev) => this.onFilterChange('department_id', ev)">
+                            <option value="">All</option>
+                            <t t-foreach="state.filterOptions.departments or []" t-as="d" t-key="d.id">
+                                <option t-att-value="d.id" t-esc="d.name"/>
+                            </t>
+                        </select>
+                    </label>
+                    <label class="ad-field">
+                        <span>Plant</span>
+                        <select t-on-change="(ev) => this.onFilterChange('plant_id', ev)">
+                            <option value="">All</option>
+                            <t t-foreach="state.filterOptions.plants or []" t-as="p" t-key="p.id">
+                                <option t-att-value="p.id" t-esc="p.name"/>
+                            </t>
+                        </select>
+                    </label>
+                    <label class="ad-field">
+                        <span>Location</span>
+                        <select t-on-change="(ev) => this.onFilterChange('physical_location_id', ev)">
+                            <option value="">All</option>
+                            <t t-foreach="state.filterOptions.locations or []" t-as="l" t-key="l.id">
+                                <option t-att-value="l.id" t-esc="l.name"/>
+                            </t>
+                        </select>
+                    </label>
+                    <label class="ad-field">
+                        <span>Status</span>
+                        <select t-on-change="(ev) => this.onFilterChange('state', ev)">
+                            <option value="">All</option>
+                            <t t-foreach="state.filterOptions.states or []" t-as="s" t-key="s.value">
+                                <option t-att-value="s.value" t-esc="s.label"/>
+                            </t>
+                        </select>
+                    </label>
+                    <label class="ad-field">
+                        <span>Acquired from</span>
+                        <input type="date" t-on-change="(ev) => this.onFilterChange('date_from', ev)"/>
+                    </label>
+                    <label class="ad-field">
+                        <span>Acquired to</span>
+                        <input type="date" t-on-change="(ev) => this.onFilterChange('date_to', ev)"/>
+                    </label>
+                    <div class="ad-filter-actions">
+                        <button class="ad-btn ad-btn-primary" t-on-click="applyFilters">Apply</button>
+                        <button class="ad-btn" t-on-click="clearFilters">Clear</button>
+                    </div>
+                </div>
+
+                <!-- hero figure (exactly one) + KPI tiles -->
+                <div class="ad-hero-row">
+                    <div class="ad-card ad-hero">
+                        <div class="ad-hero-label">Assets in register</div>
+                        <div class="ad-hero-value" t-esc="formatNumber(state.kpis.total_assets)"/>
+                        <div class="ad-hero-sub">
+                            worth <strong t-esc="formatCurrency(state.kpis.total_value)"/>
+                        </div>
+                    </div>
+
+                    <div class="ad-kpis">
+                        <t t-foreach="kpiTiles" t-as="tile" t-key="tile.key">
+                            <button class="ad-kpi" t-on-click="() => this.openRecords(tile.key)"
+                                    t-att-title="'Open ' + tile.label">
+                                <div class="ad-kpi-value" t-esc="formatNumber(state.kpis[tile.key])"/>
+                                <div class="ad-kpi-label" t-esc="tile.label"/>
+                            </button>
+                        </t>
+                    </div>
+                </div>
+
+                <!-- distribution -->
+                <div class="ad-section">Distribution</div>
+                <div class="ad-grid">
+
+                    <div class="ad-card ad-grid-wide">
+                        <h3 class="ad-card-title">Assets by status</h3>
+                        <p class="ad-card-note">Share of the register in each workflow state</p>
+                        <div class="ad-plot ad-plot-short">
+                            <canvas t-ref="stateChart"/>
+                        </div>
+                        <div class="ad-legend">
+                            <t t-foreach="stateLegend" t-as="item" t-key="item.label">
+                                <span class="ad-legend-item">
+                                    <span class="ad-swatch" t-attf-style="background: var(--ad-s{{ item.slot }})"/>
+                                    <span t-esc="item.label"/>
+                                    <b t-esc="formatNumber(item.value)"/>
+                                </span>
+                            </t>
+                        </div>
+                    </div>
+
+                    <div class="ad-card">
+                        <h3 class="ad-card-title">Assets by department</h3>
+                        <p class="ad-card-note">Excludes removed assets</p>
+                        <div class="ad-plot">
+                            <canvas t-ref="deptChart"/>
+                            <div t-if="!hasData('by_department')" class="ad-empty">No data for this filter</div>
+                        </div>
+                    </div>
+
+                    <div class="ad-card">
+                        <h3 class="ad-card-title">Assets by category</h3>
+                        <p class="ad-card-note">Excludes removed assets</p>
+                        <div class="ad-plot">
+                            <canvas t-ref="categoryChart"/>
+                            <div t-if="!hasData('by_category')" class="ad-empty">No data for this filter</div>
+                        </div>
+                    </div>
+
+                    <div class="ad-card">
+                        <h3 class="ad-card-title">Assets by location</h3>
+                        <p class="ad-card-note">Excludes removed assets</p>
+                        <div class="ad-plot">
+                            <canvas t-ref="locationChart"/>
+                            <div t-if="!hasData('by_location')" class="ad-empty">No data for this filter</div>
+                        </div>
+                    </div>
+
+                    <div class="ad-card">
+                        <h3 class="ad-card-title">Additions per month</h3>
+                        <p class="ad-card-note">By acquisition date, last 12 months</p>
+                        <div class="ad-plot">
+                            <canvas t-ref="trendChart"/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- age profile -->
+                <div class="ad-section">Age profile</div>
+                <div class="ad-grid">
+                    <div class="ad-card">
+                        <h3 class="ad-card-title">Assets by age</h3>
+                        <p class="ad-card-note">Older bands are darker. Click a bar to open the assets.</p>
+                        <div class="ad-plot ad-plot-tall">
+                            <canvas t-ref="ageChart"/>
+                        </div>
+                    </div>
+
+                    <div class="ad-card">
+                        <h3 class="ad-card-title">Age breakdown</h3>
+                        <p class="ad-card-note">Value at stake and the top categories in each band</p>
+                        <div class="ad-scroll">
+                            <table class="ad-table">
+                                <thead>
+                                    <tr>
+                                        <th>Age band</th>
+                                        <th class="ad-num">Assets</th>
+                                        <th class="ad-num">Value</th>
+                                        <th>Top categories</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="state.ageAnalysis" t-as="bucket" t-key="bucket.id">
+                                        <tr>
+                                            <td>
+                                                <span class="ad-swatch d-inline-block me-2"
+                                                      t-attf-style="background: var(--ad-o{{ ordinalSlot(bucket_index) }})"/>
+                                                <button class="ad-link"
+                                                        t-on-click="() => this.openAgeRecords(bucket.id)"
+                                                        t-esc="bucket.name"/>
+                                            </td>
+                                            <td class="ad-num" t-esc="formatNumber(bucket.count)"/>
+                                            <td class="ad-num" t-esc="formatCurrency(bucket.total_value)"/>
+                                            <td>
+                                                <t t-if="bucket.breakdown.length">
+                                                    <t t-foreach="bucket.breakdown" t-as="row" t-key="row.name">
+                                                        <button class="ad-chip"
+                                                                t-on-click="() => this.openCategoryRecords(bucket.id, row.name)">
+                                                            <span t-esc="row.name"/>
+                                                            <b t-esc="row.count"/>
+                                                        </button>
+                                                    </t>
+                                                </t>
+                                                <t t-else="">
+                                                    <span class="text-muted">—</span>
+                                                </t>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- risk: icon + label, never colour alone -->
+                <div class="ad-section">Data quality &amp; risk</div>
+                <div class="ad-risks">
+                    <t t-foreach="riskTiles" t-as="risk" t-key="risk.key">
+                        <button t-attf-class="ad-risk ad-risk-{{ riskLevel(risk) }}"
+                                t-on-click="() => this.openRecords(risk.key)"
+                                t-att-title="'Open ' + risk.label">
+                            <span class="ad-risk-icon"><i t-attf-class="fa {{ risk.icon }}"/></span>
+                            <span class="ad-risk-body">
+                                <span class="ad-risk-value d-block" t-esc="formatNumber(state.riskIndicators[risk.key])"/>
+                                <span class="ad-risk-label d-block" t-esc="risk.label"/>
+                            </span>
+                        </button>
+                    </t>
+                </div>
+            </t>
+        </div>
+    </t>
+
+</templates>

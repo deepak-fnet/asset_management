@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<!--
+    OWL 2 template. Differences from the Odoo 14 QWeb version:
+      - owl="1" on the template tag
+      - t-esc  -> t-out
+      - t-on-click / t-model style event binding instead of jQuery events
+      - t-att-* stays, but state comes from this.state rather than a
+        context dict passed into render()
+-->
+<t t-name="oneit_ad_automation.Dashboard" owl="1">
+    <div class="o_oneit_dashboard">
+        <div class="o_oneit_dashboard_body" t-if="state.data">
+
+            <!-- ============ HEADER ============ -->
+            <div class="o_oneit_header">
+                <div>
+                    <h1>AD Automation</h1>
+                    <p class="o_oneit_sub">Access lifecycle across teams and directory groups</p>
+                </div>
+                <button class="btn o_oneit_refresh" t-on-click="onRefresh">
+                    <i class="fa fa-refresh"/> Refresh
+                </button>
+            </div>
+
+            <div t-if="state.data.simulate" class="o_oneit_banner o_oneit_banner_warn">
+                <i class="fa fa-flask"/>
+                <span><strong>Simulation mode.</strong> Figures below are real Odoo records, but no Active Directory calls are made. Live verification is unavailable.</span>
+            </div>
+
+            <!-- ============ ACCESS EXPLORER ============ -->
+            <div class="o_oneit_card o_oneit_lookup_card">
+                <div class="o_oneit_card_head">
+                    <h2><i class="fa fa-id-badge"/> Access Explorer</h2>
+                    <div class="o_oneit_modes">
+                        <button class="o_oneit_mode_tab"
+                                t-att-class="{ o_oneit_mode_on: state.mode === 'user' }"
+                                t-on-click="() => this.onModeChange('user')">By User</button>
+                        <button class="o_oneit_mode_tab"
+                                t-att-class="{ o_oneit_mode_on: state.mode === 'group' }"
+                                t-on-click="() => this.onModeChange('group')">By Group</button>
+                    </div>
+                </div>
+
+                <div class="o_oneit_lookup_bar">
+                    <div class="o_oneit_input_wrap">
+                        <i class="fa fa-search"/>
+                        <input type="text" class="o_oneit_lookup_input"
+                               t-att-value="state.term"
+                               t-on-input="onTermInput"
+                               t-on-keydown="onTermKeydown"
+                               t-att-placeholder="state.mode === 'group' ? 'e.g. ENG-Citrix-DevTools' : 'e.g. vicky.r, Vicky Raman'"/>
+                    </div>
+                    <label class="o_oneit_check" t-if="state.mode === 'user'">
+                        <input type="checkbox"
+                               t-att-checked="state.verifyLive"
+                               t-att-disabled="state.data.simulate"
+                               t-on-change="onToggleVerify"/>
+                        <span>Re-read AD now</span>
+                    </label>
+                    <button class="btn o_oneit_btn_primary"
+                            t-att-disabled="state.searching"
+                            t-on-click="onLookup">
+                        <t t-if="state.searching">Searching...</t>
+                        <t t-else="">Filter</t>
+                    </button>
+                    <button t-if="state.lookup" class="btn o_oneit_btn_ghost"
+                            t-on-click="onClearLookup">Clear</button>
+                </div>
+
+                <div t-if="state.lookup and !state.lookup.found" class="o_oneit_empty">
+                    <i class="fa fa-user-times"/>
+                    <p t-out="state.lookup.message"/>
+                </div>
+
+                <!-- ============ BY GROUP ============ -->
+                <t t-if="state.lookup and state.lookup.found and state.mode === 'group'">
+                    <div t-foreach="state.lookup.groups" t-as="g" t-key="g.id"
+                         class="o_oneit_grp_block">
+                        <div class="o_oneit_grp_head">
+                            <div>
+                                <h3>
+                                    <t t-out="g.name"/>
+                                    <span t-attf-class="o_oneit_pill o_oneit_pill_{{ g.type_key }}" t-out="g.type"/>
+                                    <span t-if="!g.active" class="o_oneit_tag o_oneit_tag_grey">archived</span>
+                                </h3>
+                                <div class="o_oneit_dn" t-out="g.dn"/>
+                            </div>
+                            <div class="o_oneit_grp_counts">
+                                <span><strong t-out="g.member_count"/> members</span>
+                                <span t-if="g.unmanaged_count" class="o_oneit_amber">
+                                    <strong t-out="g.unmanaged_count"/> not in OneIT
+                                </span>
+                            </div>
+                        </div>
+
+                        <table t-if="g.members.length" class="o_oneit_table">
+                            <thead>
+                                <tr><th>Account</th><th>Name</th><th>Source</th><th>Status</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="g.members" t-as="m" t-key="m.username">
+                                    <td><strong t-out="m.username"/></td>
+                                    <td t-out="m.name"/>
+                                    <td>
+                                        <span t-if="m.approved_in_odoo"
+                                              class="o_oneit_pill o_oneit_pill_state_done">Approved in OneIT</span>
+                                        <span t-else=""
+                                              class="o_oneit_pill o_oneit_pill_state_pending">Granted in AD directly</span>
+                                    </td>
+                                    <td>
+                                        <span t-if="m.disabled" class="o_oneit_tag o_oneit_tag_red">disabled</span>
+                                        <span t-if="!m.known_to_odoo" class="o_oneit_tag o_oneit_tag_amber">no OneIT record</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div t-else="" class="o_oneit_empty o_oneit_empty_sm">
+                            <i class="fa fa-user-o"/>
+                            <p>No members recorded. Either the group is empty, or the membership sync has not run.</p>
+                        </div>
+                    </div>
+                </t>
+
+                <!-- ============ BY USER ============ -->
+                <t t-if="state.lookup and state.lookup.found and state.mode === 'user'">
+                    <div class="o_oneit_person">
+                        <div class="o_oneit_avatar">
+                            <t t-out="(state.lookup.employee.name || state.lookup.employee.username || '?').charAt(0).toUpperCase()"/>
+                        </div>
+                        <div class="o_oneit_person_meta">
+                            <h3>
+                                <t t-out="state.lookup.employee.name || state.lookup.employee.username"/>
+                                <span t-if="state.lookup.employee.disabled_in_ad" class="o_oneit_tag o_oneit_tag_red">disabled in AD</span>
+                                <span t-if="state.lookup.employee.offboarded" class="o_oneit_tag o_oneit_tag_red">offboarded</span>
+                                <span t-if="!state.lookup.employee.managed_by_oneit" class="o_oneit_tag o_oneit_tag_amber">not managed by OneIT</span>
+                            </h3>
+                            <div class="o_oneit_person_facts">
+                                <span t-if="state.lookup.employee.username"><label>AD user</label><t t-out="state.lookup.employee.username"/></span>
+                                <span t-if="state.lookup.employee.team"><label>Team</label><t t-out="state.lookup.employee.team"/></span>
+                                <span t-if="state.lookup.employee.ou"><label>OU</label><span class="o_oneit_dn" t-out="state.lookup.employee.ou"/></span>
+                                <span><label>Requests</label><t t-out="state.lookup.request_count"/></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div t-if="!state.lookup.in_directory" class="o_oneit_banner o_oneit_banner_warn">
+                        <i class="fa fa-exclamation-triangle"/>
+                        <span>This person has OneIT requests but no matching Active Directory account was found by the sync. Either the account was never created, or the sync has not run since.</span>
+                    </div>
+                    <div t-if="state.lookup.in_directory and !state.lookup.employee.managed_by_oneit"
+                         class="o_oneit_banner o_oneit_banner_warn">
+                        <i class="fa fa-info-circle"/>
+                        <span>This account exists in Active Directory but has no OneIT request history. It predates the tool or was created by hand, so the access below was granted outside this system.</span>
+                    </div>
+
+                    <div class="o_oneit_split">
+                        <div class="o_oneit_split_chart">
+                            <div t-if="state.lookup.directory.length" class="o_oneit_chart_box o_oneit_chart_sm">
+                                <canvas t-ref="chartAccess"/>
+                            </div>
+                            <div t-else="" class="o_oneit_empty o_oneit_empty_sm">
+                                <i class="fa fa-ban"/>
+                                <p>No access found in the directory mirror.</p>
+                            </div>
+                        </div>
+
+                        <div class="o_oneit_split_list">
+                            <h4 class="o_oneit_sec_h">Actual access in Active Directory</h4>
+                            <table t-if="state.lookup.directory.length" class="o_oneit_table">
+                                <thead>
+                                    <tr><th>Group</th><th>Type</th><th>Source</th><th>Distinguished Name</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="state.lookup.directory" t-as="g" t-key="g.dn">
+                                        <td>
+                                            <strong t-out="g.name"/>
+                                            <div t-if="g.description" class="o_oneit_desc" t-out="g.description"/>
+                                        </td>
+                                        <td><span t-attf-class="o_oneit_pill o_oneit_pill_{{ g.type_key }}" t-out="g.type"/></td>
+                                        <td>
+                                            <i t-if="g.approved_in_odoo" class="fa fa-check-circle o_oneit_green" title="Approved through OneIT"/>
+                                            <span t-else="" class="o_oneit_pill o_oneit_pill_state_pending">direct in AD</span>
+                                        </td>
+                                        <td class="o_oneit_dn" t-out="g.dn"/>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div t-else="" class="o_oneit_empty o_oneit_empty_sm">
+                                <i class="fa fa-database"/>
+                                <p>Nothing in the mirror yet. Run the AD sync from Configuration &gt; AD Groups.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div t-if="state.lookup.drift.in_ad_not_approved.length or state.lookup.drift.approved_not_in_ad.length"
+                         class="o_oneit_subsection">
+                        <h4>Difference between AD and OneIT approvals</h4>
+                        <div class="o_oneit_drift">
+                            <div t-if="state.lookup.drift.in_ad_not_approved.length" class="o_oneit_drift_col">
+                                <h5 class="o_oneit_h_amber">In AD, never approved here</h5>
+                                <ul><li t-foreach="state.lookup.drift.in_ad_not_approved" t-as="n" t-key="n" t-out="n"/></ul>
+                            </div>
+                            <div t-if="state.lookup.drift.approved_not_in_ad.length" class="o_oneit_drift_col">
+                                <h5 class="o_oneit_h_red">Approved here, absent from AD</h5>
+                                <ul><li t-foreach="state.lookup.drift.approved_not_in_ad" t-as="n" t-key="n" t-out="n"/></ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div t-if="state.lookup.live_error" class="o_oneit_banner o_oneit_banner_warn">
+                        <i class="fa fa-exclamation-triangle"/><span t-out="state.lookup.live_error"/>
+                    </div>
+
+                    <div t-if="state.lookup.live" class="o_oneit_subsection">
+                        <h4>Fresh read from Active Directory</h4>
+                        <div t-if="!state.lookup.live.stale_mirror.length" class="o_oneit_banner o_oneit_banner_ok">
+                            <i class="fa fa-check-circle"/><span>The mirror is up to date - AD returned exactly what is shown above.</span>
+                        </div>
+                        <div t-if="state.lookup.live.stale_mirror.length" class="o_oneit_drift_col">
+                            <h5 class="o_oneit_h_amber">Mirror is stale for</h5>
+                            <ul><li t-foreach="state.lookup.live.stale_mirror" t-as="n" t-key="n" t-out="n"/></ul>
+                        </div>
+                        <div t-if="state.lookup.live.unmapped.length" class="o_oneit_drift_col">
+                            <h5 class="o_oneit_h_grey">Memberships with no group record</h5>
+                            <ul><li t-foreach="state.lookup.live.unmapped" t-as="n" t-key="n" class="o_oneit_dn" t-out="n"/></ul>
+                        </div>
+                    </div>
+
+                    <div t-if="state.lookup.history.length" class="o_oneit_subsection">
+                        <h4>OneIT request history</h4>
+                        <div class="o_oneit_timeline">
+                            <div t-foreach="state.lookup.history" t-as="h" t-key="h.id"
+                                 class="o_oneit_history_row o_oneit_tl_item"
+                                 t-att-class="{ o_oneit_tl_done: h.executed }"
+                                 t-on-click="() => this.openRequest(h.id)">
+                                <div t-attf-class="o_oneit_tl_dot o_oneit_dot_{{ h.type_key }}"/>
+                                <div class="o_oneit_tl_body">
+                                    <div class="o_oneit_tl_top">
+                                        <strong t-out="h.type"/>
+                                        <span t-attf-class="o_oneit_pill o_oneit_pill_state_{{ h.state_key }}" t-out="h.state"/>
+                                        <span class="o_oneit_tl_date" t-out="h.date"/>
+                                    </div>
+                                    <div class="o_oneit_tl_groups">
+                                        <t t-if="h.group_count">
+                                            <span t-foreach="h.groups" t-as="gn" t-key="gn" class="o_oneit_chip" t-out="gn"/>
+                                        </t>
+                                        <span t-else="" class="o_oneit_muted">No access recorded</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </div>
+
+            <!-- ============ KPI TILES ============ -->
+            <div class="o_oneit_kpis">
+                <div class="o_oneit_kpi o_oneit_kpi_accent o_oneit_clickable"
+                     t-on-click="() => this.openRequests([])">
+                    <span class="o_oneit_kpi_label">Total Requests</span>
+                    <span class="o_oneit_kpi_value" t-out="state.data.kpis.total_requests"/>
+                </div>
+                <div class="o_oneit_kpi o_oneit_clickable"
+                     t-on-click="() => this.openRequests([['state','in',['pending','tl_approved']]])">
+                    <span class="o_oneit_kpi_label">Awaiting Approval</span>
+                    <span class="o_oneit_kpi_value o_oneit_amber" t-out="state.data.kpis.awaiting_approval"/>
+                </div>
+                <div class="o_oneit_kpi o_oneit_clickable"
+                     t-on-click="() => this.openRequests([['state','in',['pending','tl_approved']]])">
+                    <span class="o_oneit_kpi_label">Waiting On Me</span>
+                    <span class="o_oneit_kpi_value o_oneit_purple" t-out="state.data.kpis.awaiting_me"/>
+                </div>
+                <div class="o_oneit_kpi o_oneit_clickable"
+                     t-on-click="() => this.openRequests([['state','in',['approved','ready_to_delete']]])">
+                    <span class="o_oneit_kpi_label">Approved, Not Executed</span>
+                    <span class="o_oneit_kpi_value o_oneit_orange" t-out="state.data.kpis.stuck"/>
+                    <span class="o_oneit_kpi_note">crons must be enabled</span>
+                </div>
+                <div class="o_oneit_kpi o_oneit_clickable"
+                     t-on-click="() => this.openRequests([['state','=','done']])">
+                    <span class="o_oneit_kpi_label">Completed</span>
+                    <span class="o_oneit_kpi_value o_oneit_green" t-out="state.data.kpis.completed"/>
+                </div>
+                <div class="o_oneit_kpi o_oneit_clickable"
+                     t-on-click="() => this.openRequests([['state','=','rejected']])">
+                    <span class="o_oneit_kpi_label">Rejected</span>
+                    <span class="o_oneit_kpi_value o_oneit_red" t-out="state.data.kpis.rejected"/>
+                </div>
+                <div class="o_oneit_kpi">
+                    <span class="o_oneit_kpi_label">Teams</span>
+                    <span class="o_oneit_kpi_value" t-out="state.data.kpis.teams"/>
+                </div>
+                <div class="o_oneit_kpi">
+                    <span class="o_oneit_kpi_label">AD Accounts</span>
+                    <span class="o_oneit_kpi_value" t-out="state.data.kpis.ad_accounts"/>
+                    <span class="o_oneit_kpi_note" t-if="state.data.kpis.ad_disabled">
+                        <t t-out="state.data.kpis.ad_disabled"/> disabled
+                    </span>
+                </div>
+                <div class="o_oneit_kpi">
+                    <span class="o_oneit_kpi_label">Not In OneIT</span>
+                    <span class="o_oneit_kpi_value o_oneit_amber" t-out="state.data.kpis.ad_unmanaged"/>
+                    <span class="o_oneit_kpi_note">exist only in AD</span>
+                </div>
+                <div class="o_oneit_kpi">
+                    <span class="o_oneit_kpi_label">AD Groups</span>
+                    <span class="o_oneit_kpi_value" t-out="state.data.kpis.ad_groups"/>
+                    <span class="o_oneit_kpi_note" t-if="state.data.kpis.ad_groups_archived">
+                        <t t-out="state.data.kpis.ad_groups_archived"/> archived
+                    </span>
+                </div>
+            </div>
+
+            <!-- ============ CHARTS ============ -->
+            <div class="o_oneit_grid">
+                <div class="o_oneit_card">
+                    <div class="o_oneit_card_head"><h2>Requests by Stage</h2></div>
+                    <div class="o_oneit_chart_box"><canvas t-ref="chartStates"/></div>
+                </div>
+                <div class="o_oneit_card">
+                    <div class="o_oneit_card_head"><h2>Request Types</h2></div>
+                    <div class="o_oneit_chart_box"><canvas t-ref="chartTypes"/></div>
+                </div>
+            </div>
+
+            <div class="o_oneit_grid">
+                <div class="o_oneit_card">
+                    <div class="o_oneit_card_head"><h2>AD Groups by Type</h2></div>
+                    <div class="o_oneit_chart_box"><canvas t-ref="chartGroups"/></div>
+                </div>
+                <div class="o_oneit_card">
+                    <div class="o_oneit_card_head"><h2>Requests per Team</h2></div>
+                    <div t-if="state.data.teams.length" class="o_oneit_chart_box">
+                        <canvas t-ref="chartTeams"/>
+                    </div>
+                    <div t-else="" class="o_oneit_empty o_oneit_empty_sm">
+                        <i class="fa fa-users"/><p>No requests yet.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ RECENT ============ -->
+            <div class="o_oneit_card">
+                <div class="o_oneit_card_head"><h2>Recent Activity</h2></div>
+                <table t-if="state.data.recent.length" class="o_oneit_table o_oneit_table_hover">
+                    <thead>
+                        <tr>
+                            <th>Reference</th><th>Employee</th><th>Type</th>
+                            <th>Team</th><th>Stage</th><th>Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="state.data.recent" t-as="r" t-key="r.id"
+                            t-on-click="() => this.openRequest(r.id)">
+                            <td><strong t-out="r.name"/></td>
+                            <td t-out="r.employee"/>
+                            <td t-out="r.type"/>
+                            <td t-out="r.team"/>
+                            <td><span t-attf-class="o_oneit_pill o_oneit_pill_state_{{ r.state_key }}" t-out="r.state"/></td>
+                            <td class="o_oneit_muted" t-out="r.date"/>
+                        </tr>
+                    </tbody>
+                </table>
+                <div t-else="" class="o_oneit_empty o_oneit_empty_sm">
+                    <i class="fa fa-inbox"/><p>No requests yet.</p>
+                </div>
+            </div>
+
+            <div class="o_oneit_footer_space"/>
+        </div>
+
+        <div t-else="" class="o_oneit_loading">
+            <i class="fa fa-circle-o-notch fa-spin"/>
+            <span>Loading dashboard...</span>
+        </div>
+    </div>
+</t>
+
+</templates>

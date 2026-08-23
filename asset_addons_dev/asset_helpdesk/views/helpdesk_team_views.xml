@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Form View -->
+    <record id="view_asset_helpdesk_team_form" model="ir.ui.view">
+        <field name="name">asset.helpdesk.team.form</field>
+        <field name="model">asset.helpdesk.team</field>
+        <field name="arch" type="xml">
+            <form string="Helpdesk Team">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                            invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. IT Support Team"/>
+                        </h1>
+                    </div>
+                    <notebook>
+                        <page string="General" name="general">
+                            <group>
+                                <group>
+                                    <field name="active" invisible="1"/>
+                                    <field name="leader_id"/>
+                                </group>
+                                <group>
+                                    <field name="color" widget="color_picker"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Members" name="members">
+                            <field name="member_ids" widget="many2many_tags"/>
+                        </page>
+                        <page string="Description" name="description">
+                            <field name="description" placeholder="Team description..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree View -->
+    <record id="view_asset_helpdesk_team_tree" model="ir.ui.view">
+        <field name="name">asset.helpdesk.team.tree</field>
+        <field name="model">asset.helpdesk.team</field>
+        <field name="arch" type="xml">
+            <list string="Helpdesk Teams" decoration-muted="not active">
+                <field name="name"/>
+                <field name="leader_id"/>
+                <field name="member_count" string="Members"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_asset_helpdesk_team_search" model="ir.ui.view">
+        <field name="name">asset.helpdesk.team.search</field>
+        <field name="model">asset.helpdesk.team</field>
+        <field name="arch" type="xml">
+            <search string="Search Helpdesk Teams">
+                <field name="name" string="Team"/>
+                <field name="leader_id"/>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter string="Team Leader" name="group_by_leader" context="{'group_by': 'leader_id'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_asset_helpdesk_team" model="ir.actions.act_window">
+        <field name="name">Help Desk Teams</field>
+        <field name="res_model">asset.helpdesk.team</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new helpdesk team
+            </p>
+        </field>
+    </record>
+
+</odoo>

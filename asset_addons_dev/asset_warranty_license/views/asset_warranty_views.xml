@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         WARRANTY REGISTER - asset.asset filtered to warranty concerns
+         ══════════════════════════════════════════════════════════════════ -->
+    <record id="view_asset_warranty_list" model="ir.ui.view">
+        <field name="name">asset.asset.warranty.list</field>
+        <field name="model">asset.asset</field>
+        <field name="arch" type="xml">
+            <list string="Warranties"
+                  decoration-danger="warranty_status == 'expired'"
+                  decoration-warning="warranty_expiring_soon"
+                  decoration-muted="warranty_status in ['no_warranty','not_applicable']">
+                <field name="asset_code"/>
+                <field name="asset_name"/>
+                <field name="serial_number" optional="show"/>
+                <field name="warranty_type" optional="show"/>
+                <field name="warranty_provider_id" optional="show"/>
+                <field name="warranty_contract_no" optional="hide"/>
+                <field name="warranty_start_date"/>
+                <field name="warranty_end_date"/>
+                <field name="warranty_days_left" string="Days Left"/>
+                <field name="warranty_status" widget="badge"
+                       decoration-success="warranty_status == 'active'"
+                       decoration-danger="warranty_status == 'expired'"/>
+                <field name="warranty_claim_count" string="Claims"/>
+                <field name="assigned_employee_id" optional="show"/>
+                <field name="warranty_expiring_soon" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_warranty_form" model="ir.ui.view">
+        <field name="name">asset.asset.warranty.form</field>
+        <field name="model">asset.asset</field>
+        <field name="arch" type="xml">
+            <form string="Warranty">
+                <header>
+                    <button name="action_raise_warranty_claim" type="object"
+                            string="Raise Claim" class="btn-primary"
+                            invisible="warranty_status == 'expired'"/>
+                    <field name="warranty_status" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_warranty_claims" type="object"
+                                class="oe_stat_button" icon="fa-wrench">
+                            <field name="warranty_claim_count" widget="statinfo"
+                                   string="Claims"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Expired" bg_color="text-bg-danger"
+                            invisible="warranty_status != 'expired'"/>
+                    <div class="oe_title">
+                        <h1><field name="asset_name" readonly="1"/></h1>
+                        <field name="asset_code" readonly="1" class="text-muted"/>
+                    </div>
+                    <group>
+                        <group string="Asset">
+                            <field name="serial_number" readonly="1"/>
+                            <field name="category_id" readonly="1"/>
+                            <field name="assigned_employee_id" readonly="1"/>
+                            <field name="purchase_date" readonly="1"/>
+                        </group>
+                        <group string="Warranty">
+                            <field name="warranty_type"/>
+                            <field name="warranty_provider_id"/>
+                            <field name="warranty_contract_no"/>
+                            <field name="warranty_support_contact"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Period">
+                            <field name="warranty_period_months"/>
+                            <field name="warranty_start_date"/>
+                            <field name="warranty_end_date"/>
+                            <field name="warranty_days_left" readonly="1"/>
+                            <field name="amc_expiry_date"/>
+                        </group>
+                        <group string="Documents">
+                            <field name="warranty_file" filename="warranty_filename"/>
+                            <field name="warranty_filename" invisible="1"/>
+                            <field name="warranty_expiring_soon" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Coverage" name="coverage">
+                            <field name="warranty_coverage_notes"
+                                   placeholder="What is covered? On-site or return-to-base? Response SLA?"/>
+                        </page>
+                        <page string="Claims" name="claims">
+                            <field name="warranty_claim_ids" readonly="1">
+                                <list decoration-success="state == 'completed'"
+                                      decoration-danger="state == 'rejected'">
+                                    <field name="name"/>
+                                    <field name="claim_date"/>
+                                    <field name="issue_type"/>
+                                    <field name="description" optional="hide"/>
+                                    <field name="resolution"/>
+                                    <field name="turnaround_days"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_asset_warranty_search" model="ir.ui.view">
+        <field name="name">asset.asset.warranty.search</field>
+        <field name="model">asset.asset</field>
+        <field name="arch" type="xml">
+            <search string="Warranties">
+                <field name="asset_name"/>
+                <field name="asset_code"/>
+                <field name="serial_number"/>
+                <field name="warranty_provider_id"/>
+                <field name="warranty_contract_no"/>
+                <filter name="f_active" string="Active"
+                        domain="[('warranty_status','=','active')]"/>
+                <filter name="f_expiring" string="Expiring Soon"
+                        domain="[('warranty_expiring_soon','=',True)]"/>
+                <filter name="f_expired" string="Expired"
+                        domain="[('warranty_status','=','expired')]"/>
+                <separator/>
+                <filter name="f_amc" string="AMC Contracts"
+                        domain="[('warranty_type','=','amc')]"/>
+                <filter name="f_no_provider" string="Provider Not Set"
+                        domain="[('warranty_provider_id','=',False)]"/>
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter name="g_status" string="Warranty Status"-->
+<!--                            context="{'group_by':'warranty_status'}"/>-->
+<!--                    <filter name="g_type" string="Warranty Type"-->
+<!--                            context="{'group_by':'warranty_type'}"/>-->
+<!--                    <filter name="g_provider" string="Provider"-->
+<!--                            context="{'group_by':'warranty_provider_id'}"/>-->
+<!--                    <filter name="g_end" string="Expiry Month"-->
+<!--                            context="{'group_by':'warranty_end_date:month'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <record id="action_asset_warranty" model="ir.actions.act_window">
+        <field name="name">Warranties</field>
+        <field name="res_model">asset.asset</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('warranty_status','!=','not_applicable')]</field>
+        <field name="search_view_id" ref="view_asset_warranty_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No warranties to show</p>
+            <p>Warranty dates live on the asset itself. Set the purchase date and
+               warranty period on an asset and it appears here.</p>
+        </field>
+    </record>
+
+    <record id="action_asset_warranty_list_view" model="ir.actions.act_window.view">
+        <field name="sequence">1</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_asset_warranty_list"/>
+        <field name="act_window_id" ref="action_asset_warranty"/>
+    </record>
+    <record id="action_asset_warranty_form_view" model="ir.actions.act_window.view">
+        <field name="sequence">2</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_asset_warranty_form"/>
+        <field name="act_window_id" ref="action_asset_warranty"/>
+    </record>
+
+    <record id="action_asset_warranty_expiring" model="ir.actions.act_window">
+        <field name="name">Expiring Soon</field>
+        <field name="res_model">asset.asset</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('warranty_expiring_soon','=',True)]</field>
+        <field name="search_view_id" ref="view_asset_warranty_search"/>
+    </record>
+    <record id="action_warranty_expiring_list_view" model="ir.actions.act_window.view">
+        <field name="sequence">1</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_asset_warranty_list"/>
+        <field name="act_window_id" ref="action_asset_warranty_expiring"/>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         WARRANTY CLAIMS
+         ══════════════════════════════════════════════════════════════════ -->
+    <record id="view_warranty_claim_list" model="ir.ui.view">
+        <field name="name">asset.warranty.claim.list</field>
+        <field name="model">asset.warranty.claim</field>
+        <field name="arch" type="xml">
+            <list string="Warranty Claims"
+                  decoration-success="state == 'completed'"
+                  decoration-danger="state == 'rejected'"
+                  decoration-info="state == 'submitted'">
+                <field name="name"/>
+                <field name="claim_date"/>
+                <field name="asset_id"/>
+                <field name="asset_code" optional="hide"/>
+                <field name="employee_id" optional="show"/>
+                <field name="issue_type"/>
+                <field name="replaced_part" optional="hide"/>
+                <field name="provider_id" optional="show"/>
+                <field name="provider_ticket_no" optional="hide"/>
+                <field name="warranty_valid_on_claim" string="In Warranty"/>
+                <field name="turnaround_days" optional="show"/>
+                <field name="cost" optional="hide" sum="Total"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="resolution" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'completed'"
+                       decoration-danger="state == 'rejected'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_warranty_claim_form" model="ir.ui.view">
+        <field name="name">asset.warranty.claim.form</field>
+        <field name="model">asset.warranty.claim</field>
+        <field name="arch" type="xml">
+            <form string="Warranty Claim">
+                <header>
+                    <button name="action_submit" type="object" string="Submit"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_start_progress" type="object"
+                            string="In Progress" invisible="state != 'submitted'"/>
+                    <button name="action_approve" type="object" string="Approve"
+                            class="btn-primary"
+                            invisible="state not in ['submitted','in_progress']"/>
+                    <button name="action_reject" type="object" string="Reject"
+                            invisible="state not in ['submitted','in_progress']"/>
+                    <button name="action_complete" type="object" string="Complete"
+                            class="btn-primary" invisible="state != 'approved'"/>
+                    <button name="action_reset_draft" type="object"
+                            string="Reset to Draft"
+                            invisible="state in ['draft','completed']"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,submitted,in_progress,approved,completed"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Out of Warranty"
+                            bg_color="text-bg-danger"
+                            invisible="warranty_valid_on_claim"/>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Asset">
+                            <field name="asset_id" options="{'no_create': True}"/>
+                            <field name="asset_code" readonly="1"/>
+                            <field name="serial_number" readonly="1"/>
+                            <field name="employee_id" readonly="1"/>
+                        </group>
+                        <group string="Claim">
+                            <field name="claim_date"/>
+                            <field name="issue_type"/>
+                            <field name="warranty_valid_on_claim" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Provider">
+                            <field name="provider_id"/>
+                            <field name="contract_no"/>
+                            <field name="provider_ticket_no"/>
+                        </group>
+                        <group string="Timeline">
+                            <field name="submitted_date" readonly="1"/>
+                            <field name="completed_date" readonly="1"/>
+                            <field name="turnaround_days" readonly="1"/>
+                            <field name="cost"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Issue" name="issue">
+                            <field name="description"
+                                   placeholder="What is wrong with the asset?"/>
+                        </page>
+                        <page string="Resolution" name="resolution">
+                            <group>
+                                <field name="resolution"/>
+                                <field name="replaced_part"
+                                       placeholder="e.g. Keyboard assembly, 57Wh battery"/>
+                            </group>
+                            <field name="resolution_notes"
+                                   placeholder="What did the provider do?"/>
+                        </page>
+                        <page string="Document" name="document">
+                            <group>
+                                <field name="attachment_file"
+                                       filename="attachment_filename"/>
+                                <field name="attachment_filename" invisible="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_warranty_claim_search" model="ir.ui.view">
+        <field name="name">asset.warranty.claim.search</field>
+        <field name="model">asset.warranty.claim</field>
+        <field name="arch" type="xml">
+            <search string="Warranty Claims">
+                <field name="name"/>
+                <field name="asset_id"/>
+                <field name="serial_number"/>
+                <field name="provider_ticket_no"/>
+                <field name="employee_id"/>
+                <filter name="f_open" string="Open"
+                        domain="[('state','in',['draft','submitted','in_progress','approved'])]"/>
+                <filter name="f_completed" string="Completed"
+                        domain="[('state','=','completed')]"/>
+                <separator/>
+                <filter name="f_out_of_warranty" string="Out of Warranty"
+                        domain="[('warranty_valid_on_claim','=',False)]"/>
+                <filter name="f_costed" string="Had a Cost"
+                        domain="[('cost','>',0)]"/>
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter name="g_state" string="Status"-->
+<!--                            context="{'group_by':'state'}"/>-->
+<!--                    <filter name="g_issue" string="Issue Type"-->
+<!--                            context="{'group_by':'issue_type'}"/>-->
+<!--                    <filter name="g_asset" string="Asset"-->
+<!--                            context="{'group_by':'asset_id'}"/>-->
+<!--                    <filter name="g_provider" string="Provider"-->
+<!--                            context="{'group_by':'provider_id'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <record id="action_warranty_claim" model="ir.actions.act_window">
+        <field name="name">Warranty Claims</field>
+        <field name="res_model">asset.warranty.claim</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_warranty_claim_search"/>
+        <field name="context">{'search_default_f_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No warranty claims yet</p>
+            <p>Raise a claim from an asset's warranty record, or create one here.
+               Claims keep their own copy of the provider and contract number, so
+               history stays accurate even after a warranty is renewed.</p>
+        </field>
+    </record>
+</odoo>

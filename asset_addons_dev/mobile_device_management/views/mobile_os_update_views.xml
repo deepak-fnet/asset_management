@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_mobile_os_update_list" model="ir.ui.view">
+        <field name="name">mobile.os.update.list</field>
+        <field name="model">mobile.os.update</field>
+        <field name="arch" type="xml">
+            <list string="OS Updates"
+                  decoration-danger="severity == 'eol'"
+                  decoration-warning="severity in ['major','security']"
+                  decoration-muted="state in ['installed','dismissed']">
+                <field name="device_id"/>
+                <field name="platform"/>
+                <field name="current_version"/>
+                <field name="available_version"/>
+                <field name="severity" widget="badge"
+                       decoration-danger="severity == 'eol'"
+                       decoration-warning="severity in ['major','security']"/>
+                <field name="detail" optional="show"/>
+                <field name="employee_id" optional="hide"/>
+                <field name="state" widget="badge"/>
+                <field name="detected_on"/>
+                <button name="action_mark_installed" type="object"
+                        string="Mark Installed" icon="fa-check"
+                        invisible="state in ['installed','dismissed']"/>
+                <button name="action_dismiss" type="object"
+                        string="Dismiss" icon="fa-times"
+                        invisible="state in ['installed','dismissed']"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mobile_os_update_search" model="ir.ui.view">
+        <field name="name">mobile.os.update.search</field>
+        <field name="model">mobile.os.update</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="device_id"/>
+                <field name="available_version"/>
+                <filter name="f_open" string="Outstanding" domain="[('state','in',['available','notified'])]"/>
+                <filter name="f_eol" string="End of Life" domain="[('severity','=','eol')]"/>
+                <filter name="f_security" string="Security" domain="[('severity','=','security')]"/>
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter name="g_severity" string="Severity" context="{'group_by':'severity'}"/>-->
+<!--                    <filter name="g_platform" string="Platform" context="{'group_by':'platform'}"/>-->
+<!--                    <filter name="g_state" string="Status" context="{'group_by':'state'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <record id="action_mobile_os_update" model="ir.actions.act_window">
+        <field name="name">OS Updates</field>
+        <field name="res_model">mobile.os.update</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_mobile_os_update_search"/>
+        <field name="context">{'search_default_f_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Every device is up to date</p>
+            <p>Updates are detected by comparing each device's reported OS version
+               against the OS Release catalogue under Configuration.</p>
+        </field>
+    </record>
+</odoo>

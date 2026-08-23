@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         Add the new discovery-classification columns to the existing list,
+         and a proper search view (none existed - the list only had a plain
+         search box with no filters or group-by).
+         ══════════════════════════════════════════════════════════════════ -->
+    <record id="view_asset_network_device_tree_discovery" model="ir.ui.view">
+        <field name="name">asset.network.device.list.discovery</field>
+        <field name="model">asset.network.device</field>
+        <field name="inherit_id" ref="asset_management.view_asset_network_device_tree"/>
+        <field name="arch" type="xml">
+            <field name="device_type" position="after">
+                <field name="discovery_state" optional="show"/>
+                <field name="os_guess" optional="show"/>
+                <field name="is_unmanaged_endpoint" optional="show"/>
+            </field>
+            <list position="attributes">
+                <attribute name="decoration-warning">is_unmanaged_endpoint</attribute>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_network_device_search" model="ir.ui.view">
+        <field name="name">asset.network.device.search</field>
+        <field name="model">asset.network.device</field>
+        <field name="arch" type="xml">
+            <search string="Network Devices">
+                <field name="name"/>
+                <field name="device_code"/>
+                <field name="ip_address"/>
+                <field name="mac_address"/>
+
+                <filter name="f_unmanaged" string="Unmanaged Endpoints"
+                        domain="[('is_unmanaged_endpoint','=',True)]"
+                        help="Looks like a computer or phone by TTL/port signature, but no agent-managed asset or mobile device matches its IP or MAC."/>
+                <filter name="f_placeholder" string="Unconfirmed (Ping Only)"
+                        domain="[('discovery_state','=','placeholder')]"/>
+                <filter name="f_confirmed" string="SNMP Confirmed"
+                        domain="[('discovery_state','=','snmp_confirmed')]"/>
+                <separator/>
+                <filter name="f_online" string="Online"
+                        domain="[('connection_status','=','online')]"/>
+                <filter name="f_unreachable" string="Unreachable"
+                        domain="[('connection_status','!=','online')]"/>
+
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter name="g_type" string="Device Type"-->
+<!--                            context="{'group_by':'device_type'}"/>-->
+<!--                    <filter name="g_os_guess" string="OS Guess"-->
+<!--                            context="{'group_by':'os_guess'}"/>-->
+<!--                    <filter name="g_discovery_state" string="Discovery State"-->
+<!--                            context="{'group_by':'discovery_state'}"/>-->
+<!--                    <filter name="g_manufacturer" string="Manufacturer"-->
+<!--                            context="{'group_by':'manufacturer'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         Standalone action: exactly the list the user asked for - "which
+         devices on my network look like a laptop/phone but have no agent".
+         ══════════════════════════════════════════════════════════════════ -->
+    <record id="action_asset_network_device_unmanaged" model="ir.actions.act_window">
+        <field name="name">Unmanaged Endpoints</field>
+        <field name="res_model">asset.network.device</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_unmanaged_endpoint','=',True)]</field>
+        <field name="search_view_id" ref="view_asset_network_device_search"/>
+        <field name="context">{'search_default_f_unmanaged': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No unmanaged endpoints found</p>
+            <p>These are hosts that answered ping but not SNMP, whose TTL and open
+               ports look like a computer or phone rather than network equipment,
+               and whose IP/MAC does not match any asset or mobile device already
+               reporting through an agent. Install the agent on them, or confirm
+               they are something else and correct the Device Type manually.</p>
+            <p><b>Classification is a heuristic</b> - TTL ~64 is shared by Linux,
+               macOS, iOS AND Android, and phones often randomise their MAC
+               address per network, so treat this as a lead to check, not proof.</p>
+        </field>
+    </record>
+
+
+</odoo>

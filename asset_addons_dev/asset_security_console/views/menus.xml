@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <menuitem id="menu_security_console"
+              name="Asset Security Console"
+              parent="asset_patch_vuln.menu_security_root"
+              action="action_asset_security_console"
+              sequence="1"/>
+
+    <menuitem id="menu_setup_check"
+              name="Setup &amp; Health Check"
+              parent="asset_patch_vuln.menu_security_root"
+              action="action_setup_check"
+              sequence="90"/>
+
+    <menuitem id="menu_patch_cleanup"
+              name="Clean Up Misfiled Patches"
+              parent="asset_patch_vuln.menu_security_root"
+              action="action_patch_cleanup"
+              sequence="92"
+              groups="asset_management.group_asset_manager"/>
+
+    <menuitem id="menu_demo_seeder"
+              name="Demo Data (Testing)"
+              parent="asset_patch_vuln.menu_security_root"
+              action="action_demo_seeder"
+              sequence="95"
+              groups="asset_management.group_asset_manager"/>
+
+</odoo>

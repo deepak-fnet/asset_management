@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- All shipped INACTIVE. Set mail_to and review the threshold
+             before enabling, or the first sweep mails a placeholder
+             address. -->
+
+        <record id="rule_disk_full" model="asset.telemetry.alert.rule">
+            <field name="name">Disk above 90% on any mount</field>
+            <field name="active" eval="False"/>
+            <field name="severity">critical</field>
+            <field name="json_path">disks.mounts[*].percent</field>
+            <field name="aggregation">any</field>
+            <field name="operator">gt</field>
+            <field name="threshold">90</field>
+            <field name="mail_to">it-alerts@example.com</field>
+            <field name="cooldown_hours">24</field>
+            <field name="description">Fires when any mounted filesystem passes 90%. Disk-full is the single most common cause of a machine failing in a confusing way.</field>
+        </record>
+
+        <record id="rule_memory_high" model="asset.telemetry.alert.rule">
+            <field name="name">RAM above 90%</field>
+            <field name="active" eval="False"/>
+            <field name="severity">warning</field>
+            <field name="json_path">memory.virtual.percent</field>
+            <field name="operator">gt</field>
+            <field name="threshold">90</field>
+            <field name="mail_to">it-alerts@example.com</field>
+            <field name="cooldown_hours">12</field>
+        </record>
+
+        <record id="rule_battery_low" model="asset.telemetry.alert.rule">
+            <field name="name">Battery health below 60%</field>
+            <field name="active" eval="False"/>
+            <field name="severity">warning</field>
+            <field name="json_path">hardware.battery.percent</field>
+            <field name="operator">lt</field>
+            <field name="threshold">60</field>
+            <field name="mail_to">it-alerts@example.com</field>
+            <field name="cooldown_hours">168</field>
+            <field name="description">Equivalent of your existing battery_percentage rule, but read from telemetry instead of a stored field. Weekly cooldown, since a worn battery does not improve on its own.</field>
+        </record>
+
+        <record id="rule_failed_services" model="asset.telemetry.alert.rule">
+            <field name="name">Failed systemd units present</field>
+            <field name="active" eval="False"/>
+            <field name="severity">warning</field>
+            <field name="json_path">services.failed_count</field>
+            <field name="operator">gt</field>
+            <field name="threshold">0</field>
+            <field name="platform_filter">linux</field>
+            <field name="mail_to">it-alerts@example.com</field>
+            <field name="cooldown_hours">24</field>
+        </record>
+
+        <record id="rule_load_high" model="asset.telemetry.alert.rule">
+            <field name="name">Load average above 4 (5-minute)</field>
+            <field name="active" eval="False"/>
+            <field name="severity">warning</field>
+            <field name="json_path">cpu.load_average.5min</field>
+            <field name="operator">gt</field>
+            <field name="threshold">4</field>
+            <field name="platform_filter">linux</field>
+            <field name="mail_to">it-alerts@example.com</field>
+            <field name="cooldown_hours">6</field>
+            <field name="description">Threshold should really be core-count dependent. Use the expression mode for that: get('cpu.load_average.5min') > get('cpu.logical_cores')</field>
+        </record>
+
+        <record id="rule_reboot_required" model="asset.telemetry.alert.rule">
+            <field name="name">Reboot required after updates</field>
+            <field name="active" eval="False"/>
+            <field name="severity">info</field>
+            <field name="json_path">packages.reboot_required</field>
+            <field name="operator">is_true</field>
+            <field name="platform_filter">linux</field>
+            <field name="mail_to">it-alerts@example.com</field>
+            <field name="cooldown_hours">72</field>
+        </record>
+
+        <record id="rule_load_vs_cores" model="asset.telemetry.alert.rule">
+            <field name="name">Load exceeds core count (expression example)</field>
+            <field name="active" eval="False"/>
+            <field name="severity">warning</field>
+            <field name="json_path">cpu.load_average.5min</field>
+            <field name="use_expression" eval="True"/>
+            <field name="expression">get('cpu.load_average.5min') and get('cpu.logical_cores') and get('cpu.load_average.5min') > get('cpu.logical_cores')</field>
+            <field name="platform_filter">linux</field>
+            <field name="mail_to">it-alerts@example.com</field>
+            <field name="cooldown_hours">6</field>
+            <field name="description">Shows expression mode. A fixed load threshold is meaningless across machines with different core counts; this compares against the machine's own capacity.</field>
+        </record>
+
+    </data>
+</odoo>

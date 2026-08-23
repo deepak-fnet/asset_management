@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_asset_category_form" model="ir.ui.view">
+        <field name="name">asset.category.form</field>
+        <field name="model">asset.category</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_assets" type="object"
+                                class="oe_stat_button" icon="fa-cubes"
+                                invisible="asset_count == 0">
+                            <field string="Assets" name="asset_count" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name" string="Category"/>
+                        <h1><field name="name" placeholder="e.g. Laptop"/></h1>
+                    </div>
+                    <field name="active" invisible="1"/>
+                    <notebook>
+                        <page string="Sub Categories" name="sub_categories">
+                            <field name="sub_category_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_asset_category_list" model="ir.ui.view">
+        <field name="name">asset.category.list</field>
+        <field name="model">asset.category</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="sub_category_count"/>
+                <field name="asset_count"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_asset_category" model="ir.actions.act_window">
+        <field name="name">Asset Category</field>
+        <field name="res_model">asset.category</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create an asset category</p>
+            <p>Categories and their sub categories classify your assets and drive the age dashboard breakdown.</p>
+        </field>
+    </record>
+
+    <record id="view_asset_sub_category_list" model="ir.ui.view">
+        <field name="name">asset.sub.category.list</field>
+        <field name="model">asset.sub.category</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="category_id"/>
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_sub_category_form" model="ir.ui.view">
+        <field name="name">asset.sub.category.form</field>
+        <field name="model">asset.sub.category</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="category_id"/>
+                        <field name="name"/>
+                        <field name="active" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_asset_sub_category" model="ir.actions.act_window">
+        <field name="name">Asset Sub Category</field>
+        <field name="res_model">asset.sub.category</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

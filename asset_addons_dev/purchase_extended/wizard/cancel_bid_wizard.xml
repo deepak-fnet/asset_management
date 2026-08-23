@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Wizard Form View -->
+    <record id="view_cancel_bid_wizard_form" model="ir.ui.view">
+        <field name="name">cancel.bid.wizard.form</field>
+        <field name="model">cancel.bid.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Cancel Bid">
+                 <div class="alert alert-warning" role="alert">
+                        <strong>Are you sure?</strong><br/>
+                        Do you want to cancel this bid received record?
+                    </div>
+                <group>
+                    <field name="reason" placeholder="Enter cancellation reason..."/>
+                </group>
+                <footer>
+                    <button name="action_cancel"
+                            type="object"
+                            string="Confirm"
+                            class="btn-primary"/>
+                    <button string="Close"
+                            special="cancel"
+                            class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Wizard Action -->
+    <record id="action_cancel_bid_wizard" model="ir.actions.act_window">
+        <field name="name">Cancel Bid</field>
+        <field name="res_model">cancel.bid.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

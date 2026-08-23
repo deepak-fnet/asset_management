@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Ported from the Django management command: ad_update -->
+        <record id="cron_oneit_team_update" model="ir.cron">
+            <field name="name">OneIT: Apply approved team updates</field>
+            <field name="model_id" ref="model_oneit_request"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_apply_team_update()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">hours</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="active" eval="False"/>
+        </record>
+
+        <!-- Ported from the Django management command: ad_disable -->
+        <record id="cron_oneit_offboarding_disable" model="ir.cron">
+            <field name="name">OneIT: Disable offboarded AD accounts</field>
+            <field name="model_id" ref="model_oneit_request"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_disable_offboarded_users()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="active" eval="False"/>
+        </record>
+
+        <!-- Ported from the Django management command: ad_remove_user -->
+        <record id="cron_oneit_offboarding_delete" model="ir.cron">
+            <field name="name">OneIT: Delete offboarded AD accounts</field>
+            <field name="model_id" ref="model_oneit_request"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_delete_offboarded_users()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="active" eval="False"/>
+        </record>
+
+
+        <record id="cron_oneit_sync_ad_groups" model="ir.cron">
+            <field name="name">OneIT: Sync AD groups from directory</field>
+            <field name="model_id" ref="model_oneit_ad_group"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_sync_ad_groups()</field>
+            <field name="interval_number">6</field>
+            <field name="interval_type">hours</field>
+            <!-- Enabled by default, unlike the three execution crons: this
+                 one only READS the directory, so there is no risk in
+                 letting it run before you are ready to write to AD. -->
+            <field name="active" eval="True"/>
+        </record>
+
+    </data>
+</odoo>

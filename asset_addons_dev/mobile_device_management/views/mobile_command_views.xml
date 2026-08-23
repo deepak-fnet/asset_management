@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_mobile_command_list" model="ir.ui.view">
+        <field name="name">mobile.command.list</field>
+        <field name="model">mobile.command</field>
+        <field name="arch" type="xml">
+            <list string="Commands"
+                  decoration-muted="state in ['done','unsupported']"
+                  decoration-danger="state == 'failed'">
+                <field name="create_date"/>
+                <field name="device_id"/>
+                <field name="command_type"/>
+                <field name="requires_privilege" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'"
+                       decoration-danger="state == 'failed'"
+                       decoration-warning="state == 'pending'"/>
+                <field name="requested_by"/>
+                <field name="sent_on" optional="hide"/>
+                <field name="completed_on"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_mobile_command_form" model="ir.ui.view">
+        <field name="name">mobile.command.form</field>
+        <field name="model">mobile.command</field>
+        <field name="arch" type="xml">
+            <form string="Send Command">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="device_id"/>
+                            <field name="command_type"/>
+                            <field name="state" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="requested_by" readonly="1"/>
+                            <field name="sent_on" readonly="1"/>
+                            <field name="completed_on" readonly="1"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-warning" role="alert"
+                         invisible="not requires_privilege">
+                        Lock and Factory Reset only work when the agent holds
+                        Device Admin or Device Owner. On an ordinary install the
+                        device will report the command back as Not Supported
+                        rather than appearing to succeed.
+                    </div>
+                    <group>
+                        <field name="payload" placeholder='Optional JSON, e.g. {"duration": 30}'/>
+                        <field name="result" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_mobile_command" model="ir.actions.act_window">
+        <field name="name">Commands</field>
+        <field name="res_model">mobile.command</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

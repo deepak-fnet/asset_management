@@ -1,0 +1,23 @@
+.o_form_view .small-binary-field {
+    max-width: 50px !important;
+    max-height: 10px !important;
+    overflow: hidden;
+    font-size: 5px;
+    display: inline-block;
+}
+
+.o_asset_dashboard_container { padding: 18px; }
+.o_asset_header h2 { margin: 0 0 6px; font-weight:600; }
+.o_subtitle { color: #777; margin-bottom: 10px; }
+.o_dashboard_preview_img { max-width: 120px; border-radius:6px; }
+
+.o_kpi_row { margin: 14px 0 20px; }
+.o_kpi_card { background: #fff; border-radius:6px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); text-align:center; margin-bottom:12px; }
+.o_kpi_title { font-size: 0.9rem; color:#666; }
+.o_kpi_value { font-size: 1.75rem; font-weight:700; color:#e84a4a; margin-top:6px; }
+
+.o_card { background: #fff; border-radius:6px; margin-bottom:14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.o_card_header { padding: 12px 18px; border-bottom: 1px solid #f0f0f0; font-weight:600; }
+.o_card_body { padding: 14px 18px; }
+
+.o_progress_label { margin-top:8px; font-size:0.95rem; color:#555; }

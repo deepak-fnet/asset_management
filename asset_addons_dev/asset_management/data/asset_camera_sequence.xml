@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_asset_camera" model="ir.sequence">
+            <field name="name">CCTV Camera Code</field>
+            <field name="code">asset.camera</field>
+            <field name="prefix">CAM-</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </data>
+</odoo>

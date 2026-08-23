@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_vendor_rating_wizard_form" model="ir.ui.view">
+        <field name="name">vendor.rating.wizard.form</field>
+        <field name="model">vendor.rating.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Rate Vendor Transaction">
+                <group>
+                    <group>
+                        <field name="purchase_id" invisible="not purchase_id"/>
+                        <field name="move_id" invisible="not move_id"/>
+                        <field name="vendor_id"/>
+                    </group>
+                </group>
+                <separator string="Performance Ratings"/>
+                <group>
+                    <field name="quality" widget="priority"/>
+                    <field name="delivery" widget="priority"/>
+                    <field name="service" widget="priority"/>
+                    <field name="overall" widget="priority"/>
+                </group>
+                <group>
+                    <field name="comment" placeholder="Add any specific feedback here..."/>
+                </group>
+                <footer>
+                    <button name="action_confirm" string="Submit Rating" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_vendor_rating_wizard" model="ir.actions.act_window">
+        <field name="name">Rate Vendor</field>
+        <field name="res_model">vendor.rating.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

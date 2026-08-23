@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="asset_management.SystemOverview" owl="1">
+    <div class="o_system_overview container-fluid">
+        <!-- Header with Quick Actions -->
+        <div class="dashboard_header mb-4 px-4 py-3">
+            <div class="row align-items-center g-0">
+                <div class="col-md-6">
+                    <h2 class="dashboard_title mb-1"><i class="fa fa-tachometer me-2"/>System Overview</h2>
+                    <p class="dashboard_subtitle text-muted mb-0">
+                        Real-time summary of all assets and system health
+                    </p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <div class="dashboard_controls">
+                        <span class="refresh_status me-3" t-if="state.last_refresh">
+                            <i class="fa fa-clock me-1"/>
+                            Last updated: <t t-esc="state.last_refresh"/>
+                        </span>
+
+                        <!-- Quick Actions Dropdown -->
+                        <div class="btn-group me-2">
+                            <button class="btn btn-sm btn-warning dropdown-toggle" data-bs-toggle="dropdown">
+                                <i class="fa fa-bolt"/> Quick Actions
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" t-on-click="() => this.approveAllChanges()">
+                                        <i class="fa fa-check-circle text-success"/> Approve All Changes
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="() => this.createMaintenanceSchedule()">
+                                        <i class="fa fa-wrench text-warning"/> Schedule Maintenance
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"/></li>
+                                <li>
+                                    <a class="dropdown-item" t-on-click="() => this.openAgentLogs()">
+                                        <i class="fa fa-history text-info"/> View All Logs
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <button class="btn btn-sm btn-outline-danger me-2"
+                                t-on-click="() => this.downloadPDF()"
+                                t-att-disabled="state.loading">
+                            <i class="fa fa-file-pdf-o"/>
+                            Download PDF
+                        </button>
+
+                        <button class="btn btn-sm btn-outline-primary me-2"
+                                t-on-click="() => this.refreshData()"
+                                t-att-disabled="state.loading">
+                            <i class="fa fa-sync" t-att-class="{'fa-spin': state.loading}"/>
+                            Refresh
+                        </button>
+                        <button class="btn btn-sm"
+                                t-att-class="state.auto_refresh ? 'btn-success' : 'btn-outline-secondary'"
+                                t-on-click="() => this.toggleAutoRefresh()">
+                            <i class="fa" t-att-class="state.auto_refresh ? 'fa-pause' : 'fa-play'"/>
+                            <t t-if="state.auto_refresh">Auto-refresh ON</t>
+                            <t t-else="">Auto-refresh OFF</t>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <!-- Row 1: Total Assets, Total Online, Total Offline, Overall Alerts -->
+        <div class="row g-4 mb-4">
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_total_assets" t-on-click="() => this.openAllAssets()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-cubes"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">TOTAL ASSETS</span>
+                            <span class="kpi_value" t-esc="state.total_assets"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_total_online" t-on-click="() => this.openOnlineAgents()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-wifi"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">TOTAL ONLINE</span>
+                            <span class="kpi_value" t-esc="state.online_agents"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_total_offline" t-on-click="() => this.openOfflineAgents()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-times-circle"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">TOTAL OFFLINE</span>
+                            <span class="kpi_value" t-esc="state.offline_agents"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_overall_alerts" t-on-click="() => this.openAllAlerts()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-bell"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">OVERALL ALERTS</span>
+                            <span class="kpi_value" t-esc="state.total_alerts_count"/>
+                        </div>
+                        <span class="alerts-breakdown">
+                            <i class="fa fa-info-circle ms-2" t-att-title="'🔴 ' + state.critical_alerts_count + ' Critical | 🟠 ' + state.warning_alerts_count + ' Warning | 🟢 ' + state.info_alerts_count + ' Info'"/>
+                        </span>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2: Total Windows, Windows Online, Windows Offline, Windows Alerts -->
+        <div class="row g-4 mb-4">
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_windows_total" t-on-click="() => this.openWindowsAssets()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-windows"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">TOTAL WINDOWS</span>
+                            <span class="kpi_value" t-esc="state.windows_count"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_windows_online" t-on-click="() => this.openWindowsAssetsOnline()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-windows"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">WINDOWS ONLINE</span>
+                            <span class="kpi_value" t-esc="state.windows_online"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_windows_offline" t-on-click="() => this.openWindowsAssetsOffline()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-windows"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">WINDOWS OFFLINE</span>
+                            <span class="kpi_value" t-esc="state.windows_offline"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_windows_alerts" t-on-click="() => this.openWindowsAlerts()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-windows"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">WINDOWS ALERTS</span>
+                            <span class="kpi_value" t-esc="state.windows_alerts_count"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 3: Total Linux, Linux Online, Linux Offline, Linux Alerts -->
+        <div class="row g-4 mb-4">
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_linux_total" t-on-click="() => this.openLinuxAssets()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-linux"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">TOTAL LINUX</span>
+                            <span class="kpi_value" t-esc="state.linux_count"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_linux_online" t-on-click="() => this.openLinuxAssetsOnline()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-linux"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">LINUX ONLINE</span>
+                            <span class="kpi_value" t-esc="state.linux_online"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_linux_offline" t-on-click="() => this.openLinuxAssetsOffline()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-linux"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">LINUX OFFLINE</span>
+                            <span class="kpi_value" t-esc="state.linux_offline"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_linux_alerts" t-on-click="() => this.openLinuxAlerts()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-linux"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">LINUX ALERTS</span>
+                            <span class="kpi_value" t-esc="state.linux_alerts_count"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 3.5: Total macOS, macOS Online, macOS Offline, macOS Alerts -->
+        <div class="row g-4 mb-4">
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_macos_total" t-on-click="() => this.openMacOSAssets()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-apple"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">TOTAL MACOS</span>
+                            <span class="kpi_value" t-esc="state.mac_count"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_macos_online" t-on-click="() => this.openMacOSAssetsOnline()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-apple"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">MACOS ONLINE</span>
+                            <span class="kpi_value" t-esc="state.mac_online"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_macos_offline" t-on-click="() => this.openMacOSAssetsOffline()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-apple"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">MACOS OFFLINE</span>
+                            <span class="kpi_value" t-esc="state.mac_offline"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_macos_alerts" t-on-click="() => this.openMacOSAlerts()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-apple"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">MACOS ALERTS</span>
+                            <span class="kpi_value" t-esc="state.mac_alerts_count"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 4: Total Network, Network Online, Network Offline, Network Alerts -->
+        <div class="row g-4 mb-4">
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_network_total" t-on-click="() => this.openNetworkDevices()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-sitemap"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">TOTAL NETWORK</span>
+                            <span class="kpi_value" t-esc="state.network_count"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_network_online" t-on-click="() => this.openNetworkDevicesOnline()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-sitemap"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">NETWORK ONLINE</span>
+                            <span class="kpi_value" t-esc="state.network_online"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_network_offline" t-on-click="() => this.openNetworkDevicesOffline()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-sitemap"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">NETWORK OFFLINE</span>
+                            <span class="kpi_value" t-esc="state.network_offline"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_network_alerts" t-on-click="() => this.openNetworkAlerts()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-sitemap"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">NETWORK ALERTS</span>
+                            <span class="kpi_value" t-esc="state.network_alerts_count"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 5: Total CCTV, CCTV Online, CCTV Offline, CCTV Alerts -->
+        <div class="row g-4 mb-4">
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_cctv_total" t-on-click="() => this.openCCTVDevices()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-video-camera"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">TOTAL CCTV</span>
+                            <span class="kpi_value" t-esc="state.camera_count"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_cctv_online" t-on-click="() => this.openCCTVDevicesOnline()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-video-camera"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">CCTV ONLINE</span>
+                            <span class="kpi_value" t-esc="state.camera_online"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_cctv_offline" t-on-click="() => this.openCCTVDevicesOffline()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-video-camera"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">CCTV OFFLINE</span>
+                            <span class="kpi_value" t-esc="state.camera_offline"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="kpi_card kpi_cctv_alerts" t-on-click="() => this.openCCTVAlerts()">
+                    <div class="kpi_body">
+                        <div class="kpi_icon"><i class="fa fa-video-camera"/></div>
+                        <div class="kpi_text">
+                            <span class="kpi_label">CCTV ALERTS</span>
+                            <span class="kpi_value" t-esc="state.cctv_alerts_count"/>
+                        </div>
+                    </div>
+                    <div class="kpi_bottom"/>
+                </div>
+            </div>
+        </div>
+
+        <!-- Donut Charts Row -->
+        <div class="row g-4 mb-4">
+            <!-- Asset Type Distribution Donut -->
+            <div class="col-lg-6 col-md-12">
+                <div class="card shadow-sm h-100 border-0">
+                    <div class="card-header bg-white border-bottom-0 pt-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fa fa-chart-pie me-2 text-primary"/>
+                            <strong class="text-dark">Asset Distribution</strong>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" style="height: 320px; position: relative;">
+                            <canvas id="asset_distribution_donut"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Agent Status Donut -->
+            <div class="col-lg-6 col-md-12">
+                <div class="card shadow-sm h-100 border-0">
+                    <div class="card-header bg-white border-bottom-0 pt-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fa fa-signal me-2 text-success"/>
+                            <strong class="text-dark">Global Agent Status</strong>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" style="height: 320px; position: relative;">
+                            <canvas id="agent_status_global_donut"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Change Alerts Section -->
+        <div class="row g-4 mb-4">
+            <!-- Change Alerts - Left Side -->
+            <div class="col-lg-6">
+                <div class="card dashboard_card h-100 shadow-sm border-0">
+                    <div class="card-header d-flex justify-content-between align-items-center bg-white border-bottom-0 pt-3 pb-0">
+                        <div class="d-flex align-items-center">
+                            <i class="fa fa-exclamation-circle me-2 text-danger"/>
+                            <strong class="me-2">Change Alerts</strong>
+                            <span class="badge bg-danger rounded-pill" t-esc="state.all_alerts.length"/>
+                        </div>
+                        <button class="btn btn-sm btn-link p-0 text-muted" t-on-click="() => this.openAllAlerts()">
+                            View All <i class="fa fa-arrow-right ms-1"/>
+                        </button>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="alert_list">
+                            <t t-foreach="state.all_alerts" t-as="alert" t-key="alert.id">
+                                <div class="alert_item_enhanced mb-3 p-3 border rounded shadow-sm position-relative d-flex align-items-center" t-on-click="() => this.openAsset(alert.id)" style="cursor: pointer; transition: all 0.2s; background: #fff; border-left: 4px solid #ff9800 !important;">
+                                    <div class="alert_image_wrapper me-3" style="width: 54px; height: 54px; overflow: hidden; border-radius: 10px; flex-shrink: 0; border: 1px solid #f0f0f0;">
+                                        <img t-att-src="this.resolveAssetImage(alert)" class="alert_asset_img w-100 h-100" style="object-fit: cover;" alt="Asset"/>
+                                    </div>
+                                    <div class="alert_content flex-grow-1 min-width-0">
+                                        <div class="d-flex align-items-center flex-wrap mb-1">
+                                            <strong class="text-dark me-2" style="font-size: 14px;"><t t-esc="alert.asset_name"/></strong>
+                                            <span class="badge bg-light text-muted border me-2" style="font-size: 10px; font-weight: 500;"><t t-esc="alert.asset_code"/></span>
+                                            <span t-att-class="'badge ms-2 ' + (alert.severity === 'critical' ? 'bg-danger' : alert.severity === 'warning' ? 'bg-warning text-dark' : 'bg-success')" style="font-size: 10px; padding: 3px 10px; border-radius: 4px; font-weight: 600;">
+                                                <t t-esc="alert.severity === 'info' ? 'INFO' : alert.severity.toUpperCase()"/>
+                                            </span>
+                                        </div>
+                                        <div class="text-muted small mb-1" style="font-size: 11px;"><t t-esc="formatDateTime(alert.date)"/></div>
+                                        <div class="text-muted small text-truncate" style="font-size: 12px;"><t t-esc="alert.summary"/></div>
+                                    </div>
+                                    <div class="alert_action ms-2 text-muted">
+                                        <i class="fa fa-chevron-right"/>
+                                    </div>
+                                </div>
+                            </t>
+                            <t t-if="state.all_alerts.length === 0">
+                                <div class="empty_state text-center py-5">
+                                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px; background: #f8f9fa;">
+                                        <i class="fa fa-info-circle text-muted fa-2x"/>
+                                    </div>
+                                    <p class="text-muted mb-0">No pending change alerts</p>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity - Right Side -->
+            <div class="col-lg-6">
+                <div class="card dashboard_card h-100 shadow-sm border-0">
+                    <div class="card-header d-flex justify-content-between align-items-center bg-white border-bottom-0 pt-3 pb-0">
+                        <div>
+                            <i class="fa fa-history me-2 text-primary"/>
+                            <strong>Overall Recent Sync Activities</strong>
+                        </div>
+                        <button class="btn btn-sm btn-link p-0 text-muted" t-on-click="() => this.openAgentLogs()">
+                            View All <i class="fa fa-arrow-right ms-1"/>
+                        </button>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="sync_timeline ps-2">
+                            <t t-foreach="state.recent_activity" t-as="activity" t-key="activity.id">
+                                <div class="sync_timeline_item d-flex pb-4 position-relative"
+                                     t-on-click="() => this.openAsset(activity.asset_id)"
+                                     style="cursor: pointer;">
+                                    <t t-if="!activity_last">
+                                        <div class="timeline_line position-absolute"
+                                             style="left: 14px; top: 30px; bottom: 0; width: 2px; background: #eee;"/>
+                                    </t>
+                                    <div class="sync_status_icon me-3 position-relative" style="z-index: 1;">
+                                        <div t-att-class="'rounded-circle d-flex align-items-center justify-content-center ' + (activity.status === 'success' ? 'bg-success text-white' : 'bg-danger text-white')"
+                                             style="width: 28px; height: 28px; font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                                            <i t-att-class="activity.status === 'success' ? 'fa fa-check' : 'fa fa-times'"/>
+                                        </div>
+                                    </div>
+                                    <div class="sync_item_content flex-grow-1">
+                                        <div class="d-flex align-items-center mb-1">
+                                            <strong class="text-dark" style="font-size: 14px;">
+                                                <t t-esc="activity.asset_name"/>
+                                            </strong>
+                                            <span t-att-class="'badge ms-2 ' + (activity.status === 'success' ? 'bg-info' : 'bg-danger')"
+                                                  style="font-size: 10px; padding: 4px 10px; border-radius: 4px;">
+                                                <t t-esc="activity.type === 'updated' ? 'updated' : activity.type"/>
+                                            </span>
+                                        </div>
+                                        <div class="text-muted small" style="font-size: 12px;">
+                                            <t t-esc="activity.description"/> • <t t-esc="formatDateTime(activity.time)"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </t>
+                            <t t-if="!state.recent_activity.length">
+                                <div class="text-center py-5 text-muted">
+                                    <i class="fa fa-history fa-2x mb-2 opacity-25 d-block"/>
+                                    No recent activity found
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</t>
+
+</templates>

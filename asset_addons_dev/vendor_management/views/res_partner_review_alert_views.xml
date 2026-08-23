@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Smart Button and Warning Banner for Review Due -->
+    <record id="view_partner_vendor_review_alert" model="ir.ui.view">
+        <field name="name">res.partner.vendor.review.alert</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="vendor_management.view_partner_form_vendor_enterprise"/>
+        <field name="arch" type="xml">
+            <!-- Add smart button in button box -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_review_wizard" 
+                        type="object" 
+                        class="oe_stat_button bg-danger text-white" 
+                        invisible="not review_due">
+                    <i class="fa fa-exclamation-triangle" title="Review Alert"/>
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Review</span>
+                        <span class="o_stat_text">Due!</span>
+                    </div>
+                </button>
+            </xpath>
+            
+            <!-- Add warning banner at top of sheet -->
+            <xpath expr="//sheet" position="before">
+                <div class="alert alert-danger text-center vendor_review_warning_banner" 
+                     role="alert" 
+                     invisible="not review_due">
+                    <i class="fa fa-exclamation-triangle text-warning" title="Review Alert"/> 
+                    <strong>Performance Review Overdue</strong> - 
+                    This vendor requires a periodic performance review. 
+                    <button name="action_open_review_wizard" 
+                            type="object" 
+                            class="btn btn-sm btn-light">
+                        Review Now
+                    </button>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Add Review Status Indicator in List View -->
+    <record id="view_vendor_partner_list_review_indicator" model="ir.ui.view">
+        <field name="name">res.partner.vendor.list.review.indicator</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="vendor_management.view_vendor_partner_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <field name="review_status_indicator" 
+                       string="Review Status"
+                       widget="badge"
+                       decoration-success="review_status_indicator == 'ok'"
+                       decoration-warning="review_status_indicator == 'soon'"
+                       decoration-danger="review_status_indicator == 'expired'"
+                       optional="show"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

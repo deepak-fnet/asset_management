@@ -1,0 +1,240 @@
+<odoo>
+    <record id="action_goods_receipts_report" model="ir.actions.report">
+        <field name="name">Goods Receipts</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">report_management.report_goods_receipts</field>
+        <field name="report_file">report_management.report_goods_receipts</field>
+        <field name="print_report_name">'Goods Receipt - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="report_management.custom_paperformat"/>
+    </record>
+
+    <template id="goods_receipt_report_header">
+        <t t-set="doc" t-value="doc or o or None"/>
+        <t t-if="doc and 'company_id' in doc">
+            <t t-set="company" t-value="doc.company_id"></t>
+        </t>
+        <t t-if="not doc or not 'company_id' in doc">
+            <t t-set="company" t-value="res_company"></t>
+        </t>
+        <div class="header">
+            <table style="width: 100%; font-size: 15px; border-collapse: collapse;">
+                <tr style="vertical-align: top;">
+                    <td style="text-align: left; width: 50%;">
+                        <h2 style="font-size: 25px; margin: 0; font-weight: bold; font-family: Baskervville SC; serif; font-style: normal;">
+                            <span t-esc="doc.company_id.name if doc else company.name"/>
+                        </h2>
+                        <t t-if="doc and doc.company_id.street">
+                            <span t-field="doc.company_id.street"/>,
+                        </t>
+                        <t t-if="doc and doc.company_id.street2">
+                            <span t-field="doc.company_id.street2"/>,
+                        </t>
+                        <br/>
+                        <t t-if="doc and doc.company_id.city">
+                            <span t-field="doc.company_id.city"/>,
+                        </t>
+                        <t t-if="doc and doc.company_id.state_id">
+                            <span t-field="doc.company_id.state_id.name"/>,
+                        </t>
+                        <t t-if="doc and doc.company_id.country_id">
+                            <span t-field="doc.company_id.country_id.name"/>
+                        </t>
+                        <br/>
+                        <t t-if="doc and doc.company_id.phone">Phone:
+                            <span t-field="doc.company_id.phone"/>
+                        </t>
+                        <br/>
+                        <t t-if="doc and doc.company_id.email">Email:
+                            <span t-field="doc.company_id.email"/>
+                        </t>
+                        <br/>
+                    </td>
+                    <td style="max-width:100%; text-align: right;">
+                        <t t-if="doc and doc.company_id.logo">
+                            <right style="margin-left: 30px;">
+                                <img t-if="company.logo" t-att-src="image_data_uri(company.logo)"
+                                     style="width:150px;"
+                                     alt="Logo"/>
+                            </right>
+                        </t>
+                    </td>
+                </tr>
+            </table>
+            <table style="width: 100%; font-size: 15px; border-collapse: collapse; padding-bottom: 2px;">
+                <tr>
+                    <td style="padding: 2px; border-top: 2px solid #007FDE;">PO Number</td>
+                    <td style="padding: 2px; border-top: 2px solid #007FDE;">Document Date</td>
+                    <td style="padding: 2px; border-top: 2px solid #007FDE; text-align: right;">Page</td>
+                </tr>
+                <tr>
+                    <td style="padding: 2px; border-bottom: 2px solid #007FDE;">
+                        <b>
+                            <span t-esc="doc.name if doc else ''"/>
+                        </b>
+                    </td>
+                    <td style="padding: 2px; border-bottom: 2px solid #007FDE;">
+                        <b>
+                            <span t-esc="doc.scheduled_date.strftime('%d/%m/%Y') if doc and doc.scheduled_date else ''"/>
+                        </b>
+                    </td>
+                    <td style="padding: 2px; text-align: right; border-bottom: 2px solid #007FDE;">
+                        <strong>
+                            <span class="page"/>
+                            /
+                            <span class="topage"/>
+                        </strong>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <t t-if="doc and doc.state == 'draft'">
+            <div class="watermark"
+                 style="position:absolute;left:-105px;top:385px;text-align:center;opacity:0.25;z-index:1000;transform:rotate(310deg);-webkit-transform:rotate(310deg);width:130%;">
+                <p style="font-size:160px;color:black;">D R A F T</p>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_goods_receipts">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-set="company" t-value="doc.company_id"/>
+                <t t-call="web.basic_layout">
+                    <t t-call="report_management.goods_receipt_report_header"/>
+                   <div class="page" style="font-size: 11px;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 2px;;width: 50%;">
+
+                            </td>
+                            <td style="border-bottom: 2px solid #007FDE; padding: 2px;;width: 25%; text-align: left;">
+                                <Span>
+                                    Original
+                                </Span>
+                            </td>
+                            <td style="border-bottom: 2px solid #007FDE; padding: 2px;;width: 25%; text-align: right;">
+                                <span style="font-size: 18px; border-left: 8px solid #F0AB00">
+                                    <strong style="margin-left: 5px;">
+                                        Goods Receipt
+                                    </strong>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 2px;;width; 100%; text-align: right;">
+
+                            </td>
+                            <td style="border-bottom: 2px solid #007FDE; padding: 2px;;width: 25%; text-align: left;">
+                                <span>Document Number</span>
+                                <br/>
+                                <br/>
+                                <span t-esc="doc.name"/>
+                            </td>
+                            <td style="border-bottom: 2px solid #007FDE; padding: 2px;;width: 25%; text-align: right;">
+                                <span>Document Date</span>
+                                <br/>
+                                <br/>
+                                <span t-esc="doc.scheduled_date and doc.scheduled_date.strftime('%d/%m/%Y')"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 2px;;width; 50%;" rowspan="2">
+                                Pay TO :
+                                <br/>
+                                <strong>
+                                    <span t-esc="doc.partner_id.name"/>
+                                </strong>
+                                <br/>
+                                <t t-if="doc.partner_id.contact_address">
+                                    <span style="padding: 1px;" t-esc="doc.partner_id.street"/>
+                                    <span style="padding: 1px;" t-esc="doc.partner_id.street2"/>
+                                    <span style="padding: 1px;" t-esc="doc.partner_id.zip"/>
+                                    <span style="padding: 1px;" t-esc="doc.partner_id.city"/>
+                                    <span style="padding: 1px;" t-esc="doc.partner_id.state_id.name"/>
+                                    <span style="padding: 1px;" t-esc="doc.partner_id.country_id.name"/>
+                                </t>
+                                <br/>
+                                TRN NO:
+                            </td>
+                            <td style=" padding: 2px;;width: 25%; text-align: left;">
+                                <span>Vendor No</span>
+                                <br/>
+                                <br/>
+                                32233
+                            </td>
+                            <td style=" padding: 2px;;width: 25%; text-align: right;">
+                                <span>Our TRN Number</span>
+                                <br/>
+                                <br/>
+                                323323
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style=" padding: 2px;;width: 25%;" colspan="2">
+                                Delivery Address
+                                <br/>
+                                <strong>
+                                    <span t-esc="doc.partner_id.name"/>
+                                </strong>
+                                <br/>
+                                <t t-if="doc.partner_id.contact_address">
+                                    <span style="padding: 1px;" t-esc="doc.partner_id.street"/>
+                                    <span style="padding: 1px;" t-esc="doc.partner_id.street2"/>
+                                    <span style="padding: 1px;" t-esc="doc.partner_id.zip"/>
+                                    <span style="padding: 1px;" t-esc="doc.partner_id.city"/>
+                                    <span style="padding: 1px;" t-esc="doc.partner_id.state_id.name"/>
+                                    <span style="padding: 1px;" t-esc="doc.partner_id.country_id.name"/>
+                                </t>
+                            </td>
+                        </tr>
+                    </table>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 11px; border-bottom:1px solid #4CA5E7; border-top:1px solid #4CA5E7;">
+                            <thead>
+                                <tr style="background-color: rgb(240,244,247)">
+                                    <th style="width: 5%; text-align: center; border-bottom:1px solid #4CA5E7; border-top:1px solid #4CA5E7; padding: 5px;">
+                                        #
+                                    </th>
+                                    <th style="width: 60px; text-align: left; border-bottom:1px solid #4CA5E7; border-top:1px solid #4CA5E7; padding: 5px;">
+                                        Description
+                                    </th>
+                                    <th style="width: 20%; text-align: center; border-bottom:1px solid #4CA5E7; border-top:1px solid #4CA5E7; padding: 5px;">
+                                        Quantity
+                                    </th>
+                                    <th style="width: 15%; text-align: center; border-bottom:1px solid #4CA5E7; border-top:1px solid #4CA5E7; padding: 5px;">
+                                        UOM
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="counter" t-value="1"/>
+                                <t t-foreach="doc.move_ids" t-as="line">
+                                    <tr>
+                                        <td style="width: 5%; border-bottom:1px solid #4CA5E7; padding: 4px; text-align: center; vertical-align: middle;">
+                                            <t t-esc="counter"/>
+                                            <t t-set="counter" t-value="counter+1"/>
+                                        </td>
+                                        <td style="width: 60px; border-bottom:1px solid #4CA5E7; padding: 4px; text-align: left; vertical-align: middle;">
+                                            <t t-if="line.product_id">
+                                                <t t-esc="line.product_id.name"/>
+                                            </t>
+                                        </td>
+                                        <td style="width: 20%; border-bottom:1px solid #4CA5E7; padding: 4px; text-align: center; vertical-align: middle;">
+                                            <t t-esc="'{:.0f}'.format(line.quantity)"/>
+                                        </td>
+                                        <td style="width: 15%; border-bottom:1px solid #4CA5E7; padding: 4px; text-align: center; vertical-align: middle;">
+                                            <t t-esc="line.product_uom_id.name"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

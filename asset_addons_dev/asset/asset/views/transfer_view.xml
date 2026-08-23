@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_asset_transfer_form" model="ir.ui.view">
+        <field name="name">asset.transfer.form</field>
+        <field name="model">asset.internal.transfer</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_submit" type="object" string="Submit" class="oe_highlight"
+                            invisible="state not in 'draft'"/>
+                    <button name="action_department_approve" type="object" string="Department Approve" class="oe_highlight"
+                            invisible="state not in 'submit'"/>
+                    <button name="action_incharge_approve" type="object" string="FI Approve" class="oe_highlight"
+                            invisible="state not in 'dept_approved'"/>
+                    <button name="action_cfo_approve" type="object" string="CFO Approve" class="oe_highlight"
+                            invisible="state not in 'incharge_approved'"/>
+                    <button name="action_done" type="object" string="Done" class="oe_highlight"
+                            invisible="state not in 'cfo_approved'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="submit,dept_approved,incharge_approved"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="asset_id"/>
+                        <field name="transfer_date"/>
+                        <field name="location_from_id"/>
+                        <field name="location_to_id"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_asset_transfer_list" model="ir.ui.view">
+        <field name="name">asset.transfer.list</field>
+        <field name="model">asset.internal.transfer</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="asset_id"/>
+                <field name="location_from_id"/>
+                <field name="location_to_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_transfer_pivot" model="ir.ui.view">
+        <field name="name">asset.internal.transfer.pivot</field>
+        <field name="model">asset.internal.transfer</field>
+        <field name="arch" type="xml">
+            <pivot string="Asset Addition Analysis">
+                <field name="name" type="row"/>
+                <field name="asset_id" type="row"/>
+                <field name="transfer_date" type="col"/>
+                <field name="state" type="row"/>
+                <field name="location_from_id" type="col"/>
+                <field name="location_to_id" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_asset_transfer_graph" model="ir.ui.view">
+        <field name="name">asset.internal.transfer.graph</field>
+        <field name="model">asset.internal.transfer</field>
+        <field name="arch" type="xml">
+            <graph string="Asset Graph" type="bar">
+                <field name="state" type="measure"/>
+                <field name="name"/>
+                <field name="asset_id" type="row"/>
+                <field name="location_from_id"/>
+                <field name="location_to_id"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_asset_transfer" model="ir.actions.act_window">
+        <field name="name">Asset Internal Transfer</field>
+        <field name="res_model">asset.internal.transfer</field>
+        <field name="view_mode">list,form,pivot,graph</field>
+    </record>
+
+</odoo>

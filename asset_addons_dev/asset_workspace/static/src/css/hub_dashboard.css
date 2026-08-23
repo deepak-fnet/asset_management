@@ -1,0 +1,173 @@
+/* ==========================================================================
+   Unified dashboard hub — prefix hub- to avoid collisions
+   ========================================================================== */
+
+.hub {
+    padding: 20px 24px 40px;
+    background: #f7f8fa;
+    min-height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.hub .hub-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 22px; flex-wrap: wrap; gap: 12px;
+}
+.hub .hub-title {
+    font-size: 24px; font-weight: 700; color: #111827; margin: 0 0 4px;
+}
+.hub .hub-sub { font-size: 13px; color: #6b7280; margin: 0; }
+.hub .hub-actions { display: flex; gap: 8px; }
+
+.hub .hub-btn {
+    border: 1px solid #d1d5db; background: #fff; color: #374151;
+    padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 500;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    transition: all .15s;
+}
+.hub .hub-btn:hover { background: #f3f4f6; border-color: #9ca3af; }
+.hub .hub-btn-primary {
+    background: #1F3A5F; border-color: #1F3A5F; color: #fff;
+}
+.hub .hub-btn-primary:hover { background: #16293f; border-color: #16293f; }
+
+/* ── Section labels ─────────────────────────────────────────────────────── */
+.hub .hub-section-label {
+    font-size: 11px; font-weight: 700; color: #9ca3af;
+    text-transform: uppercase; letter-spacing: .6px;
+    margin: 20px 0 10px;
+}
+.hub .hub-section-label:first-of-type { margin-top: 0; }
+
+/* ── Platform tiles ─────────────────────────────────────────────────────── */
+.hub .hub-platform-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 12px;
+}
+.hub .hub-platform {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+    padding: 15px 17px; cursor: pointer; transition: all .15s;
+}
+.hub .hub-platform:hover {
+    box-shadow: 0 2px 10px rgba(0,0,0,.08); transform: translateY(-1px);
+}
+.hub .hub-platform-active {
+    border-color: #1F3A5F; box-shadow: 0 0 0 2px rgba(31,58,95,.12);
+}
+.hub .hub-platform-head {
+    display: flex; align-items: center; gap: 9px; margin-bottom: 9px;
+}
+.hub .hub-platform-icon { font-size: 19px; }
+.hub .hub-platform-label {
+    font-size: 13.5px; font-weight: 600; color: #374151;
+}
+.hub .hub-platform-total {
+    font-size: 30px; font-weight: 700; color: #111827; line-height: 1;
+}
+.hub .hub-platform-split {
+    display: flex; gap: 10px; font-size: 11.5px; margin-top: 5px;
+}
+.hub .hub-online { color: #16a34a; font-weight: 600; }
+.hub .hub-offline { color: #9ca3af; }
+
+.hub .hub-bar {
+    height: 4px; background: #f1f3f5; border-radius: 2px;
+    overflow: hidden; margin-top: 9px;
+}
+.hub .hub-bar-fill { height: 100%; border-radius: 2px; transition: width .4s; }
+
+/* ── View selector ──────────────────────────────────────────────────────── */
+.hub .hub-views {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+    padding: 16px 18px; margin-top: 16px;
+}
+.hub .hub-view-row { display: flex; gap: 9px; flex-wrap: wrap; }
+.hub .hub-view-btn {
+    border: 1px solid #d1d5db; background: #fff; color: #374151;
+    padding: 10px 16px; border-radius: 7px; font-size: 13px; font-weight: 500;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+    transition: all .15s;
+}
+.hub .hub-view-btn:hover {
+    background: #1F3A5F; border-color: #1F3A5F; color: #fff;
+}
+.hub .hub-hint {
+    font-size: 11.5px; color: #9ca3af; margin: 11px 0 0; font-style: italic;
+}
+
+/* ── Fleet health ───────────────────────────────────────────────────────── */
+.hub .hub-health-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 11px;
+}
+.hub .hub-health {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 9px;
+    padding: 15px 16px; text-align: center;
+}
+.hub .hub-health-num {
+    font-size: 25px; font-weight: 700; color: #111827; line-height: 1.1;
+}
+.hub .hub-health-lbl {
+    font-size: 11.5px; color: #6b7280; margin-top: 4px;
+}
+.hub .hub-health-bad  { background: #fef2f2; border-color: #fecaca; }
+.hub .hub-health-bad .hub-health-num  { color: #dc2626; }
+.hub .hub-health-warn { background: #fff7ed; border-color: #fed7aa; }
+.hub .hub-health-warn .hub-health-num { color: #ea580c; }
+
+.hub .hub-clickable { cursor: pointer; transition: all .12s; }
+.hub .hub-clickable:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,.08); transform: translateY(-1px);
+}
+
+.hub .hub-note {
+    display: flex; align-items: center; gap: 9px;
+    background: #eff6ff; border-left: 3px solid #3b82f6;
+    padding: 11px 14px; border-radius: 6px; margin-top: 13px;
+    font-size: 12.5px; color: #1e3a5f;
+}
+
+/* ── Cards and tables ───────────────────────────────────────────────────── */
+.hub .hub-card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+    padding: 6px 4px;
+}
+.hub .hub-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.hub .hub-table th {
+    text-align: left; padding: 9px 12px; font-size: 10.5px; font-weight: 600;
+    color: #6b7280; text-transform: uppercase; letter-spacing: .4px;
+    border-bottom: 1px solid #e5e7eb;
+}
+.hub .hub-table td {
+    padding: 11px 12px; border-bottom: 1px solid #f3f4f6; color: #374151;
+}
+.hub .hub-table tbody tr:last-child td { border-bottom: none; }
+.hub .hub-table tbody tr:hover { background: #f9fafb; }
+
+.hub .hub-badge {
+    display: inline-block; padding: 2px 9px; border-radius: 11px;
+    font-size: 10.5px; font-weight: 600;
+}
+.hub .hub-badge-danger  { background: #fee2e2; color: #b91c1c; }
+.hub .hub-badge-warning { background: #ffedd5; color: #c2410c; }
+.hub .hub-badge-ok      { background: #dcfce7; color: #15803d; }
+.hub .hub-badge-muted   { background: #f3f4f6; color: #6b7280; }
+
+.hub .hub-muted { color: #9ca3af; font-size: 11.5px; }
+
+/* ── States ─────────────────────────────────────────────────────────────── */
+.hub .hub-loading { text-align: center; padding: 70px 20px; color: #6b7280; }
+.hub .hub-loading p { margin-top: 12px; font-size: 13px; }
+.hub .hub-empty {
+    text-align: center; padding: 26px 16px; color: #9ca3af; font-size: 12.5px;
+}
+.hub .hub-footer {
+    text-align: center; font-size: 11px; color: #9ca3af; padding: 18px 0 4px;
+}
+
+@media (max-width: 768px) {
+    .hub { padding: 12px; }
+}

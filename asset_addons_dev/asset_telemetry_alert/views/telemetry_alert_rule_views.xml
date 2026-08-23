@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_telemetry_alert_rule_list" model="ir.ui.view">
+        <field name="name">asset.telemetry.alert.rule.list</field>
+        <field name="model">asset.telemetry.alert.rule</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="severity == 'critical'"
+                  decoration-warning="severity == 'warning'"
+                  decoration-muted="not active">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="json_path"/>
+                <field name="operator"/>
+                <field name="threshold"/>
+                <field name="aggregation" optional="show"/>
+                <field name="severity" widget="badge"/>
+                <field name="platform_filter" optional="show"/>
+                <field name="cooldown_hours" string="Cooldown (h)"/>
+                <field name="active_alert_count" string="Active"/>
+                <field name="trigger_count" string="Total"/>
+                <field name="last_triggered" optional="hide"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_telemetry_alert_rule_form" model="ir.ui.view">
+        <field name="name">asset.telemetry.alert.rule.form</field>
+        <field name="model">asset.telemetry.alert.rule</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_test_rule" type="object"
+                            string="Test Rule" class="btn-primary"
+                            help="Evaluate against every asset that has telemetry. Sends no mail."/>
+                    <button name="action_browse_paths" type="object"
+                            string="Browse Available Paths"
+                            help="List the paths present in a real telemetry payload."/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_logs" type="object"
+                                class="oe_stat_button" icon="fa-bell">
+                            <field name="active_alert_count" widget="statinfo"
+                                   string="Active"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name"
+                                   placeholder="e.g. Disk above 90% on any mount"/></h1>
+                    </div>
+
+                    <group>
+                        <group string="Condition">
+                            <field name="use_expression"/>
+
+                            <field name="json_path"
+                                   invisible="use_expression"
+                                   placeholder="memory.virtual.percent"/>
+                            <field name="aggregation"
+                                   invisible="use_expression"/>
+                            <field name="operator"
+                                   invisible="use_expression"/>
+                            <field name="threshold"
+                                   invisible="use_expression or operator in ('is_true','is_false','is_set','is_empty')"/>
+
+                            <field name="expression"
+                                   invisible="not use_expression"
+                                   placeholder="get('cpu.load_average.5min') > get('cpu.logical_cores')"/>
+                        </group>
+                        <group string="Scope &amp; Severity">
+                            <field name="severity"/>
+                            <field name="platform_filter"/>
+                            <field name="asset_ids" widget="many2many_tags"
+                                   options="{'no_create': True}"
+                                   placeholder="Leave empty for all assets"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+
+                    <div class="alert alert-info" role="status"
+                         invisible="use_expression">
+                        <b>Path syntax.</b>
+                        <code>memory.virtual.percent</code> reads one value.
+                        <code>disks.mounts[*].percent</code> reads every mount —
+                        pair it with aggregation <b>Any item matches</b> to fire
+                        when a single mount crosses the threshold, or
+                        <b>Maximum of list</b> to compare only the worst one.
+                        Use <b>Browse Available Paths</b> to see what a real
+                        payload contains.
+                    </div>
+
+                    <notebook>
+                        <page string="Notification" name="notification">
+                            <group>
+                                <field name="mail_to"
+                                       placeholder="it-alerts@company.com, manager@company.com"/>
+                                <field name="email_subject"/>
+                            </group>
+                            <separator string="Mail Body"/>
+                            <field name="email_content"/>
+                            <div class="text-muted mt-2">
+                                Placeholders:
+                                <code>{asset_name}</code>
+                                <code>{asset_serial}</code>
+                                <code>{asset_hostname}</code>
+                                <code>{rule_name}</code>
+                                <code>{json_path}</code>
+                                <code>{value}</code>
+                                <code>{threshold}</code>
+                                <code>{severity}</code>
+                                <code>{record_url}</code>
+                                <code>{first_seen}</code>
+                                <code>{occurrence_count}</code>
+                            </div>
+                        </page>
+
+                        <page string="Noise Control" name="noise">
+                            <group>
+                                <field name="cooldown_hours"/>
+                                <field name="send_recovery_mail"/>
+                            </group>
+                            <div class="alert alert-warning" role="status">
+                                <b>Telemetry arrives every 15 minutes.</b>
+                                With a cooldown of 0, a machine sitting above the
+                                threshold sends 96 mails a day and people stop
+                                reading them. 24 hours is a sensible default;
+                                use 0 only when you genuinely want every
+                                occurrence.
+                            </div>
+                        </page>
+
+                        <page string="Notes" name="notes">
+                            <field name="description"
+                                   placeholder="Why this rule exists, who owns it, any caveats…"/>
+                        </page>
+                    </notebook>
+
+                    <group string="Statistics" col="4">
+                        <field name="trigger_count" readonly="1"/>
+                        <field name="last_triggered" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_telemetry_alert_rule_search" model="ir.ui.view">
+        <field name="name">asset.telemetry.alert.rule.search</field>
+        <field name="model">asset.telemetry.alert.rule</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="json_path"/>
+                <filter name="f_critical" string="Critical"
+                        domain="[('severity','=','critical')]"/>
+<!--                <filter name="f_firing" string="Currently Firing"-->
+<!--                        domain="[('active_alert_count','&gt;',0)]"/>-->
+                <separator/>
+                <filter name="f_inactive" string="Inactive"
+                        domain="[('active','=',False)]"/>
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter name="g_sev" string="Severity"-->
+<!--                            context="{'group_by':'severity'}"/>-->
+<!--                    <filter name="g_platform" string="Platform"-->
+<!--                            context="{'group_by':'platform_filter'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <record id="action_telemetry_alert_rule" model="ir.actions.act_window">
+        <field name="name">Telemetry Alert Rules</field>
+        <field name="res_model">asset.telemetry.alert.rule</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_telemetry_alert_rule_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first rule</p>
+            <p>
+                Rules watch any value inside the agent telemetry JSON — disk
+                usage per mount, load average, failed services, battery health —
+                without needing a field on asset.asset.
+            </p>
+            <p>
+                Sample rules ship inactive. Open one, set <b>Mail To</b>, click
+                <b>Test Rule</b> to see what it would fire on, then activate.
+            </p>
+        </field>
+    </record>
+
+</odoo>

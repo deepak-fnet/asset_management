@@ -1,0 +1,502 @@
+/* =========================================================
+   macOS AGENTS DASHBOARD
+   Same layout/structure as Windows (asset_dashboard), softer macOS palette
+   ========================================================= */
+
+/* =========================
+   DASHBOARD CONTAINER (macOS)
+   ========================= */
+
+.o_asset_dashboard.macos-dashboard {
+    padding: 24px;
+    flex: 1 1 auto;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: auto;
+    background: #f5f5f7;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', 'Helvetica', 'Arial', sans-serif;
+}
+
+.o_asset_dashboard.macos-dashboard.container-fluid {
+    max-width: none !important;
+    padding-left: 24px;
+    padding-right: 24px;
+}
+
+/* =========================
+   HEADER (macOS)
+   ========================= */
+
+.macos-dashboard .dashboard_header {
+    background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-top: 4px solid #86868b !important;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+/* macOS Dashboard - Grey outlines for Risk & Compliance container */
+.macos-dashboard .risk-compliance-container {
+    border-top: 3px solid #86868b !important;
+}
+
+/* macOS Dashboard - Grey outlines for dashboard cards */
+.macos-dashboard .dashboard_card {
+    border-bottom: 3px solid #86868b !important;
+}
+
+.macos-dashboard .dashboard_title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #1d1d1f;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+.macos-dashboard .dashboard_title .fa-apple {
+    color: #000000;
+}
+
+.macos-dashboard .dashboard_subtitle {
+    font-size: 14px;
+    color: #86868b;
+    margin-top: 2px;
+}
+
+.macos-dashboard .refresh_status {
+    font-size: 13px;
+    color: #86868b;
+}
+
+.macos-dashboard .dashboard_controls .btn-outline-primary {
+    border-color: #0071e3;
+    color: #0071e3;
+}
+
+.macos-dashboard .dashboard_controls .btn-outline-primary:hover {
+    background-color: #0071e3;
+    color: #fff;
+    border-color: #0071e3;
+}
+
+.macos-dashboard .dashboard_controls .btn-outline-danger {
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+.macos-dashboard .dashboard_controls .btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: #fff;
+    border-color: #dc3545;
+}
+
+.macos-dashboard .dashboard_controls .btn-outline-secondary {
+    border-color: #86868b;
+    color: #86868b;
+}
+
+.macos-dashboard .dashboard_controls .btn-outline-secondary:hover {
+    background-color: #86868b;
+    color: #fff;
+    border-color: #86868b;
+}
+
+/* =========================
+   KPI CARDS (macOS – equal height, alignment)
+   ========================= */
+
+.macos-dashboard .kpi_card {
+    position: relative;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px 24px;
+    height: 130px;
+    min-height: 130px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.macos-dashboard .kpi_card .kpi_body {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    flex: 1;
+}
+
+.macos-dashboard .kpi_icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+}
+
+.macos-dashboard .kpi_text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.macos-dashboard .kpi_label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #86868b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.macos-dashboard .kpi_value {
+    font-size: 36px;
+    font-weight: 800;
+    color: #1d1d1f;
+    line-height: 1;
+}
+
+.macos-dashboard .kpi_bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 5px;
+    width: 100%;
+    border-radius: 0 0 16px 16px;
+}
+
+/* KPI COLORS – macOS softer palette */
+.macos-dashboard .kpi_primary .kpi_icon {
+    background: rgba(0, 113, 227, 0.12);
+    color: #0071e3;
+}
+
+.macos-dashboard .kpi_primary .kpi_bottom {
+    background: #0071e3;
+}
+
+.macos-dashboard .kpi_info .kpi_icon {
+    background: rgba(0, 122, 255, 0.12);
+    color: #007aff;
+}
+
+.macos-dashboard .kpi_info .kpi_bottom {
+    background: #007aff;
+}
+
+.macos-dashboard .kpi_success .kpi_icon {
+    background: rgba(52, 199, 89, 0.12);
+    color: #34c759;
+}
+
+.macos-dashboard .kpi_success .kpi_bottom {
+    background: #34c759;
+}
+
+.macos-dashboard .kpi_warning .kpi_icon {
+    background: rgba(255, 149, 0, 0.12);
+    color: #ff9500;
+}
+
+.macos-dashboard .kpi_warning .kpi_bottom {
+    background: #ff9500;
+}
+
+.macos-dashboard .kpi_danger .kpi_icon {
+    background: rgba(255, 59, 48, 0.12);
+    color: #ff3b30;
+}
+
+.macos-dashboard .kpi_danger .kpi_bottom {
+    background: #ff3b30;
+}
+
+.macos-dashboard .kpi_amber .kpi_icon {
+    background: rgba(255, 159, 10, 0.12);
+    color: #ff9f0a;
+}
+
+.macos-dashboard .kpi_amber .kpi_bottom {
+    background: #ff9f0a;
+}
+
+.macos-dashboard .kpi_secondary .kpi_icon,
+.macos-dashboard .kpi_card.kpi-secondary .kpi_icon {
+    background: rgba(142, 142, 147, 0.12);
+    color: #8e8e93;
+}
+
+.macos-dashboard .kpi_secondary .kpi_bottom,
+.macos-dashboard .kpi_card.kpi-secondary .kpi_bottom {
+    background: #8e8e93;
+}
+
+.macos-dashboard .alerts-breakdown {
+    cursor: help;
+}
+
+/* =========================
+   DASHBOARD CARDS & CHARTS (macOS)
+   ========================= */
+
+.macos-dashboard .dashboard_card {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.macos-dashboard .dashboard_card .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* Donuts: same UI as Windows – fixed height, same proportions */
+.macos-dashboard .chart-wrapper {
+    width: 100%;
+    height: 340px;
+    min-height: 340px;
+    position: relative;
+    display: block;
+}
+
+.macos-dashboard .chart-wrapper canvas {
+    display: block;
+    width: 100% !important;
+    height: 340px !important;
+    max-height: 340px;
+}
+
+.macos-dashboard .dashboard_card .btn-link:hover {
+    color: #0071e3;
+}
+
+/* =========================
+   RISK & COMPLIANCE (macOS)
+   ========================= */
+
+.macos-dashboard .risk-compliance-container {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.macos-dashboard .risk-compliance-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #f5f5f7;
+}
+
+.macos-dashboard .risk-compliance-header:hover {
+    background-color: #f5f5f7;
+}
+
+.macos-dashboard .risk-header-left i.fa-shield {
+    color: #ff9500;
+}
+
+.macos-dashboard .risk-badge {
+    background: #ff9500;
+    color: #1d1d1f;
+}
+
+.macos-dashboard .risk-label {
+    color: #86868b;
+}
+
+/* =========================
+   ALERT LIST & LOG LIST (macOS)
+   ========================= */
+
+.macos-dashboard .alert_list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.macos-dashboard .alert_item {
+    background: #f5f5f7;
+}
+
+.macos-dashboard .alert_item:hover {
+    background: #e8e8ed;
+}
+
+.macos-dashboard .log_list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.macos-dashboard .log_item:hover {
+    border-left-color: #0071e3;
+}
+
+/* =========================
+   EMPTY STATE & CHARTS AT 0
+   ========================= */
+
+.macos-dashboard .empty_state {
+    padding: 40px 20px;
+}
+
+/* =========================
+   RESPONSIVE (macOS)
+   ========================= */
+
+@media (max-width: 768px) {
+    .macos-dashboard .kpi_card {
+        height: auto;
+        min-height: 110px;
+    }
+
+    .macos-dashboard .chart-wrapper {
+        height: 280px;
+        min-height: 240px;
+    }
+}
+
+@media (max-width: 576px) {
+    .macos-dashboard .kpi_card {
+        min-height: 100px;
+    }
+
+    .macos-dashboard .kpi_value {
+        font-size: 28px;
+    }
+}
+
+@media print {
+    @page {
+        size: A4 landscape;
+        margin: 3mm;
+    }
+
+    .o_asset_dashboard.macos-dashboard,
+    .o_action_manager .o_action .o_content:has(.macos-dashboard),
+    .o_action:has(.macos-dashboard) {
+        height: auto !important;
+        min-height: auto !important;
+        overflow: visible !important;
+        display: block !important;
+        background-color: #f5f5f7 !important;
+        padding: 5px !important;
+    }
+
+    .macos-dashboard .row {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        margin-left: -4px !important;
+        margin-right: -4px !important;
+        width: calc(100% + 8px) !important;
+        margin-bottom: 4px !important;
+    }
+
+    .macos-dashboard .col-xl-3,
+    .macos-dashboard .col-md-6 {
+        flex: 0 0 25% !important;
+        width: 25% !important;
+        max-width: 25% !important;
+        padding: 4px !important;
+    }
+
+    .macos-dashboard .kpi_card {
+        height: 60px !important;
+        min-height: 60px !important;
+        padding: 0 12px !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        background-color: #ffffff !important;
+        border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        border-radius: 8px !important;
+        margin: 0 !important;
+        break-inside: avoid;
+    }
+
+    .macos-dashboard .kpi_body {
+        padding: 0 !important;
+        gap: 10px !important;
+        width: 100% !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+    }
+
+    .macos-dashboard .kpi_icon {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        border-radius: 6px !important;
+        font-size: 14px !important;
+        margin: 0 !important;
+    }
+
+    .macos-dashboard .kpi_label {
+        font-size: 9px !important;
+        margin: 0 !important;
+    }
+
+    .macos-dashboard .kpi_value {
+        font-size: 18px !important;
+    }
+
+    .macos-dashboard .chart-wrapper,
+    .macos-dashboard .chart-container {
+        height: 180px !important;
+        max-height: 180px !important;
+        background: #fff !important;
+        border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        border-radius: 12px !important;
+        padding: 5px !important;
+    }
+
+    .dashboard_controls,
+    .btn,
+    .dropdown,
+    .o_cp_controller,
+    .refresh_status,
+    .btn-link,
+    .fa-chevron-right {
+        display: none !important;
+    }
+
+    .dashboard_card,
+    .card {
+        box-shadow: none !important;
+        border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        break-inside: avoid;
+    }
+
+    .macos-dashboard .dashboard_header {
+        padding: 8px 15px !important;
+        margin-bottom: 8px !important;
+        border-top: 3px solid #86868b !important;
+    }
+
+    .macos-dashboard .dashboard_title {
+        font-size: 18px !important;
+    }
+
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- =====================================================
+         SOFTWARE DEPLOYMENT - LIST VIEW
+         ===================================================== -->
+    <record id="view_asset_software_deployment_tree" model="ir.ui.view">
+        <field name="name">asset.software.deployment.list</field>
+        <field name="model">asset.software.deployment</field>
+        <field name="arch" type="xml">
+            <list string="Deployment Status" 
+                  create="false" 
+                  edit="false" 
+                  delete="false"
+                  decoration-success="status=='installed'" 
+                  decoration-danger="status=='failed'" 
+                  decoration-info="status in ['downloading','installing']">
+                <field name="device_name"/>
+                <field name="device_serial"/>
+                <field name="software_name"/>
+                <field name="software_version"/>
+                <field name="status" widget="badge"
+                       decoration-success="status == 'installed'"
+                       decoration-danger="status == 'failed'"
+                       decoration-warning="status == 'pending'"
+                       decoration-info="status in ['downloading', 'installing']"/>
+                <field name="deployed_date"/>
+                <field name="completed_date"/>
+                <field name="error_message"/>
+                <button name="action_retry_deployment"
+                        string="Retry"
+                        type="object"
+                        icon="fa-refresh"
+                        invisible="status != 'failed'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         SOFTWARE DEPLOYMENT - FORM VIEW
+         ===================================================== -->
+    <record id="view_asset_software_deployment_form" model="ir.ui.view">
+        <field name="name">asset.software.deployment.form</field>
+        <field name="model">asset.software.deployment</field>
+        <field name="arch" type="xml">
+            <form string="Deployment Details" create="false" edit="false" delete="false">
+                <header>
+                    <field name="status" widget="statusbar"
+                           statusbar_visible="pending,downloading,installing,installed"/>
+                    <button name="action_retry_deployment"
+                            string="Retry Deployment"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="status != 'failed'"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" icon="fa-desktop" type="object" name="action_view_device">
+                            <field name="device_name" widget="statinfo" string="Device"/>
+                        </button>
+                        <button class="oe_stat_button" icon="fa-cube" type="object" name="action_view_software">
+                            <field name="software_name" widget="statinfo" string="Software"/>
+                        </button>
+                    </div>
+                    
+                    <notebook>
+                        <page string="Deployment Overview" name="overview">
+                            <group>
+                                <group string="Target Device">
+                                    <field name="device_id"/>
+                                    <field name="device_name"/>
+                                    <field name="device_serial"/>
+                                </group>
+                                <group string="Software Package">
+                                    <field name="software_id"/>
+                                    <field name="software_name"/>
+                                    <field name="software_version"/>
+                                </group>
+                            </group>
+                            
+                            <group>
+                                <group string="Deployment Details">
+                                    <field name="deployed_by"/>
+                                    <field name="deployed_date"/>
+                                    <field name="retry_count"/>
+                                </group>
+                                <group string="Timeline">
+                                    <field name="started_date"/>
+                                    <field name="completed_date"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Agent Log" name="agent_log" invisible="not agent_log">
+                            <field name="agent_log" 
+                                   readonly="1" 
+                                   placeholder="Agent log output will appear here..."
+                                   nolabel="1" 
+                                   colspan="2"
+                                   style="font-family: monospace; background: #f5f5f5; padding: 10px; border-radius: 4px;"/>
+                        </page>
+                        
+                        <page string="Error Details" name="error_details" invisible="not error_message">
+                            <div class="alert alert-danger" role="alert">
+                                <i class="fa fa-exclamation-triangle"/> 
+                                <strong>Installation Failed</strong>
+                            </div>
+                            <field name="error_message" 
+                                   readonly="1" 
+                                   placeholder="Error message will appear here..."
+                                   nolabel="1" 
+                                   colspan="2"
+                                   style="background: #f8d7da; padding: 10px; border-radius: 4px;"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    
+    <!-- ODOO19_DISABLED-->
+
+    <!-- =====================================================
+         SOFTWARE DEPLOYMENT - ACTION
+         ===================================================== -->
+    <record id="action_asset_software_deployment" model="ir.actions.act_window">
+        <field name="name">Deployment Status</field>
+        <field name="res_model">asset.software.deployment</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_today': 1}</field>
+    </record>
+</odoo>

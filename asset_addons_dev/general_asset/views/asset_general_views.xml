@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         CONFIGURATION: PLANT
+         ══════════════════════════════════════════════════════════════════ -->
+    <record id="view_plant_master_list" model="ir.ui.view">
+        <field name="name">plant.master.list</field>
+        <field name="model">plant.master</field>
+        <field name="arch" type="xml">
+            <list string="Plants" editable="bottom">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="address"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_plant_master" model="ir.actions.act_window">
+        <field name="name">Plants</field>
+        <field name="res_model">plant.master</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         CONFIGURATION: ASSET SUB CATEGORY
+         ══════════════════════════════════════════════════════════════════ -->
+    <record id="view_asset_sub_category_list" model="ir.ui.view">
+        <field name="name">asset.sub.category.list</field>
+        <field name="model">asset.sub.category</field>
+        <field name="arch" type="xml">
+            <list string="Asset Sub Categories" editable="bottom">
+                <field name="category_id"/>
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_sub_category_search" model="ir.ui.view">
+        <field name="name">asset.sub.category.search</field>
+        <field name="model">asset.sub.category</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="category_id"/>
+                <!--                <group expand="0" string="Group By">-->
+                <!--                    <filter name="g_cat" string="Category"-->
+                <!--                            context="{'group_by':'category_id'}"/>-->
+                <!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <record id="action_asset_sub_category" model="ir.actions.act_window">
+        <field name="name">Asset Sub Categories</field>
+        <field name="res_model">asset.sub.category</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_asset_sub_category_search"/>
+        <field name="context">{'search_default_g_cat': 1}</field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         CONFIGURATION: PRODUCT CATEGORY MAPPING
+         ══════════════════════════════════════════════════════════════════ -->
+    <record id="view_product_category_mapping_list" model="ir.ui.view">
+        <field name="name">product.category.mapping.list</field>
+        <field name="model">product.category.mapping</field>
+        <field name="arch" type="xml">
+            <list string="Product Category Mapping" editable="bottom">
+                <field name="product_categ_id"/>
+                <field name="asset_category_id"/>
+                <field name="asset_sub_category_id"/>
+                <field name="create_asset" widget="boolean_toggle"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_product_category_mapping" model="ir.actions.act_window">
+        <field name="name">Product Category Mapping</field>
+        <field name="res_model">product.category.mapping</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Map product categories to asset categories</p>
+            <p>When goods are received, this decides which asset category the
+                resulting asset gets - so receipts do not need classifying by hand.
+            </p>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         CATEGORY FORM: general flag + per-category view overrides
+         ══════════════════════════════════════════════════════════════════ -->
+    <record id="view_asset_category_form_general" model="ir.ui.view">
+        <field name="name">asset.category.form.general</field>
+        <field name="model">asset.category</field>
+        <field name="inherit_id" ref="asset_management.view_asset_category_form"/>
+        <field name="arch" type="xml">
+            <group name="config_group" position="inside">
+                <field name="is_general"/>
+            </group>
+            <xpath expr="//sheet" position="inside">
+                <group string="General Asset Settings" invisible="not is_general">
+                    <field name="form_view_id" options="{'no_create': True}"/>
+                    <field name="list_view_id" options="{'no_create': True}"/>
+                    <div colspan="2" class="text-muted">
+                        Optional. Set BOTH to open this category's assets with your
+                        own views instead of the default general-asset ones.
+                        Setting only one is ignored.
+                    </div>
+                </group>
+                <notebook invisible="not is_general">
+                    <page string="Sub Categories" name="sub_categories">
+                        <field name="sub_category_ids">
+                            <list editable="bottom">
+                                <field name="name"/>
+                                <field name="active" widget="boolean_toggle"/>
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         GENERAL ASSETS
+         ══════════════════════════════════════════════════════════════════ -->
+    <record id="view_asset_general_list" model="ir.ui.view">
+        <field name="name">asset.asset.general.list</field>
+        <field name="model">asset.asset</field>
+        <field name="arch" type="xml">
+            <list string="General Assets"
+                  decoration-muted="state == 'scrapped'"
+                  decoration-success="state == 'assigned'">
+                <field name="asset_code"/>
+                <field name="tag_number" optional="show"/>
+                <field name="asset_name"/>
+                <field name="category_id"/>
+                <field name="sub_category_id" optional="show"/>
+                <field name="plant_id" optional="show"/>
+                <field name="location_id" optional="show"/>
+                <field name="assigned_employee_id"/>
+                <field name="department_id" optional="hide"/>
+                <field name="serial_number" optional="hide"/>
+                <field name="acquisition_date" optional="hide"/>
+                <field name="asset_value" optional="hide" sum="Total Value"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'assigned'"
+                       decoration-muted="state == 'scrapped'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_general_form" model="ir.ui.view">
+        <field name="name">asset.asset.general.form</field>
+        <field name="model">asset.asset</field>
+        <field name="arch" type="xml">
+            <form string="General Asset">
+                <header>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,assigned,maintenance,scrapped"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box"/>
+                    <field name="image_1920" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <label for="asset_name" string="Asset"/>
+                        <h1>
+                            <field name="asset_name" placeholder="e.g. CNC Lathe #3"/>
+                        </h1>
+                        <field name="asset_code" readonly="1" class="text-muted"/>
+                    </div>
+
+                    <group>
+                        <group string="Classification">
+                            <field name="category_id"
+                                   domain="[('is_general', '=', True)]"
+                                   options="{'no_create': True}" required="1"/>
+                            <field name="sub_category_id"
+                                   options="{'no_create': True}"/>
+                            <field name="tag_number"/>
+                            <field name="serial_number"
+                                   placeholder="Leave blank to use the tag or asset code"/>
+                        </group>
+                        <group string="Placement">
+                            <field name="plant_id"/>
+                            <field name="location_id"/>
+                            <field name="assigned_employee_id"/>
+                            <field name="department_id" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group string="Acquisition">
+                            <field name="acquisition_date"/>
+                            <field name="purchase_date"/>
+                            <field name="asset_value"/>
+                            <field name="purchase_cost"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="procurement_vendor_id"/>
+                        </group>
+                        <group string="Additional Serials">
+                            <field name="serial_number_1"/>
+                            <field name="serial_number_2"/>
+                            <field name="serial_number_3"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="AMC" name="amc">
+                            <group>
+                                <field name="is_amc"/>
+                            </group>
+                            <group invisible="not is_amc">
+                                <group>
+                                    <field name="amc_start_date"/>
+                                    <field name="amc_end_date"/>
+                                    <field name="amc_vendor_id"/>
+                                </group>
+                                <group>
+                                    <field name="amc_nature"/>
+                                    <field name="amc_file" filename="amc_filename"/>
+                                    <field name="amc_filename" invisible="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Warranty" name="warranty">
+                            <group>
+                                <group>
+                                    <field name="warranty_start_date"/>
+                                    <field name="warranty_end_date"/>
+                                    <field name="warranty_status" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="warranty_file"
+                                           filename="warranty_filename"/>
+                                    <field name="warranty_filename" invisible="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Licence" name="licence">
+                            <group>
+                                <field name="is_licence"/>
+                            </group>
+                            <group invisible="not is_licence">
+                                <group>
+                                    <field name="licence_start_date"/>
+                                    <field name="licence_end_date"/>
+                                    <field name="licence_vendor_id"/>
+                                </group>
+                                <group>
+                                    <field name="licence_nature"/>
+                                    <field name="licence_file"
+                                           filename="licence_filename"/>
+                                    <field name="licence_filename" invisible="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Assignment History">
+                            <field name="assignment_history_ids" readonly="1">
+                                <list>
+                                    <field name="date"/>
+                                    <field name="employee_id"/>
+                                    <field name="action"/>
+                                    <field name="description"/>
+                                    <field name="user_id"/>
+                                </list>
+                            </field>
+                        </page>
+
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_asset_general_search" model="ir.ui.view">
+        <field name="name">asset.asset.general.search</field>
+        <field name="model">asset.asset</field>
+        <field name="arch" type="xml">
+            <search string="General Assets">
+                <field name="asset_name"/>
+                <field name="asset_code"/>
+                <field name="tag_number"/>
+                <field name="serial_number"/>
+                <field name="assigned_employee_id"/>
+                <field name="category_id"/>
+                <field name="plant_id"/>
+                <filter name="f_unassigned" string="Unassigned"
+                        domain="[('assigned_employee_id','=',False)]"/>
+                <filter name="f_assigned" string="Assigned"
+                        domain="[('state','=','assigned')]"/>
+                <filter name="f_amc" string="Under AMC" domain="[('is_amc','=',True)]"/>
+                <separator/>
+                <filter name="f_active" string="Not Scrapped"
+                        domain="[('state','!=','scrapped')]"/>
+                <!--                <group expand="0" string="Group By">-->
+                <!--                    <filter name="g_cat" string="Category"-->
+                <!--                            context="{'group_by':'category_id'}"/>-->
+                <!--                    <filter name="g_sub" string="Sub Category"-->
+                <!--                            context="{'group_by':'sub_category_id'}"/>-->
+                <!--                    <filter name="g_plant" string="Plant"-->
+                <!--                            context="{'group_by':'plant_id'}"/>-->
+                <!--                    <filter name="g_loc" string="Location"-->
+                <!--                            context="{'group_by':'location_id'}"/>-->
+                <!--                    <filter name="g_state" string="Status"-->
+                <!--                            context="{'group_by':'state'}"/>-->
+                <!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <record id="action_asset_general" model="ir.actions.act_window">
+        <field name="name">General Assets</field>
+        <field name="res_model">asset.asset</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('category_id.is_general','=',True)]</field>
+        <field name="search_view_id" ref="view_asset_general_search"/>
+        <field name="context">{'search_default_f_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Register a general asset</p>
+            <p>Machinery, furniture, plant equipment - anything without an agent.
+                Create the category first with <b>Is General Asset</b> ticked.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_asset_general_list_view" model="ir.actions.act_window.view">
+        <field name="sequence">1</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_asset_general_list"/>
+        <field name="act_window_id" ref="action_asset_general"/>
+    </record>
+    <record id="action_asset_general_form_view" model="ir.actions.act_window.view">
+        <field name="sequence">2</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_asset_general_form"/>
+        <field name="act_window_id" ref="action_asset_general"/>
+    </record>
+
+</odoo>

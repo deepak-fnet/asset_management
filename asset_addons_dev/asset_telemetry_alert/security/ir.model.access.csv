@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_telemetry_alert_rule_user,telemetry.alert.rule user,model_asset_telemetry_alert_rule,asset_management.group_asset_user,1,0,0,0
+access_telemetry_alert_rule_manager,telemetry.alert.rule manager,model_asset_telemetry_alert_rule,asset_management.group_asset_manager,1,1,1,1
+access_telemetry_alert_log_user,telemetry.alert.log user,model_asset_telemetry_alert_log,asset_management.group_asset_user,1,0,0,0
+access_telemetry_alert_log_manager,telemetry.alert.log manager,model_asset_telemetry_alert_log,asset_management.group_asset_manager,1,1,1,1

@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="asset_management.NetworkDeviceDashboard" owl="1">
+        <div class="o_network_device_dashboard">
+            <!-- Sidebar -->
+            <div class="nd_sidebar">
+                <div class="nd_sidebar_header">
+                    <h3><i class="fa fa-heartbeat me-2"/>Live Monitoring</h3>
+                    <div class="input-group input-group-sm mt-3">
+                        <input type="text" class="form-control" placeholder="Search devices..." t-on-input="(ev) => this.onSearchInput(ev)" t-att-value="state.searchQuery"/>
+                        <span class="input-group-text"><i class="fa fa-search"/></span>
+                    </div>
+                    <div class="nd_filters mt-3">
+                        <div class="nd_filter_group">
+                            <label class="form-label small text-muted">Device Type</label>
+                            <select class="form-select form-select-sm" t-on-change="(ev) => this.onDeviceTypeChange(ev)" t-att-value="state.filterDeviceType">
+                                <option value="">All Types</option>
+                                <option value="router">Router</option>
+                                <option value="switch">Switch</option>
+                                <option value="firewall">Firewall</option>
+                                <option value="access_point">Access Point</option>
+                                <option value="gateway">Gateway</option>
+                            </select>
+                        </div>
+                        <div class="nd_filter_group mt-2">
+                            <label class="form-label small text-muted">Manufacturer</label>
+                            <select class="form-select form-select-sm" t-on-change="(ev) => this.onManufacturerChange(ev)" t-att-value="state.filterManufacturer">
+                                <option value="">All Manufacturers</option>
+                                <option value="cisco">Cisco</option>
+                                <option value="juniper">Juniper</option>
+                                <option value="hp">HP</option>
+                                <option value="dell">Dell</option>
+                                <option value="mikrotik">MikroTik</option>
+                                <option value="ubiquiti">Ubiquiti</option>
+                                <option value="tp_link">TP-Link</option>
+                                <option value="generic">Generic</option>
+                            </select>
+                        </div>
+                        <div class="nd_filter_group mt-2">
+                            <label class="form-label small text-muted">Status</label>
+                            <select class="form-select form-select-sm" t-on-change="(ev) => this.onStatusChange(ev)" t-att-value="state.filterStatus">
+                                <option value="">All Statuses</option>
+                                <option value="online">Online</option>
+                                <option value="offline">Offline</option>
+                                <option value="unreachable">Unreachable</option>
+                                <option value="unknown">Unknown</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="nd_stats_summary mt-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="badge bg-success"><i class="fa fa-check-circle me-1"/> <t t-esc="onlineCount"/> Online</span>
+                            <span class="badge bg-danger"><i class="fa fa-times-circle me-1"/> <t t-esc="offlineCount"/> Offline</span>
+                            <span class="badge bg-secondary"><i class="fa fa-list me-1"/> <t t-esc="displayedDevices.length"/> Total</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nd_device_list">
+                    <t t-if="state.loading">
+                        <div class="text-center py-4">
+                            <i class="fa fa-spinner fa-spin fa-2x"/>
+                            <p class="mt-2 text-muted">Loading devices...</p>
+                        </div>
+                    </t>
+                    <t t-elif="displayedDevices.length === 0">
+                        <div class="text-center py-4 text-muted">
+                            <i class="fa fa-exclamation-circle fa-2x mb-2"/>
+                            <p>No devices found</p>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <t t-foreach="displayedDevices" t-as="device" t-key="device.id">
+                            <div class="nd_device_card" t-att-class="{active: state.selectedDeviceId === device.id}" t-on-click="() => this.selectDevice(device.id)">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <span class="nd_device_name" t-esc="device.name"/>
+                                        <div class="nd_device_code" t-esc="device.device_code"/>
+                                    </div>
+                                    <span class="nd_status_badge" t-att-class="getStatusBadgeClass(device.connection_status)">
+                                        <t t-esc="getStatusLabel(device.connection_status)"/>
+                                    </span>
+                                </div>
+                                <div class="nd_device_info mt-2">
+                                    <div><i class="fa fa-map-marker me-1"/> <t t-esc="device.ip_address"/></div>
+                                    <div class="d-flex gap-2 mt-1">
+                                        <span class="badge bg-info" t-if="device.device_type_label"><t t-esc="device.device_type_label"/></span>
+                                        <span class="badge bg-secondary" t-if="device.manufacturer_label"><t t-esc="device.manufacturer_label"/></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </t>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="nd_main">
+                <t t-if="state.selectedDevice">
+                    <!-- Header -->
+                    <div class="nd_header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h2 class="mb-1"><t t-esc="state.selectedDevice.name"/></h2>
+                                <p class="text-muted mb-0">
+                                    <span class="me-3"><i class="fa fa-tag me-1"/><t t-esc="state.selectedDevice.device_code"/></span>
+                                    <span><i class="fa fa-globe me-1"/><t t-esc="state.selectedDevice.ip_address"/></span>
+                                </p>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-primary" t-on-click="() => this.testSnmpConnection()">
+                                    <i class="fa fa-plug me-1"/> Test SNMP
+                                </button>
+                                <button class="btn btn-outline-secondary" t-on-click="() => this.refreshInterfaces()">
+                                    <i class="fa fa-exchange me-1"/> Refresh Interfaces
+                                </button>
+                                <button class="btn btn-primary" t-on-click="() => this.refreshDeviceData()">
+                                    <i class="fa fa-refresh me-1"/> Refresh All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status Cards Row -->
+                    <div class="nd_status_row">
+                        <div class="nd_status_card">
+                            <div class="nd_status_icon" t-att-class="getStatusIconClass(state.selectedDevice.connection_status)">
+                                <i t-att-class="getStatusIcon(state.selectedDevice.connection_status)"/>
+                            </div>
+                            <div class="nd_status_info">
+                                <div class="nd_status_label">Connection Status</div>
+                                <div class="nd_status_value" t-att-class="getStatusTextClass(state.selectedDevice.connection_status)">
+                                    <t t-esc="getStatusLabel(state.selectedDevice.connection_status)"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="nd_status_card">
+                            <div class="nd_status_icon bg-info-light">
+                                <i class="fa fa-clock-o text-info"/>
+                            </div>
+                            <div class="nd_status_info">
+                                <div class="nd_status_label">Response Time</div>
+                                <div class="nd_status_value"><t t-esc="state.selectedDevice.response_time.toFixed(2)"/> ms</div>
+                            </div>
+                        </div>
+                        <div class="nd_status_card">
+                            <div class="nd_status_icon bg-purple-light">
+                                <i class="fa fa-hourglass-half text-purple"/>
+                            </div>
+                            <div class="nd_status_info">
+                                <div class="nd_status_label">Uptime</div>
+                                <div class="nd_status_value nd_status_value_small">
+                                    <t t-esc="state.selectedDevice.uptime || 'N/A'"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="nd_status_card">
+                            <div class="nd_status_icon bg-warning-light">
+                                <i class="fa fa-calendar text-warning"/>
+                            </div>
+                            <div class="nd_status_info">
+                                <div class="nd_status_label">Last Checked</div>
+                                <div class="nd_status_value nd_status_value_small">
+                                    <t t-esc="state.selectedDevice.last_check_formatted || 'Never'"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Metrics Grid -->
+                    <div class="nd_metrics_grid">
+                        <!-- CPU Usage -->
+                        <div class="nd_metric_card">
+                            <div class="nd_metric_header">
+                                <div class="nd_metric_title">
+                                    <i class="fa fa-microchip nd_metric_icon"/> CPU Usage
+                                </div>
+                            </div>
+                            <div class="nd_metric_value_row">
+                                <span class="nd_metric_value" t-esc="state.selectedDevice.cpu_usage.toFixed(1)"/>
+                                <span class="nd_metric_unit">%</span>
+                            </div>
+                            <div class="nd_progress">
+                                <div class="nd_progress_bar" t-att-style="'width: ' + Math.min(state.selectedDevice.cpu_usage, 100) + '%;'" t-att-class="getProgressBarClass(state.selectedDevice.cpu_usage)"/>
+                            </div>
+                        </div>
+
+                        <!-- Memory Usage -->
+                        <div class="nd_metric_card">
+                            <div class="nd_metric_header">
+                                <div class="nd_metric_title">
+                                    <i class="fa fa-tasks nd_metric_icon"/> Memory Usage
+                                </div>
+                            </div>
+                            <div class="nd_metric_value_row">
+                                <span class="nd_metric_value" t-esc="state.selectedDevice.memory_usage.toFixed(1)"/>
+                                <span class="nd_metric_unit">%</span>
+                            </div>
+                            <div class="nd_progress">
+                                <div class="nd_progress_bar" t-att-style="'width: ' + Math.min(state.selectedDevice.memory_usage, 100) + '%;'" t-att-class="getProgressBarClass(state.selectedDevice.memory_usage)"/>
+                            </div>
+                            <div class="nd_metric_subinfo mt-2" t-if="state.selectedDevice.memory_used > 0">
+                                <t t-esc="formatBytes(state.selectedDevice.memory_used * 1024 * 1024)"/> / <t t-esc="formatBytes(state.selectedDevice.memory_total * 1024 * 1024)"/>
+                            </div>
+                        </div>
+
+                        <!-- Physical RAM (replaces Disk Usage) -->
+                        <div class="nd_metric_card">
+                            <div class="nd_metric_header">
+                                <div class="nd_metric_title">
+                                    <i class="fa fa-database nd_metric_icon"/> Physical RAM
+                                </div>
+                            </div>
+                            <t t-if="state.selectedDevice.ram_total > 0">
+                                <div class="nd_metric_value_row">
+                                    <span class="nd_metric_value" t-esc="state.selectedDevice.ram_used.toFixed(1)"/>
+                                    <span class="nd_metric_unit">GB used</span>
+                                </div>
+                                <div class="nd_progress">
+                                    <div class="nd_progress_bar"
+                                        t-att-style="'width: ' + Math.min((state.selectedDevice.ram_used / state.selectedDevice.ram_total) * 100, 100) + '%;'"
+                                        t-att-class="getProgressBarClass((state.selectedDevice.ram_used / state.selectedDevice.ram_total) * 100)"/>
+                                </div>
+                                <div class="nd_metric_subinfo mt-2">
+                                    <t t-esc="state.selectedDevice.ram_used.toFixed(1)"/> GB / <t t-esc="state.selectedDevice.ram_total.toFixed(1)"/> GB total
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <div class="nd_metric_value_row">
+                                    <span class="nd_metric_value text-muted" style="font-size:1.2rem;">N/A</span>
+                                </div>
+                                <div class="nd_progress">
+                                    <div class="nd_progress_bar bg-healthy" style="width: 0%;"/>
+                                </div>
+                                <div class="nd_metric_subinfo mt-2 text-muted">Not available via SNMP</div>
+                            </t>
+                        </div>
+
+                        <!-- Interfaces -->
+                        <div class="nd_metric_card">
+                            <div class="nd_metric_header">
+                                <div class="nd_metric_title">
+                                    <i class="fa fa-plug nd_metric_icon"/> Interfaces
+                                </div>
+                            </div>
+                            <div class="nd_metric_value_row">
+                                <span class="nd_metric_value" t-esc="state.selectedDevice.active_interfaces"/>
+                                <span class="nd_metric_unit">/ <t t-esc="state.selectedDevice.total_interfaces"/> active</span>
+                            </div>
+                            <div class="nd_progress">
+                                <div class="nd_progress_bar bg-healthy" t-att-style="'width: ' + (state.selectedDevice.total_interfaces > 0 ? (state.selectedDevice.active_interfaces / state.selectedDevice.total_interfaces * 100) : 0) + '%;'"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Device Info Cards -->
+                    <div class="nd_info_grid mt-4">
+                        <div class="nd_info_card">
+                            <h5><i class="fa fa-info-circle me-2"/>Device Information</h5>
+                            <table class="nd_info_table">
+                                <tr><td>Device Type</td><td><t t-esc="state.selectedDevice.device_type_label || 'N/A'"/></td></tr>
+                                <tr><td>Manufacturer</td><td><t t-esc="state.selectedDevice.manufacturer_label || 'N/A'"/></td></tr>
+                                <tr><td>Serial Number</td><td><t t-esc="state.selectedDevice.serial_number || 'N/A'"/></td></tr>
+                                <tr><td>Firmware Version</td><td><t t-esc="state.selectedDevice.firmware_version || 'N/A'"/></td></tr>
+                                <tr><td>Location</td><td><t t-esc="state.selectedDevice.location || 'N/A'"/></td></tr>
+                            </table>
+                        </div>
+                        <div class="nd_info_card">
+                            <h5><i class="fa fa-cog me-2"/>SNMP Configuration</h5>
+                            <table class="nd_info_table">
+                                <tr><td>SNMP Version</td><td><t t-esc="state.selectedDevice.snmp_version || 'N/A'"/></td></tr>
+                                <tr><td>SNMP Port</td><td><t t-esc="state.selectedDevice.snmp_port || 161"/></td></tr>
+                                <tr><td>Community String</td><td><t t-if="state.selectedDevice.snmp_community">••••••</t><t t-else="">N/A</t></td></tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Network Interfaces Table -->
+                    <div class="nd_interfaces_section mt-4" t-if="state.selectedDevice.interfaces and state.selectedDevice.interfaces.length > 0">
+                        <h5><i class="fa fa-exchange me-2"/>Network Interfaces (<t t-esc="state.selectedDevice.interfaces.length"/>)</h5>
+                        <div class="nd_interfaces_table_wrapper">
+                            <table class="nd_interfaces_table">
+                                <thead>
+                                    <tr>
+                                        <th>Interface</th>
+                                        <th>Type</th>
+                                        <th>Status</th>
+                                        <th>Speed</th>
+                                        <th>MAC Address</th>
+                                        <th>Traffic In</th>
+                                        <th>Traffic Out</th>
+                                        <th>Errors</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="state.selectedDevice.interfaces" t-as="iface" t-key="iface.id">
+                                        <tr>
+                                            <td class="fw-bold"><t t-esc="iface.name"/></td>
+                                            <td><t t-esc="iface.interface_type || 'Unknown'"/></td>
+                                            <td>
+                                                <span class="badge" t-att-class="iface.oper_status === 'up' ? 'bg-success' : 'bg-danger'">
+                                                    <t t-esc="iface.oper_status || 'Unknown'"/>
+                                                </span>
+                                            </td>
+                                            <td><t t-esc="formatSpeed(iface.speed)"/></td>
+                                            <td><code><t t-esc="iface.mac_address || 'N/A'"/></code></td>
+                                            <td><t t-esc="formatBytes(iface.bytes_in)"/></td>
+                                            <td><t t-esc="formatBytes(iface.bytes_out)"/></td>
+                                            <td>
+                                                <span t-att-class="(iface.errors_in + iface.errors_out) > 0 ? 'text-danger' : 'text-muted'">
+                                                    <t t-esc="iface.errors_in + iface.errors_out"/>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </t>
+
+                <!-- No Device Selected -->
+                <t t-else="">
+                    <div class="nd_no_selection">
+                        <i class="fa fa-sitemap fa-5x mb-3"/>
+                        <h3>Select a network device</h3>
+                        <p class="text-muted">Choose a device from the sidebar to view its monitoring data and configuration</p>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

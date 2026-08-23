@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <template id="report_inventory_movement_document">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <h2 class="text-center">
+                        <span t-esc="wiz._report_title()"/> Report
+                    </h2>
+                    <p class="text-center text-muted">
+                        Period: <span t-esc="wiz.date_from"/> to <span t-esc="wiz.date_to"/>
+                        <t t-if="wiz.warehouse_id">
+                            | Warehouse: <span t-esc="wiz.warehouse_id.name"/>
+                        </t>
+                        <t t-if="wiz.product_id">
+                            | Product: <span t-esc="wiz.product_id.display_name"/>
+                        </t>
+                    </p>
+
+                    <table class="table table-sm table-bordered mt-3"
+                           style="font-size:10px;">
+                        <thead style="background-color:#D9D9D9;">
+                            <tr>
+                                <th>Date</th>
+                                <th>Reference</th>
+                                <th>Partner</th>
+                                <th>Product</th>
+                                <th>From</th>
+                                <th>To</th>
+                                <th class="text-end">Demand</th>
+                                <th class="text-end">Quantity</th>
+                                <th>UoM</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="rows" t-as="line">
+                                <td t-esc="line['date']"/>
+                                <td t-esc="line['reference']"/>
+                                <td t-esc="line['partner']"/>
+                                <td t-esc="line['product']"/>
+                                <td t-esc="line['from_location']"/>
+                                <td t-esc="line['to_location']"/>
+                                <td class="text-end"
+                                    t-esc="'%.2f' % (line['demand'] or 0.0)"/>
+                                <td class="text-end"
+                                    t-esc="'%.2f' % (line['quantity'] or 0.0)"/>
+                                <td t-esc="line['uom']"/>
+                                <td t-esc="line['state']"/>
+                            </tr>
+                        </tbody>
+                        <tfoot style="background-color:#F2F2F2;font-weight:bold;">
+                            <tr>
+                                <td colspan="6">
+                                    Total (<span t-esc="len(rows)"/> moves)
+                                </td>
+                                <td class="text-end"
+                                    t-esc="'%.2f' % sum(l['demand'] or 0.0 for l in rows)"/>
+                                <td class="text-end"
+                                    t-esc="'%.2f' % sum(l['quantity'] or 0.0 for l in rows)"/>
+                                <td colspan="2"/>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_inventory_movement">
+        <t t-foreach="docs" t-as="wiz">
+            <t t-set="rows" t-value="wiz._get_report_rows()"/>
+            <t t-call="inventory_report.report_inventory_movement_document"/>
+        </t>
+    </template>
+
+</odoo>

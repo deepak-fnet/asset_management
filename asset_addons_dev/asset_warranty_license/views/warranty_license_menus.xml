@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- One root, two sections, as requested. -->
+    <menuitem id="menu_warranty_license_root"
+              name="Warranty &amp; Licenses"
+              parent="asset_management.menu_asset_root"
+              sequence="50"
+              groups="asset_warranty_license.group_warranty_license_user"/>
+
+    <!-- ── Warranty Management ────────────────────────────────────────── -->
+    <menuitem id="menu_warranty_section"
+              name="Warranty Management"
+              parent="menu_warranty_license_root"
+              sequence="10"/>
+
+    <menuitem id="menu_warranty_register"
+              name="Warranties"
+              parent="menu_warranty_section"
+              action="action_asset_warranty"
+              sequence="10"/>
+
+    <menuitem id="menu_warranty_claims"
+              name="Warranty Claims"
+              parent="menu_warranty_section"
+              action="action_warranty_claim"
+              sequence="20"/>
+
+    <menuitem id="menu_warranty_expiring"
+              name="Expiring Soon"
+              parent="menu_warranty_section"
+              action="action_asset_warranty_expiring"
+              sequence="30"/>
+
+    <!-- ── License Management ─────────────────────────────────────────── -->
+    <menuitem id="menu_license_section"
+              name="License Management"
+              parent="menu_warranty_license_root"
+              sequence="20"/>
+
+    <menuitem id="menu_license_register"
+              name="Licenses"
+              parent="menu_license_section"
+              action="action_asset_license"
+              sequence="10"/>
+
+    <menuitem id="menu_license_assignments"
+              name="Assignments"
+              parent="menu_license_section"
+              action="action_license_assignment"
+              sequence="20"/>
+
+    <menuitem id="menu_license_expiring"
+              name="Expiring Soon"
+              parent="menu_license_section"
+              action="action_asset_license_expiring"
+              sequence="30"/>
+
+    <menuitem id="menu_license_over_deployed"
+              name="Over-Deployed"
+              parent="menu_license_section"
+              action="action_asset_license_over_deployed"
+              sequence="40"
+              groups="asset_warranty_license.group_warranty_license_manager"/>
+</odoo>

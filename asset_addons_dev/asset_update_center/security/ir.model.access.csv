@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_app_update_user,app.update user,model_asset_app_update,asset_management.group_asset_user,1,0,0,0
+access_app_update_manager,app.update manager,model_asset_app_update,asset_management.group_asset_manager,1,1,1,1
+access_listening_port_user,listening.port user,model_asset_listening_port,asset_management.group_asset_user,1,0,0,0
+access_listening_port_manager,listening.port manager,model_asset_listening_port,asset_management.group_asset_manager,1,1,1,1
+access_cve_import_wizard,cve.import.wizard,model_asset_cve_import_wizard,asset_management.group_asset_manager,1,1,1,1

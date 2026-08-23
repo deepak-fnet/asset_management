@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ================= AD ACCOUNTS ================= -->
+
+    <record id="view_oneit_ad_person_tree" model="ir.ui.view">
+        <field name="name">oneit.ad.person.list</field>
+        <field name="model">oneit.ad.person</field>
+        <field name="arch" type="xml">
+            <list string="AD Accounts"
+                  decoration-muted="disabled_in_ad == True"
+                  decoration-warning="known_to_odoo == False">
+                <field name="username"/>
+                <field name="name"/>
+                <field name="email" optional="show"/>
+                <field name="ou_group_id" optional="show"/>
+                <field name="membership_count" string="Groups"/>
+                <field name="known_to_odoo" string="In OneIT"/>
+                <field name="disabled_in_ad" optional="hide"/>
+                <field name="last_synced_on" optional="hide"/>
+                <field name="distinguished_name" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_oneit_ad_person_form" model="ir.ui.view">
+        <field name="name">oneit.ad.person.form</field>
+        <field name="model">oneit.ad.person</field>
+        <field name="arch" type="xml">
+            <form string="AD Account" create="false" edit="false">
+                <sheet>
+                    <div class="alert alert-info" role="alert">
+                        Read-only mirror of Active Directory, refreshed by the
+                        sync. Changing anything here would not change AD.
+                    </div>
+                    <div class="alert alert-warning" role="alert"
+                         invisible="known_to_odoo">
+                        No OneIT request exists for this account. It was
+                        created directly in Active Directory, so any access
+                        below was granted outside this system.
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="display_name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="username"/>
+                            <field name="name"/>
+                            <field name="email"/>
+                            <field name="disabled_in_ad"/>
+                        </group>
+                        <group>
+                            <field name="distinguished_name"/>
+                            <field name="ou_dn"/>
+                            <field name="ou_group_id"/>
+                            <field name="known_to_odoo"/>
+                            <field name="first_seen_on"/>
+                            <field name="last_synced_on"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Group Memberships">
+                            <field name="membership_ids" readonly="1">
+                                <list>
+                                    <field name="group_id"/>
+                                    <field name="group_type"/>
+                                    <field name="approved_in_odoo"
+                                           string="Approved in OneIT"/>
+                                    <field name="first_seen_on"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="OneIT Requests">
+                            <field name="request_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="request_type"/>
+                                    <field name="state"/>
+                                    <field name="executed_on"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_oneit_ad_person_search" model="ir.ui.view">
+        <field name="name">oneit.ad.person.search</field>
+        <field name="model">oneit.ad.person</field>
+        <field name="arch" type="xml">
+            <search string="AD Accounts">
+                <field name="username"/>
+                <field name="name"/>
+                <field name="email"/>
+                <field name="distinguished_name"/>
+                <filter name="unmanaged" string="Not managed by OneIT"
+                        domain="[('known_to_odoo','=',False)]"/>
+                <filter name="managed" string="Managed by OneIT"
+                        domain="[('known_to_odoo','=',True)]"/>
+                <separator/>
+                <filter name="disabled" string="Disabled in AD"
+                        domain="[('disabled_in_ad','=',True)]"/>
+<!--                <filter name="no_groups" string="No group memberships"-->
+<!--                        domain="[('membership_count','=',0)]"/>-->
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter name="gb_ou" string="Container (OU)"-->
+<!--                            context="{'group_by': 'ou_group_id'}"/>-->
+<!--                    <filter name="gb_managed" string="In OneIT"-->
+<!--                            context="{'group_by': 'known_to_odoo'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <record id="action_oneit_ad_person" model="ir.actions.act_window">
+        <field name="name">AD Accounts</field>
+        <field name="res_model">oneit.ad.person</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No AD accounts yet</p>
+            <p>Run the sync from Configuration &gt; AD Groups to mirror
+               accounts and group membership from Active Directory.</p>
+        </field>
+    </record>
+
+    <!-- ================= MEMBERSHIPS ================= -->
+
+    <record id="view_oneit_ad_membership_tree" model="ir.ui.view">
+        <field name="name">oneit.ad.membership.list</field>
+        <field name="model">oneit.ad.membership</field>
+        <field name="arch" type="xml">
+            <list string="Memberships" create="false" edit="false"
+                  decoration-warning="approved_in_odoo == False">
+                <field name="person_id"/>
+                <field name="group_id"/>
+                <field name="group_type"/>
+                <field name="approved_in_odoo" string="Approved in OneIT"/>
+                <field name="first_seen_on" optional="hide"/>
+                <field name="last_synced_on" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_oneit_ad_membership_search" model="ir.ui.view">
+        <field name="name">oneit.ad.membership.search</field>
+        <field name="model">oneit.ad.membership</field>
+        <field name="arch" type="xml">
+            <search string="Memberships">
+                <field name="person_id"/>
+                <field name="group_id"/>
+                <filter name="not_approved" string="Granted outside OneIT"
+                        domain="[('approved_in_odoo','=',False)]"/>
+                <separator/>
+                <filter name="citrix" string="Citrix"
+                        domain="[('group_type','=','citrix')]"/>
+                <filter name="fs" string="File Server"
+                        domain="[('group_type','=','file_server')]"/>
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter name="gb_group" string="AD Group"-->
+<!--                            context="{'group_by': 'group_id'}"/>-->
+<!--                    <filter name="gb_person" string="Account"-->
+<!--                            context="{'group_by': 'person_id'}"/>-->
+<!--                    <filter name="gb_type" string="Type"-->
+<!--                            context="{'group_by': 'group_type'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <record id="action_oneit_ad_membership" model="ir.actions.act_window">
+        <field name="name">Group Memberships</field>
+        <field name="res_model">oneit.ad.membership</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <!-- ================= GROUP FORM: members tab ================= -->
+
+    <record id="view_oneit_ad_group_form_members" model="ir.ui.view">
+        <field name="name">oneit.ad.group.form.members</field>
+        <field name="model">oneit.ad.group</field>
+        <field name="inherit_id" ref="view_oneit_ad_group_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <notebook>
+                    <page string="Members in AD">
+                        <div class="alert alert-info" role="alert">
+                            Who is in this group in Active Directory as of the
+                            last sync. Rows flagged in orange were granted
+                            directly in AD, with no OneIT approval behind them.
+                        </div>
+                        <field name="membership_ids" readonly="1">
+                            <list decoration-warning="approved_in_odoo == False">
+                                <field name="person_id"/>
+                                <field name="approved_in_odoo"
+                                       string="Approved in OneIT"/>
+                                <field name="first_seen_on"/>
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_oneit_ad_group_tree_members" model="ir.ui.view">
+        <field name="name">oneit.ad.group.list.members</field>
+        <field name="model">oneit.ad.group</field>
+        <field name="inherit_id" ref="view_oneit_ad_group_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <field name="member_count" string="Members" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ================= MENUS ================= -->
+
+    <menuitem id="menu_oneit_directory"
+              name="Directory"
+              parent="menu_oneit_root"
+              sequence="25"/>
+
+    <menuitem id="menu_oneit_ad_person"
+              name="AD Accounts"
+              parent="menu_oneit_directory"
+              action="action_oneit_ad_person"
+              sequence="10"/>
+
+    <menuitem id="menu_oneit_ad_membership"
+              name="Group Memberships"
+              parent="menu_oneit_directory"
+              action="action_oneit_ad_membership"
+              sequence="20"/>
+
+</odoo>

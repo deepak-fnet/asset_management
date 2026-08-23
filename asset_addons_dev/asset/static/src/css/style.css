@@ -1,0 +1,267 @@
+.o_form_view .small-binary-field {
+    max-width: 50px !important;
+    max-height: 10px !important;
+    overflow: hidden;
+    font-size: 5px;
+    display: inline-block;
+}
+
+.o_asset_dashboard_container { padding: 18px; }
+.o_asset_header h2 { margin: 0 0 6px; font-weight:600; }
+.o_subtitle { color: #777; margin-bottom: 10px; }
+.o_dashboard_preview_img { max-width: 120px; border-radius:6px; }
+
+.o_kpi_row { margin: 14px 0 20px; }
+.o_kpi_card { background: #fff; border-radius:6px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); text-align:center; margin-bottom:12px; }
+.o_kpi_title { font-size: 0.9rem; color:#666; }
+.o_kpi_value { font-size: 1.75rem; font-weight:700; color:#e84a4a; margin-top:6px; }
+
+.o_card { background: #fff; border-radius:6px; margin-bottom:14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.o_card_header { padding: 12px 18px; border-bottom: 1px solid #f0f0f0; font-weight:600; }
+.o_card_body { padding: 14px 18px; }
+
+.o_progress_label { margin-top:8px; font-size:0.95rem; color:#555; }
+
+
+.o_unified_asset_kanban {
+    background: #f6f7fb !important;
+    padding: 20px;
+}
+
+.dashboard-card-container {
+    width: 90%;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.dashboard-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+}
+
+.dashboard-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+
+.dashboard-header.state { background: #e8efff; }
+.dashboard-header.dept { background: #eafbef; }
+
+.header-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+}
+
+.dashboard-body .key-value {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-weight: bold;
+}
+
+.metrics {
+    list-style: none;
+    padding: 0;
+    margin-top: 10px;
+}
+
+.metrics li {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.metric-name {
+    background: none;
+    border: none;
+    text-align: left;
+    color: #555;
+}
+
+.dashboard-footer .btn-primary {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+}
+
+/* Badge Colors */
+.badge { border-radius: 6px; padding: 4px 10px; font-size: 13px; }
+.purple { background:#6f42c1; color:white; }
+.green { background:#28a745; color:white; }
+.teal { background:#1cc5a3; color:white; }
+.grey { background:#e2e2e2; color:#333; }
+
+.o_kanban_dashboard .card:hover {
+    transform: scale(1.05);
+    transition: 0.2s ease-in-out;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+}
+.laptop_dash_card {
+    width: 100%;
+    border-radius: 14px;
+    padding: 18px;
+    text-align: center;
+    color: #fff;
+    margin: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.laptop_header {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+.total_text {
+    font-size: 26px;
+    font-weight: bold;
+}
+.dept_list { list-style: none; margin-top: 10px; padding: 0; }
+.dept_btn { background: none; border: none; color: white; cursor: pointer; font-weight: bold; }
+.dept_btn:hover { text-decoration: underline; }
+
+.o_kanban_view .o_kanban_record {
+    max-width: 230px !important;  /* Smaller card width */
+    min-width: 210px !important;
+    margin: 8px; /* Reduce spacing between cards */
+}
+
+.o_kanban_record {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+}
+
+.dashboard_card {
+    width: 240px !important;/* reduces width */
+    border-radius: 10px;
+    box-shadow: 0px 3px 10px rgba(0,0,0,0.08);
+    background: #fff;
+    overflow: hidden;
+    margin: 10px auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.header_bar {
+    padding: 12px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    color:white !important;
+}
+
+.title_text {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* Count bubble */
+.count_badge {
+    border: none;
+    background: rgba(255,255,255,0.3);
+    color:white;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor:pointer;
+    font-weight:600;
+}
+
+/* Breakdown Lines */
+.breakdown_body {
+    flex-grow: 1;
+    padding-top: 10px !important;
+    margin-top: 0 !important;
+    align-items: flex-start !important;
+}
+
+.break_row {
+    display: flex;
+    justify-content: space-between;   /* aligns count in a straight column */
+    align-items: center;
+    width: 100%;
+    padding: 5px 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.break_name {
+    flex: 1;                /* makes name use full space */
+    text-align: left;
+}
+
+.item_count {
+    background: #eee;
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    min-width: 35px;        /* keeps all counts aligned */
+}
+
+.item_count:hover {
+    transform: scale(1.05);
+    transition: 0.2s ease-in-out;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+}
+
+/* Footer Button */
+.footer_section {
+    padding:10px;
+    text-align:center;
+}
+
+.view_btn {
+    width:100%;
+    background: var(--o-primary-color);
+    color:white;
+    border:none;
+    border-radius:6px;
+    padding:6px;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+.view_btn i {
+    margin-right:5px;
+}
+
+.view_btn:hover {
+    opacity:0.9;
+}
+
+/* Unified asset kanban: embedded graph views (unified_asset_graphs.js) */
+.unified-graphs-wrapper {
+    width: 100%;
+    margin-top: 30px;
+}
+.unified-graphs-wrapper .single_graph_box {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 28px;
+}
+.unified-graphs-wrapper .single_graph_title {
+    margin-bottom: 8px;
+}
+.unified-graphs-wrapper .single_graph_view {
+    height: 320px;
+}

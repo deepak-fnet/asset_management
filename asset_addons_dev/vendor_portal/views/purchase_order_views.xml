@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_purchase_order_form_vendor_portal" model="ir.ui.view">
+        <field name="name">purchase.order.form.vendor.portal</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="bid_submitted_on" readonly="1"
+                       invisible="not bid_submitted_on"/>
+                <field name="bid_submitted_by" readonly="1"
+                       invisible="not bid_submitted_by"/>
+                <field name="vendor_delivery_days" readonly="1"
+                       invisible="not vendor_delivery_days"/>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <group string="Vendor Remarks (from portal)"
+                       invisible="not vendor_remarks">
+                    <field name="vendor_remarks" readonly="1" nolabel="1"/>
+                </group>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <button name="action_grant_portal_access" type="object"
+                        string="Grant Portal Access"
+                        groups="purchase.group_purchase_user"
+                        invisible="state not in ('draft', 'sent')"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

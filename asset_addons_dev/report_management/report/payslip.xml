@@ -1,0 +1,512 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+       <record id="action_payslip_report" model="ir.actions.report">
+        <field name="name">Payslip</field>
+        <field name="model">hr.payslip</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">report_management.report_payslip_custom_template</field>
+        <field name="report_file">report_management.report_payslip_custom_template</field>
+        <field name="print_report_name">'Payslip - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="hr_payroll.model_hr_payslip"/>
+        <field name="binding_type">report</field>
+<!--        <field name="paperformat_id" ref="report_management.custom_paperformat"/>-->
+    </record>
+    <template id="report_payslip_custom_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <div class="page"
+                     style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:11pt;color:#222;line-height:1.5;width:100%; margin:0;padding:15px 30px; border:1px solid #bbb;border-radius:6px;background-color:#fafafa; box-sizing:border-box;page-break-after:avoid;page-break-inside:avoid; overflow:hidden;">
+
+                    <!-- HEADER -->
+                    <div style="text-align:center;margin-bottom:12px;">
+                        <h1 style="margin:0;font-size:18pt;color:#002855;font-weight:700;text-transform:uppercase;">
+                            EMPLOYEE PAYSLIP
+                        </h1>
+                        <p style="margin:3px 0;font-size:10pt;color:#444;">
+                            <strong>Reference:</strong>
+                            <t t-esc="o.name"/>
+                        </p>
+                    </div>
+
+                    <!-- COMPANY & EMPLOYEE DETAILS -->
+                    <div style="margin:0; font-size:10.5pt; line-height:1.3;">
+
+                        <!-- COMPANY DETAILS -->
+                        <h4 style="font-size:11.5pt;color:#002855;margin:0 0 4px 0;border-bottom:2px solid #002855;padding-bottom:3px;font-weight:700;">
+                            Company Details
+                        </h4>
+
+                        <table style="width:100%;border-collapse:collapse;font-size:10.5pt;">
+                            <tr>
+                                <td style="width:50%;vertical-align:top;">
+                                    <strong>Company:</strong>
+                                    <t t-esc="o.company_id.name"/>
+                                </td>
+                                <td colspan="2" style="padding-top:2px;">
+                                    <strong>Address:</strong>
+                                    <t t-set="addr"
+                                       t-value="', '.join(filter(None,[o.company_id.street,o.company_id.street2,o.company_id.city,o.company_id.state_id.name,o.company_id.zip,o.company_id.country_id.name]))"/>
+                                    <t t-esc="addr"/>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- EMPLOYEE DETAILS -->
+                        <h4 style="font-size:11.5pt;color:#002855;margin:12px 0 4px 0;border-bottom:2px solid #002855;padding-bottom:3px;font-weight:700;">
+                            Employee Details
+                        </h4>
+
+                        <table style="width:100%;border-collapse:collapse;font-size:9pt;">
+                            <tr>
+                                <!-- Employee -->
+                                <td style="width:50%;vertical-align:top;">
+                                    <table style="width:100%;border-collapse:collapse;font-size:9pt;">
+                                        <tr>
+                                            <td style="width:35%;">
+                                                <strong>Employee</strong>
+                                            </td>
+                                            <td style="width:5%;">:</td>
+                                            <td>
+                                                <t t-esc="o.employee_id.name"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+
+                                <!-- Emp ID -->
+                                <td style="width:30%;vertical-align:top;">
+                                    <table style="width:100%;border-collapse:collapse;font-size:9pt;">
+                                        <tr>
+                                            <td style="width:40%;">
+                                                <strong>Emp ID</strong>
+                                            </td>
+                                            <td style="width:5%;">:</td>
+                                            <td>
+                                                <t t-esc="o.employee_id.employee_code or 'N/A'"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+
+                                <!-- PAN -->
+                                <td style="vertical-align:top;">
+                                    <table style="width:100%;border-collapse:collapse;font-size:9pt;">
+                                        <tr>
+                                            <td style="width:30%;">
+                                                <strong>PAN</strong>
+                                            </td>
+                                            <td style="width:5%;">:</td>
+                                            <td>
+                                                <t t-esc="o.employee_id.l10n_in_pan or 'N/A'"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <!-- Designation -->
+                                <td>
+                                    <table style="width:100%;border-collapse:collapse;font-size:9pt;">
+                                        <tr>
+                                            <td style="width:35%;">
+                                                <strong>Designation</strong>
+                                            </td>
+                                            <td style="width:5%;">:</td>
+                                            <td>
+                                                <t t-esc="o.employee_id.job_id.name or 'N/A'"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+
+                                <!-- Department -->
+                                <td>
+                                    <table style="width:100%;border-collapse:collapse;font-size:9pt;">
+                                        <tr>
+                                            <td style="width:40%;">
+                                                <strong>Department</strong>
+                                            </td>
+                                            <td style="width:5%;">:</td>
+                                            <td>
+                                                <t t-esc="o.employee_id.department_id.name or 'N/A'"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+
+                                <!-- UAN -->
+                                <td>
+                                    <table style="width:100%;border-collapse:collapse;font-size:9pt;">
+                                        <tr>
+                                            <td style="width:30%;">
+                                                <strong>UAN No</strong>
+                                            </td>
+                                            <td style="width:5%;">:</td>
+                                            <td>
+                                                <t t-esc="o.employee_id.l10n_in_uan or 'N/A'"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <!-- Bank -->
+                                <td>
+                                    <table style="width:100%;border-collapse:collapse;font-size:9pt;">
+                                        <tr>
+                                            <td style="width:35%;">
+                                                <strong>Bank A/c</strong>
+                                            </td>
+                                            <td style="width:5%;">:</td>
+                                            <td>
+                                                <t t-esc="o.employee_id.emp_bank_acno or 'N/A'"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+
+                                <!-- IFSC -->
+                                <td>
+                                    <table style="width:100%;border-collapse:collapse;font-size:9pt;">
+                                        <tr>
+                                            <td style="width:40%;">
+                                                <strong>IFSC Code</strong>
+                                            </td>
+                                            <td style="width:5%;">:</td>
+                                            <td>
+                                                <t t-esc="o.employee_id.ifsc_code or 'N/A'"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+
+                                <!-- ESI -->
+                                <td>
+                                    <table style="width:100%;border-collapse:collapse;font-size:9pt;">
+                                        <tr>
+                                            <td style="width:30%;">
+                                                <strong>ESI No</strong>
+                                            </td>
+                                            <td style="width:5%;">:</td>
+                                            <td>
+                                                <t t-esc="o.employee_id.l10n_in_esic_number or 'N/A'"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+                    </div>
+
+                    <!-- FORMATTING HELPER -->
+                    <t t-set="fmt" t-value="lambda x: '{:,.0f}'.format(round(x)) if x else '0'"/>
+                    <t t-set="fmt_leave"
+                       t-value="lambda x: ('%.1f' % x).rstrip('0').rstrip('.') if isinstance(x, (int, float)) else x"/>
+
+                    <t t-set="c" t-value="o.employee_id"/>
+                    <t t-set="lines" t-value="o.line_ids"/>
+
+                    <!-- GET STANDARD SALARY FROM CONTRACT -->
+                    <t t-set="std_basic" t-value="c.wage if c else 0.0"/>
+                    <t t-set="std_hra" t-value="c.hra if c else 0.0"/>
+                    <t t-set="std_prof" t-value="c.professional_allowance if c else 0.0"/>
+                    <t t-set="std_special" t-value="c.special_allowance if c else 0.0"/>
+                    <t t-set="std_conv" t-value="c.travel_allowance if c else 0.0"/>
+                    <t t-set="std_medical" t-value="c.medical_allowance if c else 0.0"/>
+                    <t t-set="std_food" t-value="c.food_allowance if c else 0.0"/>
+                    <t t-set="std_total"
+                       t-value="std_basic + std_hra + std_prof + std_special + std_conv + std_medical +std_food"/>
+
+                    <!-- SALARY BREAKDOWN -->
+                    <h3 style="font-size:12.5pt;color:#002855;border-bottom:2px solid #002855;padding-bottom:3px;margin:15px 0 10px 0;">
+                        Salary Breakdown
+                    </h3>
+
+                    <!-- SIDE-BY-SIDE: STANDARD + EARNINGS (TABLE-BASED) -->
+                    <table style="width:100%; border-collapse:collapse; margin-bottom:12px;">
+                        <tr>
+                            <!-- STANDARD ALLOWANCE -->
+                            <td style="width:50%; vertical-align:top; padding-right:15px; border-right:2px solid #ccc;">
+                                <h4 style="background-color:#e3f2fd;padding:5px;border-radius:4px;font-size:11pt;color:#003366;font-weight:700;margin:0 0 8px 0;">
+                                    Standard Earnings
+                                </h4>
+
+                                <table style="width:100%;font-size:10.5pt;border-collapse:collapse;">
+                                    <tr>
+                                        <td>Basic</td>
+                                        <td style="text-align:right;">
+                                            <t t-esc="fmt(std_basic)"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>HRA</td>
+                                        <td style="text-align:right;">
+                                            <t t-esc="fmt(std_hra)"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Professional Allowance</td>
+                                        <td style="text-align:right;">
+                                            <t t-esc="fmt(std_prof)"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Special Allowance</td>
+                                        <td style="text-align:right;">
+                                            <t t-esc="fmt(std_special)"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Conveyance</td>
+                                        <td style="text-align:right;">
+                                            <t t-esc="fmt(std_conv)"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Medical</td>
+                                        <td style="text-align:right;">
+                                            <t t-esc="fmt(std_medical)"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Food</td>
+                                        <td style="text-align:right;">
+                                            <t t-esc="fmt(std_food)"/>
+                                        </td>
+                                    </tr>
+                                    <!-- Empty rows to align with Actual Earnings -->
+                                    <tr>
+                                        <td colspan="1" style="height:17px;"></td>
+                                    </tr>
+
+                                    <tr style="border-top:2px solid #003366;font-weight:600;">
+                                        <td>
+                                            <strong>Total Standard</strong>
+                                        </td>
+                                        <td style="text-align:right;">
+                                            <strong>
+                                                <t t-esc="fmt(std_total)"/>
+                                            </strong>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                            <!-- EARNINGS -->
+                            <td style="width:50%; vertical-align:top; padding-left:15px;">
+                                <h4 style="background-color:#e8f5e9;padding:5px;border-radius:4px;font-size:11pt;color:#1b5e20;font-weight:700;margin:0 0 8px 0;">
+                                    Actual Earnings
+                                </h4>
+
+                                <table style="width:100%;font-size:10.5pt;border-collapse:collapse;">
+                                    <tr>
+                                        <td>Basic</td>
+                                        <td style="text-align:right;">
+                                            <t t-esc="fmt(lines.filtered(lambda l: l.code == 'BASIC').total or 0)"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>HRA</td>
+                                        <td style="text-align:right;">
+                                            <t t-esc="fmt(lines.filtered(lambda l: l.code == 'HRA').total or 0)"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Professional Allowance</td>
+                                        <td style="text-align:right;">
+                                            <t t-esc="fmt(lines.filtered(lambda l: l.code == 'PROF_ALL').total or 0)"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Special Allowance</td>
+                                        <td style="text-align:right;">
+                                            <t t-esc="fmt(lines.filtered(lambda l: l.code == 'SPA').total or 0)"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Conveyance</td>
+                                        <td style="text-align:right;">
+                                            <t t-esc="fmt(lines.filtered(lambda l: l.code == 'CON_ALL').total or 0)"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Medical</td>
+                                        <td style="text-align:right;">
+                                            <t t-esc="fmt(lines.filtered(lambda l: l.code == 'MEDICAL_ALL').total or 0)"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Food Allowance</td>
+                                        <td style="text-align:right;">
+                                            <t t-esc="fmt(lines.filtered(lambda l: l.code == 'FOOD_ALL').total or 0)"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Miscellaneous Earnings</td>
+                                        <td style="text-align:right;">
+                                            <t t-esc="fmt(lines.filtered(lambda l: l.code == 'MISC_EARNINGS').total or 0)"/>
+                                        </td>
+                                    </tr>
+
+                                    <tr style="border-top:2px solid #1b5e20;font-weight:600;">
+                                        <td>
+                                            <strong>Total Earnings</strong>
+                                        </td>
+                                        <td style="text-align:right;">
+                                            <strong>
+                                                <t t-esc="fmt(lines.filtered(lambda l: l.code in ('GROSS','TOTAL_EMOULMENTS')).total or 0)"/>
+                                            </strong>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- DEDUCTIONS -->
+                    <div style="margin-bottom:10px;">
+                        <h4 style="background-color:#ffebee;padding:5px;border-radius:4px;font-size:11pt;color:#b71c1c;font-weight:700;margin:0 0 8px 0;">
+                            Deductions
+                        </h4>
+
+                        <!-- Individual deductions -->
+                        <t t-set="pf_emp" t-value="lines.filtered(lambda l: l.code == 'employer_epf').total or 0"/>
+                        <t t-set="professional" t-value="lines.filtered(lambda l: l.code == 'PROF_TAX').total or 0"/>
+                        <t t-set="esi_emp"
+                           t-value="lines.filtered(lambda l: l.code in ('COM_ESI','ESI_DED')).total or 0"/>
+                        <t t-set="income_tax" t-value="lines.filtered(lambda l: l.code == 'INCOME_TAX').total or 0"/>
+                        <t t-set="it_cess"
+                           t-value="lines.filtered(lambda l: l.code in ('IT_CESS','IT_CHESS')).total or 0"/>
+                        <t t-set="total_it" t-value="income_tax + it_cess"/>
+                        <t t-set="misc_ded" t-value="lines.filtered(lambda l: l.code == 'MISC_DED').total or 0"/>
+
+                        <!-- Total deduction -->
+                        <t t-set="total_ded"
+                           t-value="pf_emp + professional+ esi_emp + income_tax + it_cess + misc_ded"/>
+
+                        <table style="width:100%;font-size:10.5pt;border-collapse:collapse;">
+                            <tr>
+                                <td>Professional Tax</td>
+                                <td style="text-align:right;">
+                                    <t t-esc="fmt(professional)"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>PF (Employee)</td>
+                                <td style="text-align:right;">
+                                    <t t-esc="fmt(pf_emp)"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>ESI Deduction</td>
+                                <td style="text-align:right;">
+                                    <t t-esc="fmt(esi_emp)"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Total Income Tax</td>
+                                <td style="text-align:right;">
+                                    <t t-esc="fmt(total_it)"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Miscellaneous</td>
+                                <td style="text-align:right;">
+                                    <t t-esc="fmt(misc_ded)"/>
+                                </td>
+                            </tr>
+                            <tr style="border-top:2px solid #b71c1c;font-weight:600;">
+                                <td>
+                                    <strong>Total Deductions</strong>
+                                </td>
+                                <td style="text-align:right;">
+                                    <strong>
+                                        <t t-esc="fmt(total_ded)"/>
+                                    </strong>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- ATTENDANCE SUMMARY -->
+                    <div style="margin-bottom:10px;">
+                        <h4 style="background-color:#e3f2fd;padding:5px;border-radius:4px;font-size:11pt;color:#0d47a1;font-weight:700;margin:0 0 8px 0;">
+                            Attendance Summary
+                        </h4>
+                        <table style="width:100%;font-size:10.5pt;border-collapse:collapse;">
+                            <tr>
+                                <td>Total Working Days</td>
+                                <td style="text-align:right;">
+                                    <t t-esc="fmt_leave(o.days_work_dummy or 0)"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>LOP Days</td>
+                                <td style="text-align:right;">
+                                    <t t-esc="fmt_leave(o.lop or 0)"/>
+                                </td>
+                            </tr>
+                            <!-- LEAVE SUMMARY -->
+<!--                            <div style="margin-top:10px;">-->
+<!--                                <table style="width:100%;border-collapse:collapse;font-size:10.5pt;">-->
+<!--                                    <thead>-->
+<!--                                        <tr style="background-color:#ede7f6;font-weight:600;">-->
+<!--                                            <th style="border:1px solid #bbb;padding:6px;text-align:left;">Leave Type-->
+<!--                                            </th>-->
+<!--                                            <th style="border:1px solid #bbb;padding:6px;text-align:right;">Opening</th>-->
+<!--                                            <th style="border:1px solid #bbb;padding:6px;text-align:right;">Availed</th>-->
+<!--                                            <th style="border:1px solid #bbb;padding:6px;text-align:right;">Closing</th>-->
+<!--                                        </tr>-->
+<!--                                    </thead>-->
+<!--                                    <tbody>-->
+<!--                                        &lt;!&ndash; Casual Leave &ndash;&gt;-->
+<!--                                        <tr>-->
+<!--                                            <td style="border:1px solid #bbb;padding:6px;">Casual Leave (CL)</td>-->
+<!--                                            <td style="border:1px solid #bbb;padding:6px;text-align:right;">-->
+<!--                                                <t t-esc="fmt_leave(o.cl_opening_dummy or 0)"/>-->
+<!--                                            </td>-->
+<!--                                            <td style="border:1px solid #bbb;padding:6px;text-align:right;">-->
+<!--                                                <t t-esc="fmt_leave(o.cl_taken_dummy or 0)"/>-->
+<!--                                            </td>-->
+<!--                                            <td style="border:1px solid #bbb;padding:6px;text-align:right;">-->
+<!--                                                <t t-esc="fmt_leave(o.cl_balance_dummy or 0)"/>-->
+<!--                                            </td>-->
+<!--                                        </tr>-->
+
+<!--                                        &lt;!&ndash; Earned Leave &ndash;&gt;-->
+<!--                                        <tr>-->
+<!--                                            <td style="border:1px solid #bbb;padding:6px;">Earned Leave (EL)</td>-->
+<!--                                            <td style="border:1px solid #bbb;padding:6px;text-align:right;">-->
+<!--                                                <t t-esc="fmt_leave(o.el_opening_dummy or 0)"/>-->
+<!--                                            </td>-->
+<!--                                            <td style="border:1px solid #bbb;padding:6px;text-align:right;">-->
+<!--                                                <t t-esc="fmt_leave(o.el_taken_dummy or 0)"/>-->
+<!--                                            </td>-->
+<!--                                            <td style="border:1px solid #bbb;padding:6px;text-align:right;">-->
+<!--                                                <t t-esc="fmt_leave(o.el_balance_dummy or 0)"/>-->
+<!--                                            </td>-->
+<!--                                        </tr>-->
+<!--                                    </tbody>-->
+<!--                                </table>-->
+<!--                            </div>-->
+                        </table>
+                    </div>
+
+                    <!-- NET PAY -->
+                    <t t-set="net_pay" t-value="lines.filtered(lambda l: l.code in ('NET','NETPAY')).total or 0"/>
+
+                    <div style="background-color:#d4edda;border:1px solid #c3e6cb;border-radius:4px;padding:8px 10px;margin-top:8px;font-family:'DejaVu Sans',Arial,sans-serif;page-break-inside: avoid;">
+                        <h3 style="color:#155724;margin:0;text-align:center;font-size:11pt;font-weight:600;">
+                            Net Pay:
+                            <t t-esc="int(round(net_pay))"/>
+                            Rupees
+                        </h3>
+                    </div>
+
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

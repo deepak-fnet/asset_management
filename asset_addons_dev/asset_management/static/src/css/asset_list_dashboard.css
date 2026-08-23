@@ -1,0 +1,251 @@
+.o_asset_list_dashboard {
+    background-color: #f8f9fa;
+    padding: 15px 24px;
+    width: 100%;
+    max-width: none !important;
+    box-sizing: border-box;
+}
+
+/* Ensure container-fluid has no max-width */
+.o_asset_list_dashboard.container-fluid {
+    max-width: none !important;
+    padding-left: 24px;
+    padding-right: 24px;
+}
+
+/* Only apply layout rules to views containing the asset list dashboard */
+.o_view_controller:has(.o_asset_list_dashboard) .o_kanban_view,
+.o_view_controller:has(.o_asset_list_dashboard) .o_list_view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.o_view_controller:has(.o_asset_list_dashboard) .o_kanban_renderer,
+.o_view_controller:has(.o_asset_list_dashboard) .o_list_renderer {
+    flex: 1 1 auto;
+    overflow-y: auto !important;
+}
+
+.o_asset_list_dashboard .kpi_card {
+    position: relative;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 12px 16px;
+    height: 80px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+    overflow: hidden;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.o_asset_list_dashboard .kpi_card:hover,
+.o_asset_list_dashboard .kpi_card.active {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.o_asset_list_dashboard .kpi_card.active {
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+}
+
+.o_asset_list_dashboard .kpi_body {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+}
+
+.o_asset_list_dashboard .kpi_icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.o_asset_list_dashboard .kpi_text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.o_asset_list_dashboard .kpi_label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.o_asset_list_dashboard .kpi_value {
+    font-size: 24px;
+    font-weight: 800;
+    color: #212529;
+    line-height: 1;
+}
+
+.o_asset_list_dashboard .kpi_bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    width: 100%;
+}
+
+/* KPI Colors to match System Overview */
+.o_asset_list_dashboard .kpi_total_assets .kpi_icon {
+    background: #E3F2FD;
+    color: #2196F3;
+}
+
+.o_asset_list_dashboard .kpi_total_assets .kpi_bottom {
+    background: #2196F3;
+}
+
+.o_asset_list_dashboard .kpi_windows .kpi_icon {
+    background: #E3F2FD;
+    color: #1E88E5;
+}
+
+.o_asset_list_dashboard .kpi_windows .kpi_bottom {
+    background: #1E88E5;
+}
+
+.o_asset_list_dashboard .kpi_linux .kpi_icon {
+    background: #E8F5E9;
+    color: #388E3C;
+}
+
+.o_asset_list_dashboard .kpi_linux .kpi_bottom {
+    background: #388E3C;
+}
+
+.o_asset_list_dashboard .kpi_cctv .kpi_icon {
+    background: #ECEFF1;
+    color: #546E7A;
+}
+
+.o_asset_list_dashboard .kpi_cctv .kpi_bottom {
+    background: #546E7A;
+}
+
+.o_asset_list_dashboard .kpi_network .kpi_icon {
+    background: #FFFDE7;
+    color: #FBC02D;
+}
+
+.o_asset_list_dashboard .kpi_network .kpi_bottom {
+    background: #FBC02D;
+}
+
+/* =========================
+   VIEW-LEVEL SCOPING
+   Prevent dashboard cards from appearing in unwanted views
+   ========================= */
+
+/* Hide dashboard when inside form views */
+.o_form_view .o_asset_list_dashboard,
+.o_form_sheet .o_asset_list_dashboard,
+.o_field_widget .o_asset_list_dashboard,
+.o_x2m_control_panel+.o_asset_list_dashboard,
+.o_field_x2many .o_asset_list_dashboard,
+.o_field_one2many .o_asset_list_dashboard,
+.o_field_many2many .o_asset_list_dashboard {
+    display: none !important;
+}
+
+/* Hide dashboard when inside System Overview or custom dashboards */
+.o_system_overview .o_asset_list_dashboard,
+.o_asset_dashboard .o_asset_list_dashboard,
+.o_cctv_dashboard .o_asset_list_dashboard,
+.o_device_monitoring_dashboard .o_asset_list_dashboard {
+    display: none !important;
+}
+
+/* Ensure X2Many lists inside form views don't have dashboard spacing issues */
+.o_form_view .o_field_x2many .o_list_view,
+.o_form_view .o_field_one2many .o_list_view {
+    overflow: visible;
+}
+
+/* Reset any dashboard-related styles that might leak into form view lists */
+.o_form_view .o_list_renderer {
+    flex: none;
+    overflow-y: visible !important;
+}
+
+/* =========================
+   FULL-WIDTH VIEW LAYOUT
+   Ensure all asset views span full width
+   ========================= */
+
+/* View controller wrapper - full width */
+.o_view_controller:has(.o_asset_list_dashboard),
+.o_view_controller:has(.o_asset_kanban) {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+/* Content area - full width */
+.o_view_controller:has(.o_asset_list_dashboard) .o_content,
+.o_view_controller:has(.o_asset_kanban) .o_content {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+}
+
+/* Kanban view within asset views - full width */
+.o_view_controller:has(.o_asset_list_dashboard) .o_kanban_view,
+.o_view_controller:has(.o_asset_list_dashboard) .o_list_view,
+.o_kanban_view.o_asset_kanban {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+/* =========================
+   ALWAYS-VISIBLE SELECTION CHECKBOXES
+   Make row-select and select-all checkboxes always visible
+   (Odoo 18 hides them by default until hover)
+   ========================= */
+
+/* Show row checkboxes in all list views */
+.o_list_renderer .o_list_record_selector {
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Ensure header select-all checkbox is always visible */
+.o_list_renderer thead .o_list_record_selector {
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Keep checkboxes hidden inside form view inline lists
+   (x2many lists inside form sheets should not have always-visible checkboxes) */
+.o_form_view .o_field_x2many .o_list_renderer .o_list_record_selector,
+.o_form_view .o_field_one2many .o_list_renderer .o_list_record_selector,
+.o_form_view .o_field_many2many .o_list_renderer .o_list_record_selector {
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+.o_form_view .o_field_x2many .o_list_renderer tbody tr:hover .o_list_record_selector,
+.o_form_view .o_field_one2many .o_list_renderer tbody tr:hover .o_list_record_selector,
+.o_form_view .o_field_many2many .o_list_renderer tbody tr:hover .o_list_record_selector,
+.o_form_view .o_field_x2many .o_list_renderer tbody .o_selected .o_list_record_selector,
+.o_form_view .o_field_one2many .o_list_renderer tbody .o_selected .o_list_record_selector,
+.o_form_view .o_field_many2many .o_list_renderer tbody .o_selected .o_list_record_selector {
+    visibility: visible !important;
+    opacity: 1 !important;
+}

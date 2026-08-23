@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_setup_check_manager,setup.check manager,model_asset_security_setup_check,asset_management.group_asset_manager,1,1,1,1
+access_setup_check_user,setup.check user,model_asset_security_setup_check,asset_management.group_asset_user,1,1,1,0
+access_demo_seeder_manager,demo.seeder manager,model_asset_security_demo_seeder,asset_management.group_asset_manager,1,1,1,1
+access_patch_cleanup_manager,patch.cleanup manager,model_asset_patch_cleanup_wizard,asset_management.group_asset_manager,1,1,1,1

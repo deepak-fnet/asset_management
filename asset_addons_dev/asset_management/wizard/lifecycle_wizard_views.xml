@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     ASSIGN LAPTOP WIZARD  (used in Joining Process)
+     ═══════════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_assign_laptop_wizard_form" model="ir.ui.view">
+        <field name="name">asset.assign.laptop.wizard.form</field>
+        <field name="model">asset.assign.laptop.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Assign Laptop">
+                <sheet>
+                    <div class="alert alert-info" role="alert">
+                        <i class="fa fa-info-circle me-1"/>
+                        Select an <strong>available laptop</strong> to assign
+                        to <field name="employee_id" readonly="1" nolabel="1"
+                                  class="d-inline"/>.
+                        Only laptops in <em>Available</em> (Draft) state are shown.
+                    </div>
+
+                    <group>
+                        <field name="joining_id" invisible="1"/>
+                        <field name="employee_id" readonly="1"/>
+                        <field name="asset_id" required="1" options="{'no_create': True, 'no_create_edit':True}"/>
+                        <field name="assignment_date"/>
+                    </group>
+                    <group string="Notes">
+                        <field name="notes" nolabel="1"
+                               placeholder="Optional remarks…"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_assign" type="object"
+                            string="Assign Laptop"
+                            class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     REPLACE LAPTOP WIZARD  (used in Assign Process)
+     ═══════════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_replace_laptop_wizard_form" model="ir.ui.view">
+        <field name="name">asset.replace.laptop.wizard.form</field>
+        <field name="model">asset.replace.laptop.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Assign Replacement Laptop">
+                <sheet>
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fa fa-exclamation-triangle me-1"/>
+                        Select a <strong>temporary replacement laptop</strong> for
+                        <field name="employee_id" readonly="1" nolabel="1"
+                               class="d-inline"/>.
+                        The replacement will be <strong>automatically returned</strong>
+                        when the repair ticket is marked as Done.
+                    </div>
+
+                    <group>
+                        <field name="assign_process_id" invisible="1"/>
+                        <field name="employee_id" readonly="1"/>
+                        <field name="replacement_asset_id" required="1"/>
+                        <field name="assignment_date"/>
+                    </group>
+                    <group string="Notes">
+                        <field name="notes" nolabel="1"
+                               placeholder="Optional remarks…"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_replace" type="object"
+                            string="Assign Replacement"
+                            class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</data>
+</odoo>

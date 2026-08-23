@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Asset Remote Assistance
+Comment=Consent-based remote support for this managed asset
+Exec=/usr/bin/python3 /usr/local/bin/asset-agent/asset_remote_worker.py
+X-GNOME-Autostart-enabled=true
+NoDisplay=true
+Terminal=false

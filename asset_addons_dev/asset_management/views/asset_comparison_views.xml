@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- =====================================================
+         COMPARISON WIZARD FORM
+         ===================================================== -->
+    <record id="view_asset_comparison_form" model="ir.ui.view">
+        <field name="name">asset.comparison.form</field>
+        <field name="model">asset.comparison</field>
+        <field name="arch" type="xml">
+            <form string="Asset Comparison">
+                <sheet>
+                    <div class="alert alert-info mb-3" role="alert">
+                        <i class="fa fa-info-circle me-2" title="Info"/>
+                        <strong>Comparing:</strong> <field name="asset_count" readonly="1"/> asset(s)
+                        <span class="text-muted">(Maximum 5 assets)</span>
+                    </div>
+
+                    <field name="comparison_html" widget="html" nolabel="1"/>
+
+                    <field name="asset_ids" invisible="1"/>
+                </sheet>
+
+                <footer>
+                    <button string="Export Comparison" name="action_export_comparison" type="object" class="btn-primary"/>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         COMPARISON ACTION
+         ===================================================== -->
+    <record id="action_asset_comparison" model="ir.actions.act_window">
+        <field name="name">Compare Assets</field>
+        <field name="res_model">asset.comparison</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="model_asset_asset"/>
+        <field name="binding_view_types">tree</field>
+    </record>
+
+</odoo>

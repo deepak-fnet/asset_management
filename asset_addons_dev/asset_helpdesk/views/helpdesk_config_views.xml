@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ==================== Ticket Type ==================== -->
+
+    <record id="view_asset_helpdesk_type_tree" model="ir.ui.view">
+        <field name="name">asset.helpdesk.type.tree</field>
+        <field name="model">asset.helpdesk.type</field>
+        <field name="arch" type="xml">
+            <list string="Ticket Types" editable="bottom" decoration-muted="not active">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_helpdesk_type_form" model="ir.ui.view">
+        <field name="name">asset.helpdesk.type.form</field>
+        <field name="model">asset.helpdesk.type</field>
+        <field name="arch" type="xml">
+            <form string="Ticket Type">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_asset_helpdesk_type_search" model="ir.ui.view">
+        <field name="name">asset.helpdesk.type.search</field>
+        <field name="model">asset.helpdesk.type</field>
+        <field name="arch" type="xml">
+            <search string="Search Ticket Types">
+                <field name="name"/>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_asset_helpdesk_type" model="ir.actions.act_window">
+        <field name="name">Ticket Types</field>
+        <field name="res_model">asset.helpdesk.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new ticket type
+            </p>
+        </field>
+    </record>
+
+    <!-- ==================== Category ==================== -->
+
+    <record id="view_asset_helpdesk_category_tree" model="ir.ui.view">
+        <field name="name">asset.helpdesk.category.tree</field>
+        <field name="model">asset.helpdesk.category</field>
+        <field name="arch" type="xml">
+            <list string="Categories" editable="bottom" decoration-muted="not active">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle"/>
+                <field name="is_repair_flow" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_helpdesk_category_form" model="ir.ui.view">
+        <field name="name">asset.helpdesk.category.form</field>
+        <field name="model">asset.helpdesk.category</field>
+        <field name="arch" type="xml">
+            <form string="Category">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                        <field name="is_repair_flow"/>
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_asset_helpdesk_category_search" model="ir.ui.view">
+        <field name="name">asset.helpdesk.category.search</field>
+        <field name="model">asset.helpdesk.category</field>
+        <field name="arch" type="xml">
+            <search string="Search Categories">
+                <field name="name"/>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_asset_helpdesk_category" model="ir.actions.act_window">
+        <field name="name">Categories</field>
+        <field name="res_model">asset.helpdesk.category</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new category
+            </p>
+        </field>
+    </record>
+
+</odoo>

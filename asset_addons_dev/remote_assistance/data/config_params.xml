@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- WebSocket relay the browser viewer and the agent connect to.
+             Use wss:// in production (TLS via reverse proxy or the relay's
+             own cert). -->
+        <record id="param_relay_url" model="ir.config_parameter">
+            <field name="key">remote_assistance.relay_url</field>
+            <field name="value">wss://localhost:8765</field>
+        </record>
+        <!-- Optional: base URL where prebuilt RemoteAssist.exe / .deb binaries
+             are hosted. Leave empty to offer only the portable package. -->
+        <record id="param_agent_download_base" model="ir.config_parameter">
+            <field name="key">remote_assistance.agent_download_base</field>
+            <field name="value"></field>
+        </record>
+        <!-- Optional: server filesystem directory holding prebuilt binaries:
+             RemoteAssist.exe (Windows), RemoteAssist (Linux onefile) and/or
+             RemoteAssist.deb. When set and the file exists, the download page
+             serves the real binary + session.json (no Python needed on the
+             customer machine). Leave empty to use the portable .py package. -->
+        <record id="param_agent_binary_dir" model="ir.config_parameter">
+            <field name="key">remote_assistance.agent_binary_dir</field>
+            <field name="value"></field>
+        </record>
+    </data>
+</odoo>

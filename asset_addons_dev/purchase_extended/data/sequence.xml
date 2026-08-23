@@ -1,0 +1,18 @@
+<odoo>
+    <data>
+        <record id="rfq_sequence" model="ir.sequence">
+            <field name="name">purchase.order</field>
+            <field name="code">purchase.order.seq1</field>
+            <field name="prefix">RFQ/%(year)s/%(month)s/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        <record id="po_sequence" model="ir.sequence">
+            <field name="name">purchase.order</field>
+            <field name="code">purchase.order.seq2</field>
+            <field name="prefix">P0/%(year)s/%(month)s/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </data>
+</odoo>

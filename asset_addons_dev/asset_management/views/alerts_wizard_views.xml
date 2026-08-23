@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Alerts Wizard Form View -->
+    <record id="view_alerts_wizard_form" model="ir.ui.view">
+        <field name="name">asset.alerts.wizard.form</field>
+        <field name="model">asset.alerts.wizard</field>
+        <field name="arch" type="xml">
+            <form string="View All Alerts" class="o_alerts_wizard">
+                <style>
+                    .btn-windows { background-color: #0057D9 !important; }
+                    .btn-windows:hover { background-color: #0057D9 !important; color: white !important; opacity: 0.8; }
+                    .btn-linux { background-color: #E95420 !important; }
+                    .btn-linux:hover { background-color: #E95420 !important; color: white !important; opacity: 0.8; }
+                    .btn-macos { background-color: #555555 !important; }
+                    .btn-macos:hover { background-color: #555555 !important; color: white !important; opacity: 0.8; }
+                    .btn-cctv { background-color: #009688 !important; }
+                    .btn-cctv:hover { background-color: #009688 !important; color: white !important; opacity: 0.8; }
+                    .btn-network { background-color: #8E24AA !important; }
+                    .btn-network:hover { background-color: #8E24AA !important; color: white !important; opacity: 0.8; }
+                    .btn-critical { background-color: #dc3545 !important; }
+                    .btn-critical:hover { background-color: #dc3545 !important; color: white !important; opacity: 0.8; }
+                    .btn-warning { background-color: #ffc107 !important; }
+                    .btn-warning:hover { background-color: #ffc107 !important; color: white !important; opacity: 0.8; }
+                    .btn-info { background-color: #17a2b8 !important; }
+                    .btn-info:hover { background-color: #17a2b8 !important; color: white !important; opacity: 0.8; }
+                    .outline-btn { transition: all 0.3s ease; }
+                </style>
+                <sheet>
+                    <!-- Total Alerts Banner -->
+                    <div class="alert alert-warning text-center" style="background: linear-gradient(135deg, rgba(255, 193, 7, 0.15) 0%, rgba(255, 160, 0, 0.15) 100%); border: 2px solid rgba(255, 193, 7, 0.3); border-radius: 12px; padding: 30px; margin: 20px 0; box-shadow: 0 2px 8px rgba(255, 193, 7, 0.08);">
+                        <h2 style="color: #ff9800; margin: 0; font-size: 16px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;">OVERALL ALERTS</h2>
+                        <h1 style="color: #2C3E50; margin: 15px 0 0 0; font-size: 56px; font-weight: 700;">
+                            <field name="total_alerts" readonly="1" nolabel="1" class="oe_inline"/>
+                        </h1>
+                        <p style="color: #5D6D7B; margin: 10px 0 0 0; font-size: 14px;">Unreviewed changes across all categories</p>
+                    </div>
+
+                    <!-- Severity Cards -->
+                    <div class="row" style="margin: 30px 0 20px 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;">
+                        <!-- Critical Alerts -->
+                        <div style="flex: 1 1 calc(33% - 1rem); min-width: 200px; max-width: 300px;">
+                            <div class="card h-100 text-center shadow-sm" style="border: 2px solid #dc3545; border-radius: 12px;">
+                                <div class="card-body" style="padding: 25px 20px;">
+                                    <div style="background: #dc3545; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+                                        <i class="fa fa-exclamation-triangle fa-2x" style="color: white;"/>
+                                    </div>
+                                    <h4 style="color: #333; font-weight: 600; margin-bottom: 10px;">Critical</h4>
+                                    <h2 style="color: #dc3545; font-weight: 700; font-size: 32px; margin: 10px 0;">
+                                        <field name="critical_alerts" readonly="1" nolabel="1"/>
+                                    </h2>
+                                    <button name="action_view_critical_alerts" type="object" string="View Critical" class="btn outline-btn btn-critical" style="border: 2px solid #dc3545; color: white; border-radius: 8px; padding: 8px 16px; width: 100%; margin-top: 10px; font-weight: 600;"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Warning Alerts -->
+                        <div style="flex: 1 1 calc(33% - 1rem); min-width: 200px; max-width: 300px;">
+                            <div class="card h-100 text-center shadow-sm" style="border: 2px solid #ffc107; border-radius: 12px;">
+                                <div class="card-body" style="padding: 25px 20px;">
+                                    <div style="background: #ffc107; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+                                        <i class="fa fa-exclamation-circle fa-2x" style="color: white;"/>
+                                    </div>
+                                    <h4 style="color: #333; font-weight: 600; margin-bottom: 10px;">Warning</h4>
+                                    <h2 style="color: #ffc107; font-weight: 700; font-size: 32px; margin: 10px 0;">
+                                        <field name="warning_alerts" readonly="1" nolabel="1"/>
+                                    </h2>
+                                    <button name="action_view_warning_alerts" type="object" string="View Warning" class="btn outline-btn btn-warning" style="border: 2px solid #ffc107; color: white; border-radius: 8px; padding: 8px 16px; width: 100%; margin-top: 10px; font-weight: 600;"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Info Alerts -->
+                        <div style="flex: 1 1 calc(33% - 1rem); min-width: 200px; max-width: 300px;">
+                            <div class="card h-100 text-center shadow-sm" style="border: 2px solid #17a2b8; border-radius: 12px;">
+                                <div class="card-body" style="padding: 25px 20px;">
+                                    <div style="background: #17a2b8; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+                                        <i class="fa fa-info-circle fa-2x" style="color: white;"/>
+                                    </div>
+                                    <h4 style="color: #333; font-weight: 600; margin-bottom: 10px;">Info</h4>
+                                    <h2 style="color: #17a2b8; font-weight: 700; font-size: 32px; margin: 10px 0;">
+                                        <field name="info_alerts" readonly="1" nolabel="1"/>
+                                    </h2>
+                                    <button name="action_view_info_alerts" type="object" string="View Info" class="btn outline-btn btn-info" style="border: 2px solid #17a2b8; color: white; border-radius: 8px; padding: 8px 16px; width: 100%; margin-top: 10px; font-weight: 600;"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr style="margin: 30px 0; border-top: 2px solid #e0e0e0;"/>
+
+                    <!-- Platform Cards -->
+                    <h3 style="text-align: center; color: #555; margin-bottom: 20px; font-weight: 600;">Alerts by Platform</h3>
+                    <div class="row" style="margin: 20px 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;">
+                        <!-- Windows Alerts -->
+                        <div style="flex: 1 1 calc(20% - 1rem); min-width: 160px; max-width: 220px;">
+                            <div class="card h-100 text-center shadow-sm" style="border: 2px solid #0057D9; border-radius: 12px;">
+                                <div class="card-body" style="padding: 20px 15px;">
+                                    <div style="background: #0057D9; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
+                                        <i class="fa fa-windows fa-lg" style="color: white;"/>
+                                    </div>
+                                    <h5 style="color: #333; font-weight: 600;">Windows</h5>
+                                    <h3 style="color: #0057D9; font-weight: 700; font-size: 28px; margin: 8px 0;">
+                                        <field name="windows_alerts" readonly="1" nolabel="1"/>
+                                    </h3>
+                                    <button name="action_view_windows_alerts" type="object" string="View" class="btn outline-btn btn-windows" style="border: 2px solid #0057D9; color: white; border-radius: 6px; padding: 6px 12px; width: 100%; margin-top: 8px; font-weight: 600; font-size: 12px;"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Linux Alerts -->
+                        <div style="flex: 1 1 calc(20% - 1rem); min-width: 160px; max-width: 220px;">
+                            <div class="card h-100 text-center shadow-sm" style="border: 2px solid #E95420; border-radius: 12px;">
+                                <div class="card-body" style="padding: 20px 15px;">
+                                    <div style="background: #E95420; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
+                                        <i class="fa fa-linux fa-lg" style="color: white;"/>
+                                    </div>
+                                    <h5 style="color: #333; font-weight: 600;">Linux</h5>
+                                    <h3 style="color: #E95420; font-weight: 700; font-size: 28px; margin: 8px 0;">
+                                        <field name="linux_alerts" readonly="1" nolabel="1"/>
+                                    </h3>
+                                    <button name="action_view_linux_alerts" type="object" string="View" class="btn outline-btn btn-linux" style="border: 2px solid #E95420; color: white; border-radius: 6px; padding: 6px 12px; width: 100%; margin-top: 8px; font-weight: 600; font-size: 12px;"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- macOS Alerts -->
+                        <div style="flex: 1 1 calc(20% - 1rem); min-width: 160px; max-width: 220px;">
+                            <div class="card h-100 text-center shadow-sm" style="border: 2px solid #555555; border-radius: 12px;">
+                                <div class="card-body" style="padding: 20px 15px;">
+                                    <div style="background: #555555; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
+                                        <i class="fa fa-apple fa-lg" style="color: white;"/>
+                                    </div>
+                                    <h5 style="color: #333; font-weight: 600;">macOS</h5>
+                                    <h3 style="color: #555555; font-weight: 700; font-size: 28px; margin: 8px 0;">
+                                        <field name="mac_alerts" readonly="1" nolabel="1"/>
+                                    </h3>
+                                    <button name="action_view_mac_alerts" type="object" string="View" class="btn outline-btn btn-macos" style="border: 2px solid #555555; color: white; border-radius: 6px; padding: 6px 12px; width: 100%; margin-top: 8px; font-weight: 600; font-size: 12px;"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CCTV Alerts -->
+                        <div style="flex: 1 1 calc(20% - 1rem); min-width: 160px; max-width: 220px;">
+                            <div class="card h-100 text-center shadow-sm" style="border: 2px solid #009688; border-radius: 12px;">
+                                <div class="card-body" style="padding: 20px 15px;">
+                                    <div style="background: #009688; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
+                                        <i class="fa fa-video-camera fa-lg" style="color: white;"/>
+                                    </div>
+                                    <h5 style="color: #333; font-weight: 600;">CCTV</h5>
+                                    <h3 style="color: #009688; font-weight: 700; font-size: 28px; margin: 8px 0;">
+                                        <field name="cctv_alerts" readonly="1" nolabel="1"/>
+                                    </h3>
+                                    <button name="action_view_cctv_alerts" type="object" string="View" class="btn outline-btn btn-cctv" style="border: 2px solid #009688; color: white; border-radius: 6px; padding: 6px 12px; width: 100%; margin-top: 8px; font-weight: 600; font-size: 12px;"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Network Alerts -->
+                        <div style="flex: 1 1 calc(20% - 1rem); min-width: 160px; max-width: 220px;">
+                            <div class="card h-100 text-center shadow-sm" style="border: 2px solid #8E24AA; border-radius: 12px;">
+                                <div class="card-body" style="padding: 20px 15px;">
+                                    <div style="background: #8E24AA; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">
+                                        <i class="fa fa-sitemap fa-lg" style="color: white;"/>
+                                    </div>
+                                    <h5 style="color: #333; font-weight: 600;">Network</h5>
+                                    <h3 style="color: #8E24AA; font-weight: 700; font-size: 28px; margin: 8px 0;">
+                                        <field name="network_alerts" readonly="1" nolabel="1"/>
+                                    </h3>
+                                    <button name="action_view_network_alerts" type="object" string="View" class="btn outline-btn btn-network" style="border: 2px solid #8E24AA; color: white; border-radius: 6px; padding: 6px 12px; width: 100%; margin-top: 8px; font-weight: 600; font-size: 12px;"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action to open wizard -->
+    <record id="action_alerts_wizard" model="ir.actions.act_window">
+        <field name="name">View All Alerts</field>
+        <field name="res_model">asset.alerts.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="view_id" ref="view_alerts_wizard_form"/>
+    </record>
+
+</odoo>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_asset_remote_session_form" model="ir.ui.view">
+        <field name="name">asset.remote.session.form</field>
+        <field name="model">asset.remote.session</field>
+        <field name="arch" type="xml">
+            <form string="Asset Remote Session">
+                <header>
+                    <button name="action_open_viewer" type="object"
+                            string="Start Remote Session" class="btn-primary"
+                            invisible="state not in ['agent_connected','connected']"/>
+                    <button name="action_end_session" type="object"
+                            string="End Session" class="btn-danger"
+                            confirm="End the session now?"
+                            invisible="state not in ['accepted','agent_connected','connected']"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="requested,accepted,agent_connected,connected,ended"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-info" role="status"
+                         invisible="not state_help">
+                        <field name="state_help"/>
+                    </div>
+                    <div class="oe_title"><h1><field name="name"
+                         readonly="1"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="asset_id" readonly="1"/>
+                            <field name="serial_number"/>
+                            <field name="admin_user_id" readonly="1"/>
+                            <field name="duration_minutes"/>
+                        </group>
+                        <group>
+                            <field name="relay_url"/>
+                            <field name="start_time" invisible="1"/>
+                            <field name="actual_duration"
+                                   invisible="not start_time"/>
+                            <field name="agent_os" invisible="not agent_os"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="History" name="history">
+                            <field name="history_ids" readonly="1">
+                                <list>
+                                    <field name="timestamp"/>
+                                    <field name="action"/>
+                                    <field name="actor"/>
+                                    <field name="note"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Technical" name="technical"
+                              groups="asset_management.group_asset_manager">
+                            <group>
+                                <field name="session_token"/>
+                                <field name="requested_on"/>
+                                <field name="consent_on"/>
+                                <field name="agent_connected_on"/>
+                                <field name="end_time"/>
+                                <field name="expiry"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+<!--                <div class="oe_chatter">-->
+<!--                    <field name="message_follower_ids"/>-->
+<!--                    <field name="activity_ids"/>-->
+<!--                    <field name="message_ids"/>-->
+<!--                </div>-->
+            </form>
+        </field>
+    </record>
+
+    <record id="view_asset_remote_session_tree" model="ir.ui.view">
+        <field name="name">asset.remote.session.tree</field>
+        <field name="model">asset.remote.session</field>
+        <field name="arch" type="xml">
+            <list string="Asset Remote Sessions"
+                  decoration-success="state == 'connected'"
+                  decoration-info="state == 'agent_connected'"
+                  decoration-muted="state in ['ended','expired','rejected']">
+                <field name="name"/>
+                <field name="asset_id"/>
+                <field name="serial_number"/>
+                <field name="admin_user_id"/>
+                <field name="create_date"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'connected'"
+                       decoration-info="state == 'agent_connected'"
+                       decoration-warning="state in ['requested','accepted']"
+                       decoration-danger="state == 'rejected'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_remote_session_search" model="ir.ui.view">
+        <field name="name">asset.remote.session.search</field>
+        <field name="model">asset.remote.session</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="asset_id"/>
+                <field name="serial_number"/>
+                <field name="admin_user_id"/>
+                <filter name="my" string="My Sessions"
+                        domain="[('admin_user_id','=',uid)]"/>
+                <filter name="live" string="Live"
+                        domain="[('state','in',['agent_connected','connected'])]"/>
+                <filter name="closed" string="Closed"
+                        domain="[('state','in',['ended','expired','rejected'])]"/>
+<!--                <group expand="0" string="Group By">-->
+<!--                    <filter name="g_state" string="Status"-->
+<!--                            context="{'group_by':'state'}"/>-->
+<!--                    <filter name="g_asset" string="Asset"-->
+<!--                            context="{'group_by':'asset_id'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <record id="action_asset_remote_session" model="ir.actions.act_window">
+        <field name="name">Remote Sessions</field>
+        <field name="res_model">asset.remote.session</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_asset_remote_session_search"/>
+    </record>
+
+    <menuitem id="menu_asset_remote_sessions"
+              name="Remote Sessions"
+              parent="menu_asset_root"
+              action="action_asset_remote_session"
+              sequence="95"/>
+</odoo>
