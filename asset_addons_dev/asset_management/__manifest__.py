@@ -167,7 +167,9 @@ Professional Enterprise Asset Management System
         # REPAIR MANAGEMENT
         # ==========================================
         "views/repair_management_views.xml",
+        "views/asset_button_access_views.xml",
         "views/asset_lifecycle_views.xml",
+        "wizard/joining_availability_wizard_views.xml",
         "wizard/lifecycle_wizard_views.xml",
 
         # ==========================================

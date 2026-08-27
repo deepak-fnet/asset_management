@@ -6,3 +6,4 @@ from . import purchase_order_line
 from . import purchase_order
 from . import stock_move
 from . import stock_picking
+from . import product_asset

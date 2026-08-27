@@ -24,7 +24,7 @@ a summary on the front, not a replacement.
 import logging
 from datetime import timedelta
 
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 
 _logger = logging.getLogger(__name__)
 
@@ -34,6 +34,19 @@ _logger = logging.getLogger(__name__)
 # Actions are resolved at runtime; a missing one is reported rather than
 # raising, so the hub still works if a module is uninstalled.
 PLATFORMS = [
+    {
+        # Non-IT assets from general_asset. Only 'assets' is offered: these
+        # have no agent, so there is no dashboard, live monitoring, antivirus
+        # or app deployment to point at. Listing view keys that lead nowhere
+        # would just produce buttons that error when pressed.
+        'key': 'general', 'label': 'All Asset', 'icon': 'fa-cubes',
+        'colour': '#F59F00',
+        'views': {
+            'assets':      'general_asset.action_asset_general',
+            'transfer':    'general_asset.action_asset_transfer',
+            'scrap':       'general_asset.action_asset_scrap',
+        },
+    },
     {
         'key': 'windows', 'label': 'Windows', 'icon': 'fa-windows',
         'colour': '#0078D4',
@@ -83,19 +96,6 @@ PLATFORMS = [
             'dashboard':   'asset_management.action_network_dashboard',
             'assets':      'asset_management.action_asset_network_device',
             'monitoring':  'asset_management.action_network_live_monitoring',
-        },
-    },
-    {
-        # Non-IT assets from general_asset. Only 'assets' is offered: these
-        # have no agent, so there is no dashboard, live monitoring, antivirus
-        # or app deployment to point at. Listing view keys that lead nowhere
-        # would just produce buttons that error when pressed.
-        'key': 'general', 'label': 'General Assets', 'icon': 'fa-cubes',
-        'colour': '#F59F00',
-        'views': {
-            'assets':      'general_asset.action_asset_general',
-            'transfer':    'general_asset.action_asset_transfer',
-            'scrap':       'general_asset.action_asset_scrap',
         },
     },
 ]
@@ -233,7 +233,7 @@ class AssetHubDashboard(models.AbstractModel):
 
     @api.model
     def _count_general_assets(self):
-        """Totals for the General Assets tile.
+        """Totals for the All Asset tile.
 
         These have no agent, so online/offline is meaningless - there is
         nothing reporting in to be online. Assigned vs unassigned is the
@@ -312,6 +312,7 @@ class AssetHubDashboard(models.AbstractModel):
             'compliance_pct': None,
             'assets_never_scanned': 0,
             'unmanaged_endpoints': 0,
+            'agent_missing_purchased': 0,
         }
 
         # ── Patches ───────────────────────────────────────────────────────
@@ -372,6 +373,22 @@ class AssetHubDashboard(models.AbstractModel):
                 'asset.network.device'].sudo().search_count(
                 [('is_unmanaged_endpoint', '=', True)])
 
+        # ── Agent missing on a purchased IT asset ─────────────────────────
+        # is_general_asset/is_it_asset/it_asset_id only exist once
+        # general_asset is installed - a fixed asset (registered through
+        # procurement, category flagged IT) that has no it_asset_id yet
+        # means the agent was never installed/never checked in on that
+        # machine, so it never linked itself. Different from "Agent
+        # missing" above, which is a device seen ON THE NETWORK with no
+        # matching asset at all - this one is a known, purchased asset with
+        # nothing reporting for it yet.
+        if _is_searchable(Asset, 'it_asset_id'):
+            health['agent_missing_purchased'] = Asset.search_count([
+                ('is_general_asset', '=', True),
+                ('is_it_asset', '=', True),
+                ('it_asset_id', '=', False),
+            ])
+
         return health
 
     @api.model
@@ -421,3 +438,39 @@ class AssetHubDashboard(models.AbstractModel):
             return {'error': f'Action not installed: {xml_id}'}
 
         return {'action_id': action.id}
+
+    @api.model
+    def get_agent_missing_purchased_action(self):
+        """The 'Agent Missing (Purchased Assets)' health tile action.
+
+        Uses general_asset's own form/list views (view_asset_general_list /
+        view_asset_general_form) rather than asset.asset's default views, so
+        clicking through opens the same layout as the General Assets
+        (now "All Asset") screen - not the generic list/form neither of
+        which knows about tag_number, sub_category_id, it_asset_id etc.
+
+        general_asset is not a hard dependency of this module, so the views
+        are looked up rather than referenced in static XML - falls back to
+        the default (unspecified) views if general_asset is absent, same
+        as the tile itself falling back to a zero count in get_fleet_health.
+        """
+        views = [(False, 'list'), (False, 'form')]
+        list_view = self.env.ref(
+            'general_asset.view_asset_general_list', raise_if_not_found=False)
+        form_view = self.env.ref(
+            'general_asset.view_asset_general_form', raise_if_not_found=False)
+        if list_view and form_view:
+            views = [(list_view.id, 'list'), (form_view.id, 'form')]
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Agent Missing (Purchased Assets)'),
+            'res_model': 'asset.asset',
+            'view_mode': 'list,form',
+            'views': views,
+            'domain': [
+                ('is_general_asset', '=', True),
+                ('is_it_asset', '=', True),
+                ('it_asset_id', '=', False),
+            ],
+        }

@@ -338,6 +338,7 @@ class AssetRequest(models.Model):
                 "All %d serial numbers filled. Request marked as Done."
             ) % len(rec.asset_list_ids))
             for line in rec.asset_list_ids:
+                line.action_confirm()
                 # rec. was missing here - a bare `asset_list_ids` is an
                 # undefined name, so this raised NameError every time Done was
                 # pressed. The request state had already been written by then,
@@ -408,54 +409,63 @@ class AssetRequest(models.Model):
             ) % len(rec.asset_list_ids))
 
     def _generate_asset_list_rows(self):
-        """Create asset.list rows based on request_line.qty (Option A per spec).
+        """Create asset.list rows based on request_line.qty.
 
-        Total rows == sum(request_line.qty).
-        Each row tries to link to the PO line that supplied that unit, when
-        the products match. If matching isn't possible (e.g. category vs.
-        product mismatch), the row still gets created with po_id/po_line_id
-        unset — admin can fix manually later.
+        Total rows == sum(request_line.quantity).
         """
         AssetList = self.env["asset.list"].sudo()
+
         for request in self:
             if request.asset_list_ids:
                 # Don't regenerate if rows already exist
                 continue
 
-            # ── Build the list of units to create from request lines ──
-            # request_line.qty is the source of truth (Q2 = Option A).
-            # We don't have a product_id on the request line (just category),
-            # so we try to match each unit to a PO line by product if possible.
             new_rows = []
 
-            # Pool of (po_id, po_line_id, product_id) slots from all
-            # committed POs. We consume from this pool as we create rows.
-            # Both 'purchase' and 'done' count - keying off 'done' alone
-            # meant a fully received but never-Locked PO contributed no
-            # slots, so every asset.list row came out with no PO link.
+            # Build PO unit slots
             po_slots = []
+
             for po in request.purchase_order_ids.filtered(
-                    lambda p: p.state in ("purchase", "done")):
-                for line in po.order_line.filtered(lambda l: not l.display_type):
+                    lambda p: p.state in ("purchase", "done")
+            ):
+                for line in po.order_line.filtered(
+                        lambda l: not l.display_type
+                ):
                     qty = int(line.product_qty or 0)
+
                     for _i in range(qty):
                         po_slots.append({
                             "po_id": po.id,
                             "po_line_id": line.id,
-                            "product_id": line.product_id.id if line.product_id else False,
+                            "product_id": line.product_id.id
+                            if line.product_id else False,
                         })
 
-            # Create one asset.list row per requested unit
-            total_requested = sum(int(rl.quantity or 0) for rl in request.line_ids)
-            for i in range(total_requested):
-                slot = po_slots[i] if i < len(po_slots) else {}
-                new_rows.append({
-                    "request_id": request.id,
-                    "po_id": slot.get("po_id"),
-                    "po_line_id": slot.get("po_line_id"),
-                    "product_id": slot.get("product_id"),
-                    "serial_no": False,
-                })
+            slot_index = 0
+
+            # Create rows based on request line quantity
+            for rl in request.line_ids:
+
+                quantity = int(rl.quantity or 0)
+
+                for _i in range(quantity):
+                    slot = (
+                        po_slots[slot_index]
+                        if slot_index < len(po_slots)
+                        else {}
+                    )
+
+                    new_rows.append({
+                        "request_id": request.id,
+                        "po_id": slot.get("po_id"),
+                        "po_line_id": slot.get("po_line_id"),
+                        "product_id": slot.get("product_id"),
+                        "category_id": rl.asset_category_id.id
+                        if rl.asset_category_id else False,
+                        "serial_no": False,
+                    })
+
+                    slot_index += 1
 
             if new_rows:
                 AssetList.create(new_rows)

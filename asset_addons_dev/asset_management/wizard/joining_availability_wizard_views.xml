@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_joining_availability_wizard_form" model="ir.ui.view">
+        <field name="name">joining.availability.wizard.form</field>
+        <field name="model">joining.availability.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Asset Availability">
+                <field name="joining_id" invisible="1"/>
+                <field name="all_available" invisible="1"/>
+
+                <div class="alert alert-success d-flex align-items-center"
+                     role="alert" invisible="not all_available">
+                    <i class="fa fa-check-circle fa-2x me-3"/>
+                    <div>
+                        <b>Everything requested is in stock.</b><br/>
+                        <field name="total_available" readonly="1" nolabel="1"
+                               class="oe_inline"/> unit(s) available against
+                        <field name="total_requested" readonly="1" nolabel="1"
+                               class="oe_inline"/> requested.
+                    </div>
+                </div>
+
+                <div class="alert alert-warning d-flex align-items-center"
+                     role="alert" invisible="all_available">
+                    <i class="fa fa-exclamation-triangle fa-2x me-3"/>
+                    <div>
+                        <b>Short by <field name="shortfall" readonly="1"
+                                           nolabel="1" class="oe_inline"/> unit(s).</b><br/>
+                        You can still validate and assign what is available,
+                        then raise an Asset Request for the rest.
+                    </div>
+                </div>
+
+                <field name="line_ids" nolabel="1">
+                    <!-- readonly="1" on the list, not on the model fields:
+                         readonly model fields are dropped from the client's
+                         save payload, which broke the required category_id.
+                         See the note in the wizard line model. -->
+                    <list create="false" delete="false" readonly="1"
+                          decoration-success="status == 'ok'"
+                          decoration-warning="status == 'partial'"
+                          decoration-danger="status == 'none'">
+                        <field name="category_id"/>
+                        <field name="requested_qty" string="Requested"/>
+                        <field name="available_qty" string="Available"/>
+                        <field name="shortfall" string="Short"/>
+                        <field name="status" widget="badge"
+                               decoration-success="status == 'ok'"
+                               decoration-warning="status == 'partial'"
+                               decoration-danger="status == 'none'"/>
+                        <field name="asset_ids" widget="many2many_tags"
+                               string="Units in Stock"/>
+                    </list>
+                </field>
+
+                <footer>
+                    <button name="action_confirm" type="object"
+                            string="Validate" class="btn-primary"/>
+                    <button name="action_raise_asset_request" type="object"
+                            string="Raise Asset Request" class="btn-secondary"
+                            invisible="all_available"/>
+                    <button string="Cancel" class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_joining_availability_wizard" model="ir.actions.act_window">
+        <field name="name">Check Availability</field>
+        <field name="res_model">joining.availability.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

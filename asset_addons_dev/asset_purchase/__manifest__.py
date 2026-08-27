@@ -32,6 +32,7 @@ Bridges the purchase/receipt flow with the asset register:
     'data': [
         'security/ir.model.access.csv',
         'views/asset_category_mapping_views.xml',
+        'views/product_asset_views.xml',
         'views/asset_addition_views.xml',
         'views/stock_picking_views.xml',
         'views/purchase_order_views.xml',

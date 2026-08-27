@@ -22,6 +22,10 @@ class StockPicking(models.Model):
             'name': _("Assets from %s", self.name),
             'res_model': 'asset.asset',
             'view_mode': 'list,form',
+            'views': [
+                (self.env.ref('general_asset.view_asset_general_list').id, 'list'),
+                (self.env.ref('general_asset.view_asset_general_form').id, 'form'),
+            ],
             'domain': [('picking_id', '=', self.id)],
             'target': 'current',
         }

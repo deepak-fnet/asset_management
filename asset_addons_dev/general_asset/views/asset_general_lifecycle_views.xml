@@ -36,9 +36,7 @@
                 <header>
                     <button name="action_submit" type="object" string="Submit"
                             class="btn-primary" invisible="state != 'draft'"/>
-                    <button name="action_approve" type="object" string="Approve"
-                            class="btn-primary" invisible="state != 'submitted'"
-                            groups="asset_management.group_asset_manager"/>
+                    z
                     <button name="action_done" type="object" string="Mark Done"
                             class="btn-primary" invisible="state != 'approved'"/>
                     <button name="action_cancel" type="object" string="Cancel"
@@ -57,6 +55,7 @@
                         <group string="Asset">
                             <field name="asset_id"
                                    readonly="state != 'draft'"
+                                   domain="[('is_general_asset', '=', True)]"
                                    options="{'no_create': True}"/>
                             <field name="asset_code" readonly="1"/>
                             <field name="serial_number" readonly="1"/>
@@ -113,7 +112,7 @@
         <field name="arch" type="xml">
             <search string="Asset Transfers">
                 <field name="name"/>
-                <field name="asset_id"/>
+                <field name="asset_id" domain="[('is_general_asset', '=', True)]"/>
                 <field name="to_employee_id"/>
                 <filter name="f_open" string="Open"
                         domain="[('state','in',['draft','submitted','approved'])]"/>
@@ -198,6 +197,7 @@
                     <group>
                         <group string="Asset">
                             <field name="asset_id" readonly="state != 'draft'"
+                                   domain="[('is_general_asset', '=', True)]"
                                    options="{'no_create': True}"/>
                             <field name="asset_code" readonly="1"/>
                             <field name="serial_number" readonly="1"/>
@@ -244,7 +244,7 @@
         <field name="arch" type="xml">
             <search string="Asset Scrap">
                 <field name="name"/>
-                <field name="asset_id"/>
+                <field name="asset_id" domain="[('is_general_asset', '=', True)]"/>
                 <filter name="f_open" string="Open"
                         domain="[('state','in',['draft','submitted','approved'])]"/>
                 <filter name="f_to_approve" string="To Approve"

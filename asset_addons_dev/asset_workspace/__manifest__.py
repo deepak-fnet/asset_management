@@ -28,10 +28,11 @@ router with a summary on the front.
 2. Reorganised navigation
 -------------------------
     Dashboard
-    Lifecycle        Joining / Assign-Replace / Exit
+    Lifecycle Process  Joining / Assign-Replace / Exit / Asset Transfer / Asset Scrap
     Help Desk        Tickets / Repair Management
     Assets           Windows / Linux / macOS / CCTV / Network
     Asset Request    Requests / Purchase Orders / Asset List
+    Purchase > Asset Requests   Approved requests only, for the buyer
     Security         (unchanged)
     Agent Telemetry  Telemetry Data / Active Alerts / Alert Rules
     Configuration    Teams / Ticket Types / Categories / Remote Sessions

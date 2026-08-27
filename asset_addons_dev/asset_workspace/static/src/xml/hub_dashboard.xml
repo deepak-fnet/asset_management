@@ -131,7 +131,14 @@
                          title="Hosts on the network that look like a computer or phone but have no matching agent-managed asset. A heuristic based on TTL and open ports - not proof, a lead to check.">
                         <div class="hub-health-num"
                              t-esc="state.health.unmanaged_endpoints"/>
-                        <div class="hub-health-lbl">Agent missing</div>
+                        <div class="hub-health-lbl">Agent missing assets detected in network</div>
+                    </div>
+                    <div class="hub-health hub-clickable hub-health-warn"
+                         t-on-click="openAgentMissingPurchased"
+                         title="Purchased IT assets (fixed asset record, IT category) with no linked agent-reported record - the agent was never installed or has never checked in on that machine.">
+                        <div class="hub-health-num"
+                             t-esc="state.health.agent_missing_purchased"/>
+                        <div class="hub-health-lbl">Agent missing in purchased asset</div>
                     </div>
                     <div class="hub-health hub-clickable hub-health-warn"
                          t-on-click="openActiveAlerts">

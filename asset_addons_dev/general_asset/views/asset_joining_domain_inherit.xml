@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- asset_management's own joining-process view can only filter on
+         monitoring_protocol, since is_general_asset is defined here in
+         general_asset, not in asset_management - a base module cannot
+         reference a field an optional add-on module provides, or the view
+         fails to load at all wherever that add-on is absent.
+
+         This tightens that same domain, but only when general_asset IS
+         installed, by adding the one condition only this module can vouch
+         for: is_general_asset = True, i.e. genuinely a fixed asset record,
+         not merely something that happens not to be agent-reported. -->
+    <record id="view_asset_joining_process_form_general_asset" model="ir.ui.view">
+        <field name="name">asset.joining.process.form.general.asset.domain</field>
+        <field name="model">asset.joining.process</field>
+        <field name="inherit_id" ref="asset_management.view_asset_joining_process_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='requirement_ids']/list/field[@name='asset_ids']"
+                   position="attributes">
+                <attribute name="domain">[('category_id', '=', category_id), ('state', '=', 'draft'), ('monitoring_protocol', '!=', 'agent'), ('is_general_asset', '=', True)]</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

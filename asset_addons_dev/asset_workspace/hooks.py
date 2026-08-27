@@ -49,6 +49,23 @@ LEGACY_MENUS_TO_HIDE = [
     # items re-wired below into the workspace's own menus.
     'general_asset.menu_asset_general',
     'general_asset.menu_asset_configuration',
+
+    # Superseded by the static "Repair Management" menuitem now declared
+    # directly in menus.xml (its action lives in asset_management, a real
+    # dependency, so it no longer needs runtime lookup via OPTIONAL_MENUS).
+    # On an already-installed database the old dynamically-created entry
+    # would otherwise sit there as a duplicate - hide it rather than leave
+    # two "Repair Management" items under Helpdesk.
+    'asset_workspace.menu_ws_helpdesk_repair',
+
+    # Team/Categories/Ticket Types moved from the main Asset Management >
+    # Configuration menu to Helpdesk's own Configuration (see
+    # menu_ws_helpdesk_config_* in OPTIONAL_MENUS below). On an
+    # already-installed database these old entries would otherwise stick
+    # around as duplicates of the new ones.
+    'asset_workspace.menu_ws_config_team',
+    'asset_workspace.menu_asset_helpdesk_categories',
+    'asset_workspace.menu_ws_config_ticket_type',
 ]
 
 # (new menu xml_id, [candidate action xml_ids], menu name, parent xml_id, sequence)
@@ -57,31 +74,34 @@ LEGACY_MENUS_TO_HIDE = [
 # installed.
 OPTIONAL_MENUS = [
     (
+        # Named "Helpdesk" (not "Tickets") to match the app menu it sits
+        # under - Helpdesk > Helpdesk, Repair Management.
         'menu_ws_helpdesk_tickets',
         ['asset_helpdesk.action_asset_helpdesk',
          'asset_ticket.action_asset_ticket',
          'asset_helpdesk.action_helpdesk_ticket'],
-        'Tickets', 'asset_workspace.menu_ws_helpdesk', 10,
+        'Helpdesk', 'asset_workspace.menu_ws_helpdesk', 10,
+    ),
+    # ── Helpdesk's own Configuration ──────────────────────────────────────
+    # Team/Categories/Ticket Types are helpdesk setup, not general asset
+    # config - they sit under Helpdesk > Configuration, not the main
+    # Asset Management > Configuration menu.
+    (
+        'menu_ws_helpdesk_config_team',
+        ['asset_helpdesk.action_asset_helpdesk_team',
+         'asset_ticket.action_asset_ticket_team'],
+        'Team', 'asset_workspace.menu_ws_helpdesk_config', 10,
     ),
     (
-        'menu_ws_helpdesk_repair',
-        ['asset_management.action_repair_management',
-         'asset_ticket.action_asset_repair_order'],
-        'Repair Management', 'asset_workspace.menu_ws_helpdesk', 20,
+        'menu_ws_helpdesk_config_category',
+        ['asset_helpdesk.action_asset_helpdesk_category'],
+        'Categories', 'asset_workspace.menu_ws_helpdesk_config', 20,
     ),
     (
-        'menu_ws_config_team',
-        ['asset_helpdesk.action_helpdesk_team',
-         'asset_ticket.action_asset_ticket_team',
-         'asset_helpdesk.action_asset_helpdesk_team'],
-        'Teams', 'asset_workspace.menu_ws_config', 10,
-    ),
-    (
-        'menu_ws_config_ticket_type',
-        ['asset_helpdesk.action_helpdesk_type',
-         'asset_ticket.action_asset_ticket_category',
-         'asset_helpdesk.action_asset_helpdesk_type'],
-        'Ticket Types', 'asset_workspace.menu_ws_config', 20,
+        'menu_ws_helpdesk_config_ticket_type',
+        ['asset_helpdesk.action_asset_helpdesk_type',
+         'asset_ticket.action_asset_ticket_category'],
+        'Ticket Types', 'asset_workspace.menu_ws_helpdesk_config', 30,
     ),
     (
         'menu_ws_config_category',
@@ -121,7 +141,7 @@ OPTIONAL_MENUS = [
         # duplicating general_asset's own top-level entry.
         'menu_ws_general_assets',
         ['general_asset.action_asset_general'],
-        'General Assets', 'asset_workspace.menu_ws_assets', 40,
+        'All Assets', 'asset_workspace.menu_ws_assets', 40,
     ),
     (
         'menu_ws_physical_verification',

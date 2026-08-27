@@ -3,7 +3,7 @@
 
     <!-- General Assets: sits alongside the IT asset menus -->
     <menuitem id="menu_asset_general"
-              name="General Assets"
+              name="All Assets"
               parent="asset_management.menu_asset_root"
               action="action_asset_general"
               sequence="7"/>

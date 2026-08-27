@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import api, fields, models
+from odoo import api, fields, models, _
 
 from odoo.exceptions import UserError
 
@@ -29,6 +29,7 @@ class AssetHelpdesk(models.Model):
     )
     repair_id = fields.Many2one('repair.management')
     is_repair_flow = fields.Boolean(related="category_id.is_repair_flow",store=True)
+    is_general = fields.Boolean(related="category_id.is_general", store=True)
 
     priority = fields.Selection(
         selection=[
@@ -41,14 +42,21 @@ class AssetHelpdesk(models.Model):
         default='medium',
         tracking=True,
     )
-    assigned_to_id = fields.Many2one(
-        'res.users',
-        string='Assigned To',
-        tracking=True,
-    )
     team_id = fields.Many2one(
         'asset.helpdesk.team',
         string='Team',
+        required=True,
+        tracking=True,
+    )
+    # Not stored: exists only so the view can build a domain on
+    # assigned_to_id from it ("[('id', 'in', team_member_ids)]") - Odoo
+    # view domains cannot dot into a related record's own field directly.
+    team_member_ids = fields.Many2many(
+        'res.users', related='team_id.member_ids', string='Team Members',
+    )
+    assigned_to_id = fields.Many2one(
+        'res.users',
+        string='Assigned To',
         tracking=True,
     )
     state = fields.Selection(
@@ -70,17 +78,55 @@ class AssetHelpdesk(models.Model):
     asset_id = fields.Many2one('asset.asset')
     notes = fields.Text()
 
+    @api.onchange('team_id')
+    def _onchange_team_id(self):
+        """Assigned To must belong to the selected Team - changing the team
+        clears a choice made under the previous one instead of leaving a
+        stale assignee that the domain would otherwise silently hide.
+        """
+        if self.assigned_to_id and self.assigned_to_id not in self.team_id.member_ids:
+            self.assigned_to_id = False
+
+    @api.constrains('team_id', 'assigned_to_id')
+    def _check_assigned_to_is_team_member(self):
+        """The view domain on assigned_to_id is UI-only and bypassable (API,
+        import, dev tools) - this is the real guard.
+        """
+        for rec in self:
+            if rec.assigned_to_id and rec.assigned_to_id not in rec.team_id.member_ids:
+                raise UserError(_(
+                    "%(user)s is not a member of %(team)s - assign someone "
+                    "from that team, or change the team first."
+                ) % {'user': rec.assigned_to_id.name, 'team': rec.team_id.name})
+
     def action_create_repair_management(self):
         for rec in self:
             if not rec.assigned_to_id:
-                raise UserError("Please Select Engineer")
+                raise UserError(_("Please Select Engineer"))
+            if not rec.assigned_to_id.employee_id:
+                # engineer_id on repair.management is an hr.employee, not a
+                # res.users - assigned_to_id must resolve to one, or the
+                # repair gets created with no engineer and silently blocks
+                # action_start() later (it requires engineer_id) with no
+                # clue why.
+                raise UserError(_(
+                    "%s has no linked Employee record, so they cannot be "
+                    "set as the repair engineer. Link one under Settings > "
+                    "Users, or assign this ticket to someone else."
+                ) % rec.assigned_to_id.name)
             if not rec.repair_id:
                 if not rec.asset_id:
-                    raise UserError("Please Enter Asset ID")
+                    raise UserError(_("Please Enter Asset ID"))
+                if rec.category_id.is_general:
+                    issue_type = 'general'
+                elif 'hardware' in (rec.category_id.name or '').lower():
+                    issue_type = 'hardware'
+                else:
+                    issue_type = 'software'
                 repair_record = self.env['repair.management'].create({
                         'engineer_id': rec.assigned_to_id.employee_id.id,
                         'asset_id': rec.asset_id.id,
-                        'issue_type': 'hardware' if 'hardware' in rec.category_id.name else 'software',
+                        'issue_type': issue_type,
                     })
                 rec.repair_id = repair_record.id
                 rec.state = 'in_progress'
@@ -123,6 +169,19 @@ class AssetHelpdesk(models.Model):
         self.write({'state': 'in_progress'})
 
     def action_mark_solved(self):
+        for rec in self:
+            # Tickets whose category routes through repair (hardware/
+            # software/general) are solved automatically when the repair
+            # record reaches Done or Not Repairable (see the repair.management
+            # override below) - this button is hidden for them in the view,
+            # but guarded here too since state can be written any other way
+            # (API, import, dev tools).
+            if (rec.is_repair_flow or rec.is_general) \
+                    and rec.repair_id.state not in ('done', 'not_repairable'):
+                raise UserError(_(
+                    "This ticket is tied to a repair - it is marked Solved "
+                    "automatically once that repair is Done or Not "
+                    "Repairable, not by hand."))
         self.write({'state': 'solved'})
 
     def action_cancel(self):

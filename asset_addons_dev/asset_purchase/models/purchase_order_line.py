@@ -14,9 +14,17 @@ class PurchaseOrderLine(models.Model):
 
     @api.depends('product_id')
     def _compute_is_fixed_asset(self):
-        Mapping = self.env['asset.category.mapping']
+        """Product first, category mapping second.
+
+        Was mapping-only, which cannot express "this category is
+        asset-tracked but this particular product in it is not". The product
+        flag now wins; the mapping still applies when the product does not
+        set one, so existing mapping-only setups are unaffected.
+        """
         for line in self:
-            line.is_fixed_asset = Mapping._is_asset_product(line.product_id)
+            product = line.product_id
+            line.is_fixed_asset = (
+                product._is_fixed_asset_product() if product else False)
 
     def _prepare_stock_move_vals(self, picking, price_unit, product_uom_qty, product_uom):
         """Carry the flag from the purchase order line onto the receipt move."""

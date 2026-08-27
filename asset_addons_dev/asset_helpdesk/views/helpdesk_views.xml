@@ -9,16 +9,16 @@
             <form string="Helpdesk Ticket">
                 <header>
                     <button name="action_start_progress" string="Start Progress" type="object" class="oe_highlight"
-                            invisible="state != 'open' or is_repair_flow"/>
+                            invisible="state != 'open' or is_repair_flow or is_general"/>
                     <button name="action_mark_solved" string="Mark Solved" type="object" class="oe_highlight"
-                            invisible="state != 'in_progress' or is_repair_flow"/>
+                            invisible="state != 'in_progress' or is_repair_flow or is_general"/>
                     <button name="action_cancel" string="Cancel" type="object"
                             invisible="state in ('solved', 'cancelled')"/>
                     <button name="action_reset_to_open" string="Reset to Open" type="object"
                             invisible="state != 'cancelled'"/>
 
                     <button name="action_create_repair_management" type="object" string="Create Repair"
-                            invisible="repair_id"/>
+                            invisible="repair_id or not (is_repair_flow or is_general)"/>
                     <field name="state" widget="statusbar" statusbar_visible="open,in_progress,solved,cancelled"/>
                 </header>
                 <sheet>
@@ -44,23 +44,30 @@
                                    decoration-danger="priority == 'critical'"/>
                         </group>
 
-                        <!-- Row 2 -->
+                        <!-- Row 2: Team is picked FIRST - Assigned To's choices
+                             are limited to that team's members below. -->
                         <group>
                             <field name="ticket_type_id"/>
-                            <field name="assigned_to_id"/>
+                            <field name="team_id"/>
                         </group>
 
                         <!-- Row 3 -->
                         <group>
-                            <field name="category_id"/>
-                            <field name="asset_id"/>
+                            <field name="assigned_to_id"
+                                   domain="[('id', 'in', team_member_ids)]"/>
+                            <field name="team_member_ids" invisible="1"/>
                         </group>
 
                         <!-- Row 4 -->
                         <group>
-                            <field name="team_id"/>
+                            <field name="category_id"/>
+                            <field name="asset_id" domain="[('is_general_asset', '=', True)]"/>
+                        </group>
+
+                        <group>
                             <field name="repair_id" invisible="1"/>
                             <field name="is_repair_flow" invisible="1"/>
+                            <field name="is_general" invisible="1"/>
                         </group>
                     </group>
                     <notebook>

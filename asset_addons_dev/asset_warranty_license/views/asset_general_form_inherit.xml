@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Wires the General Asset form's Warranty and Licence pages to the
+         real flows this module provides, instead of the flat, disconnected
+         fields general_asset shipped on its own:
+
+           * Warranty page: adds provider/type/contract/coverage detail and
+             a Claims stat button, on top of the dates general_asset already
+             had (those stay - they are the same warranty_start_date /
+             warranty_end_date / warranty_status fields this module's own
+             asset.asset extension already builds on, not a duplicate).
+
+           * Licence page: REPLACED entirely. general_asset's is_licence /
+             licence_start_date / licence_end_date / licence_vendor_id /
+             licence_nature / licence_file fields have no connection to a
+             real license record - they are just dates and text sitting on
+             the asset with no seat count, no compliance check, nothing
+             stopping the same "license" being typed onto five different
+             assets. This page now shows actual asset.license.assignment
+             rows instead, which know how many seats a license has and
+             refuse to over-assign it.
+
+           Those old licence_* fields are left on the model untouched (no
+           data loss), just no longer shown here - removing them is a
+           separate decision, not part of a UI-only change. -->
+    <record id="view_asset_general_form_warranty_license" model="ir.ui.view">
+        <field name="name">asset.asset.general.form.warranty.license</field>
+        <field name="model">asset.asset</field>
+        <field name="inherit_id" ref="general_asset.view_asset_general_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_warranty_claims" type="object"
+                        class="oe_stat_button" icon="fa-wrench"
+                        invisible="warranty_claim_count == 0">
+                    <field name="warranty_claim_count" widget="statinfo"
+                           string="Claims"/>
+                </button>
+                <button name="action_view_licenses" type="object"
+                        class="oe_stat_button" icon="fa-key"
+                        invisible="license_count == 0">
+                    <field name="license_count" widget="statinfo"
+                           string="Licenses"/>
+                </button>
+            </xpath>
+
+            <!-- Warranty page: add a Provider details group before the
+                 existing dates/file group (which stays as-is). -->
+            <xpath expr="//page[@name='warranty']/group[1]"
+                   position="before">
+                <group string="Provider">
+                    <field name="warranty_type"/>
+                    <field name="warranty_provider_id"/>
+                    <field name="warranty_contract_no"/>
+                    <field name="warranty_support_contact"/>
+                </group>
+            </xpath>
+            <xpath expr="//page[@name='warranty']/group[last()]"
+                   position="after">
+                <group>
+                    <field name="warranty_coverage_notes"
+                           placeholder="What is covered? On-site or return-to-base? Response SLA?"/>
+                </group>
+                <button name="action_raise_warranty_claim" type="object"
+                        string="Raise Warranty Claim" class="btn-secondary"
+                        invisible="warranty_status == 'expired'"/>
+            </xpath>
+
+            <!-- Licence page: replace the body entirely. is_licence and the
+                 licence_* fields are simply not referenced here any more. -->
+            <xpath expr="//page[@name='licence']" position="replace">
+                <page string="Licences" name="licence">
+                    <field name="license_assignment_ids">
+                        <list editable="bottom"
+                              decoration-muted="state == 'released'">
+                            <field name="license_id" options="{'no_create': True}"/>
+                            <field name="expiry_date" optional="show"/>
+                            <field name="license_state" optional="show"/>
+                            <field name="assigned_date"/>
+                            <field name="released_date" readonly="1"
+                                   optional="hide"/>
+                            <field name="notes"/>
+                            <field name="state" widget="badge"/>
+                            <button name="action_release" type="object"
+                                    string="Release" icon="fa-times"
+                                    invisible="state != 'active'"/>
+                        </list>
+                    </field>
+                    <div class="text-muted mt-2" invisible="license_assignment_ids">
+                        No licenses assigned to this asset yet. Add one from a
+                        License record's "Assign to Asset" button, or add a
+                        row above.
+                    </div>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

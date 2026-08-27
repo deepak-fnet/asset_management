@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- product_template_only_form_view is the "variant-less" template form,
+         which is the one shown for a product that has no variants - i.e. the
+         form most people actually open. -->
+    <record id="view_product_template_form_fixed_asset" model="ir.ui.view">
+        <field name="name">product.template.form.fixed.asset</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='categ_id']" position="after">
+                <field name="is_fixed_asset"/>
+                <field name="asset_category_id"
+                       options="{'no_create': True}"
+                       invisible="not is_fixed_asset"
+                       required="is_fixed_asset"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

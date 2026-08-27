@@ -21,6 +21,8 @@ class AssetList(models.Model):
         help="Optional link to the actual asset record once it has been created.",
     )
 
+    category_id = fields.Many2one('asset.category')
+
     # ----------------------------------------------------------------
     # Traceability (auto-populated when generated from a PO)
     # ----------------------------------------------------------------

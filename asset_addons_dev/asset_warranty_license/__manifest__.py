@@ -27,7 +27,18 @@ beyond the licensed count.
     """,
     "author": "Axles India Ltd.",
     "license": "LGPL-3",
-    "depends": ["base", "mail", "hr", "asset_management"],
+    "depends": [
+        "base",
+        "mail",
+        "hr",
+        "asset_management",
+        # Needed to inherit general_asset.view_asset_general_form - the
+        # General Asset form gets its Warranty/Licence pages wired to this
+        # module's real flows (warranty claims, seat-tracked licenses)
+        # instead of the simple, disconnected fields general_asset shipped
+        # with on its own.
+        "general_asset",
+    ],
     "data": [
         "security/warranty_license_security.xml",
         "security/ir.model.access.csv",
@@ -36,6 +47,7 @@ beyond the licensed count.
         "views/asset_warranty_views.xml",
         "views/asset_license_views.xml",
         "views/asset_asset_views_inherit.xml",
+        "views/asset_general_form_inherit.xml",
         "views/warranty_license_menus.xml",
     ],
     "installable": True,

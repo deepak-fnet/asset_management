@@ -140,3 +140,6 @@ access_spare_request_user,spare.request user,model_spare_request,asset_managemen
 access_spare_request_manager,spare.request manager,model_spare_request,asset_management.group_asset_manager,1,1,1,1
 access_spare_request_line_user,spare.request.line user,model_spare_request_line,asset_management.group_asset_user,1,1,1,1
 access_spare_request_line_manager,spare.request.line manager,model_spare_request_line,asset_management.group_asset_manager,1,1,1,1
+access_joining_availability_wizard,joining.availability.wizard,model_joining_availability_wizard,group_asset_user,1,1,1,1
+access_joining_availability_wizard_line,joining.availability.wizard.line,model_joining_availability_wizard_line,group_asset_user,1,1,1,1
+access_asset_button_access_manager,asset.button.access manager,model_asset_button_access,group_asset_manager,1,1,1,1

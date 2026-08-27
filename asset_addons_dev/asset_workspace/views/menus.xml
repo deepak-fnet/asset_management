@@ -23,11 +23,15 @@
                   action="action_asset_hub_dashboard"
                   sequence="1"/>
 
-        <!-- ── 2. Lifecycle ──────────────────────────────────────────────── -->
+        <!-- ── 2. Lifecycle Process ─────────────────────────────────────────
+             Its own top-level app (no parent), with its own icon, rather
+             than a child of "Asset Management" - so it shows as a separate
+             entry in the app switcher instead of a sub-menu someone has to
+             drill into Asset Management first to find. -->
         <menuitem id="menu_ws_lifecycle"
-                  name="Lifecycle"
-                  parent="asset_management.menu_asset_root"
-                  sequence="10"/>
+                  name="Lifecycle Process"
+                  web_icon="asset_workspace,static/description/lifecycle_icon.png"
+                  sequence="11"/>
 
         <menuitem id="menu_ws_lifecycle_join"
                   name="Joining Process"
@@ -60,15 +64,40 @@
              its own menus underneath it - so hiding the parent hid the
              children too. -->
 
-        <!-- ── 3. Help Desk (children wired by hooks.py) ─────────────────── -->
+        <!-- ── 3. Helpdesk ────────────────────────────────────────────────
+             Its own top-level app (no parent), with its own icon, same
+             treatment as Lifecycle Process above - a separate entry in the
+             app switcher instead of a section someone has to open Asset
+             Management first to find.
+
+             "Helpdesk" (asset_helpdesk.action_asset_helpdesk, the ticket
+             list) is wired by hooks.py, since asset_helpdesk is NOT a hard
+             dependency of this module. "Repair Management" is declared
+             statically below instead - its action
+             (asset_management.action_repair_management) lives in
+             asset_management, which IS a dependency, so there is no need
+             to resolve it at runtime. -->
         <menuitem id="menu_ws_helpdesk"
-                  name="Help Desk"
-                  parent="asset_management.menu_asset_root"
-                  sequence="20"/>
-        <menuitem id="menu_repair_management"
-                  name="Repair Management"
-                  parent="asset_management.menu_asset_root"
+                  name="Helpdesk"
+                  web_icon="asset_workspace,static/description/helpdesk_icon.png"
                   sequence="21"/>
+
+        <menuitem id="menu_ws_helpdesk_repair_management"
+                  name="Repair Management"
+                  parent="menu_ws_helpdesk"
+                  action="asset_management.action_repair_management"
+                  sequence="20"/>
+
+        <!-- Helpdesk's own Configuration - Team/Categories/Ticket Types are
+             helpdesk-specific setup, so they live under this app now rather
+             than the main Asset Management > Configuration menu. Their
+             children are wired by hooks.py (asset_helpdesk is not a hard
+             dependency). -->
+        <menuitem id="menu_ws_helpdesk_config"
+                  name="Configuration"
+                  parent="menu_ws_helpdesk"
+                  sequence="30"
+                  groups="asset_management.group_asset_manager"/>
 
         <!-- ── 4. Assets ─────────────────────────────────────────────────── -->
         <menuitem id="menu_ws_assets"
@@ -142,6 +171,28 @@
                   action="asset_management.action_asset_list"
                   sequence="30"/>
 
+        <!-- ── 5b. Purchase app: "Asset Requests" child menu ──────────────
+             Only APPROVED asset.request records belong on the buyer's radar
+             here - draft/submitted ones are still being worked out by the
+             requester and cancelled/done ones are no longer actionable
+             procurement. action_asset_request (used under Asset Request
+             above) shows every state, so a dedicated filtered action is used
+             instead of reusing it with a menu-level domain override, which
+             act_window menuitems do not support. -->
+        <record id="action_asset_request_approved" model="ir.actions.act_window">
+            <field name="name">Asset Requests</field>
+            <field name="res_model">asset.request</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('state', '=', 'approved')]</field>
+            <field name="context">{}</field>
+        </record>
+
+        <menuitem id="menu_purchase_asset_requests"
+                  name="Asset Requests"
+                  parent="purchase.menu_purchase_root"
+                  action="action_asset_request_approved"
+                  sequence="15"/>
+
         <!-- ── 6. Security — left exactly as-is, provided by asset_patch_vuln
                     and asset_security_console. No changes here on purpose. ── -->
 
@@ -168,11 +219,11 @@
                   parent="menu_ws_config"
                   action="asset_management.action_asset_location"/>
 
-        <menuitem id="menu_asset_helpdesk_categories"
-              name="Categories"
-              parent="menu_ws_config"
-              action="asset_helpdesk.action_asset_helpdesk_category"
-              sequence="30"/>
+        <menuitem id="menu_asset_button_access"
+                  name="Button Access Control"
+                  parent="menu_ws_config"
+                  action="asset_management.action_asset_button_access"
+                  sequence="80"/>
 
     </data>
 </odoo>

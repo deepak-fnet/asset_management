@@ -1,6 +1,6 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
-
+from markupsafe import Markup
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  JOINING PROCESS
@@ -9,7 +9,7 @@ from odoo.exceptions import UserError, ValidationError
 class AssetJoiningProcess(models.Model):
     _name = 'asset.joining.process'
     _description = 'Asset Joining Process'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'asset.button.access.mixin']
     _order = 'id desc'
     _rec_name = 'name'
 
@@ -59,6 +59,20 @@ class AssetJoiningProcess(models.Model):
     )
     asset_request_id = fields.Many2one('asset.request')
 
+    can_show_action_approve = fields.Boolean(
+        compute='_compute_can_show_action_approve')
+
+    def _compute_can_show_action_approve(self):
+        # Original restriction, before this button was wired to
+        # asset.button.access: groups="asset_management.group_asset_manager".
+        # Passed as the fallback here so deleting the access-control rule
+        # restores THAT, instead of opening the button to everyone.
+        for rec in self:
+            rec.can_show_action_approve = rec._is_button_visible(
+                'action_approve',
+                default=rec.env.user.has_group(
+                    'asset_management.group_asset_manager'))
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -72,26 +86,63 @@ class AssetJoiningProcess(models.Model):
     # ── workflow buttons ──────────────────────────────────────────────────────
 
     def action_confirm(self):
+        # NOTE: this method was defined twice, identically. Python keeps the
+        # last definition, so the first was dead code - harmless here only
+        # because both bodies matched. Collapsed to one.
         for rec in self:
             if not rec.employee_id:
                 raise UserError(_("Please select an employee."))
             if not rec.requirement_ids:
                 raise UserError(_("Please add at least one asset requirement."))
             rec.state = 'confirmed'
+        self._run_button_access_action('action_confirm')
+
     def action_validate(self):
-        for rec in self:
-            for line in rec.requirement_ids:
-                record = self.env['asset.asset'].search([('category_id','=',line.category_id.id),('state','=','draft')])
-                if not record:
-                    raise UserError(f"The Requested Category:{line.category_id.name} Currently No Stock Available in Asset Inventory, please do Purchase Request")
-            rec.state = 'validate'
+        """Open the availability wizard instead of silently pass/failing.
+
+        The previous version raised a UserError or moved on, showing nothing.
+        The approver could not see WHICH units were available or how many -
+        only that the check had passed - so a partial shortfall stayed
+        invisible until the Assign step, by which point the request had
+        already been validated on a false assumption.
+
+        The wizard lists real units per category and lets the approver decide:
+        validate and assign what exists, or raise an Asset Request for the
+        gap. The state change now happens in the wizard's action_confirm().
+        """
+        self.ensure_one()
+        if self.state != 'approved':
+            raise UserError(_(
+                "Approve the request before checking availability."))
+        if not self.requirement_ids:
+            raise UserError(_("Add at least one asset requirement first."))
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Check Availability"),
+            "res_model": "joining.availability.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {"active_id": self.id, "active_model": self._name},
+        }
 
     def action_approve(self):
-        """Manager / IT approval – enables the Assign Laptop button."""
+        """Manager approval. Comes BEFORE the availability check now.
+
+        Flow is: submit -> approve -> validate (or raise an Asset Request)
+        -> assign.
+
+        Approving first is the right order: whether the request is justified
+        is a management decision that does not depend on what happens to be
+        in stock today. Checking stock first meant a legitimate request could
+        be blocked at validation before anyone had even agreed the employee
+        should get the asset.
+        """
         for rec in self:
-            # if rec.state != 'confirmed':
-            #     raise UserError(_("Only confirmed records can be approved."))
+            if rec.state not in ('confirmed', 'draft'):
+                raise UserError(_(
+                    "Only a submitted request can be approved."))
             rec.state = 'approved'
+        self._run_button_access_action('action_approve')
 
     def action_cancel(self):
         for rec in self:
@@ -110,9 +161,14 @@ class AssetJoiningProcess(models.Model):
         own category) rather than one flat list for the whole process.
         """
         for rec in self:
-            if rec.state != 'approved':
+            # 'validate' is the state assigning actually happens from now -
+            # the flow is submit -> approve -> validate -> assign, so by the
+            # time anyone assigns, availability has been confirmed. 'approved'
+            # is still accepted so a request that skipped the availability
+            # check (everything obviously in stock) is not blocked.
+            if rec.state not in ('approved', 'validate'):
                 raise UserError(_(
-                    "The joining process must be approved before assigning assets."))
+                    "Approve the joining process before assigning assets."))
             if not rec.requirement_ids:
                 raise UserError(_("This joining process has no asset requirements."))
 
@@ -166,10 +222,33 @@ class AssetJoiningProcess(models.Model):
 
     def action_raise_asset_request(self):
         if not self.asset_request_id:
+            # Only categories with an actual shortfall belong on the request -
+            # a line where enough units were already picked has nothing to
+            # procure. The quantity raised is the GAP (requested - selected),
+            # not the full requirement, since already-picked units are not
+            # being requested again.
+            short_lines = self.requirement_ids.filtered(
+                lambda l: l.selected_count < l.quantity)
+            if not short_lines:
+                raise UserError(_(
+                    "Every requirement line already has enough assets "
+                    "selected - there is no shortage to raise a request for."))
+
             record = self.env['asset.request'].create({
-                'requested_by':self.env.uid,
+                'requested_by': self.env.uid,
             })
+
             self.asset_request_id = record.id
+
+            for line in short_lines:
+                self.asset_request_id.line_ids.create({
+                    'request_id': self.asset_request_id.id,
+                    'asset_category_id': line.category_id.id,
+                    'quantity': line.quantity - line.selected_count,
+                    'description': _(
+                        "Shortfall for %(employee)s's joining process %(ref)s"
+                    ) % {'employee': self.employee_id.name, 'ref': self.name},
+                })
 
         return {
             'name': 'Asset Request',
@@ -351,7 +430,7 @@ class AssetAssignProcess(models.Model):
 class AssetExitProcess(models.Model):
     _name = 'asset.exit.process'
     _description = 'Asset Exit Process'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'asset.button.access.mixin']
     _order = 'id desc'
     _rec_name = 'name'
 
@@ -382,6 +461,13 @@ class AssetExitProcess(models.Model):
         ('cancelled', 'Cancelled'),
     ], default='draft', tracking=True, string='Status')
 
+    can_show_action_start = fields.Boolean(
+        compute='_compute_can_show_action_start')
+
+    def _compute_can_show_action_start(self):
+        for rec in self:
+            rec.can_show_action_start = rec._is_button_visible('action_start')
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -399,6 +485,7 @@ class AssetExitProcess(models.Model):
             return
         assets = self.env['asset.asset'].search([
             ('assigned_employee_id', '=', self.employee_id.id),
+            ('is_general_asset', '=', True),
             ('state', '=', 'assigned'),
         ])
         lines = [(5, 0, 0)]
@@ -416,6 +503,7 @@ class AssetExitProcess(models.Model):
             if not rec.recovery_line_ids:
                 raise UserError(_("No assets found to recover. Please add recovery lines."))
             rec.state = 'in_progress'
+        self._run_button_access_action('action_start')
 
     def action_complete(self):
         """Recover all checked assets – set them to draft/available and unlink employee."""

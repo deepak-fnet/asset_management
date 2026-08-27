@@ -141,6 +141,23 @@ class AssetHubDashboard extends Component {
                        [["is_unmanaged_endpoint", "=", true]]);
     }
 
+    async openAgentMissingPurchased() {
+        // Uses general_asset's own form/list views (via a server call,
+        // since general_asset is not a hard dependency and its view xml_ids
+        // cannot be resolved client-side) instead of the generic openModel
+        // helper, which would fall back to asset.asset's default views.
+        try {
+            const action = await this.orm.call(
+                "asset.hub.dashboard", "get_agent_missing_purchased_action", []
+            );
+            this.action.doAction(action);
+        } catch (err) {
+            this.notification.add("Could not open Agent Missing (Purchased Assets).",
+                                  { type: "danger" });
+            console.error(err);
+        }
+    }
+
     openActiveAlerts() {
         this.openModel("asset.telemetry.alert.log", "Active Alerts",
                        [["state", "=", "active"]]);

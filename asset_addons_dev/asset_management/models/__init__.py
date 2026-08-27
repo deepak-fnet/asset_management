@@ -22,6 +22,7 @@ from . import network_device_interface
 from . import snmp_monitor
 from . import maintenance_request
 from . import repair_management
+from . import asset_button_access
 from . import asset_lifecycle
 
 # OS Update Management

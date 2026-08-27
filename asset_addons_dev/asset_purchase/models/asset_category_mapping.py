@@ -21,7 +21,6 @@ class AssetCategoryMapping(models.Model):
              "pre-ticked on purchase order lines and receipt lines.")
     category_id = fields.Many2one(
         'asset.category', string="Asset Category",
-        domain="[('is_general', '=', True)]",
         help="Category given to every asset created from this product category. "
              "Restricted to general-asset categories: an asset created under a "
              "non-general category would exist but never appear under "

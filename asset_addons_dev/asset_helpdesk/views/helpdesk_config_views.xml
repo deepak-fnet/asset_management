@@ -67,6 +67,7 @@
                 <field name="name"/>
                 <field name="active" widget="boolean_toggle"/>
                 <field name="is_repair_flow" widget="boolean_toggle"/>
+                <field name="is_general" widget="boolean_toggle"/>
             </list>
         </field>
     </record>
@@ -82,6 +83,7 @@
                         <field name="sequence"/>
                         <field name="active"/>
                         <field name="is_repair_flow"/>
+                        <field name="is_general"/>
                         <field name="description"/>
                     </group>
                 </sheet>

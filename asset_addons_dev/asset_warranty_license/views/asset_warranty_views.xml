@@ -149,7 +149,7 @@
         <field name="name">Warranties</field>
         <field name="res_model">asset.asset</field>
         <field name="view_mode">list,form</field>
-        <field name="domain">[('warranty_status','!=','not_applicable')]</field>
+        <field name="domain">[('warranty_status','!=','not_applicable'),('monitoring_protocol','=', False)]</field>
         <field name="search_view_id" ref="view_asset_warranty_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No warranties to show</p>

@@ -12,6 +12,12 @@ class AssetHelpdeskCategory(models.Model):
     active = fields.Boolean(string='Active', default=True)
     description = fields.Text(string='Description')
     is_repair_flow = fields.Boolean()
+    is_general = fields.Boolean(
+        string="Non-IT / General Repair",
+        help="Tick for categories covering non-IT assets - furniture, "
+             "electrical fixtures, plant equipment. Routes tickets in this "
+             "category to issue_type='general' on the repair record, "
+             "instead of hardware/software.")
 
     _sql_constraints = [
         ('name_uniq', 'unique(name)', 'Category name must be unique.'),

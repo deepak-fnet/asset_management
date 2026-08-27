@@ -103,6 +103,8 @@ class AssetAsset(models.Model):
         tracking=True
     )
 
+    is_general_asset = fields.Boolean()
+
     # =====================
     # PROCUREMENT INFORMATION
     # =====================
@@ -944,7 +946,6 @@ class AssetAsset(models.Model):
             ("manual", "Manual"),
         ],
         string="Monitoring Protocol",
-        default="agent",
         help="Protocol used to monitor this asset"
     )
 
@@ -2113,6 +2114,7 @@ class AssetAsset(models.Model):
                     # "category_id": detected_type,  # ← auto-mapped from agent
                     "os_name": payload.get("os_name"),
                     "platform": payload.get("platform", "unknown"),
+                    "monitoring_protocol": 'agent',
                 })
                 _logger.info(f"✅ Created new asset: {asset.asset_name} (ID: {asset.id})")
             update_vals = {

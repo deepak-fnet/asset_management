@@ -48,7 +48,7 @@
                         </div>
                         <group>
                             <group string="Asset Information">
-                                <field name="asset_id"
+                                <field name="asset_id" domain="[('state', 'in', ['draft','assigned']), ('is_general_asset', '=', True)]"
                                        readonly="state != 'new'"/>
                                 <field name="asset_name"/>
                                 <field name="request_date"/>
@@ -72,6 +72,27 @@
                             <group string="Assignment">
                                 <field name="engineer_id"
                                        readonly="state in ('done', 'not_repairable')"/>
+                                <field name="repair_mode"
+                                       readonly="state in ('done', 'not_repairable')"/>
+                            </group>
+                            <!-- General (non-IT) repairs have no spare-parts flow, so cost
+                                 always comes from here. Hardware/software repaired IN-HOUSE
+                                 track cost per part instead (Spare Parts page below) - but a
+                                 hardware/software repair sent to a VENDOR has no spare-parts
+                                 flow either, so this group covers that case too. -->
+                            <group string="Repair Cost &amp; Vendor"
+                                   invisible="issue_type != 'general' and repair_mode != 'vendor'">
+                                <field name="vendor_id"
+                                       invisible="repair_mode != 'vendor'"
+                                       required="repair_mode == 'vendor'"
+                                       readonly="state in ('done', 'not_repairable')"/>
+                                <field name="repair_cost"
+                                       readonly="state in ('done', 'not_repairable')"/>
+                                <field name="currency_id" invisible="1"/>
+                                <field name="bill_file" filename="bill_filename"
+                                       invisible="repair_mode != 'vendor'"
+                                       readonly="state in ('done', 'not_repairable')"/>
+                                <field name="bill_filename" invisible="1"/>
                             </group>
                         </group>
                         <notebook>
@@ -80,8 +101,11 @@
                                        readonly="state in ('done', 'not_repairable')"/>
                             </page>
 
-                            <!-- ✅ NEW: Spare Parts page, visible only during in_progress -->
-                            <page string="Spare Parts" name="spare_parts" invisible="state not in ['in_progress','done']">
+                            <!-- Spare parts are the cost-tracking flow for hardware/software
+                                 repaired IN-HOUSE only - general repairs and vendor repairs
+                                 use the Repair Cost &amp; Vendor group above instead. -->
+                            <page string="Spare Parts" name="spare_parts"
+                                  invisible="state not in ['in_progress','done'] or issue_type == 'general' or repair_mode != 'in_house'">
                                 <field name="spare_part_ids" widget="section_and_note_one2many">
                                     <list editable="bottom">
                                         <field name="product_id" string="Product" required="1"/>
@@ -122,6 +146,10 @@
                     <field name="support_mode"/>
                     <field name="handover_mode" optional="hide"/>
                     <field name="engineer_id"/>
+                    <field name="repair_mode" optional="show"/>
+                    <field name="vendor_id" optional="hide"/>
+                    <field name="repair_cost" optional="show" sum="Total"/>
+                    <field name="currency_id" column_invisible="1"/>
                     <field name="request_date"/>
                     <field name="state" widget="badge"
                            decoration-info="state == 'in_progress'"

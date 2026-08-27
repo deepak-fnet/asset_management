@@ -78,7 +78,11 @@ class StockMove(models.Model):
         self.ensure_one()
         Category = self.env['asset.category']
 
-        category = mapping.category_id
+        # Product-level asset_category_id wins over the product-category
+        # mapping - the product is the more specific statement of intent, and
+        # it is what the buyer set on the product form. The mapping remains
+        # the fallback so mapping-only setups keep working.
+        category = self.product_id.asset_category_id or mapping.category_id
         if not category:
             name = self.product_id.categ_id.name or 'Uncategorised Assets'
             category = Category.search([('name', '=', name)], limit=1)
@@ -120,6 +124,16 @@ class StockMove(models.Model):
         return {
             'asset_name': self.product_id.display_name,
             'category_id': self._resolve_asset_category(mapping).id,
+            # Mark it as a FIXED asset explicitly.
+            #
+            # is_general_asset used to be a related field off the category,
+            # so it filled itself in. It is now a plain stored Boolean, which
+            # means anything that does not set it leaves it False - and a
+            # False fixed asset is invisible to the joining process assign
+            # dropdown and to the availability wizard, both of which filter
+            # on it. Goods received would have created assets that then
+            # appeared nowhere assignable.
+            'is_general_asset': True,
             'sub_category_id': mapping.sub_category_id.id or False,
             'asset_value': self.price_unit,
             'acquisition_date': receipt_date,
@@ -250,8 +264,48 @@ class StockMove(models.Model):
             return Asset
 
         self._link_to_asset_list(assets)
+        self._notify_requesters(assets)
         self._post_asset_creation_note(assets, notes)
         return assets
+
+    def _notify_requesters(self, assets):
+        """Tell whoever raised the asset request that the goods have landed.
+
+        Without this the requester has no signal at all: the request sits in
+        po_done and the only way to find out the assets exist is to keep
+        checking. The message is posted on the REQUEST (not emailed directly)
+        so it reaches them through whatever notification setting they already
+        use, and stays on the record as history.
+        """
+        by_request = {}
+        for asset in assets:
+            request = asset.purchase_order_id.asset_request_id
+            if request:
+                by_request.setdefault(request, self.env['asset.asset'])
+                by_request[request] |= asset
+
+        for request, request_assets in by_request.items():
+            recipient = request.requested_by
+            if not recipient:
+                continue
+            body = _(
+                "<p>Goods received - <b>%(count)s asset(s)</b> have been "
+                "created for request %(req)s and are ready to be mapped to "
+                "the Asset List.</p><ul>%(rows)s</ul>"
+            ) % {
+                "count": len(request_assets),
+                "req": request.name,
+                "rows": "".join(
+                    "<li>%s - %s</li>" % (a.asset_code or "", a.asset_name or "")
+                    for a in request_assets),
+            }
+            request.message_post(
+                body=Markup(body),
+                subject=_("Assets received for %s") % request.name,
+                partner_ids=recipient.partner_id.ids,
+                message_type="notification",
+                subtype_xmlid="mail.mt_comment",
+            )
 
     def _link_to_asset_list(self, assets):
         """Fill the request's blank asset.list rows with the created assets.

@@ -102,6 +102,19 @@ class AssetMaintenance(models.Model):
         ('completed', 'Completed')
     ], string='Status', default='open', tracking=True)
 
+    # Populated automatically when this row was generated from a
+    # repair.management completion (RepairManagement._sync_maintenance_history) -
+    # not meant to be set by hand.
+    repair_id = fields.Many2one(
+        'repair.management', string='Repair', ondelete='set null')
+    repair_mode = fields.Selection([
+        ('in_house', 'In-House'),
+        ('vendor', 'Vendor'),
+    ], string='Repair Mode')
+    vendor_id = fields.Many2one('asset.vendor', string='Repair Vendor')
+    bill_file = fields.Binary(string='Bill / Invoice')
+    bill_filename = fields.Char()
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:

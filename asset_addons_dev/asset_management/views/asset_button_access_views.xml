@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_asset_button_access_list" model="ir.ui.view">
+        <field name="name">asset.button.access.list</field>
+        <field name="model">asset.button.access</field>
+        <field name="arch" type="xml">
+            <list string="Button Access Control">
+                <field name="res_model"/>
+                <field name="button_key"/>
+                <field name="visibility_type"/>
+                <field name="user_ids" widget="many2many_tags" optional="show"/>
+                <field name="group_id" optional="show"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_button_access_form" model="ir.ui.view">
+        <field name="name">asset.button.access.form</field>
+        <field name="model">asset.button.access</field>
+        <field name="arch" type="xml">
+            <form string="Button Access Control">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="button_key"
+                                   placeholder="e.g. action_start"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <field name="res_model"
+                               placeholder="e.g. asset.exit.process"/>
+                        <field name="active"/>
+                    </group>
+                    <group>
+                        <field name="visibility_type" widget="radio"/>
+                        <field name="user_ids" widget="many2many_tags"
+                               invisible="visibility_type != 'user'"
+                               required="visibility_type == 'user'"/>
+                        <field name="group_id"
+                               invisible="visibility_type != 'group'"
+                               required="visibility_type == 'group'"/>
+                    </group>
+                    <group string="Extra Condition (OR'd with Visibility above)">
+                        <field name="condition" widget="code" options="{'mode': 'python'}"
+                               nolabel="1" colspan="2"
+                               placeholder="self.department_id.manager_id.user_id == user"/>
+                    </group>
+                    <group string="On Trigger">
+                        <field name="code" widget="code" options="{'mode': 'python'}"
+                               placeholder="for rec in records:&#10;    template = env.ref('module.my_email_template')&#10;    template.send_mail(rec.id, force_send=True)"/>
+                    </group>
+                    <div class="alert alert-info" role="alert">
+                        Only a button a developer has already wired to check
+                        asset.button.access can actually be gated this way -
+                        adding a rule for a button that hasn't been wired has
+                        no effect. Leaving a button unconfigured here keeps
+                        it visible to everyone, same as today.
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_asset_button_access" model="ir.actions.act_window">
+        <field name="name">Button Access Control</field>
+        <field name="res_model">asset.button.access</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Restrict a button to specific users or a group
+            </p>
+        </field>
+    </record>
+
+</odoo>

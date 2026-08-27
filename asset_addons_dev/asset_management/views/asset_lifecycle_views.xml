@@ -17,22 +17,36 @@
                                 class="btn-primary"
                                 groups="asset_management.group_asset_user_hr"
                                 invisible="state != 'draft'"/>
-                        <button name="action_validate" type="object"
-                                string="Validate"
-                                class="btn-success"
-                                groups="asset_management.group_asset_user_it"
-                                invisible="state != 'confirmed'"/>
-
+                        <!-- Approve BEFORE validate. Whether the employee
+                             should get the asset is a management call that
+                             does not depend on today's stock; checking stock
+                             first blocked legitimate requests before anyone
+                             had agreed to them. -->
+                        <!-- groups= dropped deliberately: it is evaluated
+                             purely on Odoo group membership and would hide
+                             this button from a department manager who is
+                             not in group_asset_manager, regardless of what
+                             asset.button.access grants them. Visibility is
+                             now driven entirely by can_show_action_approve -
+                             configure a rule for asset.joining.process /
+                             action_approve if this needs to stay restricted
+                             to managers by default. -->
                         <button name="action_approve" type="object"
                                 string="Approve"
                                 class="btn-success"
-                                groups="asset_management.group_asset_manager"
-                                invisible="state != 'validate'"/>
+                                invisible="state != 'confirmed' or not can_show_action_approve"/>
+                        <field name="can_show_action_approve" invisible="1"/>
+
+                        <button name="action_validate" type="object"
+                                string="Check Availability"
+                                class="btn-primary"
+                                groups="asset_management.group_asset_user_it"
+                                invisible="state != 'approved'"/>
 
                         <button name="action_assign_assets" type="object"
                                 string="Assign Asset" groups="asset_management.group_asset_user_it"
                                 class="btn-primary"
-                                invisible="state != 'approved'"/>
+                                invisible="state not in ('approved', 'validate')"/>
 
 <!--                        <button name="action_cancel" type="object"-->
 <!--                                string="Cancel"-->
@@ -40,10 +54,10 @@
 <!--                                invisible="state in ('done', 'cancelled')"/>-->
 
                         <button name="action_raise_asset_request" string="Asset Request" type="object"
-                                invisible="state not in 'confirmed' or asset_request_id" groups="asset_management.group_asset_user_it"/>
+                                invisible="state not in ('approved', 'validate') or asset_request_id" groups="asset_management.group_asset_user_it"/>
 
                         <field name="state" widget="statusbar"
-                               statusbar_visible="draft,confirmed,approved,done"/>
+                               statusbar_visible="draft,confirmed,approved,validate,done"/>
                     </header>
                     <sheet>
                         <div class="oe_button_box" name="button_box">
@@ -88,8 +102,8 @@
                                         <field name="quantity" readonly="parent.state not in ('draft',)"/>
                                         <field name="asset_ids"
                                                widget="many2many_tags"
-                                               readonly="parent.state != 'approved'"
-                                               domain="[('category_id', '=', category_id), ('asset_list_id', '!=', False), ('state', '=', 'draft')]"
+                                               readonly="parent.state not in ('approved', 'validate')"
+                                               domain="[('category_id', '=', category_id), ('state', '=', 'draft'), ('monitoring_protocol', '!=', 'agent')]"
                                                options="{'no_create': True}"/>
                                         <field name="selected_count" string="Picked" optional="hide"/>
                                         <field name="assets_match" string="OK" widget="boolean_toggle" optional="hide"
@@ -245,7 +259,8 @@
                         <button name="action_start" type="object"
                                 string="Start Recovery"
                                 class="btn-primary"
-                                invisible="state != 'draft'"/>
+                                invisible="state != 'draft' or not can_show_action_start"/>
+                        <field name="can_show_action_start" invisible="1"/>
                         <button name="action_complete" type="object"
                                 string="Complete Exit"
                                 class="btn-success"
