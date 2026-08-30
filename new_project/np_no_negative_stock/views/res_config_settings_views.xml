@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_np_stock" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.np.negative.stock</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="stock.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='operations_setting_container']" position="inside">
+                <setting id="np_allow_negative_stock_setting"
+                         string="Allow Negative Stock"
+                         help="Let on-hand quantities go below zero. Disabled by default.">
+                    <field name="np_allow_negative_stock"/>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

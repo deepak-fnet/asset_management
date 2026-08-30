@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="purchase_order_form_np" model="ir.ui.view">
+        <field name="name">purchase.order.form.inherit.np.validation</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <!--
+                Once the order is confirmed the whole line block becomes
+                read-only: no "Add a product / section / note" control and no
+                delete button, and the existing lines can no longer be edited.
+                The python guards in purchase_order.py enforce the same rule
+                for imports, the API and the portal.
+            -->
+            <xpath expr="//field[@name='order_line']" position="attributes">
+                <attribute name="readonly">state in ['purchase', 'done', 'cancel'] or locked</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
