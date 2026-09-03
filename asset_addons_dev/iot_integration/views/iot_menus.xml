@@ -1,0 +1,7 @@
+<odoo>
+    <menuitem id="menu_iot_root" name="IoT Integration" sequence="60"/>
+    <menuitem id="menu_iot_data" name="IoT Data" parent="menu_iot_root"
+              action="action_iot_data" sequence="10"/>
+    <menuitem id="menu_iot_template" name="JSON Template" parent="menu_iot_root"
+              action="action_iot_template" sequence="20"/>
+</odoo>

@@ -1,0 +1,63 @@
+<odoo>
+    <record id="view_iot_data_list" model="ir.ui.view">
+        <field name="name">iot.data.list</field>
+        <field name="model">iot.data</field>
+        <field name="arch" type="xml">
+            <list string="IoT Data" decoration-danger="state == 'alert'">
+                <field name="device_id"/>
+                <field name="sensor_type"/>
+                <field name="temperature"/>
+                <field name="humidity"/>
+                <field name="battery_level"/>
+                <field name="door_open"/>
+                <field name="state"/>
+                <field name="received_date"/>
+                <field name="source_ip"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_iot_data_form" model="ir.ui.view">
+        <field name="name">iot.data.form</field>
+        <field name="model">iot.data</field>
+        <field name="arch" type="xml">
+            <form string="IoT Data">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="device_id"/>
+                            <field name="sensor_type"/>
+                            <field name="state"/>
+                            <field name="received_date"/>
+                            <field name="source_ip"/>
+                        </group>
+                        <group>
+                            <field name="temperature"/>
+                            <field name="humidity"/>
+                            <field name="battery_level"/>
+                            <field name="door_open"/>
+                        </group>
+                    </group>
+                    <group string="Raw Payload">
+                        <field name="raw_payload" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_iot_data" model="ir.actions.act_window">
+        <field name="name">IoT Data</field>
+        <field name="res_model">iot.data</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smart_action">
+                No IoT data received yet.
+            </p>
+            <p>
+                Records here are created automatically when a sensor sends
+                data to the <code>/iot/api/receive</code> endpoint.
+            </p>
+        </field>
+    </record>
+</odoo>

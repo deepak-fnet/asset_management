@@ -1,0 +1,14 @@
+<odoo>
+    <record id="iot_template_demo_fridge" model="iot.template">
+        <field name="name">Refrigerator Sensor Payload</field>
+        <field name="target_url">http://localhost:8170/iot/api/receive</field>
+        <field name="json_payload">{
+    "device_id": "FRIDGE-001",
+    "sensor_type": "refrigerator_temperature",
+    "temperature": 4.5,
+    "humidity": 38.0,
+    "battery_level": 92,
+    "door_open": false
+}</field>
+    </record>
+</odoo>

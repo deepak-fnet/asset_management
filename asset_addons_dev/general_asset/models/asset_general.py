@@ -73,6 +73,9 @@ class AssetCategoryGeneral(models.Model):
     is_it_asset = fields.Boolean()
     is_network_asset = fields.Boolean()
     is_cctv_asset = fields.Boolean()
+    is_iot_device = fields.Boolean(
+        help="Tick for categories whose assets report sensor data through "
+             "the iot_integration module (iot.data), matched on Device ID.")
     sub_category_ids = fields.One2many(
         "asset.sub.category", "category_id", "Sub Categories")
     sub_category_count = fields.Integer(compute="_compute_sub_category_count")
@@ -238,6 +241,16 @@ class AssetAssetGeneral(models.Model):
     is_it_asset = fields.Boolean(related="category_id.is_it_asset", store=True,)
     is_network_asset = fields.Boolean(related="category_id.is_network_asset", store=True,)
     is_cctv_asset = fields.Boolean(related="category_id.is_cctv_asset", store=True,)
+    is_iot_device = fields.Boolean(related="category_id.is_iot_device", store=True,)
+    iot_device_id = fields.Char(
+        string="IoT Device ID",
+        help="Must match the Device ID (device_id) an iot.data sensor "
+             "reading was received under, in the iot_integration module.")
+    iot_data_count = fields.Integer(
+        string="IoT Data Logs", compute="_compute_iot_data_count",
+        help="Count of iot.data rows whose device_id matches IoT Device ID "
+             "above. iot_integration is optional - stays 0 if it is not "
+             "installed.")
     tag_number = fields.Char("Tag ID", copy=False, index=True,
                              help="Physical asset tag / RFID tag number.")
     sub_category_id = fields.Many2one(
@@ -299,6 +312,35 @@ class AssetAssetGeneral(models.Model):
         if self.sub_category_id and \
                 self.sub_category_id.category_id != self.category_id:
             self.sub_category_id = False
+
+    @api.depends("iot_device_id")
+    def _compute_iot_data_count(self):
+        """Count of sensor readings for this asset, matched on Device ID.
+
+        A plain Integer, not a relational field, so iot_integration stays
+        an OPTIONAL dependency - the same "model" in self.env guard used
+        everywhere else in this file for cross-module lookups. No field on
+        iot.data points back at asset.asset; the match is by device_id
+        string equality only.
+        """
+        has_iot = "iot.data" in self.env
+        for rec in self:
+            if not has_iot or not rec.iot_device_id:
+                rec.iot_data_count = 0
+                continue
+            rec.iot_data_count = self.env["iot.data"].sudo().search_count([
+                ("device_id", "=", rec.iot_device_id)])
+
+    def action_view_iot_data(self):
+        """Open the iot.data rows matching this asset's IoT Device ID."""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("IoT Data"),
+            "res_model": "iot.data",
+            "view_mode": "list,form",
+            "domain": [("device_id", "=", self.iot_device_id)],
+        }
 
     @api.model_create_multi
     def create(self, vals_list):

@@ -1,0 +1,47 @@
+<odoo>
+    <record id="view_iot_template_list" model="ir.ui.view">
+        <field name="name">iot.template.list</field>
+        <field name="model">iot.template</field>
+        <field name="arch" type="xml">
+            <list string="IoT JSON Templates">
+                <field name="name"/>
+                <field name="target_url"/>
+                <field name="last_status"/>
+                <field name="last_sent_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_iot_template_form" model="ir.ui.view">
+        <field name="name">iot.template.form</field>
+        <field name="model">iot.template</field>
+        <field name="arch" type="xml">
+            <form string="IoT JSON Template">
+                <header>
+                    <button name="action_send_to_api" type="object" string="Send to API"
+                            class="btn-primary"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="target_url" placeholder="http://localhost:8170/iot/api/receive"/>
+                    </group>
+                    <group string="Payload (edit values then Send to API)">
+                        <field name="json_payload" nolabel="1" widget="text"/>
+                    </group>
+                    <group string="Last Call Result">
+                        <field name="last_status"/>
+                        <field name="last_sent_date"/>
+                        <field name="last_response" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_iot_template" model="ir.actions.act_window">
+        <field name="name">IoT JSON Template</field>
+        <field name="res_model">iot.template</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

@@ -103,6 +103,7 @@
                 <field name="is_it_asset"/>
                 <field name="is_network_asset"/>
                 <field name="is_cctv_asset"/>
+                <field name="is_iot_device"/>
             </group>
             <xpath expr="//sheet" position="inside">
                 <group string="General Asset Settings" invisible="not is_general">
@@ -204,6 +205,17 @@
                             </div>
                         </button>
 
+                        <button name="action_view_iot_data"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-rss"
+                                invisible="not iot_device_id or not iot_data_count">
+                            <div class="o_stat_info">
+                                <field name="iot_data_count" class="o_stat_value"/>
+                                <span class="o_stat_text">IoT Data</span>
+                            </div>
+                        </button>
+
                     </div>
                     <field name="image_1920" widget="image" class="oe_avatar"/>
                     <div class="oe_title">
@@ -232,6 +244,9 @@
                                    invisible="not is_cctv_asset"
                                    required="is_cctv_asset"
                                    readonly="is_submit"/>
+                            <field name="iot_device_id"
+                                   invisible="not is_iot_device"
+                                   required="is_iot_device"/>
                             <field name="tag_number"/>
                             <field name="serial_number"
                                    placeholder="Leave blank to use the tag or asset code"/>
@@ -263,6 +278,7 @@
                     <field name="is_it_asset" invisible="1"/>
                     <field name="is_network_asset" invisible="1"/>
                     <field name="is_cctv_asset" invisible="1"/>
+                    <field name="is_iot_device" invisible="1"/>
                     <field name="is_submit" invisible="1"/>
 
                     <notebook>
