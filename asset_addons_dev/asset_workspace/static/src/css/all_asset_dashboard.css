@@ -1,0 +1,138 @@
+/* .o_content (the ancestor Odoo's own client-action wrapper renders this
+   into) is already overflow:auto - but belt-and-braces: some client
+   actions get mounted inside an extra flex wrapper that clips height
+   before .o_content's own scroll ever kicks in, particularly once
+   Chart.js is in the mix (its default maintainAspectRatio fights a fixed-
+   height container and can leave the layout in a broken, unscrollable
+   state - fixed in the JS options too, this is the second line of
+   defence). Explicit height+overflow here makes this component scroll on
+   its own regardless of what the ancestor chain does. */
+.o_all_asset_dashboard {
+    height: 100%;
+    overflow-y: auto;
+    --hub-chart-1: #2c7be5;
+    --hub-chart-2: #00d97e;
+    --hub-chart-3: #f6c343;
+    --hub-chart-4: #e63757;
+    --hub-chart-5: #39afd1;
+    --hub-chart-6: #95aac9;
+    --hub-chart-7: #6b5eae;
+    --hub-chart-8: #fd7e14;
+    padding: 24px 28px 60px;
+    background: var(--o-view-background-color, #fff);
+    color: var(--o-main-text-color, #1e293b);
+}
+
+.o_all_asset_dashboard .oaad-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+.o_all_asset_dashboard .oaad-header h1 { margin: 0; font-size: 22px; font-weight: 700; }
+.o_all_asset_dashboard .oaad-sub { color: #6b7280; font-size: 13px; }
+
+.o_all_asset_dashboard .oaad-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: flex-end;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 22px;
+    background: #fafafa;
+}
+.o_all_asset_dashboard .oaad-filter { display: flex; flex-direction: column; gap: 4px; }
+.o_all_asset_dashboard .oaad-filter label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
+    color: #6b7280; font-weight: 600;
+}
+.o_all_asset_dashboard .oaad-filter select,
+.o_all_asset_dashboard .oaad-filter input {
+    padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px;
+    min-width: 150px; font-size: 13px; background: #fff;
+}
+.o_all_asset_dashboard .oaad-filter-actions { display: flex; gap: 8px; margin-left: auto; }
+
+.o_all_asset_dashboard .oaad-loading {
+    text-align: center; padding: 70px 20px; color: #6b7280;
+}
+
+.o_all_asset_dashboard .oaad-kpi-row {
+    display: grid;
+    grid-template-columns: 1.4fr repeat(4, 1fr);
+    grid-auto-rows: auto;
+    gap: 14px;
+    margin-bottom: 22px;
+}
+.o_all_asset_dashboard .oaad-kpi {
+    border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 18px;
+    background: #fff;
+}
+.o_all_asset_dashboard .oaad-kpi-hero { grid-row: span 2; display: flex; flex-direction: column; justify-content: center; }
+.o_all_asset_dashboard .oaad-kpi-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
+    color: #6b7280; font-weight: 600; margin-bottom: 6px;
+}
+.o_all_asset_dashboard .oaad-kpi-num { font-size: 26px; font-weight: 700; line-height: 1.1; }
+.o_all_asset_dashboard .oaad-kpi-hero .oaad-kpi-num { font-size: 40px; }
+.o_all_asset_dashboard .oaad-kpi-worth { color: #6b7280; font-size: 12px; margin-top: 4px; }
+.o_all_asset_dashboard .oaad-clickable { cursor: pointer; }
+.o_all_asset_dashboard .oaad-clickable:hover { border-color: #2c7be5; }
+
+.o_all_asset_dashboard .oaad-section-label {
+    font-size: 12px; text-transform: uppercase; letter-spacing: .05em;
+    color: #6b7280; font-weight: 700; margin: 22px 0 10px;
+}
+
+.o_all_asset_dashboard .oaad-card {
+    border: 1px solid #e5e7eb; border-radius: 8px; padding: 18px;
+    background: #fff; margin-bottom: 18px;
+}
+.o_all_asset_dashboard .oaad-card h3 { margin: 0 0 2px; font-size: 15px; font-weight: 700; }
+.o_all_asset_dashboard .oaad-card-sub { color: #6b7280; font-size: 12px; }
+
+.o_all_asset_dashboard .oaad-grid-3 {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+}
+.o_all_asset_dashboard .oaad-grid-3 .oaad-card { margin-bottom: 0; }
+.o_all_asset_dashboard .oaad-grid-2 {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+}
+.o_all_asset_dashboard .oaad-grid-2 .oaad-card { margin-bottom: 0; }
+
+.o_all_asset_dashboard .oaad-chart-box { position: relative; height: 220px; margin-top: 10px; }
+.o_all_asset_dashboard .oaad-chart-box.oaad-empty canvas { visibility: hidden; }
+.o_all_asset_dashboard .oaad-empty-msg {
+    position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: center; color: #9ca3af; font-size: 13px;
+}
+
+.o_all_asset_dashboard .oaad-age-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+.o_all_asset_dashboard .oaad-age-table th {
+    text-align: left; font-size: 11px; text-transform: uppercase;
+    color: #6b7280; padding: 6px 8px; border-bottom: 1px solid #e5e7eb;
+}
+.o_all_asset_dashboard .oaad-age-table td { padding: 8px; border-bottom: 1px solid #f3f4f6; }
+.o_all_asset_dashboard .oaad-age-table tr.oaad-clickable:hover { background: #f8fafc; }
+
+.o_all_asset_dashboard .oaad-risk-row {
+    display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px;
+}
+.o_all_asset_dashboard .oaad-risk {
+    flex: 1 1 150px; border: 1px solid #e5e7eb; border-radius: 8px;
+    padding: 12px 14px; background: #fafafa;
+}
+.o_all_asset_dashboard .oaad-risk-num { font-size: 22px; font-weight: 700; }
+.o_all_asset_dashboard .oaad-risk-lbl {
+    font-size: 12px; color: #6b7280; font-weight: 600; margin-top: 2px;
+}
+.o_all_asset_dashboard .oaad-risk-bad {
+    background: #fef2f2; border-color: #fecaca;
+}
+.o_all_asset_dashboard .oaad-risk-bad .oaad-risk-num { color: #dc2626; }
+
+@media (prefers-color-scheme: dark) {
+    .o_all_asset_dashboard { --hub-chart-6: #64748b; }
+}

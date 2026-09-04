@@ -222,9 +222,10 @@ class AssetRequest(models.Model):
         creates one vendor.quote per vendor against this one RFQ. Only when a
         vendor is finally selected does the RFQ become a real order.
 
-        Request lines carry an asset.category, not a product - the request is
-        raised before anyone knows which exact model will be bought - so the
-        buyer still has to set the products on the RFQ before sending it out.
+        Request lines carry an asset.category, not necessarily a product -
+        for lines where the buyer already set a Product, that line is
+        pre-filled on the RFQ; lines left as category-only still need the
+        buyer to pick a product before sending it out.
         """
         self.ensure_one()
         if self.state not in ("approved", "rfq"):
@@ -250,6 +251,7 @@ class AssetRequest(models.Model):
             "context": {
                 "default_asset_request_id": self.id,
                 "default_origin": self.name,
+                "default_order_line": self._prefill_po_lines(),
                 "form_view_initial_mode": "edit",
             },
         }
@@ -258,6 +260,24 @@ class AssetRequest(models.Model):
         if form_view:
             action["views"] = [(form_view.id, "form")]
         return action
+
+    def _prefill_po_lines(self):
+        """One (0, 0, {...}) order-line dict per request line that already
+        has a Product set. Lines left as category-only produce nothing here -
+        the buyer still adds those by hand once the exact model is known."""
+        self.ensure_one()
+        lines = []
+        for rl in self.line_ids.filtered("product_id"):
+            product = rl.product_id
+            lines.append((0, 0, {
+                "product_id": product.id,
+                "product_qty": rl.quantity,
+                "product_uom_id": product.uom_id.id,
+                # name/price_unit/date_planned are computed, store=True,
+                # readonly=False on purchase.order.line - left unset here so
+                # the line's own compute derives them from product_id.
+            }))
+        return lines
 
     def action_open_rfqs(self):
         self.ensure_one()
@@ -292,6 +312,7 @@ class AssetRequest(models.Model):
             "context": {
                 "default_asset_request_id": self.id,
                 "default_origin": self.name,
+                "default_order_line": self._prefill_po_lines(),
                 # Force form to open in create mode
                 "form_view_initial_mode": "edit",
             },
@@ -462,6 +483,8 @@ class AssetRequest(models.Model):
                         "product_id": slot.get("product_id"),
                         "category_id": rl.asset_category_id.id
                         if rl.asset_category_id else False,
+                        "joining_requirement_id": rl.joining_requirement_id.id
+                        if rl.joining_requirement_id else False,
                         "serial_no": False,
                     })
 
@@ -530,14 +553,56 @@ class AssetRequestLine(models.Model):
         string="Asset Category",
         required=True,
     )
+    product_id = fields.Many2one(
+        "product.product",
+        string="Product",
+        help="Exact product to buy for this line, if already known. When "
+             "set, this pre-fills the Purchase Order line created from this "
+             "request, so the buyer does not have to look it up again.",
+    )
     description = fields.Char(string="Description")
     quantity = fields.Integer(string="Quantity", required=True, default=1)
+    joining_requirement_id = fields.Many2one(
+        "asset.joining.requirement",
+        string="Source Requirement",
+        copy=False,
+        readonly=True,
+        help="The joining-process requirement line this request line was "
+             "raised for, if any. Once a unit bought against this line is "
+             "confirmed on the Asset List, it is routed back to this "
+             "requirement's employee automatically.",
+    )
 
     @api.constrains("quantity")
     def _check_quantity(self):
         for rec in self:
             if rec.quantity <= 0:
                 raise ValidationError(_("Quantity must be greater than zero."))
+
+    @api.onchange("asset_category_id")
+    def _onchange_asset_category_id(self):
+        """Narrow the Product picker to products mapped to this category.
+
+        asset.category.mapping (asset_purchase) already records which
+        product category maps to which asset category for received goods -
+        reused here in reverse so the buyer isn't picking from every
+        product in the database.
+        """
+        # asset.category.mapping lives in the optional asset_purchase module,
+        # which depends on asset_management (not the reverse) - it may not be
+        # installed, so this narrows the domain only when it is, and leaves
+        # the picker open to every product otherwise.
+        if "asset.category.mapping" not in self.env:
+            return
+        for rec in self:
+            if not rec.asset_category_id:
+                continue
+            mappings = self.env["asset.category.mapping"].sudo().search(
+                [("category_id", "=", rec.asset_category_id.id)])
+            product_categ_ids = mappings.mapped("product_category_id").ids
+            if product_categ_ids:
+                return {"domain": {
+                    "product_id": [("categ_id", "in", product_categ_ids)]}}
 
 
 class AssetAssetWindowsUpdate(models.Model):

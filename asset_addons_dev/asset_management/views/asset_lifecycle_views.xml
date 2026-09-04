@@ -46,6 +46,7 @@
                         <button name="action_assign_assets" type="object"
                                 string="Assign Asset" groups="asset_management.group_asset_user_it"
                                 class="btn-primary"
+                                confirm="Only requirement lines fully picked right now will be assigned. Any line still short of its quantity stays pending until stock is picked or an Asset Request is fulfilled. Continue?"
                                 invisible="state not in ('approved', 'validate')"/>
 
 <!--                        <button name="action_cancel" type="object"-->

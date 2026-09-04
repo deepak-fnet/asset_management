@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="asset_workspace.AllAssetDashboard">
+    <div class="o_all_asset_dashboard">
+
+        <div class="oaad-header">
+            <div>
+                <h1>All Asset Dashboard</h1>
+                <span class="oaad-sub">Register health, distribution and risk across your assets</span>
+            </div>
+            <div class="oaad-header-actions">
+                <button class="btn btn-secondary" t-on-click="onRefresh">
+                    <i class="fa fa-refresh"/> Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="oaad-filters">
+            <div class="oaad-filter">
+                <label>Department</label>
+                <select t-on-change="(ev) => this.onFilterChange('department_id', ev)">
+                    <option value="">All</option>
+                    <t t-foreach="state.filterOptions.departments" t-as="d" t-key="d.id">
+                        <option t-att-value="d.id" t-esc="d.name"/>
+                    </t>
+                </select>
+            </div>
+            <div class="oaad-filter" t-if="state.filterOptions.plants.length">
+                <label>Plant</label>
+                <select t-on-change="(ev) => this.onFilterChange('plant_id', ev)">
+                    <option value="">All</option>
+                    <t t-foreach="state.filterOptions.plants" t-as="p" t-key="p.id">
+                        <option t-att-value="p.id" t-esc="p.name"/>
+                    </t>
+                </select>
+            </div>
+            <div class="oaad-filter">
+                <label>Location</label>
+                <select t-on-change="(ev) => this.onFilterChange('location_id', ev)">
+                    <option value="">All</option>
+                    <t t-foreach="state.filterOptions.locations" t-as="l" t-key="l.id">
+                        <option t-att-value="l.id" t-esc="l.name"/>
+                    </t>
+                </select>
+            </div>
+            <div class="oaad-filter">
+                <label>Status</label>
+                <select t-on-change="(ev) => this.onFilterChange('state', ev)">
+                    <option value="">All</option>
+                    <t t-foreach="state.filterOptions.states" t-as="s" t-key="s.value">
+                        <option t-att-value="s.value" t-esc="s.label"/>
+                    </t>
+                </select>
+            </div>
+            <div class="oaad-filter">
+                <label>Acquired From</label>
+                <input type="date" t-on-change="(ev) => this.onFilterChange('date_from', ev)"/>
+            </div>
+            <div class="oaad-filter">
+                <label>Acquired To</label>
+                <input type="date" t-on-change="(ev) => this.onFilterChange('date_to', ev)"/>
+            </div>
+            <div class="oaad-filter-actions">
+                <button class="btn btn-primary" t-on-click="onApply">Apply</button>
+                <button class="btn btn-secondary" t-on-click="onClear">Clear</button>
+            </div>
+        </div>
+
+        <div t-if="state.loading" class="oaad-loading">
+            <i class="fa fa-spinner fa-spin"/> Loading...
+        </div>
+
+        <t t-else="">
+            <!-- KPI cards -->
+            <div class="oaad-kpi-row">
+                <div class="oaad-kpi oaad-kpi-hero oaad-clickable" t-on-click="openAllAssets">
+                    <div class="oaad-kpi-label">Assets In Register</div>
+                    <div class="oaad-kpi-num" t-esc="state.kpis.total_assets"/>
+                    <div class="oaad-kpi-worth">worth ₹<t t-esc="Math.round(state.kpis.worth || 0)"/></div>
+                </div>
+                <div class="oaad-kpi">
+                    <div class="oaad-kpi-num" t-esc="state.kpis.active"/>
+                    <div class="oaad-kpi-label">Active</div>
+                </div>
+                <div class="oaad-kpi">
+                    <div class="oaad-kpi-num" t-esc="state.kpis.pending_approval"/>
+                    <div class="oaad-kpi-label">Pending Approval</div>
+                </div>
+                <div class="oaad-kpi">
+                    <div class="oaad-kpi-num" t-esc="state.kpis.assigned"/>
+                    <div class="oaad-kpi-label">Assigned To Staff</div>
+                </div>
+                <div class="oaad-kpi">
+                    <div class="oaad-kpi-num" t-esc="state.kpis.unassigned"/>
+                    <div class="oaad-kpi-label">Unassigned</div>
+                </div>
+                <div class="oaad-kpi">
+                    <div class="oaad-kpi-num" t-esc="state.kpis.under_transfer"/>
+                    <div class="oaad-kpi-label">Under Transfer</div>
+                </div>
+                <div class="oaad-kpi">
+                    <div class="oaad-kpi-num" t-esc="state.kpis.verification_due"/>
+                    <div class="oaad-kpi-label">Verification Due</div>
+                </div>
+                <div class="oaad-kpi">
+                    <div class="oaad-kpi-num" t-esc="state.kpis.removals_open"/>
+                    <div class="oaad-kpi-label">Removals Open</div>
+                </div>
+                <div class="oaad-kpi">
+                    <div class="oaad-kpi-num" t-esc="state.kpis.removed"/>
+                    <div class="oaad-kpi-label">Removed</div>
+                </div>
+            </div>
+
+            <!-- Distribution -->
+            <div class="oaad-section-label">Distribution</div>
+            <div class="oaad-card">
+                <h3>Assets by status</h3>
+                <span class="oaad-card-sub">Share of the register in each workflow state</span>
+                <div class="oaad-chart-box" t-att-class="hasData('by_state') ? '' : 'oaad-empty'">
+                    <canvas t-ref="stateChart"/>
+                    <div t-if="!hasData('by_state')" class="oaad-empty-msg">No data for this filter</div>
+                </div>
+            </div>
+
+            <div class="oaad-grid-3">
+                <div class="oaad-card">
+                    <h3>Assets by department</h3>
+                    <div class="oaad-chart-box" t-att-class="hasData('by_department') ? '' : 'oaad-empty'">
+                        <canvas t-ref="deptChart"/>
+                        <div t-if="!hasData('by_department')" class="oaad-empty-msg">No data for this filter</div>
+                    </div>
+                </div>
+                <div class="oaad-card">
+                    <h3>Assets by category</h3>
+                    <div class="oaad-chart-box" t-att-class="hasData('by_category') ? '' : 'oaad-empty'">
+                        <canvas t-ref="categoryChart"/>
+                        <div t-if="!hasData('by_category')" class="oaad-empty-msg">No data for this filter</div>
+                    </div>
+                </div>
+                <div class="oaad-card" t-if="state.charts.by_location">
+                    <h3>Assets by location</h3>
+                    <div class="oaad-chart-box" t-att-class="hasData('by_location') ? '' : 'oaad-empty'">
+                        <canvas t-ref="locationChart"/>
+                        <div t-if="!hasData('by_location')" class="oaad-empty-msg">No data for this filter</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="oaad-card">
+                <h3>Additions per month</h3>
+                <span class="oaad-card-sub">By acquisition date, last 12 months</span>
+                <div class="oaad-chart-box">
+                    <canvas t-ref="trendChart"/>
+                </div>
+            </div>
+
+            <!-- Age profile -->
+            <div class="oaad-section-label">Age Profile</div>
+            <div class="oaad-grid-2">
+                <div class="oaad-card">
+                    <h3>Assets by age</h3>
+                    <span class="oaad-card-sub">Older bands are darker. Click a bar to open the assets.</span>
+                    <div class="oaad-chart-box">
+                        <canvas t-ref="ageChart"/>
+                    </div>
+                </div>
+                <div class="oaad-card">
+                    <h3>Age breakdown</h3>
+                    <span class="oaad-card-sub">Value at stake and the top categories in each band</span>
+                    <table class="oaad-age-table">
+                        <thead>
+                            <tr>
+                                <th>Age Band</th>
+                                <th>Assets</th>
+                                <th>Value</th>
+                                <th>Top Categories</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="state.age_profile" t-as="bucket" t-key="bucket.id">
+                                <tr class="oaad-clickable" t-on-click="() => this.openBucket(bucket_index)">
+                                    <td><t t-esc="bucket.name"/></td>
+                                    <td><t t-esc="bucket.count"/></td>
+                                    <td>₹<t t-esc="Math.round(bucket.total_value)"/></td>
+                                    <td>
+                                        <t t-if="bucket.breakdown.length">
+                                            <t t-foreach="bucket.breakdown" t-as="b" t-key="b.name">
+                                                <t t-esc="b.name"/> (<t t-esc="b.count"/>)<t t-if="!b_last">, </t>
+                                            </t>
+                                        </t>
+                                        <t t-else="">—</t>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Data quality &amp; risk -->
+            <div class="oaad-section-label">Data Quality &amp; Risk</div>
+            <div class="oaad-card">
+                <span class="oaad-card-sub">
+                    Register gaps and things about to expire. Click a tile to see the assets.
+                </span>
+                <div class="oaad-risk-row">
+                    <t t-foreach="state.risk" t-as="r" t-key="r.key">
+                        <div t-att-class="'oaad-risk oaad-clickable' + (r.count ? ' oaad-risk-bad' : '')"
+                             t-on-click="() => this.openRisk(r.key)">
+                            <div class="oaad-risk-num" t-esc="r.count"/>
+                            <div class="oaad-risk-lbl" t-esc="r.label"/>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </t>
+
+    </div>
+</t>
+
+</templates>

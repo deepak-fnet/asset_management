@@ -22,7 +22,7 @@ a summary on the front, not a replacement.
 """
 
 import logging
-from datetime import timedelta
+from datetime import date, timedelta
 
 from odoo import models, fields, api, _
 
@@ -417,6 +417,435 @@ class AssetHubDashboard(models.AbstractModel):
             'platforms': self.get_platform_summary(),
             'health': self.get_fleet_health(),
             'attention': self.get_attention_items(),
+        }
+
+    # ══════════════════════════════════════════════════════════════════════
+    # All Asset Dashboard - one KPI-card summary across every kind of asset
+    # this suite tracks (IT/agent-reported, general/non-IT, IoT), rather than
+    # the platform-by-platform breakdown get_hub_data() already provides.
+    # Same spirit as the separate asset_advanced_dashboard module's Analytics
+    # Dashboard (KPI cards + click-through), built fresh against THIS
+    # module's own asset.asset instead - that module's dashboard is bound to
+    # an unrelated, incompatible asset.asset (different states/fields
+    # entirely), so its code could not be reused directly.
+    # ══════════════════════════════════════════════════════════════════════
+    @api.model
+    def get_all_asset_summary(self):
+        Asset = self.env['asset.asset'].sudo()
+
+        total_assets = Asset.search_count([])
+
+        summary = {
+            'total_assets': total_assets,
+            'general_assets': 0,
+            'it_assets': 0,
+            'iot_devices': 0,
+            'physical_verification_pending': 0,
+            'categories': [],
+        }
+
+        # General (non-IT) vs IT/agent-reported split - is_general_asset only
+        # exists once general_asset is installed.
+        if _is_searchable(Asset, 'is_general_asset'):
+            summary['general_assets'] = Asset.search_count(
+                [('is_general_asset', '=', True)])
+        summary['it_assets'] = max(0, total_assets - summary['general_assets'])
+
+        if _is_searchable(Asset, 'is_iot_device'):
+            summary['iot_devices'] = Asset.search_count(
+                [('is_iot_device', '=', True)])
+
+        if 'physical.verification' in self.env:
+            summary['physical_verification_pending'] = self.env[
+                'physical.verification'].sudo().search_count(
+                [('state', '!=', 'done')])
+
+        # Top categories by asset count - gives the KPI row something to
+        # point at besides raw totals, same idea as the platform tiles.
+        if 'category_id' in Asset._fields:
+            grouped = Asset.sudo()._read_group(
+                [('category_id', '!=', False)], ['category_id'],
+                ['__count'], order='__count desc', limit=6)
+            summary['categories'] = [
+                {'id': cat.id, 'name': cat.display_name, 'count': count}
+                for cat, count in grouped
+            ]
+
+        return summary
+
+    @api.model
+    def open_action_by_xmlid(self, xml_id):
+        """Generic click-through for the All Asset Dashboard's KPI cards.
+
+        Several of the actions a card should open (general_asset's own
+        asset list, Physical Verification) live in a module that is not a
+        hard dependency of this one - resolved at runtime the same way
+        open_dashboard() already does for platform tiles, rather than a
+        static XML reference that would break installation wherever that
+        module is absent.
+        """
+        action = self.env.ref(xml_id, raise_if_not_found=False)
+        if not action:
+            return {'error': f'Action not installed: {xml_id}'}
+        return {'action_id': action.id}
+
+    @api.model
+    def open_iot_devices(self):
+        """IoT Devices KPI card - a plain domain filter, not a fixed action,
+        since 'assets flagged is_iot_device' isn't its own menu/action
+        anywhere else in the suite.
+        """
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('IoT Devices'),
+            'res_model': 'asset.asset',
+            'view_mode': 'list,form',
+            'views': [(False, 'list'), (False, 'form')],
+            'domain': [('is_iot_device', '=', True)],
+        }
+
+    @api.model
+    def open_category_assets(self, category_id):
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Assets'),
+            'res_model': 'asset.asset',
+            'view_mode': 'list,form',
+            'views': [(False, 'list'), (False, 'form')],
+            'domain': [('category_id', '=', category_id)],
+        }
+
+    # ══════════════════════════════════════════════════════════════════════
+    # Asset Analytics - filters + KPI cards + charts + age profile, same
+    # concept as the standalone asset_advanced_dashboard module's Analytics
+    # Dashboard. That module's own dashboard is bound to asset.addition (a
+    # different, unrelated model from a separate legacy "asset" addon, not
+    # this suite's asset.asset) - rebuilt here against our own model/fields
+    # instead of reused directly.
+    # ══════════════════════════════════════════════════════════════════════
+    ASSET_STATES = [
+        ('draft', 'Draft'),
+        ('assigned', 'Assigned'),
+        ('maintenance', 'Maintenance'),
+        ('scrapped', 'Scrapped'),
+    ]
+
+    AGE_BUCKETS = [
+        (1, '0-3 yrs', None, 3),
+        (2, '3-5 yrs', 3, 5),
+        (3, '5-10 yrs', 5, 10),
+        (4, '10-15 yrs', 10, 15),
+        (5, '15+ yrs', 15, None),
+    ]
+
+    @staticmethod
+    def _years_ago(today, years):
+        """today minus N years, as a day count - avoids .replace(year=...)
+        raising on Feb 29 landing on a non-leap year.
+        """
+        return today - timedelta(days=round(years * 365.25))
+
+    def _analytics_domain(self, filters):
+        filters = filters or {}
+        domain = []
+        for key, field in (
+            ('department_id', 'department_id'),
+            ('plant_id', 'plant_id'),
+            ('location_id', 'location_id'),
+        ):
+            value = filters.get(key)
+            if value and (field != 'plant_id' or 'plant_id' in self.env['asset.asset']._fields):
+                domain.append((field, '=', int(value)))
+        if filters.get('state'):
+            domain.append(('state', '=', filters['state']))
+        if filters.get('date_from'):
+            domain.append(('purchase_date', '>=', filters['date_from']))
+        if filters.get('date_to'):
+            domain.append(('purchase_date', '<=', filters['date_to']))
+        return domain
+
+    @staticmethod
+    def _grouped(model, domain, field):
+        """[(label, count)] for a many2one grouping, biggest first."""
+        rows = model._read_group(domain, [field], ['__count'])
+        out = []
+        for value, count in rows:
+            if not value:
+                label = 'Unassigned'
+            elif hasattr(value, 'display_name'):
+                label = value.display_name
+            else:
+                label = str(value)
+            out.append((label, count))
+        out.sort(key=lambda row: -row[1])
+        return out
+
+    @staticmethod
+    def _series(pairs, limit=8):
+        """Pack (label, count) pairs into a chart series, folding the tail
+        into a single "Other" bucket past `limit` slots - a categorical
+        palette only has so many distinct colours.
+        """
+        head, tail = pairs[:limit], pairs[limit:]
+        labels = [label for label, _count in head]
+        data = [count for _label, count in head]
+        if tail:
+            labels.append('Other')
+            data.append(sum(count for _label, count in tail))
+        return {'labels': labels, 'data': data}
+
+    @api.model
+    def get_asset_analytics_filters(self):
+        def options(model_name, domain=None):
+            if model_name not in self.env:
+                return []
+            return [{'id': rec.id, 'name': rec.display_name}
+                    for rec in self.env[model_name].sudo().search(domain or [])]
+
+        return {
+            'departments': options('hr.department'),
+            'plants': options('plant.master'),
+            'locations': options('asset.location'),
+            'states': [{'value': code, 'label': label}
+                      for code, label in self.ASSET_STATES],
+        }
+
+    @api.model
+    def get_asset_analytics_data(self, filters=None):
+        return {
+            'kpis': self._analytics_kpis(filters),
+            'charts': self._analytics_charts(filters),
+            'age_profile': self._analytics_age_profile(filters),
+            'risk': self._analytics_risk(filters),
+        }
+
+    # ── Data Quality & Risk ─────────────────────────────────────────────
+    # Register hygiene (missing tag/serial/location/category - can't be
+    # tracked properly without these) and things about to expire (warranty
+    # always available; AMC/Licence only once general_asset is installed).
+    RISK_ITEMS = [
+        ('missing_tag', 'Missing Tag', 'tag_number'),
+        ('missing_serial', 'Missing Serial', 'serial_number'),
+        ('missing_location', 'Missing Location', 'location_id'),
+        ('missing_category', 'Missing Category', 'category_id'),
+    ]
+
+    def _analytics_risk(self, filters):
+        Asset = self.env['asset.asset'].sudo()
+        domain = self._analytics_domain(filters) + [('state', '!=', 'scrapped')]
+        today = fields.Date.today()
+        soon = today + timedelta(days=30)
+
+        result = []
+        for key, label, field_name in self.RISK_ITEMS:
+            if field_name not in Asset._fields:
+                continue
+            field = Asset._fields[field_name]
+            if field.type == 'many2one':
+                extra = [(field_name, '=', False)]
+            else:
+                extra = ['|', (field_name, '=', False), (field_name, '=', '')]
+            result.append({
+                'key': key, 'label': label,
+                'count': Asset.search_count(domain + extra),
+            })
+
+        def expiring(key, label, end_field, flag_field=None):
+            if end_field not in Asset._fields:
+                return
+            extra = [(end_field, '<=', soon), (end_field, '>=', today)]
+            if flag_field and flag_field in Asset._fields:
+                extra.append((flag_field, '=', True))
+            result.append({
+                'key': key, 'label': label,
+                'count': Asset.search_count(domain + extra),
+            })
+
+        expiring('warranty_expiring', 'Warranty Expiring (30d)', 'warranty_end_date')
+        expiring('amc_expiring', 'AMC Expiring (30d)', 'amc_end_date', 'is_amc')
+        expiring('licence_expiring', 'Licence Expiring (30d)', 'licence_end_date', 'is_licence')
+
+        old_cutoff = self._years_ago(today, 15)
+        result.append({
+            'key': 'old_assets', 'label': 'Older Than 15 Years',
+            'count': Asset.search_count(domain + [('purchase_date', '<=', old_cutoff)]),
+        })
+
+        return result
+
+    @api.model
+    def open_risk_bucket(self, filters, key):
+        Asset = self.env['asset.asset'].sudo()
+        domain = self._analytics_domain(filters) + [('state', '!=', 'scrapped')]
+        today = fields.Date.today()
+        soon = today + timedelta(days=30)
+
+        field_by_key = {r[0]: r[2] for r in self.RISK_ITEMS}
+        if key in field_by_key:
+            field_name = field_by_key[key]
+            field = Asset._fields[field_name]
+            if field.type == 'many2one':
+                domain += [(field_name, '=', False)]
+            else:
+                domain += ['|', (field_name, '=', False), (field_name, '=', '')]
+        elif key == 'warranty_expiring':
+            domain += [('warranty_end_date', '<=', soon), ('warranty_end_date', '>=', today)]
+        elif key == 'amc_expiring':
+            domain += [('is_amc', '=', True), ('amc_end_date', '<=', soon),
+                      ('amc_end_date', '>=', today)]
+        elif key == 'licence_expiring':
+            domain += [('is_licence', '=', True), ('licence_end_date', '<=', soon),
+                      ('licence_end_date', '>=', today)]
+        elif key == 'old_assets':
+            domain += [('purchase_date', '<=', self._years_ago(today, 15))]
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Assets'),
+            'res_model': 'asset.asset',
+            'view_mode': 'list,form',
+            'views': [(False, 'list'), (False, 'form')],
+            'domain': domain,
+        }
+
+    def _analytics_kpis(self, filters):
+        Asset = self.env['asset.asset'].sudo()
+        domain = self._analytics_domain(filters)
+
+        def count(extra):
+            return Asset.search_count(domain + extra)
+
+        live = domain + [('state', '!=', 'scrapped')]
+        worth = 0.0
+        if 'purchase_cost' in Asset._fields:
+            worth = sum(Asset.search(live).mapped('purchase_cost'))
+
+        under_transfer = 0
+        if 'asset.transfer' in self.env:
+            under_transfer = self.env['asset.transfer'].sudo().search_count(
+                [('state', 'not in', ('done', 'cancelled'))])
+
+        removals_open = 0
+        if 'asset.scrap' in self.env:
+            removals_open = self.env['asset.scrap'].sudo().search_count(
+                [('state', 'not in', ('done', 'cancelled'))])
+
+        verification_due = 0
+        if 'physical.verification' in self.env:
+            verification_due = self.env['physical.verification'].sudo(
+            ).search_count([('state', '!=', 'done')])
+
+        return {
+            'total_assets': Asset.search_count(live),
+            'worth': worth,
+            'active': count([('state', '=', 'assigned')]),
+            'pending_approval': count([('is_submit', '=', False)])
+                if 'is_submit' in Asset._fields else 0,
+            'assigned': count([('assigned_employee_id', '!=', False)]),
+            'unassigned': count(
+                [('assigned_employee_id', '=', False), ('state', '!=', 'scrapped')]),
+            'under_transfer': under_transfer,
+            'verification_due': verification_due,
+            'removals_open': removals_open,
+            'removed': count([('state', '=', 'scrapped')]),
+        }
+
+    def _analytics_charts(self, filters):
+        Asset = self.env['asset.asset'].sudo()
+        domain = self._analytics_domain(filters)
+
+        by_code = {code: 0 for code, _label in self.ASSET_STATES}
+        for value, cnt in Asset._read_group(domain, ['state'], ['__count']):
+            by_code[value] = cnt
+        state_series = {'labels': [], 'data': []}
+        for code, label in self.ASSET_STATES:
+            if by_code.get(code):
+                state_series['labels'].append(label)
+                state_series['data'].append(by_code[code])
+
+        live = domain + [('state', '!=', 'scrapped')]
+        charts = {
+            'by_state': state_series,
+            'by_department': self._series(self._grouped(Asset, live, 'department_id')),
+            'by_category': self._series(self._grouped(Asset, live, 'category_id')),
+            'monthly_trend': self._analytics_monthly_trend(Asset, domain),
+        }
+        if 'location_id' in Asset._fields:
+            charts['by_location'] = self._series(
+                self._grouped(Asset, live, 'location_id'))
+        return charts
+
+    def _analytics_monthly_trend(self, Asset, domain):
+        """Assets acquired (by purchase_date) per month, last 12 months."""
+        today = fields.Date.today()
+        first = (today.replace(day=1) - timedelta(days=365)).replace(day=1)
+        rows = Asset._read_group(
+            domain + [('purchase_date', '>=', first)],
+            ['purchase_date:month'], ['__count'])
+        counts = {month.strftime('%Y-%m'): cnt for month, cnt in rows if month}
+
+        labels, data = [], []
+        year, month = today.year, today.month
+        months = []
+        for _i in range(12):
+            months.append((year, month))
+            month -= 1
+            if month == 0:
+                month, year = 12, year - 1
+        for year, month in reversed(months):
+            key = date(year, month, 1)
+            labels.append(key.strftime('%b %y'))
+            data.append(counts.get(key.strftime('%Y-%m'), 0))
+        return {'labels': labels, 'data': data}
+
+    def _analytics_age_profile(self, filters):
+        Asset = self.env['asset.asset'].sudo()
+        base = self._analytics_domain(filters) + [('state', '!=', 'scrapped')]
+        today = fields.Date.today()
+
+        result = []
+        for bucket_id, label, low, high in self.AGE_BUCKETS:
+            bucket_domain = list(base)
+            if low is not None:
+                bucket_domain.append(
+                    ('purchase_date', '<=', self._years_ago(today, low)))
+            if high is not None:
+                bucket_domain.append(
+                    ('purchase_date', '>', self._years_ago(today, high)))
+            assets = Asset.search(bucket_domain)
+            breakdown = [
+                {'name': name, 'count': cnt}
+                for name, cnt in self._grouped(Asset, bucket_domain, 'category_id')[:4]
+            ]
+            worth = (sum(assets.mapped('purchase_cost'))
+                     if 'purchase_cost' in Asset._fields else 0.0)
+            result.append({
+                'id': bucket_id,
+                'name': label,
+                'count': len(assets),
+                'total_value': worth,
+                'breakdown': breakdown,
+            })
+        return result
+
+    @api.model
+    def open_analytics_bucket(self, filters, low, high):
+        """Drill-down for an Age Profile bar - reapplies the same filters
+        plus that bucket's purchase_date window.
+        """
+        domain = self._analytics_domain(filters) + [('state', '!=', 'scrapped')]
+        today = fields.Date.today()
+        if low is not None:
+            domain.append(('purchase_date', '<=', self._years_ago(today, low)))
+        if high is not None:
+            domain.append(('purchase_date', '>', self._years_ago(today, high)))
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Assets'),
+            'res_model': 'asset.asset',
+            'view_mode': 'list,form',
+            'views': [(False, 'list'), (False, 'form')],
+            'domain': domain,
         }
 
     # ══════════════════════════════════════════════════════════════════════

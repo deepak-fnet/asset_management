@@ -43,6 +43,16 @@ class AssetList(models.Model):
         string="PO Line",
         ondelete="set null",
     )
+    joining_requirement_id = fields.Many2one(
+        "asset.joining.requirement",
+        string="Source Requirement",
+        ondelete="set null",
+        copy=False,
+        help="Carried over from the Asset Request line this row was "
+             "generated from, if that line was itself raised for a "
+             "shortfall on a joining process. Drives auto-assignment on "
+             "Confirm.",
+    )
     product_id = fields.Many2one(
         "product.product",
         string="Product",
@@ -103,6 +113,40 @@ class AssetList(models.Model):
             self.asset_id.purchase_date = self.po_id.date_order
             self.asset_id.procurement_vendor_id = self.po_id.partner_id.id
             self.asset_id.acquisition_type = 'purchased'
+        self._route_to_joining_requirement()
+
+    def _route_to_joining_requirement(self):
+        """Once the newly received unit is confirmed here, hand it straight
+        to the joining process that was short of it - instead of leaving it
+        as generic draft stock for someone to notice and pick manually.
+
+        Assigns it to the employee as soon as its own line's quantity is
+        met; only closes the whole joining process (action_assign_assets)
+        once every other line on it is satisfied too, so e.g. an employee
+        needing Laptop + Mouse isn't marked done for a mouse alone.
+        """
+        for rec in self:
+            requirement = rec.joining_requirement_id
+            if not requirement or not rec.asset_id:
+                continue
+            if requirement.selected_count >= requirement.quantity:
+                continue
+            requirement.asset_ids = [(4, rec.asset_id.id)]
+            joining = requirement.joining_id
+            joining.message_post(body=_(
+                "%(asset)s received and routed to the %(category)s "
+                "requirement for %(employee)s."
+            ) % {
+                'asset': rec.asset_id.asset_name,
+                'category': requirement.category_id.name,
+                'employee': joining.employee_id.name,
+            })
+            if joining.state in ('approved', 'validate'):
+                # action_assign_assets() only assigns lines that are fully
+                # picked and only closes the process once every line is -
+                # safe to call as soon as this one line is complete, even if
+                # siblings (e.g. a still-unordered Chair) are not.
+                joining.action_assign_assets()
 
     @api.onchange('asset_id')
     def _onchange_asset_id(self):

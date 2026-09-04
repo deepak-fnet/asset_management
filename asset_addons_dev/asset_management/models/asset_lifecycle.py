@@ -153,12 +153,18 @@ class AssetJoiningProcess(models.Model):
             rec.state = 'draft'
 
     def action_assign_assets(self):
-        """Assign every asset picked across the requirement lines to the
-        employee, and close the joining process.
+        """Assign whatever is fully picked right now, per line, and close
+        the joining process once every line is.
 
-        Each line must have exactly as many assets picked as its Quantity -
-        picking is per line (Laptop x1, Mouse x1, each matched against its
-        own category) rather than one flat list for the whole process.
+        Deliberately partial: a process with Laptop x1 (picked) and Mouse x1
+        (not in stock) assigns the Laptop immediately and leaves Mouse
+        pending - it does NOT block on the whole process being complete, so
+        "raise an Asset Request for the gap, assign what's available today"
+        is a normal flow rather than an error. Lines still short of their
+        quantity are simply skipped; the process stays open (not 'done')
+        until every line is picked and assigned. Re-running this method
+        (including the automatic call from asset.list on arrival) is safe -
+        already-assigned assets are no longer 'draft' and won't be re-picked.
         """
         for rec in self:
             # 'validate' is the state assigning actually happens from now -
@@ -172,24 +178,12 @@ class AssetJoiningProcess(models.Model):
             if not rec.requirement_ids:
                 raise UserError(_("This joining process has no asset requirements."))
 
-            mismatched = rec.requirement_ids.filtered(
-                lambda l: l.selected_count != l.quantity)
-            if mismatched:
-                raise UserError(_(
-                    "The number of assets selected must match the requested "
-                    "quantity on every line:\n%s"
-                ) % "\n".join(
-                    _("- %(category)s: requested %(qty)d, selected %(picked)d") % {
-                        'category': line.category_id.name,
-                        'qty': line.quantity,
-                        'picked': line.selected_count,
-                    }
-                    for line in mismatched
-                ))
+            ready_lines = rec.requirement_ids.filtered(
+                lambda l: l.quantity > 0 and l.selected_count == l.quantity)
 
-            all_assets = rec.requirement_ids.mapped('asset_ids')
-            total_picked = sum(rec.requirement_ids.mapped('selected_count'))
-            if len(all_assets) != total_picked:
+            ready_assets = ready_lines.mapped('asset_ids')
+            total_picked = sum(ready_lines.mapped('selected_count'))
+            if len(ready_assets) != total_picked:
                 # mapped() silently deduplicates, so a shortfall here means
                 # the same physical asset was picked on more than one line -
                 # the per-line quantity check above cannot catch that on its
@@ -198,26 +192,39 @@ class AssetJoiningProcess(models.Model):
                     "The same asset cannot be selected on more than one "
                     "requirement line."))
 
-            unavailable = all_assets.filtered(lambda a: a.state != 'draft')
+            unavailable = ready_assets.filtered(lambda a: a.state not in ('draft', 'assigned'))
             if unavailable:
                 raise UserError(_(
-                    "These assets are no longer available (already "
-                    "assigned, in maintenance, or scrapped): %s"
+                    "These assets are no longer available (in maintenance "
+                    "or scrapped): %s"
                 ) % ", ".join(unavailable.mapped('asset_name')))
 
-            all_assets.write({
-                'assigned_employee_id': rec.employee_id.id,
-                'assignment_date': fields.Date.context_today(rec),
-                'state': 'assigned',
-            })
-            rec.assigned_asset_ids = [(6, 0, all_assets.ids)]
-            rec.state = 'done'
-            rec.message_post(body=_(
-                "Assets assigned to <b>%(employee)s</b>: %(assets)s"
-            ) % {
-                'employee': rec.employee_id.name,
-                'assets': ", ".join(all_assets.mapped('asset_name')),
-            })
+            to_assign = ready_assets.filtered(lambda a: a.state == 'draft')
+            if to_assign:
+                to_assign.write({
+                    'assigned_employee_id': rec.employee_id.id,
+                    'assignment_date': fields.Date.context_today(rec),
+                    'state': 'assigned',
+                })
+                rec.assigned_asset_ids = [(4, a.id) for a in to_assign]
+                rec.message_post(body=_(
+                    "Assets assigned to <b>%(employee)s</b>: %(assets)s"
+                ) % {
+                    'employee': rec.employee_id.name,
+                    'assets': ", ".join(to_assign.mapped('asset_name')),
+                })
+            elif not ready_lines:
+                raise UserError(_(
+                    "No requirement line is fully picked yet - nothing to "
+                    "assign. Pick assets or raise an Asset Request for the "
+                    "shortfall first."))
+
+            still_pending = rec.requirement_ids.filtered(
+                lambda l: l.quantity > 0 and (
+                    l.selected_count != l.quantity
+                    or any(a.state != 'assigned' for a in l.asset_ids)))
+            if not still_pending:
+                rec.state = 'done'
         return True
 
     def action_raise_asset_request(self):
@@ -245,6 +252,7 @@ class AssetJoiningProcess(models.Model):
                     'request_id': self.asset_request_id.id,
                     'asset_category_id': line.category_id.id,
                     'quantity': line.quantity - line.selected_count,
+                    'joining_requirement_id': line.id,
                     'description': _(
                         "Shortfall for %(employee)s's joining process %(ref)s"
                     ) % {'employee': self.employee_id.name, 'ref': self.name},
@@ -304,6 +312,39 @@ class AssetJoiningRequirement(models.Model):
                 raise ValidationError(_(
                     "%s does not belong to category %s on this line."
                 ) % (wrong[0].asset_name, rec.category_id.name))
+
+    def write(self, vals):
+        """Block un-picking an asset that has already been handed to the
+        employee (action_assign_assets sets state='assigned').
+
+        Partial assignment can leave this line's picks a mix of "already
+        assigned" and "picked but not yet assigned" (e.g. re-opened to add a
+        second unit) - the m2m widget lets either be removed with no
+        distinction, which would silently strip the employee of something
+        already handed to them. Only additions are allowed once an asset on
+        this line is assigned; removing one raises instead.
+        """
+        if 'asset_ids' not in vals:
+            return super().write(vals)
+
+        before = {rec.id: set(rec.asset_ids.ids) for rec in self}
+        result = super().write(vals)
+        for rec in self:
+            removed_ids = before[rec.id] - set(rec.asset_ids.ids)
+            if not removed_ids:
+                continue
+            removed = self.env['asset.asset'].browse(list(removed_ids))
+            locked = removed.filtered(lambda a: a.state == 'assigned')
+            if locked:
+                raise ValidationError(_(
+                    "%(assets)s already assigned to %(employee)s and cannot "
+                    "be removed here - you can only add assets to this "
+                    "line, not un-assign existing ones."
+                ) % {
+                    'assets': ", ".join(locked.mapped('asset_name')),
+                    'employee': rec.joining_id.employee_id.name,
+                })
+        return result
 
 
 # ─────────────────────────────────────────────────────────────────────────────

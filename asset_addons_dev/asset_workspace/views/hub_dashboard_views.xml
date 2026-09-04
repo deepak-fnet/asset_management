@@ -4,4 +4,9 @@
         <field name="name">Dashboard</field>
         <field name="tag">asset_hub_dashboard</field>
     </record>
+
+    <record id="action_all_asset_dashboard" model="ir.actions.client">
+        <field name="name">All Asset Dashboard</field>
+        <field name="tag">all_asset_dashboard</field>
+    </record>
 </odoo>

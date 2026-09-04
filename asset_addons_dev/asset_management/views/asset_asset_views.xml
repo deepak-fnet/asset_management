@@ -1096,6 +1096,28 @@
                             </div>
                         </page>
 
+                        <page string="Hardware Changes" name="hardware_changes">
+                            <field name="hardware_change_log_ids" readonly="1">
+                                <list decoration-muted="not new_value">
+                                    <field name="timestamp"/>
+                                    <field name="description"/>
+                                    <field name="old_value"/>
+                                    <field name="new_value"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Software Changes" name="software_changes">
+                            <field name="software_change_log_ids" readonly="1">
+                                <list decoration-muted="not new_value">
+                                    <field name="timestamp"/>
+                                    <field name="description"/>
+                                    <field name="old_value"/>
+                                    <field name="new_value"/>
+                                </list>
+                            </field>
+                        </page>
+
                         <page string="File Access" name="file_access">
                             <div style="padding: 20px; background: #f8f9fa;">
                                 <!-- FILE EXPLORER INTEGRATION -->

@@ -50,6 +50,13 @@ LEGACY_MENUS_TO_HIDE = [
     'general_asset.menu_asset_general',
     'general_asset.menu_asset_configuration',
 
+    # iot_integration builds its own top-level "IoT Integration" app menu
+    # (menu_iot_root) with IoT Data/JSON Template underneath - same
+    # duplication problem as general_asset above. Hidden; its two items are
+    # re-wired into this module's own "IoT Integration" menu instead (see
+    # menu_ws_iot_data/menu_ws_iot_template in OPTIONAL_MENUS).
+    'iot_integration.menu_iot_root',
+
     # Superseded by the static "Repair Management" menuitem now declared
     # directly in menus.xml (its action lives in asset_management, a real
     # dependency, so it no longer needs runtime lookup via OPTIONAL_MENUS).
@@ -66,6 +73,17 @@ LEGACY_MENUS_TO_HIDE = [
     'asset_workspace.menu_ws_config_team',
     'asset_workspace.menu_asset_helpdesk_categories',
     'asset_workspace.menu_ws_config_ticket_type',
+
+    # Root nav restructure: All Asset Dashboard / All Asset / IT Assets /
+    # IoT Integration. "Dashboard" moved from the root to a child of "IT
+    # Assets" (same xmlid, menu_ws_dashboard's own id was retired in favour
+    # of menu_ws_assets_dashboard so it does not also appear at the root
+    # anymore); General Assets/Physical Verification moved from "Assets"
+    # (now "IT Assets") to the new "All Asset" - see the OPTIONAL_MENUS
+    # entries above for where they live now.
+    'asset_workspace.menu_ws_dashboard',
+    'asset_workspace.menu_ws_general_assets',
+    'asset_workspace.menu_ws_physical_verification',
 ]
 
 # (new menu xml_id, [candidate action xml_ids], menu name, parent xml_id, sequence)
@@ -137,16 +155,31 @@ OPTIONAL_MENUS = [
         'Asset Scrap', 'asset_workspace.menu_ws_lifecycle', 50,
     ),
     (
-        # Under Assets, not at the root. The root-level placement was
-        # duplicating general_asset's own top-level entry.
-        'menu_ws_general_assets',
+        # Under "All Asset" (general/non-IT assets), not "IT Assets" - these
+        # are not IT assets, grouping them there was misleading. Renamed
+        # from menu_ws_general_assets/menu_ws_physical_verification (old
+        # parent "Assets") to force fresh creation under the new parent on
+        # an already-installed database - see LEGACY_MENUS_TO_HIDE.
+        'menu_ws_all_asset_general',
         ['general_asset.action_asset_general'],
-        'All Assets', 'asset_workspace.menu_ws_assets', 40,
+        'All Assets', 'asset_workspace.menu_ws_all_asset', 10,
     ),
     (
-        'menu_ws_physical_verification',
+        'menu_ws_all_asset_physical_verification',
         ['general_asset.action_physical_verification'],
-        'Physical Verification', 'asset_workspace.menu_ws_assets', 50,
+        'Physical Verification', 'asset_workspace.menu_ws_all_asset', 20,
+    ),
+
+    # ── IoT Integration - iot_integration is not a hard dependency ───────
+    (
+        'menu_ws_iot_data',
+        ['iot_integration.action_iot_data'],
+        'IoT Data', 'asset_workspace.menu_ws_iot', 10,
+    ),
+    (
+        'menu_ws_iot_template',
+        ['iot_integration.action_iot_template'],
+        'IoT JSON Template', 'asset_workspace.menu_ws_iot', 20,
     ),
 
     # ── general_asset configuration, merged into the workspace's own ─────

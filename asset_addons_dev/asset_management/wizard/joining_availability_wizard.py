@@ -83,6 +83,7 @@ class JoiningAvailabilityWizard(models.TransientModel):
         for req in joining.requirement_ids:
             available = Asset.search(self._available_domain(req.category_id))
             lines.append((0, 0, {
+                "requirement_id": req.id,
                 "category_id": req.category_id.id,
                 "requested_qty": req.quantity,
                 "available_qty": len(available),
@@ -156,6 +157,7 @@ class JoiningAvailabilityWizard(models.TransientModel):
                 "request_id": request.id,
                 "asset_category_id": line.category_id.id,
                 "quantity": line.shortfall,
+                "joining_requirement_id": line.requirement_id.id,
                 "description": _(
                     "Shortfall for %(employee)s's joining process %(ref)s"
                 ) % {"employee": joining.employee_id.name, "ref": joining.name},
@@ -185,6 +187,7 @@ class JoiningAvailabilityWizardLine(models.TransientModel):
     # every click failed with "Missing required value for the field
     # 'Category'". The fields are made readonly in the VIEW instead, which
     # stops the user editing them without stopping the round trip.
+    requirement_id = fields.Many2one("asset.joining.requirement")
     category_id = fields.Many2one("asset.category", required=True)
     requested_qty = fields.Integer()
     available_qty = fields.Integer()

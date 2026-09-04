@@ -185,7 +185,9 @@ class AssetAuditLog(models.Model):
     log_type = fields.Selection([
         ('assignment', 'Asset Assignment'),
         ('status', 'Status Change'),
-        ('location', 'Location Change')
+        ('location', 'Location Change'),
+        ('hardware_change', 'Hardware Change'),
+        ('software_change', 'Software Change'),
     ], string='Log Type')
     action = fields.Selection([
         ('uninstall_request', 'Uninstall Request'),

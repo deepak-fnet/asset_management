@@ -11,17 +11,28 @@
              find them.
              ══════════════════════════════════════════════════════════════════ -->
 
-        <!-- ── 1. Dashboard (single entry point) ─────────────────────────── -->
+        <!-- ── 1. All Asset Dashboard (single entry point) ────────────────── -->
         <menuitem id="asset_management.menu_asset_root"
                   name="Asset Management"
                   web_icon="asset_management,static/description/icon.png"
                   sequence="10"/>
 
-        <menuitem id="menu_ws_dashboard"
-                  name="Dashboard"
+        <menuitem id="menu_ws_all_asset_dashboard"
+                  name="All Asset Dashboard"
                   parent="asset_management.menu_asset_root"
-                  action="action_asset_hub_dashboard"
+                  action="action_all_asset_dashboard"
                   sequence="1"/>
+
+        <!-- ── 1b. All Asset - general (non-IT) assets + their own
+             lifecycle screens. General Assets/Physical Verification used to
+             sit under "Assets" (now "IT Assets" below) - moved out to their
+             own top section since they are not IT assets at all; grouping
+             them under "IT Assets" was misleading. Wired by hooks.py
+             (general_asset is not a hard dependency). -->
+        <menuitem id="menu_ws_all_asset"
+                  name="All Asset"
+                  parent="asset_management.menu_asset_root"
+                  sequence="2"/>
 
         <!-- ── 2. Lifecycle Process ─────────────────────────────────────────
              Its own top-level app (no parent), with its own icon, rather
@@ -99,11 +110,20 @@
                   sequence="30"
                   groups="asset_management.group_asset_manager"/>
 
-        <!-- ── 4. Assets ─────────────────────────────────────────────────── -->
+        <!-- ── 4. IT Assets (was "Assets") - agent-reported assets only,
+             plus the per-platform Dashboard (asset_hub_dashboard) as its
+             landing page. General/non-IT assets live under "All Asset"
+             above instead - see the note there. ─────────────────────── -->
         <menuitem id="menu_ws_assets"
-                  name="Assets"
+                  name="IT Assets"
                   parent="asset_management.menu_asset_root"
                   sequence="30"/>
+
+        <menuitem id="menu_ws_assets_dashboard"
+                  name="Dashboard"
+                  parent="menu_ws_assets"
+                  action="action_asset_hub_dashboard"
+                  sequence="5"/>
 
         <menuitem id="menu_ws_assets_windows"
                   name="Windows Assets"
@@ -146,6 +166,14 @@
               parent="menu_ws_assets"
               action="asset_management.action_asset_peripheral"
               sequence="60"/>
+
+        <!-- ── 4b. IoT Integration - iot_integration is not a hard
+             dependency of this module, so both children are wired by
+             hooks.py at runtime rather than referenced statically here. -->
+        <menuitem id="menu_ws_iot"
+                  name="IoT Integration"
+                  parent="asset_management.menu_asset_root"
+                  sequence="35"/>
 
         <!-- ── 5. Asset Request ──────────────────────────────────────────── -->
         <menuitem id="menu_ws_request"

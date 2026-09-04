@@ -73,26 +73,54 @@ class AssetCategoryGeneral(models.Model):
     is_it_asset = fields.Boolean()
     is_network_asset = fields.Boolean()
     is_cctv_asset = fields.Boolean()
-    is_iot_device = fields.Boolean(
-        help="Tick for categories whose assets report sensor data through "
-             "the iot_integration module (iot.data), matched on Device ID.")
+    is_dynamic_form = fields.Boolean(
+        string="Use Dynamic Form Layout",
+        help="Tick to show ONLY the two configured columns (Left/Right "
+             "Column Fields below) on the general asset form for this "
+             "category, instead of the standard fixed Classification/"
+             "Placement layout. Off by default so existing categories keep "
+             "the familiar form until an admin opts one in.")
     sub_category_ids = fields.One2many(
         "asset.sub.category", "category_id", "Sub Categories")
-    sub_category_count = fields.Integer(compute="_compute_sub_category_count")
 
-    # Per-category view overrides. When set, opening assets of this category
-    # uses these views instead of the defaults - so a category whose assets
-    # need a different layout can point at its own form/list without any code
-    # change. Left empty, the standard general-asset views are used.
-    form_view_id = fields.Many2one(
-        "ir.ui.view", string="Custom Form View",
-        domain="[('model', '=', 'asset.asset'), ('type', '=', 'form')]",
-        help="Optional. Opening an asset in this category uses this form "
-             "instead of the default general-asset form.")
-    list_view_id = fields.Many2one(
-        "ir.ui.view", string="Custom List View",
-        domain="[('model', '=', 'asset.asset'), ('type', '=', 'list')]",
-        help="Optional. Same idea as the form view, for the list.")
+    # Two configurable columns of fields shown on the general asset form
+    # once this category is picked. Two distinct comodels (see
+    # asset_category_field_line.py), not one model with a side= selection
+    # filtered by domain - a row added through one column's editable list
+    # ending up saved against the WRONG column, because the list's context
+    # default did not reliably set a shared "side" field on new rows, is a
+    # real bug that model shape produced. Column identity is now which
+    # table a row lives in, which cannot drift.
+    left_field_ids = fields.One2many(
+        "asset.category.field.line.left", "category_id",
+        string="Left Column Fields")
+    right_field_ids = fields.One2many(
+        "asset.category.field.line.right", "category_id",
+        string="Right Column Fields")
+
+    def get_dynamic_field_lines(self):
+        """The general asset form's dynamic-fields widget reads this.
+
+        One RPC per category (not per field) - returns both columns'
+        configured lines with everything the widget needs to render them:
+        which asset.asset field, what label, and the readonly/invisible
+        Python expressions to evaluate against the record.
+        """
+        self.ensure_one()
+
+        def _serialize(lines):
+            return [{
+                "display_name": line.label,
+                "field_name": line.field_name,
+                "readonly_condition": line.readonly_condition or "",
+                "invisible_condition": line.invisible_condition or "",
+            } for line in lines if line.field_name]
+
+        return {
+            "left": _serialize(self.left_field_ids.sorted("sequence")),
+            "right": _serialize(self.right_field_ids.sorted("sequence")),
+        }
+    sub_category_count = fields.Integer(compute="_compute_sub_category_count")
 
     @api.depends("sub_category_ids")
     def _compute_sub_category_count(self):
@@ -100,26 +128,32 @@ class AssetCategoryGeneral(models.Model):
             rec.sub_category_count = len(rec.sub_category_ids)
 
     def action_view_general_assets(self):
-        """Open this category's assets, honouring the custom views if set."""
+        """Open this category's assets on the general asset form/list.
+
+        The category form's own smart button used to fall back to
+        asset_management's action_asset_asset - which is actually "Windows
+        Assets", hard-domained to os_platform = 'windows' - so any category
+        whose assets are not Windows-agent-reported (every general/non-IT
+        asset, and most IT ones too) showed an empty list despite
+        asset_count being correct. This filters on category_id instead,
+        which is what a category's smart button should have done from the
+        start, and always opens the general asset form/list views rather
+        than whatever the platform-specific default happens to be.
+        """
         self.ensure_one()
-        action = {
+        list_view = self.env.ref("general_asset.view_asset_general_list")
+        form_view = self.env.ref("general_asset.view_asset_general_form")
+        return {
             "type": "ir.actions.act_window",
             "name": _("%s Assets") % self.name,
             "res_model": "asset.asset",
-            "view_mode": "list,form",
+            "views": [(list_view.id, "list"), (form_view.id, "form")],
             "domain": [("category_id", "=", self.id)],
             "context": {
                 "default_category_id": self.id,
                 "general_asset": True,
             },
         }
-        # Only override when BOTH are set. Mixing a custom list with the
-        # default form (or vice versa) tends to surprise people more than it
-        # helps, and Odoo needs a consistent pair here anyway.
-        if self.form_view_id and self.list_view_id:
-            action["views"] = [(self.list_view_id.id, "list"),
-                               (self.form_view_id.id, "form")]
-        return action
 
 
 class ProductCategoryMapping(models.Model):
@@ -230,18 +264,34 @@ class AssetAssetGeneral(models.Model):
                 ) % rec.display_name)
 
     is_submit = fields.Boolean(
-        string="Submitted", copy=False, readonly=True,
+        string="Submitted", copy=False, readonly=True, tracking=True,
         help="Set when the asset has been submitted. On submit the purchase "
              "and warranty details entered here are pushed down onto the "
              "linked IT / network / camera record, so the two stop drifting "
-             "apart the moment someone edits one of them.")
+             "apart the moment someone edits one of them. For a category on "
+             "the fixed (non-dynamic) form layout, submitting also locks the "
+             "whole form - use Reset to unlock it again. A dynamic-form "
+             "category is never locked by this, since its fields are "
+             "admin-configured per category rather than fixed.")
 
     is_general_asset = fields.Boolean( store=True,
         string="General Asset")
     is_it_asset = fields.Boolean(related="category_id.is_it_asset", store=True,)
     is_network_asset = fields.Boolean(related="category_id.is_network_asset", store=True,)
     is_cctv_asset = fields.Boolean(related="category_id.is_cctv_asset", store=True,)
-    is_iot_device = fields.Boolean(related="category_id.is_iot_device", store=True,)
+    is_dynamic_form = fields.Boolean(
+        related="category_id.is_dynamic_form", store=True,
+        help="Drives which layout view_asset_general_form shows for this "
+             "asset - the two configured columns, or the fixed "
+             "Classification/Placement one.")
+    # Direct on the asset, not derived from category - a category (e.g.
+    # "Peripherals") can hold a mix of IoT and non-IoT units, so this is a
+    # per-asset choice, ticked on the record itself rather than inherited.
+    is_iot_device = fields.Boolean(string="Is IoT Device")
+    is_rfid_device = fields.Boolean(
+        string="Is RFID Tagged",
+        help="Tick to require and show the RFID Tag ID (tag_number) on "
+             "this asset - same idea as Is IoT Device.")
     iot_device_id = fields.Char(
         string="IoT Device ID",
         help="Must match the Device ID (device_id) an iot.data sensor "
@@ -527,6 +577,17 @@ class AssetAssetGeneral(models.Model):
             for _fname, _label, target in links:
                 rec._sync_submit_details(target)
             rec.is_submit = True
+        return True
+
+    def action_reset(self):
+        """Undo Submit - unlocks the form again on a fixed-layout category.
+
+        Does not touch anything already pushed onto the linked IT/network/
+        camera record; it only flips the flag that locks this form. Submit
+        (or Update) can be pressed again afterwards to re-sync.
+        """
+        for rec in self:
+            rec.is_submit = False
         return True
 
     # ── Update ────────────────────────────────────────────────────────────

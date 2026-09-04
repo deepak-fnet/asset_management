@@ -4,6 +4,7 @@
     <!-- Root Menu -->
     <menuitem id="menu_vendor_root"
               name="Vendor Management"
+              web_icon="vendor_management,static/description/icon.png"
               sequence="10"/>
 
     <!-- Dashboard -->

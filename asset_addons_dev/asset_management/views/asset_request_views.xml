@@ -151,8 +151,10 @@
                                    readonly="state not in ('draft',)">
                                 <list editable="bottom">
                                     <field name="asset_category_id" options="{'no_create': True, 'no_create_edit':True}"/>
+                                    <field name="product_id" options="{'no_create': True, 'no_create_edit':True}"/>
                                     <field name="description"/>
                                     <field name="quantity"/>
+                                    <field name="joining_requirement_id" readonly="1" optional="hide"/>
                                 </list>
                             </field>
                         </page>

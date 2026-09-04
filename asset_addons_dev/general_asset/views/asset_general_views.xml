@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <odoo>
 
     <!-- ══════════════════════════════════════════════════════════════════
@@ -98,29 +98,67 @@
         <field name="model">asset.category</field>
         <field name="inherit_id" ref="asset_management.view_asset_category_form"/>
         <field name="arch" type="xml">
+            <!-- The smart button inherited from asset_management's base
+                 category form opens action_asset_asset - "Windows Assets",
+                 hard-domained to os_platform = 'windows' - which shows
+                 empty for most categories despite asset_count being right.
+                 Swapped for action_view_general_assets, which filters on
+                 this category and always opens the general asset form/list
+                 views. -->
+            <xpath expr="//div[@name='button_box']/button[@icon='fa-laptop']" position="replace">
+                <button name="action_view_general_assets" type="object" class="oe_stat_button" icon="fa-laptop">
+                    <div class="o_stat_info">
+                        <field name="asset_count" class="o_stat_value"/>
+                        <span class="o_stat_text">Assets</span>
+                    </div>
+                </button>
+            </xpath>
             <group name="config_group" position="inside">
                 <field name="is_general"/>
                 <field name="is_it_asset"/>
                 <field name="is_network_asset"/>
                 <field name="is_cctv_asset"/>
-                <field name="is_iot_device"/>
+                <field name="is_dynamic_form" invisible="not is_general"/>
             </group>
             <xpath expr="//sheet" position="inside">
-                <group string="General Asset Settings" invisible="not is_general">
-                    <field name="form_view_id" options="{'no_create': True}"/>
-                    <field name="list_view_id" options="{'no_create': True}"/>
-                    <div colspan="2" class="text-muted">
-                        Optional. Set BOTH to open this category's assets with your
-                        own views instead of the default general-asset ones.
-                        Setting only one is ignored.
-                    </div>
-                </group>
                 <notebook invisible="not is_general">
                     <page string="Sub Categories" name="sub_categories">
                         <field name="sub_category_ids">
                             <list editable="bottom">
                                 <field name="name"/>
                                 <field name="active" widget="boolean_toggle"/>
+                            </list>
+                        </field>
+                    </page>
+                    <page string="General Asset Form - Left Column" name="left_fields" invisible="not is_dynamic_form">
+                        <div class="text-muted" colspan="2">
+                            Fields shown in the LEFT column of the general asset
+                            form when this category is selected. Readonly/Invisible
+                            If use the same expression syntax as a view's
+                            readonly="..."/invisible="...", evaluated against the
+                            asset being edited - e.g. state not in ('draft',).
+                        </div>
+                        <field name="left_field_ids">
+                            <list editable="bottom">
+                                <field name="sequence" widget="handle"/>
+                                <field name="label"/>
+                                <field name="field_id" options="{'no_create': True}"/>
+                                <field name="readonly_condition" placeholder="e.g. state not in ('draft',)"/>
+                                <field name="invisible_condition" placeholder="e.g. not is_iot_device"/>
+                            </list>
+                        </field>
+                    </page>
+                    <page string="General Asset Form - Right Column" name="right_fields" invisible="not is_dynamic_form">
+                        <div class="text-muted" colspan="2">
+                            Same as the left column, shown on the right instead.
+                        </div>
+                        <field name="right_field_ids">
+                            <list editable="bottom">
+                                <field name="sequence" widget="handle"/>
+                                <field name="label"/>
+                                <field name="field_id" options="{'no_create': True}"/>
+                                <field name="readonly_condition" placeholder="e.g. state not in ('draft',)"/>
+                                <field name="invisible_condition" placeholder="e.g. not is_iot_device"/>
                             </list>
                         </field>
                     </page>
@@ -136,9 +174,7 @@
         <field name="name">asset.asset.general.list</field>
         <field name="model">asset.asset</field>
         <field name="arch" type="xml">
-            <list string="All Assets"
-                  decoration-muted="state == 'scrapped'"
-                  decoration-success="state == 'assigned'">
+            <list string="All Assets" decoration-muted="state == 'scrapped'" decoration-success="state == 'assigned'">
                 <field name="asset_code"/>
                 <field name="tag_number" optional="show"/>
                 <field name="asset_name"/>
@@ -152,9 +188,7 @@
                 <field name="acquisition_date" optional="hide"/>
                 <field name="asset_value" optional="hide" sum="Total Value"/>
                 <field name="currency_id" column_invisible="1"/>
-                <field name="state" widget="badge"
-                       decoration-success="state == 'assigned'"
-                       decoration-muted="state == 'scrapped'"/>
+                <field name="state" widget="badge" decoration-success="state == 'assigned'" decoration-muted="state == 'scrapped'"/>
             </list>
         </field>
     </record>
@@ -165,174 +199,185 @@
         <field name="arch" type="xml">
             <form string="General Asset">
                 <header>
-                    <button name="action_submit" type="object" string="Submit"
-                            class="btn-primary" invisible="is_submit"/>
-                    <button name="action_update" type="object" string="Update"
-                            class="btn-primary" invisible="not is_submit"/>
-                    <field name="state" widget="statusbar"
-                           statusbar_visible="draft,assigned,maintenance,scrapped"/>
+                    <button name="action_submit" type="object" string="Submit" class="btn-primary" invisible="is_submit"/>
+                    <button name="action_update" type="object" string="Update" class="btn-primary"
+                            invisible="not is_submit or (not it_asset_id and not network_asset_id)"/>
+                    <button name="action_reset" type="object" string="Reset" class="btn-secondary" invisible="not is_submit" confirm="This unlocks the form for editing again. Continue?"/>
+                    <field name="state" widget="badge" class="fs-5 px-3 py-2"
+                           decoration-success="state == 'assigned'"
+                           decoration-warning="state == 'maintenance'"
+                           decoration-muted="state == 'scrapped'"/>
                 </header>
+                <!-- Locks the whole form once submitted, but ONLY for a
+                     category on the fixed layout - is_dynamic_form=True
+                     means fields here come from that category's own
+                     Left/Right Column configuration, which stays editable
+                     regardless of is_submit. Reset (above) flips is_submit
+                     back off to unlock.
+                     NOTE: readonly is NOT a real modifier on <sheet> - Odoo's
+                     view compiler silently drops it there (only <field>
+                     nodes carry a readonly modifier). So every <field> in
+                     this form/sheet below carries
+                     readonly="is_submit and not is_dynamic_form" directly
+                     instead - this comment is the one place that explains
+                     why, so it isn't repeated 70+ times. -->
                 <sheet>
                     <div class="oe_button_box" name="button_box">
 
-                        <button name="action_view_it_asset"
-                                type="object"
-                                class="oe_stat_button"
-                                icon="fa-desktop"
-                                invisible="not it_asset_id">
+                        <button name="action_view_it_asset" type="object" class="oe_stat_button" icon="fa-desktop" invisible="not it_asset_id">
                             <div class="o_stat_info">
                                 <span class="o_stat_text">IT Asset</span>
                             </div>
                         </button>
 
-                        <button name="action_view_network_asset"
-                                type="object"
-                                class="oe_stat_button"
-                                icon="fa-sitemap"
-                                invisible="not network_asset_id">
+                        <button name="action_view_network_asset" type="object" class="oe_stat_button" icon="fa-sitemap" invisible="not network_asset_id">
                             <div class="o_stat_info">
                                 <span class="o_stat_text">Network Asset</span>
                             </div>
                         </button>
 
-                        <button name="action_view_cctv_asset"
-                                type="object"
-                                class="oe_stat_button"
-                                icon="fa-video-camera"
-                                invisible="not cctv_asset_id">
+                        <button name="action_view_cctv_asset" type="object" class="oe_stat_button" icon="fa-video-camera" invisible="not cctv_asset_id">
                             <div class="o_stat_info">
                                 <span class="o_stat_text">Camera Asset</span>
                             </div>
                         </button>
 
-                        <button name="action_view_iot_data"
-                                type="object"
-                                class="oe_stat_button"
-                                icon="fa-rss"
-                                invisible="not iot_device_id or not iot_data_count">
+                        <button name="action_view_iot_data" type="object" class="oe_stat_button" icon="fa-rss" invisible="not iot_device_id or not iot_data_count">
                             <div class="o_stat_info">
-                                <field name="iot_data_count" class="o_stat_value"/>
+                                <field name="iot_data_count" class="o_stat_value" readonly="is_submit and not is_dynamic_form"/>
                                 <span class="o_stat_text">IoT Data</span>
                             </div>
                         </button>
 
                     </div>
-                    <field name="image_1920" widget="image" class="oe_avatar"/>
+                    <field name="qr_code" widget="image" class="oe_avatar" readonly="1"
+                           options="{'size': [90, 90]}"/>
+                    <field name="image_1920" widget="image" class="oe_avatar" readonly="is_submit and not is_dynamic_form"/>
                     <div class="oe_title">
                         <label for="asset_name" string="Asset"/>
                         <h1>
-                            <field name="asset_name" placeholder="e.g. CNC Lathe #3"/>
+                            <field name="asset_name" placeholder="e.g. CNC Lathe #3" readonly="is_submit and not is_dynamic_form"/>
                         </h1>
-                        <field name="asset_code" readonly="1" class="text-muted"/>
+                        <field name="asset_code" readonly="(1) or (is_submit and not is_dynamic_form)" class="text-muted"/>
                     </div>
 
+                    <!-- Category stays pinned above both layouts below - it
+                         is what drives is_dynamic_form itself, so it can
+                         never live inside either of the blocks it switches
+                         between. -->
                     <group>
-                        <group string="Classification">
-                            <field name="category_id"
-                                   options="{'no_create': True}" required="1"/>
-                            <field name="sub_category_id"
-                                   options="{'no_create': True}"/>
-                            <field name="it_asset_id" domain="[('monitoring_protocol','=','agent')]"
-                                   invisible="not is_it_asset"
-                                   required="is_it_asset"
-                                   readonly="is_submit"/>
-                            <field name="network_asset_id"
-                                   invisible="not is_network_asset"
-                                   required="is_network_asset"
-                                   readonly="is_submit"/>
-                            <field name="cctv_asset_id"
-                                   invisible="not is_cctv_asset"
-                                   required="is_cctv_asset"
-                                   readonly="is_submit"/>
-                            <field name="iot_device_id"
-                                   invisible="not is_iot_device"
-                                   required="is_iot_device"/>
-                            <field name="tag_number"/>
-                            <field name="serial_number"
-                                   placeholder="Leave blank to use the tag or asset code"/>
+                        <field name="category_id" options="{'no_create': True}" required="1" readonly="is_submit and not is_dynamic_form"/>
+                    </group>
+
+                    <!-- Category.is_dynamic_form picks which of the two
+                         blocks below shows - default False keeps every
+                         existing category on this fixed two-column layout;
+                         an admin opts a category into the dynamic one via
+                         "General Asset Form - Left/Right Column" on that
+                         category, where its own two columns then take over
+                         completely instead of this fixed set. -->
+                    <!-- align-items-start: without it, Odoo's two-column
+                         group grid stretches both sibling groups to equal
+                         height - with several fields conditionally hidden
+                         (iot_device_id/tag_number/it_asset_id/etc.), that
+                         left a large blank gap under the shorter column. -->
+                    <group invisible="is_dynamic_form" string="Classification" class="align-items-start">
+                        <group>
+                            <field name="sub_category_id" options="{'no_create': True}" domain="[('category_id', '=', category_id)]" readonly="is_submit and not is_dynamic_form"/>
+                            <field name="iot_device_id" invisible="not is_iot_device" required="is_iot_device" readonly="is_submit and not is_dynamic_form"/>
+                            <field name="serial_number" placeholder="Leave blank to use the tag or asset code" readonly="is_submit and not is_dynamic_form"/>
+                            <field name="assigned_employee_id" readonly="is_submit and not is_dynamic_form"/>
+                            <field name="acquisition_date" readonly="is_submit and not is_dynamic_form"/>
+                            <field name="purchase_date" readonly="is_submit and not is_dynamic_form"/>
+                            <field name="asset_value" readonly="is_submit and not is_dynamic_form"/>
+                            <field name="purchase_cost" readonly="is_submit and not is_dynamic_form"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="procurement_vendor_id" readonly="is_submit and not is_dynamic_form"/>
                         </group>
-                        <group string="Placement">
-                            <field name="plant_id"/>
-                            <field name="location_id"/>
-                            <field name="assigned_employee_id"/>
-                            <field name="department_id" readonly="1"/>
-                            <field name="asset_list_id" readonly="1"/>
+                        <group>
+                            <field name="is_iot_device" readonly="is_submit and not is_dynamic_form"/>
+                            <field name="is_rfid_device" readonly="is_submit and not is_dynamic_form"/>
+                            <field name="plant_id" readonly="is_submit and not is_dynamic_form"/>
+                            <field name="location_id" readonly="is_submit and not is_dynamic_form"/>
+                            <field name="department_id" readonly="(1) or (is_submit and not is_dynamic_form)"/>
+                            <field name="asset_list_id" readonly="(1) or (is_submit and not is_dynamic_form)"/>
+                            <field name="serial_number_1" string="Serial Number 2" readonly="is_submit and not is_dynamic_form"/>
+                            <field name="serial_number_2" string="Serial Number 3" readonly="is_submit and not is_dynamic_form"/>
+                            <field name="serial_number_3" string="Serial Number 4" readonly="is_submit and not is_dynamic_form"/>
+                            <!-- Not part of the requested layout, kept so
+                                 these stay reachable/fillable - dropping them
+                                 would silently strip the only way to link an
+                                 IT/network/CCTV asset or fill its RFID tag. -->
+                            <field name="tag_number" invisible="not is_rfid_device" required="is_rfid_device" readonly="is_submit and not is_dynamic_form"/>
+                            <field name="it_asset_id" domain="[('monitoring_protocol','=','agent')]" invisible="not is_it_asset" required="is_it_asset" readonly="(is_submit) or (is_submit and not is_dynamic_form)"/>
+                            <field name="network_asset_id" invisible="not is_network_asset" required="is_network_asset" readonly="(is_submit) or (is_submit and not is_dynamic_form)"/>
+                            <field name="cctv_asset_id" invisible="not is_cctv_asset" required="is_cctv_asset" readonly="(is_submit) or (is_submit and not is_dynamic_form)"/>
                         </group>
                     </group>
 
-                    <group>
-                        <group string="Acquisition">
-                            <field name="acquisition_date"/>
-                            <field name="purchase_date"/>
-                            <field name="asset_value"/>
-                            <field name="purchase_cost"/>
-                            <field name="currency_id" invisible="1"/>
-                            <field name="procurement_vendor_id"/>
-                        </group>
-                        <group string="Additional Serials">
-                            <field name="serial_number_1"/>
-                            <field name="serial_number_2"/>
-                            <field name="serial_number_3"/>
-                        </group>
-                    </group>
+                    <!-- The dynamic alternative - see asset.category's
+                         "General Asset Form - Left/Right Column" tabs for
+                         what renders here. Category above is the only fixed
+                         field once a category opts into this - everything
+                         else comes from that category's own configuration. -->
+                    <widget name="asset_dynamic_category_fields" invisible="not is_dynamic_form"/>
+
                     <field name="is_it_asset" invisible="1"/>
                     <field name="is_network_asset" invisible="1"/>
                     <field name="is_cctv_asset" invisible="1"/>
-                    <field name="is_iot_device" invisible="1"/>
+                    <field name="is_dynamic_form" invisible="1"/>
                     <field name="is_submit" invisible="1"/>
 
                     <notebook>
                         <page string="AMC" name="amc">
                             <group>
-                                <field name="is_amc"/>
+                                <field name="is_amc" readonly="is_submit and not is_dynamic_form"/>
                             </group>
                             <group invisible="not is_amc">
                                 <group>
-                                    <field name="amc_start_date"/>
-                                    <field name="amc_end_date"/>
-                                    <field name="amc_vendor_id"/>
+                                    <field name="amc_start_date" readonly="is_submit and not is_dynamic_form"/>
+                                    <field name="amc_end_date" readonly="is_submit and not is_dynamic_form"/>
+                                    <field name="amc_vendor_id" readonly="is_submit and not is_dynamic_form"/>
                                 </group>
                                 <group>
-                                    <field name="amc_nature"/>
-                                    <field name="amc_file" filename="amc_filename"/>
-                                    <field name="amc_filename" invisible="1"/>
+                                    <field name="amc_nature" readonly="is_submit and not is_dynamic_form"/>
+                                    <field name="amc_file" filename="amc_filename" readonly="is_submit and not is_dynamic_form"/>
+                                    <field name="amc_filename" invisible="1" readonly="is_submit and not is_dynamic_form"/>
                                 </group>
                             </group>
                         </page>
                         <page string="Warranty" name="warranty">
                             <group>
                                 <group>
-                                    <field name="warranty_start_date"/>
-                                    <field name="warranty_end_date"/>
-                                    <field name="warranty_status" readonly="1"/>
+                                    <field name="warranty_start_date" readonly="is_submit and not is_dynamic_form"/>
+                                    <field name="warranty_end_date" readonly="is_submit and not is_dynamic_form"/>
+                                    <field name="warranty_status" readonly="(1) or (is_submit and not is_dynamic_form)"/>
                                 </group>
                                 <group>
-                                    <field name="warranty_file"
-                                           filename="warranty_filename"/>
-                                    <field name="warranty_filename" invisible="1"/>
+                                    <field name="warranty_file" filename="warranty_filename" readonly="is_submit and not is_dynamic_form"/>
+                                    <field name="warranty_filename" invisible="1" readonly="is_submit and not is_dynamic_form"/>
                                 </group>
                             </group>
                         </page>
                         <page string="Licence" name="licence">
                             <group>
-                                <field name="is_licence"/>
+                                <field name="is_licence" readonly="is_submit and not is_dynamic_form"/>
                             </group>
                             <group invisible="not is_licence">
                                 <group>
-                                    <field name="licence_start_date"/>
-                                    <field name="licence_end_date"/>
-                                    <field name="licence_vendor_id"/>
+                                    <field name="licence_start_date" readonly="is_submit and not is_dynamic_form"/>
+                                    <field name="licence_end_date" readonly="is_submit and not is_dynamic_form"/>
+                                    <field name="licence_vendor_id" readonly="is_submit and not is_dynamic_form"/>
                                 </group>
                                 <group>
-                                    <field name="licence_nature"/>
-                                    <field name="licence_file"
-                                           filename="licence_filename"/>
-                                    <field name="licence_filename" invisible="1"/>
+                                    <field name="licence_nature" readonly="is_submit and not is_dynamic_form"/>
+                                    <field name="licence_file" filename="licence_filename" readonly="is_submit and not is_dynamic_form"/>
+                                    <field name="licence_filename" invisible="1" readonly="is_submit and not is_dynamic_form"/>
                                 </group>
                             </group>
                         </page>
                         <page string="Assignment History">
-                            <field name="assignment_history_ids" readonly="1">
+                            <field name="assignment_history_ids" readonly="(1) or (is_submit and not is_dynamic_form)">
                                 <list>
                                     <field name="date"/>
                                     <field name="employee_id"/>
@@ -344,9 +389,8 @@
                         </page>
 
                         <page string="Maintenance History" name="maintenance_history">
-                            <field name="maintenance_ids" readonly="1">
-                                <list decoration-muted="state == 'open'"
-                                      decoration-success="state == 'completed'">
+                            <field name="maintenance_ids" readonly="(1) or (is_submit and not is_dynamic_form)">
+                                <list decoration-muted="state == 'open'" decoration-success="state == 'completed'">
                                     <field name="name"/>
                                     <field name="maintenance_type"/>
                                     <field name="request_date"/>
@@ -354,20 +398,16 @@
                                     <field name="repair_mode" optional="show"/>
                                     <field name="vendor_id" optional="show"/>
                                     <field name="cost" optional="show"/>
-                                    <field name="bill_file" filename="bill_filename"
-                                           optional="hide" string="Bill"/>
+                                    <field name="bill_file" filename="bill_filename" optional="hide" string="Bill"/>
                                     <field name="bill_filename" column_invisible="1"/>
-                                    <field name="state" widget="badge"
-                                           decoration-success="state == 'completed'"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'completed'"/>
                                 </list>
                             </field>
                         </page>
 
                         <page string="Repair History" name="repair_history">
-                            <field name="repair_management_ids" readonly="1">
-                                <list decoration-danger="state == 'not_repairable'"
-                                      decoration-success="state == 'done'"
-                                      decoration-info="state == 'in_progress'">
+                            <field name="repair_management_ids" readonly="(1) or (is_submit and not is_dynamic_form)">
+                                <list decoration-danger="state == 'not_repairable'" decoration-success="state == 'done'" decoration-info="state == 'in_progress'">
                                     <field name="name"/>
                                     <field name="issue_type"/>
                                     <field name="repair_mode" optional="show"/>
@@ -377,10 +417,37 @@
                                     <field name="resolution_date"/>
                                     <field name="repair_cost" optional="show"/>
                                     <field name="currency_id" column_invisible="1"/>
-                                    <field name="state" widget="badge"
-                                           decoration-info="state == 'in_progress'"
-                                           decoration-success="state == 'done'"
-                                           decoration-danger="state == 'not_repairable'"/>
+                                    <field name="state" widget="badge" decoration-info="state == 'in_progress'" decoration-success="state == 'done'" decoration-danger="state == 'not_repairable'"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Depreciation" name="depreciation">
+                            <div class="oe_button_box" name="depreciation_button_box">
+                                <button name="action_calculate_depreciation" type="object" string="Calculate Depreciation" class="btn-primary" confirm="This replaces the existing depreciation schedule below. Continue?"/>
+                            </div>
+                            <group>
+                                <group string="Depreciation Setup">
+                                    <field name="depreciation_method" readonly="is_submit and not is_dynamic_form"/>
+                                    <field name="depreciation_rate" invisible="depreciation_method != 'dlm'" required="depreciation_method == 'dlm'" readonly="is_submit and not is_dynamic_form"/>
+                                    <field name="useful_life_years" invisible="depreciation_method != 'slm'" required="depreciation_method == 'slm'" readonly="is_submit and not is_dynamic_form"/>
+                                    <field name="salvage_value" readonly="is_submit and not is_dynamic_form"/>
+                                </group>
+                                <group string="Depreciation Result">
+                                    <field name="current_value" readonly="(1) or (is_submit and not is_dynamic_form)"/>
+                                    <field name="remaining_value" readonly="(1) or (is_submit and not is_dynamic_form)"/>
+                                    <field name="accumulated_depreciation" readonly="(1) or (is_submit and not is_dynamic_form)"/>
+                                    <field name="depreciation_percentage" readonly="(1) or (is_submit and not is_dynamic_form)"/>
+                                    <field name="fully_depreciated" readonly="(1) or (is_submit and not is_dynamic_form)"/>
+                                </group>
+                            </group>
+                            <field name="depreciation_line_ids" readonly="(1) or (is_submit and not is_dynamic_form)">
+                                <list>
+                                    <field name="year"/>
+                                    <field name="days"/>
+                                    <field name="depreciation_amount"/>
+                                    <field name="accumulated_value"/>
+                                    <field name="remaining_value"/>
                                 </list>
                             </field>
                         </page>
@@ -404,14 +471,11 @@
                 <field name="assigned_employee_id"/>
                 <field name="category_id"/>
                 <field name="plant_id"/>
-                <filter name="f_unassigned" string="Unassigned"
-                        domain="[('assigned_employee_id','=',False)]"/>
-                <filter name="f_assigned" string="Assigned"
-                        domain="[('state','=','assigned')]"/>
+                <filter name="f_unassigned" string="Unassigned" domain="[('assigned_employee_id','=',False)]"/>
+                <filter name="f_assigned" string="Assigned" domain="[('state','=','assigned')]"/>
                 <filter name="f_amc" string="Under AMC" domain="[('is_amc','=',True)]"/>
                 <separator/>
-                <filter name="f_active" string="Not Scrapped"
-                        domain="[('state','!=','scrapped')]"/>
+                <filter name="f_active" string="Not Scrapped" domain="[('state','!=','scrapped')]"/>
                 <!--                <group expand="0" string="Group By">-->
                 <!--                    <filter name="g_cat" string="Category"-->
                 <!--                            context="{'group_by':'category_id'}"/>-->

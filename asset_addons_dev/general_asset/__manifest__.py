@@ -43,6 +43,12 @@ asset.asset records created through it remain, since they are ordinary assets.
         "views/asset_general_menus.xml",
         "views/asset_joining_domain_inherit.xml",
     ],
+    "assets": {
+        "web.assets_backend": [
+            "general_asset/static/src/js/asset_dynamic_category_fields.js",
+            "general_asset/static/src/xml/asset_dynamic_category_fields.xml",
+        ],
+    },
     "installable": True,
     "application": False,
 }

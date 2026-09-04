@@ -60,6 +60,29 @@ def has_valid_coordinates(lat, lon):
     return lat != 0.0 or lon != 0.0
 
 
+def _version_change_direction(old_version, new_version):
+    """"upgrade"/"downgrade"/"changed" for a software history description.
+
+    Best-effort: package versions are not always dot-separated numbers
+    (e.g. "9ubuntu6.5", "1:2.39.3-9ubuntu6.5") - falls back to a neutral
+    "changed" whenever the two cannot be meaningfully compared, rather than
+    guessing wrong.
+    """
+    def _key(v):
+        return tuple(int(p) for p in v.replace('-', '.').split('.')
+                     if p.isdigit())
+    try:
+        old_key, new_key = _key(old_version), _key(new_version)
+        if old_key and new_key:
+            if new_key > old_key:
+                return "upgrade"
+            if new_key < old_key:
+                return "downgrade"
+    except (ValueError, AttributeError):
+        pass
+    return "changed"
+
+
 class AssetAsset(models.Model):
     _name = "asset.asset"
     _description = "Asset"
@@ -469,6 +492,20 @@ class AssetAsset(models.Model):
         "asset_id",
         string="Audit Logs"
     )
+
+    # Separate fields (not the same audit_log_ids reused twice with a
+    # view-level domain per tab) - a domain= on an embedded x2many <field>
+    # does not reliably filter which already-linked rows are DISPLAYED when
+    # the same field name appears more than once in one form (it showed the
+    # full unfiltered log on both the Hardware Changes and Software Changes
+    # tabs). Baking the domain into the field definition itself filters at
+    # the ORM level instead, which is not subject to that display quirk.
+    hardware_change_log_ids = fields.One2many(
+        "asset.audit.log", "asset_id", string="Hardware Changes",
+        domain=[("log_type", "=", "hardware_change")])
+    software_change_log_ids = fields.One2many(
+        "asset.audit.log", "asset_id", string="Software Changes",
+        domain=[("log_type", "=", "software_change")])
 
     # =====================
     # QR CODE
@@ -2117,6 +2154,18 @@ class AssetAsset(models.Model):
                     "monitoring_protocol": 'agent',
                 })
                 _logger.info(f"✅ Created new asset: {asset.asset_name} (ID: {asset.id})")
+
+            # Snapshot BEFORE update_vals overwrites them - this is the only
+            # chance to compare old vs new. Limited to the fields the agent
+            # itself reports as a single current value (RAM/storage/CPU) -
+            # installed apps and storage volumes are lists with their own
+            # diffing further down, not simple scalar overwrites.
+            old_hardware = {
+                'ram_size': asset.ram_size,
+                'rom_size': asset.rom_size,
+                'processor': asset.processor,
+            }
+
             update_vals = {
                 "hostname": payload.get("hostname"),
                 "device_name": payload.get("device_name"),
@@ -2272,6 +2321,28 @@ class AssetAsset(models.Model):
             asset.write(update_vals)
             _logger.info(f"✅ Updated asset {asset.asset_name} with hardware specs")
 
+            # Hardware change history - RAM/storage/CPU reported as a single
+            # current value each sync, diffed against the snapshot taken
+            # before update_vals was written. Skipped on the asset's very
+            # first sync (old value blank) - that is the asset's spec being
+            # recorded for the first time, not a change to it.
+            HARDWARE_LABELS = {
+                'ram_size': 'RAM (GB)',
+                'rom_size': 'Storage (GB)',
+                'processor': 'Processor',
+            }
+            for field_name, label in HARDWARE_LABELS.items():
+                old_value = old_hardware[field_name]
+                new_value = asset[field_name]
+                if not old_value or old_value == new_value:
+                    continue
+                if not new_value:
+                    description = f"{label} removed (was {old_value})"
+                else:
+                    description = f"{label} changed: {old_value} → {new_value}"
+                asset._log_asset_change(
+                    'hardware_change', description, old_value, new_value)
+
             # 🔴 CRITICAL: Process installed applications
             installed_apps_json = payload.get("installed_apps", "[]")
 
@@ -2284,6 +2355,14 @@ class AssetAsset(models.Model):
                     old_apps = self.env['asset.installed.application'].search([
                         ('asset_id', '=', asset.id)
                     ])
+                    # The agent's first-ever sync for an asset has no prior
+                    # baseline to diff against, so every package it reports
+                    # lands in `installed` - that is the machine's existing
+                    # inventory being recorded for the first time, not 100+
+                    # packages actually getting installed in one sync. Only
+                    # log software history from the second sync onward, once
+                    # there is a real "before" to compare to.
+                    is_first_software_sync = not old_apps
 
                     # Store old apps: {name: version}
                     old_apps_map = {app.name: app.version or "" for app in old_apps}
@@ -2296,11 +2375,15 @@ class AssetAsset(models.Model):
                     updated = []
 
                     # Detect removals and version updates
+                    updated_pairs = []  # (name, old_version, new_version) - the
+                    # display strings in `updated` lose the structured old/new
+                    # values, which the per-item history log needs.
                     for name, version in old_apps_map.items():
                         if name not in new_apps_map:
                             removed.append(name)
                         elif new_apps_map[name] != version:
                             updated.append(f"{name} ({version} → {new_apps_map[name]})")
+                            updated_pairs.append((name, version, new_apps_map[name]))
 
                     # Detect new installations
                     for name in new_apps_map:
@@ -2327,6 +2410,30 @@ class AssetAsset(models.Model):
                             "change_summary": " | ".join(summary)
                         })
                         _logger.info(f"⚠ Changes detected for {asset.asset_name}: {total_changes} apps")
+
+                        # Software change history - one row per app event,
+                        # e.g. "Installed asset.agent", "chrome changes
+                        # detected upgrade 120.0 to 121.0", "Removed
+                        # firefox". Skipped on the first sync (see
+                        # is_first_software_sync above) - that is baseline
+                        # inventory, not a change.
+                        if not is_first_software_sync:
+                            for name in installed:
+                                asset._log_asset_change(
+                                    'software_change', f"Installed {name}",
+                                    False, new_apps_map.get(name))
+                            for name in removed:
+                                asset._log_asset_change(
+                                    'software_change', f"Removed {name}",
+                                    old_apps_map.get(name), False)
+                            for name, old_version, new_version in updated_pairs:
+                                direction = _version_change_direction(
+                                    old_version, new_version)
+                                asset._log_asset_change(
+                                    'software_change',
+                                    f"{name} changes detected {direction} "
+                                    f"{old_version} to {new_version}",
+                                    old_version, new_version)
 
                         # Delete old app records for this asset
                         # --- Incremental sync (use the diffs computed above) ---
@@ -2511,6 +2618,12 @@ class AssetAsset(models.Model):
                         if drive not in seen_drives
                     ]
                     if stale:
+                        for v in stale:
+                            asset._log_asset_change(
+                                'hardware_change',
+                                f"Storage drive removed: {v.drive_letter} "
+                                f"({v.total_size} GB)",
+                                v.total_size, False)
                         VolumeModel.browse([v.id for v in stale]).unlink()
                         _logger.info("🗑️ Removed %s volume(s) no longer present",
                                      len(stale))
@@ -2541,6 +2654,23 @@ class AssetAsset(models.Model):
                 "success": False,
                 "message": str(e)
             }
+
+    def _log_asset_change(self, log_type, description, old_value=None, new_value=None):
+        """One row of hardware/software change history for this asset.
+
+        Reuses asset.audit.log rather than a new model - it already carries
+        exactly the fields this needs (asset_id, old_value, new_value,
+        description, timestamp), just previously scoped to remote-management
+        actions (uninstall/lock) rather than inventory changes.
+        """
+        self.ensure_one()
+        self.env['asset.audit.log'].sudo().create({
+            'asset_id': self.id,
+            'log_type': log_type,
+            'old_value': str(old_value) if old_value not in (None, False) else False,
+            'new_value': str(new_value) if new_value not in (None, False) else False,
+            'description': description,
+        })
 
     def action_view_agent_logs(self):
         """Open agent logs for this asset"""

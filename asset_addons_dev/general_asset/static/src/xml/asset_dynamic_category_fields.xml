@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="general_asset.AssetDynamicCategoryFields">
+        <div class="o_asset_dynamic_fields" t-if="state.left.length or state.right.length">
+            <div class="row align-items-start">
+                <div class="col-lg-6">
+                    <t t-foreach="state.left" t-as="line" t-key="line.field_name + '_' + line_index">
+                        <t t-if="isKnownField(line) and !isInvisible(line)">
+                            <div class="d-flex align-items-baseline mb-2">
+                                <label class="o_form_label me-3"
+                                       style="min-width: 160px; flex-shrink: 0;"
+                                       t-esc="line.display_name"/>
+                                <div class="flex-grow-1">
+                                    <Field name="line.field_name"
+                                           record="props.record"
+                                           readonly="isReadonly(line)"/>
+                                </div>
+                            </div>
+                        </t>
+                    </t>
+                </div>
+                <div class="col-lg-6">
+                    <t t-foreach="state.right" t-as="line" t-key="line.field_name + '_' + line_index">
+                        <t t-if="isKnownField(line) and !isInvisible(line)">
+                            <div class="d-flex align-items-baseline mb-2">
+                                <label class="o_form_label me-3"
+                                       style="min-width: 160px; flex-shrink: 0;"
+                                       t-esc="line.display_name"/>
+                                <div class="flex-grow-1">
+                                    <Field name="line.field_name"
+                                           record="props.record"
+                                           readonly="isReadonly(line)"/>
+                                </div>
+                            </div>
+                        </t>
+                    </t>
+                </div>
+            </div>
+        </div>
+        <div class="text-muted" t-else="">
+            Select a Category to load its fields here - configured on the
+            category itself under "General Asset Form - Left/Right Column".
+        </div>
+    </t>
+
+</templates>
