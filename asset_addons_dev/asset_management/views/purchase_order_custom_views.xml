@@ -167,6 +167,7 @@
                                    widget="res_partner_many2one"
                                    context="{'res_partner_search_mode': 'supplier', 'show_vat': True}"
                                    placeholder="Name, TIN, Email, or Reference"
+                                   options="{'no_create': True}"
                                    readonly="state in ['cancel', 'done', 'purchase']"/>
                             <field name="partner_ref"/>
                             <field name="currency_id" groups="base.group_multi_currency"

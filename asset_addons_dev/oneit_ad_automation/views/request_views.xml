@@ -78,6 +78,7 @@
                             <field name="employee_email" widget="email"
                                    readonly="state != 'draft'"/>
                             <field name="employee_phone"
+                                   invisible="request_type == 'team_update'"
                                    readonly="state != 'draft'"/>
                             <field name="date_of_joining"
                                    invisible="request_type != 'onboarding'" readonly="state != 'draft'"/>

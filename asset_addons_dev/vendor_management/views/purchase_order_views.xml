@@ -20,6 +20,7 @@
                 <attribute name="invisible">state == 'draft' and not vendor_finalized</attribute>
                 <attribute name="readonly">state != 'draft'</attribute>
                 <attribute name="domain">[('is_vendor', '=', True), ('vendor_state', '=', 'active'), ('active', '=', True)]</attribute>
+                <attribute name="options">{'no_create': True}</attribute>
             </xpath>
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="vendor_finalized" invisible="1"/>
