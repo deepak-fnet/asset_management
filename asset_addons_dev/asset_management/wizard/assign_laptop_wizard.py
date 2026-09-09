@@ -21,7 +21,7 @@ class AssetAssignLaptopWizard(models.TransientModel):
     asset_id = fields.Many2one(
         'asset.asset', string='Select Available Laptop',
         required=True,
-        domain="[('state', '=', 'draft'), ('category_id.name', 'ilike', 'laptop')]",
+        domain="[('state', 'in', ['draft', 'submit']), ('category_id.name', 'ilike', 'laptop')]",
     )
     assignment_date = fields.Date(
         string='Assignment Date',
@@ -32,7 +32,7 @@ class AssetAssignLaptopWizard(models.TransientModel):
 
     def action_assign(self):
         self.ensure_one()
-        if self.asset_id.state != 'draft':
+        if self.asset_id.state not in ('draft', 'submit'):
             raise UserError(_("The selected laptop is no longer available. Please choose another."))
 
         # Assign the laptop

@@ -10,18 +10,32 @@ class VendorQuote(models.Model):
     vendor_id = fields.Many2one('res.partner', string="Vendor", required=True, domain="[('is_vendor','=',True)]", tracking=True)
     
     quote_date = fields.Date(string="Quotation Date", default=fields.Date.today)
-    delivery_date = fields.Date(string="Proposed Delivery Date", tracking=True)
-    
+    # Computed, not a plain input: the vendor portal only ever collects a
+    # delivery date PER LINE (one per product), there has never been an
+    # overall-delivery-date box on the form. A plain field here just sat
+    # permanently blank - which, since _compute_rating below also reads it,
+    # silently zeroed out 30% of every quote's rating too. Rolling it up
+    # from the lines (the vendor's actual commitment for every item to be
+    # ready) gives it a real value instead.
+    delivery_date = fields.Date(string="Proposed Delivery Date", tracking=True,
+                                 compute="_compute_delivery_date", store=True)
+
     total_amount = fields.Float(string="Total Amount", compute="_compute_total_amount", store=True)
-    
+
     state = fields.Selection([
         ('draft', 'Draft'),
         ('submitted', 'Submitted'),
         ('selected', 'Selected'),
         ('rejected', 'Rejected'),
     ], default='draft', string="Status", tracking=True)
-    
+
     note = fields.Text(string="Vendor Notes", tracking=True)
+    # Read-only rollup of the per-line notes, for internal comparison lists.
+    # note (above) is the vendor's own separate "General Notes / Terms" box
+    # on the portal form and stays a plain field for that; this just makes
+    # per-line remarks (like the ones actually used in practice) visible
+    # without requiring a click into each line.
+    line_notes_summary = fields.Char(string="Line Notes", compute="_compute_line_notes_summary")
     
     submitted_revision = fields.Integer(string="Submitted Revision", default=0)
     last_submitted_at = fields.Datetime(string="Last Submitted At")
@@ -53,6 +67,18 @@ class VendorQuote(models.Model):
     def _compute_total_amount(self):
         for rec in self:
             rec.total_amount = sum(line.vendor_price * line.product_qty for line in rec.line_ids)
+
+    @api.depends('line_ids.delivery_date')
+    def _compute_delivery_date(self):
+        for rec in self:
+            dates = [d for d in rec.line_ids.mapped('delivery_date') if d]
+            rec.delivery_date = max(dates) if dates else False
+
+    @api.depends('line_ids.vendor_notes')
+    def _compute_line_notes_summary(self):
+        for rec in self:
+            notes = [n for n in rec.line_ids.mapped('vendor_notes') if n]
+            rec.line_notes_summary = '; '.join(notes)
 
     @api.depends('total_amount', 'delivery_date', 'vendor_id.performance_overview_score', 'rfq_id.date_planned')
     def _compute_rating(self):

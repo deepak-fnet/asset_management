@@ -17,7 +17,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='requirement_ids']/list/field[@name='asset_ids']"
                    position="attributes">
-                <attribute name="domain">[('category_id', '=', category_id), ('state', '=', 'draft'), ('monitoring_protocol', '!=', 'agent'), ('is_general_asset', '=', True)]</attribute>
+                <attribute name="domain">[('category_id', '=', category_id), ('state', 'in', ('draft', 'submit')), ('monitoring_protocol', '!=', 'agent'), ('is_general_asset', '=', True)]</attribute>
             </xpath>
         </field>
     </record>

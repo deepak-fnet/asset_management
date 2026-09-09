@@ -1,7 +1,7 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
 from dateutil.relativedelta import relativedelta
-from .vendor_compat_utils import group_member_emails
+from .vendor_compat_utils import group_member_emails, has_field
 
 class ResPartner(models.Model):
     _inherit = 'res.partner'
@@ -339,21 +339,38 @@ class ResPartner(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        for vals in vals_list:
+            # A name like " Vendor 1 " reads as a different string than
+            # "Vendor 1" to the DB, so the uniqueness check below would miss
+            # it entirely - strip before it ever gets that far.
+            if vals.get('name'):
+                vals['name'] = vals['name'].strip()
         partners = super().create(vals_list)
         for partner in partners:
             # Auto-set review_start_date for vendors
             if partner.is_vendor and not partner.review_start_date:
                 partner.review_start_date = fields.Date.today()
-            
+
             if partner.vendor_category_ids:
                 partner._create_document_checklist()
-            
+
             # Trigger Portal Access for new vendors
             partner._action_trigger_portal_access()
+        partners._check_pan_uniqueness()
         return partners
 
     def write(self, vals):
+        if vals.get('name'):
+            vals['name'] = vals['name'].strip()
+
         res = super().write(vals)
+
+        # l10n_in_pan only exists when the l10n_in module is installed - this
+        # key can only be present in vals if the field is real, so checking
+        # for it here (rather than via @api.constrains, which would crash at
+        # registry build time on an unknown field name) is safe either way.
+        if 'l10n_in_pan' in vals:
+            self._check_pan_uniqueness()
 
         # Prevent recursion when triggered by portal creation
         if self.env.context.get('skip_portal_trigger'):
@@ -377,6 +394,54 @@ class ResPartner(models.Model):
                 rec._create_document_checklist()
 
         return res
+
+    @api.constrains('name', 'is_vendor')
+    def _check_vendor_name_unique(self):
+        for partner in self:
+            if not partner.is_vendor or not partner.name:
+                continue
+            duplicate = self.search([
+                ('is_vendor', '=', True),
+                ('id', '!=', partner.id),
+                ('name', '=ilike', partner.name.strip()),
+            ], limit=1)
+            if duplicate:
+                raise ValidationError(_(
+                    "A vendor named \"%s\" already exists. Vendor names must be unique."
+                ) % partner.name.strip())
+
+    @api.constrains('vat')
+    def _check_gst_number_unique(self):
+        for partner in self:
+            if not partner.vat:
+                continue
+            duplicate = self.search([
+                ('vat', '=', partner.vat),
+                ('id', '!=', partner.id),
+            ], limit=1)
+            if duplicate:
+                raise ValidationError(_(
+                    "GST number %(vat)s is already used by %(other)s."
+                ) % {'vat': partner.vat, 'other': duplicate.display_name})
+
+    def _check_pan_uniqueness(self):
+        """PAN uniqueness - not an @api.constrains because l10n_in_pan only
+        exists when the l10n_in module is installed, and decorating on a
+        field name the model may not have would crash registry setup.
+        Called explicitly from create()/write() instead, guarded there by
+        checking the field is actually present in vals.
+        """
+        for partner in self:
+            if not has_field(partner, 'l10n_in_pan') or not partner.l10n_in_pan:
+                continue
+            duplicate = self.search([
+                ('l10n_in_pan', '=', partner.l10n_in_pan),
+                ('id', '!=', partner.id),
+            ], limit=1)
+            if duplicate:
+                raise ValidationError(_(
+                    "PAN number %(pan)s is already used by %(other)s."
+                ) % {'pan': partner.l10n_in_pan, 'other': duplicate.display_name})
 
     def _action_trigger_portal_access(self):
         """

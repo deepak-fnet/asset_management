@@ -16,18 +16,18 @@
         </div>
         
         <p style="color: #555; font-size: 16px; line-height: 1.6;">
-            Dear <strong>{{ object.vendor_id.name }}</strong>,
+            Dear <strong><t t-out="object.vendor_id.name"/></strong>,
         </p>
         
         <p style="color: #555; font-size: 16px; line-height: 1.6;">
-            We are pleased to inform you that your quotation for <strong>{{ ctx.get('rfq_name') or object.rfq_id.name }}</strong> has been selected.
+            We are pleased to inform you that your quotation for <strong><t t-out="ctx.get('rfq_name') or object.rfq_id.name"/></strong> has been selected.
         </p>
         
         <div style="background-color: #f8f9fa; padding: 20px; border-left: 4px solid #28a745; margin: 20px 0;">
             <h4 style="margin: 0 0 10px 0; color: #333;">Quotation Details:</h4>
             <ul style="list-style: none; padding: 0; margin: 0;">
-                <li style="padding: 5px 0;"><strong>RFQ Number:</strong> {{ ctx.get('rfq_name') or object.rfq_id.name }}</li>
-                <li style="padding: 5px 0;"><strong>Total Amount:</strong> {{ ctx.get('total_amount') or object.total_amount }}</li>
+                <li style="padding: 5px 0;"><strong>RFQ Number:</strong> <t t-out="ctx.get('rfq_name') or object.rfq_id.name"/></li>
+                <li style="padding: 5px 0;"><strong>Total Amount:</strong> <t t-out="ctx.get('total_amount') or object.total_amount"/></li>
                 <li style="padding: 5px 0;"><strong>Status:</strong> Selected</li>
             </ul>
         </div>
@@ -43,7 +43,7 @@
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
             <p style="color: #888; font-size: 14px; margin: 0;">
                 Best regards,<br/>
-                <strong>{{ object.rfq_id.company_id.name }}</strong>
+                <strong><t t-out="object.rfq_id.company_id.name"/></strong>
             </p>
         </div>
     </div>

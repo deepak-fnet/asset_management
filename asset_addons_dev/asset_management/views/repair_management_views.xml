@@ -83,6 +83,7 @@
                             <group string="Repair Cost &amp; Vendor"
                                    invisible="issue_type != 'general' and repair_mode != 'vendor'">
                                 <field name="vendor_id"
+                                       options="{'no_create': True}"
                                        invisible="repair_mode != 'vendor'"
                                        required="repair_mode == 'vendor'"
                                        readonly="state in ('done', 'not_repairable')"/>

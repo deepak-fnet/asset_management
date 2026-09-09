@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Appended to asset_name for every unit auto-created from a receipt, so
+         a qty>1 line (e.g. 3x "Thinkpad") does not create three identically
+         named assets. Purely a display-name disambiguator - asset_code
+         remains the real unique identifier, and the user can rename the
+         asset afterwards. -->
+    <record id="seq_asset_asset_unit_suffix" model="ir.sequence">
+        <field name="name">Asset Unit Name Suffix</field>
+        <field name="code">asset.asset.unit.suffix</field>
+        <field name="padding">4</field>
+    </record>
+</odoo>

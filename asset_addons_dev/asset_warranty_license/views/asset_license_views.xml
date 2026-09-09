@@ -102,7 +102,7 @@
                             <field name="auto_renew"/>
                         </group>
                         <group string="Commercial">
-                            <field name="vendor_id"/>
+                            <field name="vendor_id" options="{'no_create': True}"/>
                             <field name="po_reference"/>
                             <field name="cost"/>
                             <field name="cost_per_seat" readonly="1"

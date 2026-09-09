@@ -8,6 +8,12 @@ class PurchaseOrder(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
+            # RFQ/PO numbering: a purchase order is created as an RFQ, and only
+            # gets its PO number once actually approved (see button_approve
+            # below) - until then it must not carry the PO sequence.
+            if vals.get('name', 'New') in (False, 'New'):
+                vals['name'] = self.env['ir.sequence'].sudo().next_by_code(
+                    'vendor_management.purchase.rfq') or 'New'
             if not vals.get('partner_id') and vals.get('vendor_ids'):
                 vendors = vals.get('vendor_ids')
                 partner_id = False
@@ -106,6 +112,19 @@ class PurchaseOrder(models.Model):
                 rec._trigger_transaction_review()
         return res
 
+    def button_approve(self, force=False):
+        # RFQ/PO numbering: this is the single place native Odoo actually
+        # flips the order to state='purchase' - whether that happens via a
+        # direct button_confirm() (amount under the approval threshold) or
+        # later, manually, on an order left at 'to approve'. Hooking here
+        # (rather than in button_confirm) covers both paths without
+        # duplicating the rename.
+        res = super().button_approve(force=force)
+        for rec in self:
+            if rec.state == 'purchase':
+                rec.name = self.env['ir.sequence'].sudo().next_by_code(
+                    'vendor_management.purchase.po') or rec.name
+        return res
 
     def _trigger_transaction_review(self):
         self.ensure_one()
@@ -249,7 +268,17 @@ class PurchaseOrder(models.Model):
                 # Send Invitation Email
                 template = self.env.ref('vendor_management.mail_template_rfq_invitation', raise_if_not_found=False)
                 if template and vendor.email:
-                    template.send_mail(rec.id, force_send=True, email_values={'email_to': vendor.email})
+                    # email_to alone is not enough: without recipient_ids the
+                    # generated mail.mail still attributes itself to the RFQ's
+                    # own partner_id (fixed to whichever vendor got picked as
+                    # the default at creation), so every invitation - no
+                    # matter which vendor's inbox it actually reaches - shows
+                    # up in the portal/chatter as addressed to that ONE
+                    # vendor. Each loop iteration needs its own recipient.
+                    template.send_mail(rec.id, force_send=True, email_values={
+                        'email_to': vendor.email,
+                        'recipient_ids': [(6, 0, [vendor.id])],
+                    })
             
             rec.comparison_state = 'sent'
 

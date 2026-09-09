@@ -81,7 +81,7 @@
                         </div>
                         <group>
                             <group>
-                                <field name="vendor_id"/>
+                                <field name="vendor_id" options="{'no_create': True}"/>
                                 <field name="doc_type_id"/>
                                 <field name="document_number" required="state != 'draft'"/>
                             </group>

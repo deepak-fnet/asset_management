@@ -70,7 +70,7 @@
                             <field name="acquisition_type"/>
                             <field name="purchase_date"/>
                             <field name="purchase_cost"/>
-                            <field name="procurement_vendor_id"/>
+                            <field name="procurement_vendor_id" options="{'no_create': True}"/>
                             <field name="invoice_ref"/>
                         </group>
                         <group string="Warranty (if applicable)">

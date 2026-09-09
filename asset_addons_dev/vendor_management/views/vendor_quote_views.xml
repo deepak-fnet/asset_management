@@ -7,8 +7,11 @@
             <list string="Vendor Quotations" decoration-success="state == 'selected'" decoration-danger="state == 'rejected'">
                 <field name="rank"/>
                 <field name="vendor_id"/>
+                <field name="rfq_id" string="RFQ/PO Number"/>
+                <field name="rating" string="Vendor Rating"/>
                 <field name="total_amount"/>
                 <field name="delivery_date"/>
+                <field name="line_notes_summary" string="Vendor Notes"/>
                 <field name="any_quote_selected" column_invisible="True"/>
                 <field name="state" widget="badge" decoration-success="state == 'selected'" decoration-info="state == 'submitted'" decoration-danger="state == 'rejected'"/>
                 <button name="action_select" string="Select Vendor" type="object" 
@@ -32,7 +35,7 @@
                 <sheet>
                     <group>
                         <group>
-                            <field name="vendor_id"/>
+                            <field name="vendor_id" options="{'no_create': True}"/>
                             <field name="rfq_id"/>
                             <field name="quote_date"/>
                         </group>

@@ -86,10 +86,12 @@ class AssetList(models.Model):
 
     def write(self, vals):
         result = super().write(vals)
-        if self.asset_id:
-            self.asset_id.asset_list_id = self.id
-        if not self.asset_id:
-            self.asset_id.asset_list_id = False
+        # asset_id.asset_list_id is deliberately NOT set here anymore - it
+        # used to be linked on every write (i.e. the moment a row is saved
+        # in an editable list, before the request is actually Done), which
+        # let a picked-but-not-yet-confirmed asset already look "linked" and
+        # disappear from the domain= filter above. It is now only linked in
+        # action_confirm(), once the row is genuinely confirmed.
         if self.po_line_id:
             self.asset_id.purchase_cost = self.po_line_id.price_subtotal
         if self.po_id:
@@ -116,14 +118,15 @@ class AssetList(models.Model):
         self._route_to_joining_requirement()
 
     def _route_to_joining_requirement(self):
-        """Once the newly received unit is confirmed here, hand it straight
-        to the joining process that was short of it - instead of leaving it
-        as generic draft stock for someone to notice and pick manually.
+        """Once the newly received unit is confirmed here, surface it on
+        the joining process line that was short of it - instead of leaving
+        it as generic draft stock for someone to notice and pick manually.
 
-        Assigns it to the employee as soon as its own line's quantity is
-        met; only closes the whole joining process (action_assign_assets)
-        once every other line on it is satisfied too, so e.g. an employee
-        needing Laptop + Mouse isn't marked done for a mouse alone.
+        Deliberately does NOT call action_assign_assets() itself anymore -
+        that used to auto-close the joining process the moment a matching
+        unit arrived, with no chance for a person to actually look at and
+        confirm the assignment. This only pre-picks the asset onto the
+        requirement line; a person still presses Assign Asset themselves.
         """
         for rec in self:
             requirement = rec.joining_requirement_id
@@ -134,19 +137,14 @@ class AssetList(models.Model):
             requirement.asset_ids = [(4, rec.asset_id.id)]
             joining = requirement.joining_id
             joining.message_post(body=_(
-                "%(asset)s received and routed to the %(category)s "
-                "requirement for %(employee)s."
+                "%(asset)s received and pre-picked for the %(category)s "
+                "requirement for %(employee)s. Open the joining process and "
+                "press Assign Asset to complete it."
             ) % {
                 'asset': rec.asset_id.asset_name,
                 'category': requirement.category_id.name,
                 'employee': joining.employee_id.name,
             })
-            if joining.state in ('approved', 'validate'):
-                # action_assign_assets() only assigns lines that are fully
-                # picked and only closes the process once every line is -
-                # safe to call as soon as this one line is complete, even if
-                # siblings (e.g. a still-unordered Chair) are not.
-                joining.action_assign_assets()
 
     @api.onchange('asset_id')
     def _onchange_asset_id(self):

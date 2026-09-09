@@ -204,6 +204,7 @@
                             invisible="not is_submit or (not it_asset_id and not network_asset_id)"/>
                     <button name="action_reset" type="object" string="Reset" class="btn-secondary" invisible="not is_submit" confirm="This unlocks the form for editing again. Continue?"/>
                     <field name="state" widget="badge" class="fs-5 px-3 py-2"
+                           decoration-info="state == 'submit'"
                            decoration-success="state == 'assigned'"
                            decoration-warning="state == 'maintenance'"
                            decoration-muted="state == 'scrapped'"/>
@@ -292,7 +293,7 @@
                             <field name="asset_value" readonly="is_submit and not is_dynamic_form"/>
                             <field name="purchase_cost" readonly="is_submit and not is_dynamic_form"/>
                             <field name="currency_id" invisible="1"/>
-                            <field name="procurement_vendor_id" readonly="is_submit and not is_dynamic_form"/>
+                            <field name="procurement_vendor_id" options="{'no_create': True}" readonly="is_submit and not is_dynamic_form"/>
                         </group>
                         <group>
                             <field name="is_iot_device" readonly="is_submit and not is_dynamic_form"/>
@@ -337,7 +338,7 @@
                                 <group>
                                     <field name="amc_start_date" readonly="is_submit and not is_dynamic_form"/>
                                     <field name="amc_end_date" readonly="is_submit and not is_dynamic_form"/>
-                                    <field name="amc_vendor_id" readonly="is_submit and not is_dynamic_form"/>
+                                    <field name="amc_vendor_id" options="{'no_create': True}" readonly="is_submit and not is_dynamic_form"/>
                                 </group>
                                 <group>
                                     <field name="amc_nature" readonly="is_submit and not is_dynamic_form"/>
@@ -367,7 +368,7 @@
                                 <group>
                                     <field name="licence_start_date" readonly="is_submit and not is_dynamic_form"/>
                                     <field name="licence_end_date" readonly="is_submit and not is_dynamic_form"/>
-                                    <field name="licence_vendor_id" readonly="is_submit and not is_dynamic_form"/>
+                                    <field name="licence_vendor_id" options="{'no_create': True}" readonly="is_submit and not is_dynamic_form"/>
                                 </group>
                                 <group>
                                     <field name="licence_nature" readonly="is_submit and not is_dynamic_form"/>

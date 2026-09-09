@@ -104,7 +104,7 @@
                                         <field name="asset_ids"
                                                widget="many2many_tags"
                                                readonly="parent.state not in ('approved', 'validate')"
-                                               domain="[('category_id', '=', category_id), ('state', '=', 'draft'), ('monitoring_protocol', '!=', 'agent')]"
+                                               domain="[('category_id', '=', category_id), ('state', '=', 'draft'), ('monitoring_protocol', '!=', 'agent'), ('asset_list_id', '!=', False)]"
                                                options="{'no_create': True}"/>
                                         <field name="selected_count" string="Picked" optional="hide"/>
                                         <field name="assets_match" string="OK" widget="boolean_toggle" optional="hide"
@@ -165,7 +165,7 @@
                 <form string="Assign / Replace Process">
                     <header>
                         <button name="action_open_replace_wizard" type="object"
-                                string="Replace Laptop"
+                                string="Replace Asset"
                                 class="btn-primary"
                                 invisible="state != 'draft'"/>
                         <button name="action_return_replacement" type="object"
@@ -190,11 +190,11 @@
                         <div class="alert alert-info" role="alert"
                              invisible="state != 'replaced'">
                             <i class="fa fa-info-circle me-1"/>
-                            A replacement laptop is currently assigned. When the
+                            A replacement asset is currently assigned. When the
                             repair ticket is closed as <strong>Done</strong>, the
                             replacement will be
                             <strong>automatically returned</strong>
-                            and the repaired laptop will be re-assigned to the employee.
+                            and the repaired asset will be re-assigned to the employee.
                         </div>
 
                         <group>

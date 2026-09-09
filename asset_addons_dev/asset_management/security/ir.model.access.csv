@@ -52,6 +52,9 @@ access_asset_windows_update_admin,asset.windows.update admin,model_asset_windows
 access_asset_linux_update_user,asset.linux.update user,model_asset_linux_update,group_asset_user,1,0,0,0
 access_asset_linux_update_manager,asset.linux.update manager,model_asset_linux_update,group_asset_manager,1,1,1,0
 access_asset_linux_update_admin,asset.linux.update admin,model_asset_linux_update,group_asset_admin,1,1,1,1
+access_asset_os_upgrade_request_user,asset.os.upgrade.request user,model_asset_os_upgrade_request,group_asset_user,1,0,0,0
+access_asset_os_upgrade_request_manager,asset.os.upgrade.request manager,model_asset_os_upgrade_request,group_asset_manager,1,1,1,0
+access_asset_os_upgrade_request_admin,asset.os.upgrade.request admin,model_asset_os_upgrade_request,group_asset_admin,1,1,1,1
 access_asset_macos_update_user,asset.macos.update user,model_asset_macos_update,group_asset_user,1,0,0,0
 access_asset_macos_update_manager,asset.macos.update manager,model_asset_macos_update,group_asset_manager,1,1,1,0
 access_asset_macos_update_admin,asset.macos.update admin,model_asset_macos_update,group_asset_admin,1,1,1,1

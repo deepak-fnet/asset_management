@@ -448,6 +448,22 @@ class AssetAssetGeneral(models.Model):
             vals["serial_number"] = serial
         return super().create(vals_list)
 
+    def get_formview_id(self, access_uid=None):
+        """Every Many2one to asset.asset elsewhere in the app (Repair, Asset
+        Requests, Lifecycle Processes, ...) opens the record through this
+        method - core's default just returns False, which the client resolves
+        to asset.asset's first/default form view. That happens to be
+        asset_management's generic form, not this module's dedicated one, so
+        every such link opened the wrong screen for a general asset even
+        though its own menu correctly used view_asset_general_form all along.
+        """
+        self.ensure_one()
+        if self.is_general_asset:
+            general_view = self.env.ref('general_asset.view_asset_general_form', raise_if_not_found=False)
+            if general_view:
+                return general_view.id
+        return super().get_formview_id(access_uid=access_uid)
+
     def action_view_it_asset(self):
         self.ensure_one()
         action = {
@@ -577,6 +593,12 @@ class AssetAssetGeneral(models.Model):
             for _fname, _label, target in links:
                 rec._sync_submit_details(target)
             rec.is_submit = True
+            # Only draft -> submit. An asset already past that (assigned,
+            # in maintenance, scrapped) keeps its real state - Submit here
+            # only means "purchase/warranty details are locked in", it is
+            # not a re-submission of an in-use asset.
+            if rec.state == 'draft':
+                rec.state = 'submit'
         return True
 
     def action_reset(self):
@@ -588,6 +610,8 @@ class AssetAssetGeneral(models.Model):
         """
         for rec in self:
             rec.is_submit = False
+            if rec.state == 'submit':
+                rec.state = 'draft'
         return True
 
     # ── Update ────────────────────────────────────────────────────────────

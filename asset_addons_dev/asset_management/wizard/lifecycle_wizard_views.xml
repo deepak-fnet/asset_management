@@ -51,11 +51,11 @@
         <field name="name">asset.replace.laptop.wizard.form</field>
         <field name="model">asset.replace.laptop.wizard</field>
         <field name="arch" type="xml">
-            <form string="Assign Replacement Laptop">
+            <form string="Assign Replacement Asset">
                 <sheet>
                     <div class="alert alert-warning" role="alert">
                         <i class="fa fa-exclamation-triangle me-1"/>
-                        Select a <strong>temporary replacement laptop</strong> for
+                        Select a <strong>temporary replacement asset</strong> for
                         <field name="employee_id" readonly="1" nolabel="1"
                                class="d-inline"/>.
                         The replacement will be <strong>automatically returned</strong>

@@ -17,7 +17,15 @@
                         invisible="state not in ('purchase', 'done') or is_rated" class="btn-info"/>
             </xpath>
             <xpath expr="//field[@name='partner_id']" position="attributes">
-                <attribute name="invisible">state == 'draft' and not vendor_finalized</attribute>
+                <!-- Gated on vendor_finalized alone, not state: this field and
+                     vendor_ids below are two views of the same decision (one
+                     vendor picked, yes/no), and native "Send RFQ" moving
+                     state to 'sent' is not that decision. Tying this to state
+                     made the multiple selected vendors visually vanish - back
+                     to a single (and, worse, seemingly arbitrary) vendor -
+                     the moment an RFQ was sent, well before anyone had
+                     actually finalized one. -->
+                <attribute name="invisible">not vendor_finalized</attribute>
                 <attribute name="readonly">state != 'draft'</attribute>
                 <attribute name="domain">[('is_vendor', '=', True), ('vendor_state', '=', 'active'), ('active', '=', True)]</attribute>
                 <attribute name="options">{'no_create': True}</attribute>
@@ -26,13 +34,22 @@
                 <field name="vendor_finalized" invisible="1"/>
                 <field name="comparison_state" invisible="1"/>
                 <field name="is_rated" invisible="1"/>
-                <field name="vendor_ids" widget="many2many_tags" 
-                       domain="[('is_vendor', '=', True), ('vendor_state', '=', 'active'), ('active', '=', True)]" 
-                       invisible="state != 'draft' or vendor_finalized"/>
+                <field name="vendor_ids" widget="many2many_tags"
+                       domain="[('is_vendor', '=', True), ('vendor_state', '=', 'active'), ('active', '=', True)]"
+                       invisible="vendor_finalized"/>
                 <!-- Feature 8: RFQ Expiry Date (optional) -->
                 <field name="expiry_date"/>
                 <!-- Feature 11: Bill Reference (mandatory on confirm) -->
                 <field name="bill_reference"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']//field[@name='product_id']" position="attributes">
+                <!-- Base Odoo blocks adding/editing a product line once the
+                     PO is confirmed (state purchase/to approve) - same as a
+                     stock receipt, where lines stay addable/removable
+                     regardless of the picking's state. Only 'cancel' still
+                     locks it; is_downpayment (unrelated to state) is
+                     untouched. -->
+                <attribute name="readonly">state == 'cancel' or is_downpayment</attribute>
             </xpath>
             <xpath expr="//notebook" position="inside">
                 <page string="Vendor Comparison" invisible="comparison_state == 'draft'">
@@ -40,9 +57,12 @@
                         <list default_order="rank asc" decoration-success="state == 'selected'" decoration-info="state == 'submitted'" decoration-danger="state == 'rejected'">
                             <field name="rank"/>
                             <field name="vendor_id"/>
+                            <field name="rfq_id" string="RFQ/PO Number"/>
+                            <field name="rating" string="Vendor Rating"/>
                             <field name="total_amount"/>
                             <field name="delivery_date"/>
-                            <field name="note" optional="show"/>
+                            <field name="line_notes_summary" string="Vendor Notes"/>
+                            <field name="note" string="General Notes" optional="show"/>
                             <field name="any_quote_selected" column_invisible="True"/>
                             <field name="state" widget="badge" decoration-success="state == 'selected'" decoration-info="state == 'submitted'" decoration-danger="state == 'rejected'"/>
                             <button name="action_select" type="object" string="Select" 

@@ -28,6 +28,7 @@ from . import asset_lifecycle
 # OS Update Management
 from . import asset_windows_update
 from . import asset_linux_update
+from . import asset_os_upgrade
 from . import asset_macos_update
 
 # Antivirus Management (merged)

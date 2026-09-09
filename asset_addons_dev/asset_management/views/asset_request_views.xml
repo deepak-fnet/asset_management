@@ -181,7 +181,7 @@
                                     <field name="category_id" readonly="1" optional="hide"/>
                                     <field name="po_line_id" readonly="1" optional="hide"/>
                                     <field name="serial_no" required="parent.state == 'po_done'"/>
-                                    <field name="asset_id" optional="show" domain="[('category_id','=',category_id),('state','=','draft'),('is_general_asset','!=',False)]"/>
+                                    <field name="asset_id" optional="show" domain="[('category_id','=',category_id),('state','=','draft'),('is_general_asset','!=',False),('asset_list_id','=',False)]"/>
                                     <field name="lot_id" optional="show"/>
                                 </list>
                             </field>

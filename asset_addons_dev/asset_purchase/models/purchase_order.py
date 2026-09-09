@@ -21,7 +21,9 @@ class PurchaseOrder(models.Model):
 
     def action_view_assets(self):
         self.ensure_one()
-        return {
+        list_view = self.env.ref('general_asset.view_asset_general_list', raise_if_not_found=False)
+        form_view = self.env.ref('general_asset.view_asset_general_form', raise_if_not_found=False)
+        action = {
             'type': 'ir.actions.act_window',
             'name': _("Assets from %s", self.name),
             'res_model': 'asset.asset',
@@ -29,3 +31,6 @@ class PurchaseOrder(models.Model):
             'domain': [('purchase_order_id', '=', self.id)],
             'target': 'current',
         }
+        if list_view and form_view:
+            action['views'] = [(list_view.id, 'list'), (form_view.id, 'form')]
+        return action

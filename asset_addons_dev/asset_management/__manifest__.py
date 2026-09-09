@@ -103,6 +103,7 @@ Professional Enterprise Asset Management System
         "data/network_device_cron.xml",
         "data/network_discovery_cron.xml",
         "data/asset_request.xml",
+        "data/asset_os_upgrade_sequence.xml",
         "data/asset_update_policy_cron.xml",
         "data/asset_update_policy_demo.xml",
 
@@ -139,6 +140,7 @@ Professional Enterprise Asset Management System
         "views/asset_comparison_views.xml",
         "views/asset_windows_update_views.xml",
         "views/asset_linux_update_views.xml",
+        "views/asset_os_upgrade_views.xml",
         "views/asset_macos_update_views.xml",
         "views/asset_file_access_views.xml",
         "views/antivirus.xml",

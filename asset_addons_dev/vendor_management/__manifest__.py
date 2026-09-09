@@ -68,6 +68,7 @@
         'data/vendor_compliance_cron.xml',
         'data/vendor_performance_cron.xml',
         'data/vendor_document_request_sequence.xml',
+        'data/purchase_order_sequence.xml',
 
         # ================= MENUS =================
         'views/vendor_menu.xml',

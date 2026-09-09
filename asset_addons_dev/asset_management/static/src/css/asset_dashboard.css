@@ -729,6 +729,11 @@
     color: #495057;
 }
 
+.asset_state.submit {
+    background: linear-gradient(135deg, #cfe2ff 0%, #9ec5fe 100%);
+    color: #084298;
+}
+
 .asset_state.assigned {
     background: linear-gradient(135deg, #d1e7dd 0%, #badbcc 100%);
     color: #0f5132;

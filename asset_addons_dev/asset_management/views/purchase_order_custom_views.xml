@@ -269,7 +269,7 @@
                                     <field name="move_dest_ids" column_invisible="True"/>
                                     <field name="sequence" widget="handle"/>
                                     <field name="product_id"
-                                           readonly="state in ('purchase', 'to approve', 'done', 'cancel')"
+                                           readonly="state in ('done', 'cancel')"
                                            required="not display_type"
                                            width="35%"
                                            context="{'partner_id': parent.partner_id, 'quantity': product_qty, 'company_id': parent.company_id, 'use_partner_name': False}"
@@ -304,7 +304,7 @@
                                            optional="show"/>
                                     <field name="product_uom" string="UoM"
                                            groups="uom.group_uom"
-                                           readonly="state in ('purchase', 'done', 'cancel')"
+                                           readonly="state in ('done', 'cancel')"
                                            required="not display_type"
                                            options="{'no_open': True}"
                                            force_save="1" optional="show"/>

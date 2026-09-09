@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Assigned at creation, while the order is still an RFQ. -->
+    <record id="seq_vendor_management_purchase_rfq" model="ir.sequence">
+        <field name="name">Purchase RFQ Number</field>
+        <field name="code">vendor_management.purchase.rfq</field>
+        <field name="prefix">RFQ/%(year)s/%(month)s/</field>
+        <field name="padding">5</field>
+    </record>
+
+    <!-- Assigned once the order is actually approved (state becomes 'purchase'). -->
+    <record id="seq_vendor_management_purchase_po" model="ir.sequence">
+        <field name="name">Purchase Order Number</field>
+        <field name="code">vendor_management.purchase.po</field>
+        <field name="prefix">PO/%(year)s/%(month)s/</field>
+        <field name="padding">5</field>
+    </record>
+</odoo>

@@ -9,7 +9,7 @@
                     <div class="vendor_section_card">
                         <h3>Periodic Performance Review</h3>
                         <group>
-                            <field name="vendor_id"/>
+                            <field name="vendor_id" options="{'no_create': True}"/>
                             <field name="review_date"/>
                         </group>
                     </div>

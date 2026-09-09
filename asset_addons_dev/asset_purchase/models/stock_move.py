@@ -153,6 +153,19 @@ class StockMove(models.Model):
             'product_id': self.product_id.id,
         }
 
+    def _next_unique_asset_name(self, base_name):
+        """Disambiguate the display name for one auto-created asset unit.
+
+        A qty>1 receipt line (e.g. 3x "Thinkpad") would otherwise create
+        several asset.asset records with the identical asset_name, which is
+        the model's _rec_name - confusing in every dropdown and list. This
+        just appends a running, globally-unique suffix; asset_code remains
+        the real unique identifier, and the user is free to rename the asset
+        afterwards.
+        """
+        suffix = self.env['ir.sequence'].sudo().next_by_code('asset.asset.unit.suffix')
+        return '%s - %s' % (base_name, suffix) if suffix else base_name
+
     def _create_fixed_assets(self):
         """Create one ``asset.asset`` per unit received on flagged moves."""
         Asset = self.env['asset.asset']
@@ -190,6 +203,7 @@ class StockMove(models.Model):
                 for line in move.move_line_ids:
                     unit = dict(
                         base,
+                        asset_name=move._next_unique_asset_name(base['asset_name']),
                         stock_move_line_id=line.id,
                         lot_id=line.lot_id.id or False,
                     )
@@ -216,7 +230,11 @@ class StockMove(models.Model):
                 # 'lot' tracking: every unit shares the same lot.
                 lot = move.move_line_ids.lot_id[:1]
                 for _index in range(count):
-                    unit = dict(base, lot_id=lot.id or False)
+                    unit = dict(
+                        base,
+                        asset_name=move._next_unique_asset_name(base['asset_name']),
+                        lot_id=lot.id or False,
+                    )
                     # Same reasoning as above. Note that with 'lot' tracking
                     # every unit shares ONE lot name, so even a real lot name
                     # cannot be used as a per-unit serial - it would collide

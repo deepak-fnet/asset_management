@@ -192,14 +192,14 @@ class AssetJoiningProcess(models.Model):
                     "The same asset cannot be selected on more than one "
                     "requirement line."))
 
-            unavailable = ready_assets.filtered(lambda a: a.state not in ('draft', 'assigned'))
+            unavailable = ready_assets.filtered(lambda a: a.state not in ('draft', 'submit', 'assigned'))
             if unavailable:
                 raise UserError(_(
                     "These assets are no longer available (in maintenance "
                     "or scrapped): %s"
                 ) % ", ".join(unavailable.mapped('asset_name')))
 
-            to_assign = ready_assets.filtered(lambda a: a.state == 'draft')
+            to_assign = ready_assets.filtered(lambda a: a.state in ('draft', 'submit'))
             if to_assign:
                 to_assign.write({
                     'assigned_employee_id': rec.employee_id.id,
@@ -349,7 +349,7 @@ class AssetJoiningRequirement(models.Model):
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  ASSIGN PROCESS
-#  Used when a laptop is under repair and we need to assign a replacement.
+#  Used when a general asset is under repair and we need to assign a replacement.
 #  Also tracks the original owner so the replacement auto-returns on repair done.
 # ─────────────────────────────────────────────────────────────────────────────
 class AssetAssignProcess(models.Model):
@@ -383,7 +383,7 @@ class AssetAssignProcess(models.Model):
 
     # Replacement asset selected via wizard
     replacement_asset_id = fields.Many2one(
-        'asset.asset', string='Replacement Laptop',
+        'asset.asset', string='Replacement Asset',
         tracking=True, readonly=True,
     )
 
@@ -415,12 +415,12 @@ class AssetAssignProcess(models.Model):
             self.employee_id = ticket.asset_id.assigned_employee_id
 
     def action_open_replace_wizard(self):
-        """Opens wizard to pick a replacement laptop."""
+        """Opens wizard to pick a replacement asset."""
         self.ensure_one()
         if not self.repair_ticket_id:
             raise UserError(_("Please select a repair ticket first."))
         return {
-            'name': _('Assign Replacement Laptop'),
+            'name': _('Assign Replacement Asset'),
             'type': 'ir.actions.act_window',
             'res_model': 'asset.replace.laptop.wizard',
             'view_mode': 'form',
@@ -433,7 +433,7 @@ class AssetAssignProcess(models.Model):
 
     def action_return_replacement(self):
         """
-        Called when the repair ticket is done and the repaired laptop is returned.
+        Called when the repair ticket is done and the repaired asset is returned.
         - replacement asset → available (draft)
         - repaired asset → re-assigned to original employee
         """
@@ -443,14 +443,14 @@ class AssetAssignProcess(models.Model):
             if not rec.employee_id:
                 raise UserError(_("Original employee is not set."))
 
-            # Return replacement laptop to available state
+            # Return replacement asset to available state
             if rec.replacement_asset_id:
                 rec.replacement_asset_id.write({
                     'assigned_employee_id': False,
                     'assignment_date': False,
                     'state': 'draft',
                 })
-            # Re-assign repaired laptop back to original employee
+            # Re-assign repaired asset back to original employee
             if rec.asset_id:
                 rec.asset_id.write({
                     'assigned_employee_id': rec.employee_id.id,

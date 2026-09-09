@@ -102,6 +102,7 @@
                             <field name="asset_id"/>
                             <field name="repair_id"/>
                             <field name="vendor_id"
+                                   options="{'no_create': True}"
                                    required="state == 'approved'"/>
                             <field name="purchase_order_id" readonly="1"/>
                             <field name="po_state" readonly="1"

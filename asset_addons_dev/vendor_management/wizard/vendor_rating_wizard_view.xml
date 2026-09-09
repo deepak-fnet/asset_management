@@ -9,7 +9,7 @@
                     <group>
                         <field name="purchase_id" invisible="not purchase_id"/>
                         <field name="move_id" invisible="not move_id"/>
-                        <field name="vendor_id"/>
+                        <field name="vendor_id" options="{'no_create': True}"/>
                     </group>
                 </group>
                 <separator string="Performance Ratings"/>

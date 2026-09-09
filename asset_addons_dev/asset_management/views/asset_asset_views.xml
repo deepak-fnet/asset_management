@@ -156,6 +156,9 @@
                                     <t t-if="record.state.raw_value == 'draft'">
                                         <span class="asset_state draft">Draft</span>
                                     </t>
+                                    <t t-if="record.state.raw_value == 'submit'">
+                                        <span class="asset_state submit">Submit</span>
+                                    </t>
                                     <t t-if="record.state.raw_value == 'assigned'">
                                         <span class="asset_state assigned">Assigned</span>
                                     </t>
@@ -278,7 +281,7 @@
                     <button name="action_assign" type="object"
                             string="Assign"
                             class="btn-secondary"
-                            invisible="state != 'draft'"/>
+                            invisible="state not in ('draft', 'submit')"/>
 
                     <button name="action_maintenance" type="object"
                             string="Maintenance"
@@ -304,7 +307,7 @@
 
                     <field name="state"
                            widget="statusbar"
-                           statusbar_visible="draft,assigned,maintenance,scrapped"/>
+                           statusbar_visible="draft,submit,assigned,maintenance,scrapped"/>
                 </header>
 
                 <sheet>
@@ -349,7 +352,7 @@
                     <!-- LIFECYCLE GUIDANCE BANNER (draft, no employee) -->
                     <div class="alert alert-info d-flex align-items-center gap-2"
                          role="alert"
-                         invisible="state != 'draft' or assigned_employee_id != False">
+                         invisible="state not in ('draft', 'submit') or assigned_employee_id != False">
                         <i class="fa fa-info-circle fa-lg me-2"/>
                         <span>
                             To assign this laptop to an employee, use
@@ -596,7 +599,7 @@
                                     <div class="spec_item">
                                         <span class="o_form_label">Asset Status</span>
                                         <field name="state" widget="badge"
-                                               decoration-info="state == 'draft'"
+                                               decoration-info="state in ('draft', 'submit')"
                                                decoration-success="state == 'assigned'"
                                                decoration-warning="state == 'maintenance'"
                                                decoration-danger="state == 'scrapped'"
@@ -704,7 +707,7 @@
                                         <!-- Vendor / AMC (always visible) -->
                                         <div class="spec_item">
                                             <span class="o_form_label">Vendor / AMC</span>
-                                            <field name="vendor_id" class="spec_value"/>
+                                            <field name="vendor_id" class="spec_value" options="{'no_create': True}"/>
                                         </div>
 
                                         <!-- AMC Expiry (always visible) -->

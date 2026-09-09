@@ -196,6 +196,7 @@ class AssetAsset(models.Model):
     state = fields.Selection(
         [
             ("draft", "Draft"),
+            ("submit", "Submit"),
             ("assigned", "Assigned"),
             ("maintenance", "Maintenance"),
             ("scrapped", "Scrapped"),
@@ -403,6 +404,31 @@ class AssetAsset(models.Model):
             'view_mode': 'list,form',
             'domain': [('asset_id', '=', self.id)],
             'context': {'default_asset_id': self.id},
+        }
+
+    def action_create_os_upgrade_request(self):
+        """Open a new OS upgrade request, pre-filled from what the agent found.
+
+        Saves retyping the target release (and getting the codename wrong -
+        the agent acts on target_codename, so a typo there means the upgrade
+        silently never matches anything).
+        """
+        self.ensure_one()
+        if not self.os_upgrade_available_codename:
+            raise UserError(_(
+                "No next release has been reported for this asset yet. The "
+                "agent fills this in on its next release-upgrade check."))
+        return {
+            'name': _('OS Upgrade Request'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'asset.os.upgrade.request',
+            'view_mode': 'form',
+            'target': 'current',
+            'context': {
+                'default_asset_id': self.id,
+                'default_target_version': self.os_upgrade_available_version or '',
+                'default_target_codename': self.os_upgrade_available_codename,
+            },
         }
 
     # ── Lifecycle process counts & smart buttons ──────────────────────────
@@ -741,6 +767,78 @@ class AssetAsset(models.Model):
     os_name = fields.Char(
         string="OS Name",
         tracking=True
+    )
+
+    # Structured distro version, separate from the free-text os_name (which
+    # can be anything the agent's platform library returns, e.g. "Linux").
+    # Populated from /etc/os-release's VERSION_ID/VERSION_CODENAME on Linux -
+    # this is what lets a Linux OS Upgrade request compare "what it's on" vs
+    # "what it should move to" without parsing os_name's free text.
+    os_version = fields.Char(
+        string="OS Version",
+        tracking=True,
+        help="Structured distro version, e.g. '24.04.4 LTS (Noble Numbat)' "
+             "on Ubuntu. Distinct from OS Name - reported separately by the "
+             "agent from /etc/os-release (Linux) or the platform's own "
+             "version API.",
+    )
+    os_codename = fields.Char(
+        string="OS Codename",
+        tracking=True,
+        help="e.g. 'noble' for Ubuntu 24.04. Used to match the target "
+             "release in an OS Upgrade request.",
+    )
+    os_upgrade_request_ids = fields.One2many(
+        'asset.os.upgrade.request', 'asset_id', string='OS Upgrade Requests',
+    )
+
+    # ── Release-upgrade availability, reported by the agent ───────────────
+    # Two distinct facts, deliberately kept as separate fields because they
+    # answer different questions and routinely disagree:
+    #
+    #   os_upgrade_available      - does `do-release-upgrade -c` offer an
+    #                               upgrade RIGHT NOW? This is the only
+    #                               thing that decides whether running an
+    #                               upgrade would actually do anything.
+    #   os_upgrade_available_*    - the next release that EXISTS for this
+    #                               machine per Ubuntu's meta-release data,
+    #                               whether or not it is being offered yet.
+    #
+    # Ubuntu does not open the LTS-to-LTS path on release day (24.04 ->
+    # 26.04 only opens around 26.04.1), so for months the honest answer is
+    # "26.04.1 LTS exists, but is not offered yet". Reporting only the
+    # boolean would hide that; reporting only the version would imply the
+    # upgrade can be run today. Both are shown.
+    os_upgrade_available = fields.Boolean(
+        string="OS Upgrade Offered",
+        readonly=True, tracking=True,
+        help="True only when the agent's `do-release-upgrade -c` check "
+             "actually offers a new release right now. A newer release "
+             "existing is not the same thing - see OS Upgrade Check Output.",
+    )
+    os_upgrade_available_version = fields.Char(
+        string="Next Release Version",
+        readonly=True, tracking=True,
+        help="Next distro release known to this machine, e.g. "
+             "'26.04.1 LTS'. Populated even when the upgrade is not being "
+             "offered yet, so the fleet's next hop is visible in advance.",
+    )
+    os_upgrade_available_codename = fields.Char(
+        string="Next Release Codename",
+        readonly=True, tracking=True,
+        help="e.g. 'resolute'. This is what an OS Upgrade request's Target "
+             "Codename must be set to.",
+    )
+    os_upgrade_check_output = fields.Text(
+        string="OS Upgrade Check Output",
+        readonly=True,
+        help="Raw output of the agent's release-upgrade check - explains "
+             "WHY an upgrade is or is not being offered.",
+    )
+    os_upgrade_checked_date = fields.Datetime(
+        string="Upgrade Last Checked",
+        readonly=True,
+        help="When the agent last ran the release-upgrade check.",
     )
 
     platform = fields.Selection(
@@ -1895,8 +1993,8 @@ class AssetAsset(models.Model):
         can still be assigned if they were created before this feature.
         """
         for asset in self:
-            if asset.state != "draft":
-                raise UserError(_("Only Draft assets can be assigned."))
+            if asset.state not in ("draft", "submit"):
+                raise UserError(_("Only Draft or Submitted assets can be assigned."))
             if not asset.assigned_employee_id:
                 raise UserError(_("Please select an employee before assigning."))
 
@@ -2150,6 +2248,8 @@ class AssetAsset(models.Model):
                     "state": "draft",
                     # "category_id": detected_type,  # ← auto-mapped from agent
                     "os_name": payload.get("os_name"),
+                    "os_version": payload.get("os_version"),
+                    "os_codename": payload.get("os_codename"),
                     "platform": payload.get("platform", "unknown"),
                     "monitoring_protocol": 'agent',
                 })
@@ -2173,6 +2273,8 @@ class AssetAsset(models.Model):
                 "graphics_card_raw": payload.get("graphics_card_raw"),
                 "os_type": payload.get("os_type"),
                 "os_name": payload.get("os_name"),
+                "os_version": payload.get("os_version"),
+                "os_codename": payload.get("os_codename"),
                 "ram_size": payload.get("ram_size"),
                 "rom_size": payload.get("rom_size"),
                 "battery_capacity": payload.get("battery_percentage"),
@@ -2190,6 +2292,20 @@ class AssetAsset(models.Model):
                 "antivirus_version": payload.get("antivirus_version", ""),
                 "antivirus_running": payload.get("antivirus_running", False),
             }
+
+            # Release-upgrade availability. Set only when the agent actually
+            # reported it: update_vals is written verbatim (no None-stripping),
+            # so listing these unconditionally would let an older agent that
+            # doesn't know about them blank out what a newer agent found.
+            if "os_upgrade_available" in payload:
+                update_vals["os_upgrade_available"] = bool(payload.get("os_upgrade_available"))
+            for _key in ("os_upgrade_available_version",
+                         "os_upgrade_available_codename",
+                         "os_upgrade_check_output"):
+                if _key in payload:
+                    update_vals[_key] = payload.get(_key) or False
+            if payload.get("os_upgrade_checked_date"):
+                update_vals["os_upgrade_checked_date"] = payload.get("os_upgrade_checked_date")
 
             # Compute antivirus_status based on antivirus_installed and antivirus_running
             if payload.get("antivirus_installed") and payload.get("antivirus_running"):
@@ -2862,14 +2978,14 @@ class AssetAsset(models.Model):
         # Assets never maintained
         never_maintained = self.search([
             ("last_maintenance_date", "=", False),
-            ("state", "in", ["assigned", "draft"]),
+            ("state", "in", ["assigned", "draft", "submit"]),
         ])
 
         # Assets overdue for maintenance (> 6 months)
         overdue = self.search([
             ("last_maintenance_date", "!=", False),
             ("last_maintenance_date", "<=", today - timedelta(days=180)),
-            ("state", "in", ["assigned", "draft"]),
+            ("state", "in", ["assigned", "draft", "submit"]),
         ])
 
         all_due = never_maintained | overdue

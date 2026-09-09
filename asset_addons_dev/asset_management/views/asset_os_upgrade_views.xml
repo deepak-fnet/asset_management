@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!--
+    Linux OS Upgrade Request Views
+    ==============================
+    Inherits the existing asset form view to add an OS Upgrade tab, mirroring
+    asset_linux_update_views.xml's placement - only visible for Linux assets.
+    -->
+
+    <!-- =====================================================
+         OS UPGRADE REQUEST LIST VIEW
+         ===================================================== -->
+    <record id="view_asset_os_upgrade_request_list" model="ir.ui.view">
+        <field name="name">asset.os.upgrade.request.list</field>
+        <field name="model">asset.os.upgrade.request</field>
+        <field name="arch" type="xml">
+            <list string="OS Upgrade Requests"
+                  decoration-success="state == 'done'"
+                  decoration-warning="state == 'in_progress'"
+                  decoration-danger="state == 'failed'"
+                  decoration-muted="state in ('draft', 'cancelled')">
+                <field name="name"/>
+                <field name="asset_id"/>
+                <field name="current_os_version" optional="show"/>
+                <field name="target_version"/>
+                <field name="scheduled_date"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'"
+                       decoration-warning="state in ('approved', 'in_progress')"
+                       decoration-danger="state == 'failed'"
+                       decoration-muted="state in ('draft', 'cancelled')"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         OS UPGRADE REQUEST FORM VIEW
+         ===================================================== -->
+    <record id="view_asset_os_upgrade_request_form" model="ir.ui.view">
+        <field name="name">asset.os.upgrade.request.form</field>
+        <field name="model">asset.os.upgrade.request</field>
+        <field name="arch" type="xml">
+            <form string="OS Upgrade Request">
+                <header>
+                    <button name="action_approve" type="object" string="Approve"
+                            class="btn-primary" invisible="state != 'draft'"
+                            groups="asset_management.group_asset_manager"
+                            confirm="This schedules a full distro release upgrade. It requires a reboot, cannot be interactively confirmed once it starts, and can leave the machine in a broken state if it fails partway. Continue?"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            class="btn-danger" invisible="state in ('done', 'cancelled')"/>
+                    <button name="action_reset_to_draft" type="object" string="Reset to Draft"
+                            invisible="state not in ('cancelled', 'failed')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,approved,in_progress,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="What / Where">
+                            <field name="asset_id" readonly="state != 'draft'"/>
+                            <field name="current_os_version" readonly="1"/>
+                            <field name="current_os_codename" readonly="1"/>
+                            <field name="target_version" readonly="state != 'draft'"/>
+                            <field name="target_codename" readonly="state != 'draft'"/>
+                            <field name="requires_reboot" widget="boolean_toggle"/>
+                        </group>
+                        <group string="Approval &amp; Schedule">
+                            <field name="admin_acknowledged" invisible="state != 'draft'"/>
+                            <field name="scheduled_date" readonly="state not in ('draft',)"/>
+                            <field name="requested_by" readonly="1"/>
+                            <field name="request_date" readonly="1"/>
+                            <field name="approved_by" readonly="1" invisible="not approved_by"/>
+                            <field name="approved_date" readonly="1" invisible="not approved_date"/>
+                        </group>
+                    </group>
+                    <group string="Result" invisible="state not in ('in_progress', 'done', 'failed')">
+                        <group>
+                            <field name="started_date" readonly="1"/>
+                            <field name="completed_date" readonly="1"/>
+                            <field name="result_os_version" readonly="1"/>
+                            <field name="result_os_codename" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="error_message" readonly="1" invisible="not error_message"/>
+                        </group>
+                    </group>
+                    <group string="Agent Log" invisible="not agent_log">
+                        <field name="agent_log" nolabel="1" readonly="1"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         OS UPGRADE REQUEST ACTION
+         ===================================================== -->
+    <record id="action_asset_os_upgrade_request" model="ir.actions.act_window">
+        <field name="name">OS Upgrade Requests</field>
+        <field name="res_model">asset.os.upgrade.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_asset_id': active_id}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No OS upgrade requested yet
+            </p>
+            <p>
+                Schedule a Linux distro release upgrade (e.g. Ubuntu 24.04 -&gt;
+                26.04) for this asset. Requires approval and a maintenance
+                window before the agent will act on it.
+            </p>
+        </field>
+    </record>
+
+    <!-- =====================================================
+         INHERIT ASSET FORM VIEW - ADD OS UPGRADE TAB
+         Only visible for Linux assets (os_platform == 'linux')
+         ===================================================== -->
+    <record id="view_asset_asset_form_os_upgrade" model="ir.ui.view">
+        <field name="name">asset.asset.form.os.upgrade</field>
+        <field name="model">asset.asset</field>
+        <field name="inherit_id" ref="asset_management.view_asset_asset_form"/>
+        <field name="priority">22</field>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="OS Upgrade" name="os_upgrade"
+                      invisible="os_platform != 'linux'"
+                      groups="asset_management.group_asset_user">
+                    <!-- Upgrade is actually being offered right now. -->
+                    <div class="alert alert-success d-flex align-items-center gap-2"
+                         role="alert" invisible="not os_upgrade_available">
+                        <i class="fa fa-arrow-circle-up fa-lg me-2"/>
+                        <span>
+                            <strong>Upgrade available:</strong>
+                            <field name="os_upgrade_available_version" readonly="1" nolabel="1" class="oe_inline"/>
+                            (<field name="os_upgrade_available_codename" readonly="1" nolabel="1" class="oe_inline"/>)
+                            is being offered by this machine's release upgrader.
+                        </span>
+                    </div>
+
+                    <!-- A newer release exists, but is not offered yet. Ubuntu
+                         does not open the LTS-to-LTS path on release day, so
+                         this is the normal state for months after 26.04 ships. -->
+                    <div class="alert alert-info d-flex align-items-center gap-2"
+                         role="alert"
+                         invisible="os_upgrade_available or not os_upgrade_available_version">
+                        <i class="fa fa-info-circle fa-lg me-2"/>
+                        <span>
+                            Next release known to this machine:
+                            <strong>
+                                <field name="os_upgrade_available_version" readonly="1" nolabel="1" class="oe_inline"/>
+                                (<field name="os_upgrade_available_codename" readonly="1" nolabel="1" class="oe_inline"/>)
+                            </strong>.
+                            It is <strong>not being offered yet</strong> - see the check output below.
+                        </span>
+                    </div>
+
+                    <group>
+                        <group string="Current">
+                            <field name="os_version" readonly="1"/>
+                            <field name="os_codename" readonly="1"/>
+                        </group>
+                        <group string="Next Release Detected">
+                            <field name="os_upgrade_available" readonly="1"/>
+                            <field name="os_upgrade_available_version" readonly="1"/>
+                            <field name="os_upgrade_available_codename" readonly="1"/>
+                            <field name="os_upgrade_checked_date" readonly="1"/>
+                            <button name="action_create_os_upgrade_request" type="object"
+                                    string="Create Upgrade Request"
+                                    class="btn-primary"
+                                    invisible="not os_upgrade_available_codename"/>
+                        </group>
+                    </group>
+                    <group string="Release Upgrader Output"
+                           invisible="not os_upgrade_check_output">
+                        <field name="os_upgrade_check_output" readonly="1" nolabel="1"/>
+                    </group>
+                    <field name="os_upgrade_request_ids" context="{'default_asset_id': id}">
+                        <list decoration-success="state == 'done'"
+                              decoration-warning="state == 'in_progress'"
+                              decoration-danger="state == 'failed'"
+                              decoration-muted="state in ('draft', 'cancelled')">
+                            <field name="name"/>
+                            <field name="target_version"/>
+                            <field name="scheduled_date"/>
+                            <field name="state" widget="badge"
+                                   decoration-success="state == 'done'"
+                                   decoration-warning="state in ('approved', 'in_progress')"
+                                   decoration-danger="state == 'failed'"
+                                   decoration-muted="state in ('draft', 'cancelled')"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

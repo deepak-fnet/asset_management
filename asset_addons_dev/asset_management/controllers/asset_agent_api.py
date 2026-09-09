@@ -746,6 +746,77 @@ class AssetAgentAPIController(http.Controller):
             )
 
     # ========================================================================
+    # LINUX OS UPGRADE API ENDPOINTS
+    # See asset_management/models/asset_os_upgrade.py and
+    # agent_snippets/os_upgrade.py for the reference agent-side implementation.
+    # ========================================================================
+
+    @http.route('/api/asset/os_upgrade/instructions', type='http', auth='public', methods=['GET'], csrf=False)
+    def os_upgrade_instructions(self, **kwargs):
+        """Agent polls Odoo to see if a distro release upgrade is due."""
+        try:
+            serial_number = request.httprequest.args.get("serial_number", "").strip()
+            if not serial_number:
+                return request.make_response(
+                    json.dumps({"success": False, "message": "serial_number is required"}),
+                    headers=[('Content-Type', 'application/json')]
+                )
+
+            pending = request.env["asset.os.upgrade.request"].sudo().get_pending_for_serial(serial_number)
+            if not pending:
+                return request.make_response(
+                    json.dumps({"success": True, "action": "none"}),
+                    headers=[('Content-Type', 'application/json')]
+                )
+
+            return request.make_response(
+                json.dumps({"success": True, "action": "upgrade", **pending}),
+                headers=[('Content-Type', 'application/json')]
+            )
+
+        except Exception as e:
+            _logger.error(f"[OS Upgrade Instructions] Error: {e}", exc_info=True)
+            return request.make_response(
+                json.dumps({"success": False, "action": "none"}),
+                headers=[('Content-Type', 'application/json')]
+            )
+
+    @http.route('/api/asset/os_upgrade/result', type='http', auth='public', methods=['POST'], csrf=False)
+    def os_upgrade_result(self, **kwargs):
+        """Agent reports progress/result of a distro release upgrade."""
+        try:
+            payload = json.loads(request.httprequest.data or "{}")
+            serial_number = (payload.get("serial_number") or "").strip()
+            request_id = payload.get("request_id")
+            status = (payload.get("status") or "").strip()
+
+            if not serial_number or not request_id or not status:
+                return request.make_response(
+                    json.dumps({"success": False, "message": "serial_number, request_id and status are required"}),
+                    headers=[('Content-Type', 'application/json')]
+                )
+
+            result = request.env["asset.os.upgrade.request"].sudo().report_result(
+                serial_number=serial_number,
+                request_id=int(request_id),
+                status=status,
+                message=payload.get("message"),
+                new_os_version=payload.get("new_os_version"),
+                new_os_codename=payload.get("new_os_codename"),
+            )
+            return request.make_response(
+                json.dumps(result),
+                headers=[('Content-Type', 'application/json')]
+            )
+
+        except Exception as e:
+            _logger.error(f"[OS Upgrade Result] Error: {e}", exc_info=True)
+            return request.make_response(
+                json.dumps({"success": False, "message": str(e)}),
+                headers=[('Content-Type', 'application/json')]
+            )
+
+    # ========================================================================
     # APPLICATION UNINSTALL API ENDPOINTS
     # ========================================================================
 
