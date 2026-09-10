@@ -35,7 +35,10 @@ class IotDashboard(models.AbstractModel):
     def get_dashboard_data(self, filters=None):
         Data = self.env['iot.data'].sudo()
         domain = self._build_domain(filters)
-        records = Data.search(domain, order='received_date asc', limit=SEARCH_LIMIT)
+        # Fetch the most recent SEARCH_LIMIT readings (not the oldest), then
+        # restore chronological order for the chart/latest-record logic below.
+        records = Data.search(domain, order='received_date desc', limit=SEARCH_LIMIT)
+        records = records.sorted('received_date')
 
         door_events = records.filtered('door_open')
         alert_records = records.filtered(lambda r: r.state == 'alert')
