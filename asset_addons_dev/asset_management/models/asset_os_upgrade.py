@@ -37,9 +37,10 @@ class AssetOsUpgradeRequest(models.Model):
     asset_id = fields.Many2one(
         'asset.asset', string='Asset', required=True, ondelete='cascade',
         index=True, tracking=True,
-        domain=[('platform', '=', 'linux')],
-        help='Only Linux assets - Windows/macOS release upgrades are not '
-             'supported by this model yet.',
+        domain=[('platform', 'in', ('linux', 'windows'))],
+        help='Linux (distro release upgrade, e.g. 24.04 -> 26.04) or '
+             'Windows (feature upgrade, e.g. Windows 10 -> 11). macOS is '
+             'not supported by this model yet.',
     )
     serial_number = fields.Char(related='asset_id.serial_number', store=True, readonly=True)
 
@@ -52,13 +53,16 @@ class AssetOsUpgradeRequest(models.Model):
 
     target_version = fields.Char(
         string='Target Version', required=True,
-        help="e.g. '26.04 LTS'. Free text shown to the admin/in the log - "
-             "target_codename is what the agent actually acts on.")
+        help="e.g. '26.04 LTS' (Linux) or 'Windows 11' (Windows). Free text "
+             "shown to the admin/in the log - target_codename is what the "
+             "agent actually acts on.")
     target_codename = fields.Char(
         string='Target Codename', required=True,
-        help="e.g. 'plucky' or whatever the next Ubuntu LTS codename is - "
-             "must match a codename do-release-upgrade on the asset can "
-             "actually reach from its current release.")
+        help="Linux: e.g. 'plucky' - must match a codename do-release-"
+             "upgrade on the asset can actually reach from its current "
+             "release. Windows: just '11' - there is no codename "
+             "equivalent, this only distinguishes the request from a "
+             "future non-11 target.")
 
     state = fields.Selection([
         ('draft', 'Draft'),
@@ -136,6 +140,15 @@ class AssetOsUpgradeRequest(models.Model):
                 raise UserError(_('Set a maintenance window (start time) before approving.'))
             if rec.scheduled_date < fields.Datetime.now():
                 raise UserError(_('The maintenance window must be in the future.'))
+            if rec.asset_id.platform == 'windows' and rec.target_codename == '11' \
+                    and rec.asset_id.win11_status != 'eligible':
+                raise UserError(_(
+                    'This asset is not confirmed eligible for Windows 11 '
+                    '(status: %s). Run/refresh the Windows 11 eligibility '
+                    'scan first - approving here would start an upgrade '
+                    'that is likely to fail or be blocked on the machine.'
+                ) % (dict(rec.asset_id._fields['win11_status'].selection)
+                     .get(rec.asset_id.win11_status, rec.asset_id.win11_status)))
             rec.write({
                 'state': 'approved',
                 'approved_by': self.env.user.id,

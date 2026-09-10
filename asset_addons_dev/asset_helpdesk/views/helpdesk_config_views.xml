@@ -84,6 +84,7 @@
                         <field name="active"/>
                         <field name="is_repair_flow"/>
                         <field name="is_general"/>
+                        <field name="default_team_id"/>
                         <field name="description"/>
                     </group>
                 </sheet>

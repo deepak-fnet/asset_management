@@ -26,6 +26,14 @@
                         <button name="action_reset_to_new" type="object"
                                 string="Reset to New"
                                 invisible="state not in ('in_progress', 'done', 'not_repairable')"/>
+                        <button name="action_dispatch_to_vendor" type="object"
+                                string="Dispatch to Vendor"
+                                class="btn-primary"
+                                invisible="state != 'in_progress' or repair_mode != 'vendor' or dispatch_picking_id"/>
+                        <button name="action_receive_from_vendor" type="object"
+                                string="Receive from Vendor"
+                                class="btn-primary"
+                                invisible="state != 'in_progress' or not dispatch_picking_id or return_picking_id"/>
                         <field name="state" widget="statusbar"
                                statusbar_visible="new,in_progress,done"/>
                     </header>
@@ -72,28 +80,35 @@
                             <group string="Assignment">
                                 <field name="engineer_id"
                                        readonly="state in ('done', 'not_repairable')"/>
-                                <field name="repair_mode"
+                                <field name="repair_mode" widget="radio"
                                        readonly="state in ('done', 'not_repairable')"/>
                             </group>
-                            <!-- General (non-IT) repairs have no spare-parts flow, so cost
-                                 always comes from here. Hardware/software repaired IN-HOUSE
-                                 track cost per part instead (Spare Parts page below) - but a
-                                 hardware/software repair sent to a VENDOR has no spare-parts
-                                 flow either, so this group covers that case too. -->
-                            <group string="Repair Cost &amp; Vendor"
-                                   invisible="issue_type != 'general' and repair_mode != 'vendor'">
+                            <!-- Always shown, for both modes - Internal Team's repair_cost
+                                 is computed from the Spare Parts page (below) and shown here
+                                 read-only; External Team's is entered by hand here, alongside
+                                 the vendor/bill/dispatch fields (each individually gated to
+                                 repair_mode == 'vendor' below). -->
+                            <group string="Repair Cost &amp; Vendor">
                                 <field name="vendor_id"
                                        options="{'no_create': True}"
                                        invisible="repair_mode != 'vendor'"
                                        required="repair_mode == 'vendor'"
                                        readonly="state in ('done', 'not_repairable')"/>
                                 <field name="repair_cost"
-                                       readonly="state in ('done', 'not_repairable')"/>
+                                       readonly="repair_mode == 'in_house' or state in ('done', 'not_repairable')"/>
                                 <field name="currency_id" invisible="1"/>
                                 <field name="bill_file" filename="bill_filename"
                                        invisible="repair_mode != 'vendor'"
                                        readonly="state in ('done', 'not_repairable')"/>
                                 <field name="bill_filename" invisible="1"/>
+                                <field name="dispatch_picking_id" readonly="1"
+                                       invisible="repair_mode != 'vendor' or not dispatch_picking_id"/>
+                                <field name="dispatch_date" readonly="1"
+                                       invisible="repair_mode != 'vendor' or not dispatch_date"/>
+                                <field name="return_picking_id" readonly="1"
+                                       invisible="repair_mode != 'vendor' or not return_picking_id"/>
+                                <field name="return_date" readonly="1"
+                                       invisible="repair_mode != 'vendor' or not return_date"/>
                             </group>
                         </group>
                         <notebook>
@@ -102,11 +117,15 @@
                                        readonly="state in ('done', 'not_repairable')"/>
                             </page>
 
-                            <!-- Spare parts are the cost-tracking flow for hardware/software
-                                 repaired IN-HOUSE only - general repairs and vendor repairs
-                                 use the Repair Cost &amp; Vendor group above instead. -->
+                            <!-- Spare parts are the cost-tracking flow for Internal Team
+                                 repairs of any issue type (this model's own assets are always
+                                 non-IT / is_general_asset, so issue_type == 'general' is the
+                                 NORMAL case here, not an exception - it used to be excluded by
+                                 mistake, which hid this page for almost every real repair).
+                                 A line can be a storable spare part OR a service/labour
+                                 product - see repair.spare.part.product_id's own comment. -->
                             <page string="Spare Parts" name="spare_parts"
-                                  invisible="state not in ['in_progress','done'] or issue_type == 'general' or repair_mode != 'in_house'">
+                                  invisible="state not in ['in_progress','done'] or repair_mode != 'in_house'">
                                 <field name="spare_part_ids" widget="section_and_note_one2many">
                                     <list editable="bottom">
                                         <field name="product_id" string="Product" required="1"/>

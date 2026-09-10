@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_iot_alert_rule_list" model="ir.ui.view">
+        <field name="name">iot.alert.rule.list</field>
+        <field name="model">iot.alert.rule</field>
+        <field name="arch" type="xml">
+            <list string="IoT Alert Rules">
+                <field name="name"/>
+                <field name="device_id" optional="show"/>
+                <field name="min_temperature"/>
+                <field name="mail_to"/>
+                <field name="cooldown_minutes" optional="hide"/>
+                <field name="trigger_count" optional="show"/>
+                <field name="last_triggered_date" optional="show"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_iot_alert_rule_form" model="ir.ui.view">
+        <field name="name">iot.alert.rule.form</field>
+        <field name="model">iot.alert.rule</field>
+        <field name="arch" type="xml">
+            <form string="IoT Alert Rule">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="e.g. Fridge Too Warm"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Condition">
+                            <field name="device_id" placeholder="Leave blank for every device"/>
+                            <field name="min_temperature"/>
+                        </group>
+                        <group string="Notification">
+                            <field name="mail_to" placeholder="ops@example.com, manager@example.com"/>
+                            <field name="cooldown_minutes"/>
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+                    <group string="Status" invisible="not last_triggered_date">
+                        <field name="trigger_count" readonly="1"/>
+                        <field name="last_triggered_date" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_iot_alert_rule" model="ir.actions.act_window">
+        <field name="name">Alert Rules</field>
+        <field name="res_model">iot.alert.rule</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No alert rules configured
+            </p>
+            <p>
+                Set a minimum temperature - any reading below it emails the
+                addresses you configure here.
+            </p>
+        </field>
+    </record>
+
+</odoo>

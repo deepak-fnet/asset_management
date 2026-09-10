@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="iot_integration.IotDashboard">
+    <div class="o_iot_dashboard">
+
+        <div class="oiot-header">
+            <div>
+                <h1>IoT Dashboard</h1>
+                <span class="oiot-sub">Sensor readings, door activity and temperature alerts</span>
+            </div>
+            <div class="oiot-header-actions">
+                <button class="btn btn-secondary" t-on-click="onRefresh">
+                    <i class="fa fa-refresh"/> Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="oiot-filters">
+            <div class="oiot-filter">
+                <label>Device</label>
+                <select t-on-change="(ev) => this.onFilterChange('device_id', ev)">
+                    <option value="">All devices</option>
+                    <t t-foreach="state.devices" t-as="d" t-key="d">
+                        <option t-att-value="d" t-esc="d"/>
+                    </t>
+                </select>
+            </div>
+            <div class="oiot-filter">
+                <label>From</label>
+                <input type="date" t-on-change="(ev) => this.onFilterChange('date_from', ev)"/>
+            </div>
+            <div class="oiot-filter">
+                <label>To</label>
+                <input type="date" t-on-change="(ev) => this.onFilterChange('date_to', ev)"/>
+            </div>
+            <div class="oiot-filter-actions">
+                <button class="btn btn-primary" t-on-click="onApply">Apply</button>
+                <button class="btn btn-secondary" t-on-click="onClear">Clear</button>
+            </div>
+        </div>
+
+        <div t-if="state.loading" class="oiot-loading">
+            <i class="fa fa-spinner fa-spin"/> Loading...
+        </div>
+
+        <t t-else="">
+            <!-- KPI cards -->
+            <div class="oiot-kpi-row">
+                <div class="oiot-kpi oiot-clickable" t-on-click="openIotData">
+                    <div class="oiot-kpi-label">Total Readings</div>
+                    <div class="oiot-kpi-num" t-esc="state.kpis.total_readings"/>
+                </div>
+                <div class="oiot-kpi oiot-clickable" t-on-click="openDoorEvents">
+                    <div class="oiot-kpi-label">Door Opened</div>
+                    <div class="oiot-kpi-num" t-esc="state.kpis.door_open_count"/>
+                </div>
+                <div class="oiot-kpi">
+                    <div class="oiot-kpi-label">Latest Temperature</div>
+                    <div class="oiot-kpi-num">
+                        <t t-if="state.kpis.latest_temperature or state.kpis.latest_temperature === 0">
+                            <t t-esc="state.kpis.latest_temperature.toFixed(1)"/>°C
+                        </t>
+                        <t t-else="">—</t>
+                    </div>
+                    <div class="oiot-kpi-worth" t-if="state.kpis.latest_device">
+                        <t t-esc="state.kpis.latest_device"/>
+                    </div>
+                </div>
+                <div class="oiot-kpi oiot-clickable" t-on-click="openAlertRecords">
+                    <div class="oiot-kpi-label">Alert Readings</div>
+                    <div class="oiot-kpi-num" t-esc="state.kpis.alert_count"/>
+                </div>
+                <div class="oiot-kpi oiot-clickable" t-on-click="openAlertRules">
+                    <div class="oiot-kpi-label">Alert Rules</div>
+                    <div class="oiot-kpi-num">
+                        <t t-esc="state.kpis.active_rules"/><span class="oiot-kpi-worth">/<t t-esc="state.kpis.total_rules"/> active</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Temperature trend -->
+            <div class="oiot-section-label">Temperature Trend</div>
+            <div class="oiot-card">
+                <span class="oiot-card-sub">Most recent readings for the selected filter</span>
+                <div class="oiot-chart-box">
+                    <canvas t-ref="temperatureChart"/>
+                </div>
+            </div>
+
+            <!-- Door events -->
+            <div class="oiot-section-label">Recent Door Open Events</div>
+            <div class="oiot-card">
+                <table class="oiot-events-table" t-if="state.door_events.length">
+                    <thead>
+                        <tr>
+                            <th>Device</th>
+                            <th>Received On</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="state.door_events" t-as="ev" t-key="ev_index">
+                            <tr>
+                                <td><t t-esc="ev.device_id"/></td>
+                                <td><t t-esc="ev.received_date"/></td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+                <div class="oiot-empty-msg" t-else="">No door-open events for this filter</div>
+            </div>
+        </t>
+
+    </div>
+</t>
+
+</templates>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="portal_ticket_form" name="Submit a Support Ticket">
+        <t t-call="website.layout">
+            <div class="o_ticket_hero">
+                <div class="container py-5 text-center">
+                    <div class="o_ticket_hero_icon mb-3">
+                        <i class="fa fa-life-ring"/>
+                    </div>
+                    <h1 class="text-white mb-2">Need a hand with something?</h1>
+                    <p class="text-white-50 mb-0 o_ticket_hero_sub">
+                        Tell us what's wrong - our team takes it from here.
+                    </p>
+                </div>
+            </div>
+
+            <div class="container o_ticket_form_page">
+                <div class="row justify-content-center">
+                    <div class="col-lg-7">
+                        <div class="card o_ticket_form_card shadow border-0">
+                            <div class="card-body p-4 p-md-5">
+
+                                <div class="o_ticket_identity d-flex align-items-center gap-3 mb-4 pb-4">
+                                    <div class="o_ticket_avatar">
+                                        <t t-esc="(current_user.name or '?')[0].upper()"/>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted small text-uppercase fw-bold" style="letter-spacing: .04em;">Submitting as</div>
+                                        <div class="fw-bold" t-esc="current_user.name"/>
+                                        <div class="text-muted small" t-esc="current_user.partner_id.email or current_user.login"/>
+                                    </div>
+                                </div>
+
+                                <div t-if="error" class="alert alert-danger d-flex align-items-center gap-2" role="alert">
+                                    <i class="fa fa-exclamation-circle"/>
+                                    <span t-esc="error"/>
+                                </div>
+
+                                <form action="/helpdesk/submit" method="post" class="o_ticket_form">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                                    <div class="mb-4">
+                                        <label class="form-label" for="subject">
+                                            <i class="fa fa-pencil o_ticket_label_icon"/> Subject <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" class="form-control form-control-lg" id="subject"
+                                               name="subject" required="required" maxlength="200"
+                                               t-att-value="values.get('subject')"
+                                               placeholder="e.g. Chair's hydraulic lift stopped working"/>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label class="form-label" for="asset_code">
+                                            <i class="fa fa-tag o_ticket_label_icon"/> Asset Code
+                                            <span class="text-muted fw-normal">(optional)</span>
+                                        </label>
+                                        <input type="text" class="form-control form-control-lg text-uppercase" id="asset_code"
+                                               name="asset_code" maxlength="50" autocomplete="off"
+                                               t-att-value="values.get('asset_code')"
+                                               placeholder="e.g. FN-LP-001"/>
+                                        <div class="form-text">
+                                            <i class="fa fa-info-circle me-1"/>
+                                            Check the tag on the asset - leave blank if this isn't about a specific one.
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label class="form-label" for="notes">
+                                            <i class="fa fa-align-left o_ticket_label_icon"/> Describe the issue <span class="text-danger">*</span>
+                                        </label>
+                                        <textarea class="form-control" id="notes" name="notes" rows="5" required="required"
+                                                  maxlength="4000"
+                                                  placeholder="What's happening? When did it start?"
+                                                  ><t t-out="values.get('notes')"/></textarea>
+                                        <div class="form-text text-end">
+                                            <span id="o_ticket_notes_count">0</span>/4000
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary btn-lg w-100 o_ticket_submit_btn">
+                                        <span class="o_btn_label"><i class="fa fa-paper-plane me-2"/>Submit Ticket</span>
+                                        <span class="o_btn_spinner spinner-border spinner-border-sm ms-2" role="status" aria-hidden="true" style="display: none;"/>
+                                    </button>
+
+                                    <p class="text-muted text-center small mt-3 mb-0">
+                                        <i class="fa fa-shield me-1"/>
+                                        We'll classify and route this to the right team - you don't need to.
+                                    </p>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="portal_ticket_success" name="Ticket Submitted">
+        <t t-call="website.layout">
+            <div class="o_ticket_hero o_ticket_hero_success">
+                <div class="container py-5 text-center">
+                    <div class="o_ticket_hero_icon mb-3">
+                        <i class="fa fa-check"/>
+                    </div>
+                    <h1 class="text-white mb-2">Ticket received</h1>
+                </div>
+            </div>
+            <div class="container o_ticket_form_page">
+                <div class="row justify-content-center">
+                    <div class="col-lg-6 text-center">
+                        <div class="card shadow border-0">
+                            <div class="card-body p-5">
+                                <p class="text-muted mb-1">Your reference number</p>
+                                <h2 class="o_ticket_number mb-3" t-esc="ticket.ticket_number"/>
+                                <p class="text-muted">
+                                    We've emailed a confirmation to
+                                    <strong t-esc="ticket.email or ticket.customer_id.email"/>.
+                                    Our team will pick this up shortly.
+                                </p>
+                                <a href="/helpdesk/submit" class="btn btn-outline-primary mt-2">
+                                    <i class="fa fa-plus me-1"/> Submit Another Ticket
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>

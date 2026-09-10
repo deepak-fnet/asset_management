@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="mail_template_ticket_confirmation" model="mail.template">
+            <field name="name">Helpdesk: Ticket Confirmation</field>
+            <field name="model_id" ref="model_asset_helpdesk"/>
+            <field name="subject">Ticket {{ object.ticket_number }} received: {{ object.subject }}</field>
+            <field name="email_to">{{ object.email or object.customer_id.email }}</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
+                <div style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; color: #333;">
+                    <table style="max-width: 560px; margin: 0 auto;" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td style="padding: 24px 0;">
+                                <h2 style="margin: 0 0 4px; color: #1a1a1a;">We've got your ticket</h2>
+                                <p style="margin: 0; color: #6b7280; font-size: 13px;">
+                                    Reference <strong t-out="object.ticket_number"/>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding-bottom: 16px;">
+                                Hello <t t-out="object.customer_id.name or 'there'"/>,
+                                <br/><br/>
+                                Thanks for letting us know. Your support ticket has been logged and
+                                our team will pick it up shortly.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                                    <tr>
+                                        <td style="padding: 8px 12px; background: #f8fafc; border: 1px solid #e5e7eb; color: #6b7280; width: 40%;">Ticket Number</td>
+                                        <td style="padding: 8px 12px; border: 1px solid #e5e7eb;"><strong t-out="object.ticket_number"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px 12px; background: #f8fafc; border: 1px solid #e5e7eb; color: #6b7280;">Subject</td>
+                                        <td style="padding: 8px 12px; border: 1px solid #e5e7eb;" t-out="object.subject"/>
+                                    </tr>
+                                    <tr t-if="object.category_id">
+                                        <td style="padding: 8px 12px; background: #f8fafc; border: 1px solid #e5e7eb; color: #6b7280;">Category</td>
+                                        <td style="padding: 8px 12px; border: 1px solid #e5e7eb;" t-out="object.category_id.name"/>
+                                    </tr>
+                                    <tr t-if="object.asset_id">
+                                        <td style="padding: 8px 12px; background: #f8fafc; border: 1px solid #e5e7eb; color: #6b7280;">Asset</td>
+                                        <td style="padding: 8px 12px; border: 1px solid #e5e7eb;" t-out="object.asset_id.asset_name"/>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px 12px; background: #f8fafc; border: 1px solid #e5e7eb; color: #6b7280;">Priority</td>
+                                        <td style="padding: 8px 12px; border: 1px solid #e5e7eb;" t-out="dict(object._fields['priority'].selection).get(object.priority)"/>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px 12px; background: #f8fafc; border: 1px solid #e5e7eb; color: #6b7280;">Status</td>
+                                        <td style="padding: 8px 12px; border: 1px solid #e5e7eb;">Open</td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding-top: 20px; color: #6b7280; font-size: 12px;">
+                                Please keep this ticket number for reference. Thank you.
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </field>
+        </record>
+    </data>
+</odoo>

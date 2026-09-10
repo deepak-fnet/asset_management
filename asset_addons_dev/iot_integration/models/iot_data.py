@@ -49,4 +49,12 @@ class IotData(models.Model):
         }
         record = self.create(vals)
         _logger.info('IoT data received from device %s: %s', vals['device_id'], vals)
+        try:
+            self.env['iot.alert.rule']._check_and_notify(record)
+        except Exception:
+            # An alert-rule problem (bad recipient list, mail server down)
+            # must never take the ingestion endpoint down with it.
+            _logger.exception(
+                'IoT alert check failed for device %s - reading was still saved.',
+                vals['device_id'])
         return record

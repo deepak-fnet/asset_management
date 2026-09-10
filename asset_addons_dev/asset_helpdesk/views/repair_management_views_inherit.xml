@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ==========================================
+         REPAIR MANAGEMENT - Team field for Internal Team repairs
+         team_id/team_member_ids only exist once this module is installed
+         (asset.helpdesk.team lives here, not in asset_management) - hence
+         this inherited view rather than editing the base one directly.
+         ========================================== -->
+    <record id="view_repair_management_form_inherit_helpdesk" model="ir.ui.view">
+        <field name="name">repair.management.form.inherit.helpdesk</field>
+        <field name="model">repair.management</field>
+        <field name="inherit_id" ref="asset_management.view_repair_management_form"/>
+        <field name="arch" type="xml">
+            <field name="engineer_id" position="before">
+                <field name="team_id"
+                       invisible="repair_mode != 'in_house'"
+                       readonly="state in ('done', 'not_repairable')"/>
+                <field name="team_member_ids" invisible="1"/>
+            </field>
+            <field name="engineer_id" position="attributes">
+                <attribute name="domain">[('user_id', 'in', team_member_ids)] if team_id else []</attribute>
+            </field>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,97 @@
+/* Explicit height + overflow so this scrolls on its own regardless of what
+   the ancestor client-action wrapper chain does - the same fix that was
+   needed for the All Asset Dashboard elsewhere in this codebase, applied
+   here from the start instead of after the fact. */
+.o_iot_dashboard {
+    height: 100%;
+    overflow-y: auto;
+    padding: 24px 28px 60px;
+    background: var(--o-view-background-color, #fff);
+    color: var(--o-main-text-color, #1e293b);
+}
+
+.o_iot_dashboard .oiot-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+.o_iot_dashboard .oiot-header h1 { margin: 0; font-size: 22px; font-weight: 700; }
+.o_iot_dashboard .oiot-sub { color: #6b7280; font-size: 13px; }
+
+.o_iot_dashboard .oiot-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: flex-end;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 22px;
+    background: #fafafa;
+}
+.o_iot_dashboard .oiot-filter { display: flex; flex-direction: column; gap: 4px; }
+.o_iot_dashboard .oiot-filter label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
+    color: #6b7280; font-weight: 600;
+}
+.o_iot_dashboard .oiot-filter select,
+.o_iot_dashboard .oiot-filter input {
+    padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px;
+    min-width: 150px; font-size: 13px; background: #fff;
+}
+.o_iot_dashboard .oiot-filter-actions { display: flex; gap: 8px; margin-left: auto; }
+
+.o_iot_dashboard .oiot-loading {
+    text-align: center; padding: 70px 20px; color: #6b7280;
+}
+
+.o_iot_dashboard .oiot-kpi-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    margin-bottom: 22px;
+}
+.o_iot_dashboard .oiot-kpi {
+    border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 18px;
+    background: #fff;
+}
+.o_iot_dashboard .oiot-kpi-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
+    color: #6b7280; font-weight: 600; margin-bottom: 6px;
+}
+.o_iot_dashboard .oiot-kpi-num { font-size: 26px; font-weight: 700; line-height: 1.1; }
+.o_iot_dashboard .oiot-kpi-worth { color: #6b7280; font-size: 12px; margin-top: 4px; }
+.o_iot_dashboard .oiot-clickable { cursor: pointer; }
+.o_iot_dashboard .oiot-clickable:hover { border-color: #2c7be5; }
+
+.o_iot_dashboard .oiot-section-label {
+    font-size: 12px; text-transform: uppercase; letter-spacing: .05em;
+    color: #6b7280; font-weight: 700; margin: 22px 0 10px;
+}
+
+.o_iot_dashboard .oiot-card {
+    border: 1px solid #e5e7eb; border-radius: 8px; padding: 18px;
+    background: #fff; margin-bottom: 18px;
+}
+.o_iot_dashboard .oiot-card-sub { color: #6b7280; font-size: 12px; }
+
+.o_iot_dashboard .oiot-chart-box { position: relative; height: 260px; margin-top: 10px; }
+
+.o_iot_dashboard .oiot-events-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.o_iot_dashboard .oiot-events-table th {
+    text-align: left; font-size: 11px; text-transform: uppercase;
+    color: #6b7280; padding: 6px 8px; border-bottom: 1px solid #e5e7eb;
+}
+.o_iot_dashboard .oiot-events-table td { padding: 8px; border-bottom: 1px solid #f3f4f6; }
+
+.o_iot_dashboard .oiot-empty-msg {
+    color: #9ca3af; font-size: 13px; padding: 20px 0; text-align: center;
+}
+
+@media (max-width: 1200px) {
+    .o_iot_dashboard .oiot-kpi-row { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 700px) {
+    .o_iot_dashboard .oiot-kpi-row { grid-template-columns: repeat(2, 1fr); }
+}

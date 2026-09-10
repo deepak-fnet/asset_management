@@ -1,0 +1,135 @@
+/* ── Hero band ──────────────────────────────────────────────────────── */
+.o_ticket_hero {
+    background: linear-gradient(135deg, #714b67 0%, #4b3049 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.o_ticket_hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 15% 25%, rgba(255, 255, 255, 0.08) 0%, transparent 45%),
+                       radial-gradient(circle at 85% 75%, rgba(255, 255, 255, 0.06) 0%, transparent 45%);
+}
+
+.o_ticket_hero_success {
+    background: linear-gradient(135deg, #17a06d 0%, #0d5c3f 100%);
+}
+
+.o_ticket_hero_icon {
+    position: relative;
+    z-index: 1;
+    width: 64px;
+    height: 64px;
+    line-height: 64px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    display: inline-block;
+    font-size: 1.6rem;
+    color: #fff;
+}
+
+.o_ticket_hero h1 {
+    position: relative;
+    z-index: 1;
+    font-weight: 700;
+}
+
+.o_ticket_hero_sub {
+    position: relative;
+    z-index: 1;
+}
+
+/* ── Form card ───────────────────────────────────────────────────────── */
+.o_ticket_form_page {
+    margin-top: -48px;
+    padding-bottom: 4rem;
+    position: relative;
+    z-index: 2;
+}
+
+.o_ticket_form_card {
+    border-radius: 16px;
+}
+
+.o_ticket_identity {
+    border-bottom: 1px solid #edeef0;
+}
+
+.o_ticket_avatar {
+    flex: 0 0 auto;
+    width: 48px;
+    height: 48px;
+    line-height: 48px;
+    text-align: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #714b67, #9c6b91);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.o_ticket_label_icon {
+    color: #714b67;
+    width: 1.1rem;
+    text-align: center;
+    margin-right: 2px;
+}
+
+.o_ticket_form_card .form-label {
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: #32363e;
+    margin-bottom: 0.4rem;
+}
+
+.o_ticket_form_card .form-control {
+    border-radius: 10px;
+    border-color: #dfe3e8;
+    padding: 0.65rem 0.9rem;
+}
+
+.o_ticket_form_card .form-control:focus {
+    border-color: #714b67;
+    box-shadow: 0 0 0 0.2rem rgba(113, 75, 103, 0.15);
+}
+
+.o_ticket_form_card textarea.form-control {
+    resize: vertical;
+}
+
+.o_ticket_submit_btn {
+    border-radius: 10px;
+    font-weight: 600;
+    padding: 0.85rem 1rem;
+    background: linear-gradient(135deg, #714b67, #5b3b54);
+    border: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.o_ticket_submit_btn:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(113, 75, 103, 0.35);
+}
+
+.o_ticket_submit_btn:disabled {
+    opacity: 0.75;
+    cursor: wait;
+}
+
+/* ── Success page ───────────────────────────────────────────────────── */
+.o_ticket_number {
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: #17a06d;
+}
+
+@media (max-width: 767px) {
+    .o_ticket_form_card .card-body {
+        padding: 1.5rem !important;
+    }
+    .o_ticket_hero h1 {
+        font-size: 1.6rem;
+    }
+}

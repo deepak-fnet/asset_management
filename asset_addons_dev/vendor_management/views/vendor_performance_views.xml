@@ -148,7 +148,7 @@
         <field name="name">vendor.performance.overview.list</field>
         <field name="model">vendor.performance.overview</field>
         <field name="arch" type="xml">
-            <list string="Performance Overview (Transactions)" create="false">
+            <list string="Performance Overview (Transactions)">
                 <field name="vendor_id"/>
                 <field name="purchase_id"/>
                 <field name="performance_overview_score" widget="progressbar"/>
@@ -161,7 +161,7 @@
         <field name="name">vendor.performance.overview.form</field>
         <field name="model">vendor.performance.overview</field>
         <field name="arch" type="xml">
-            <form string="Transaction Performance Rating" create="false" edit="false">
+            <form string="Transaction Performance Rating">
                 <sheet>
                     <!-- Section A: Header Card -->
                     <div class="vendor-performance-header">

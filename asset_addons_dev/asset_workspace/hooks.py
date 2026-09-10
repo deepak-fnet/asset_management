@@ -172,6 +172,11 @@ OPTIONAL_MENUS = [
 
     # ── IoT Integration - iot_integration is not a hard dependency ───────
     (
+        'menu_ws_iot_dashboard',
+        ['iot_integration.action_iot_dashboard'],
+        'IoT Dashboard', 'asset_workspace.menu_ws_iot', 5,
+    ),
+    (
         'menu_ws_iot_data',
         ['iot_integration.action_iot_data'],
         'IoT Data', 'asset_workspace.menu_ws_iot', 10,
@@ -180,6 +185,11 @@ OPTIONAL_MENUS = [
         'menu_ws_iot_template',
         ['iot_integration.action_iot_template'],
         'IoT JSON Template', 'asset_workspace.menu_ws_iot', 20,
+    ),
+    (
+        'menu_ws_iot_alert_rule',
+        ['iot_integration.action_iot_alert_rule'],
+        'IoT Alert Rules', 'asset_workspace.menu_ws_iot', 30,
     ),
 
     # ── general_asset configuration, merged into the workspace's own ─────

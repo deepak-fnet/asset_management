@@ -44,15 +44,15 @@
                                    decoration-danger="priority == 'critical'"/>
                         </group>
 
-                        <!-- Row 2: Team is picked FIRST - Assigned To's choices
-                             are limited to that team's members below. -->
+                        <!-- Row 2 -->
                         <group>
                             <field name="ticket_type_id"/>
-                            <field name="team_id"/>
                         </group>
 
-                        <!-- Row 3 -->
+                        <!-- Row 3: Team is picked FIRST, directly above Assigned To -
+                             its choices are limited to that team's members. -->
                         <group>
+                            <field name="team_id"/>
                             <field name="assigned_to_id"
                                    domain="[('id', 'in', team_member_ids)]"/>
                             <field name="team_member_ids" invisible="1"/>
@@ -61,13 +61,26 @@
                         <!-- Row 4 -->
                         <group>
                             <field name="category_id"/>
-                            <field name="asset_id" domain="[('is_general_asset', '=', True)]"/>
+                            <field name="asset_id"
+                                   domain="[('is_general_asset', '=', True), ('state', 'in', ['draft', 'submit', 'assigned']), ('asset_list_id', '!=', False)]"/>
                         </group>
 
                         <group>
                             <field name="repair_id" invisible="1"/>
                             <field name="is_repair_flow" invisible="1"/>
                             <field name="is_general" invisible="1"/>
+                        </group>
+                    </group>
+
+                    <group string="Requester / Contact Details">
+                        <group>
+                            <field name="customer_id"/>
+                            <field name="department_id"/>
+                        </group>
+                        <group>
+                            <field name="email"/>
+                            <field name="phone"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                     </group>
                     <notebook>

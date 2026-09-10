@@ -431,6 +431,38 @@ class AssetAsset(models.Model):
             },
         }
 
+    def action_create_win11_upgrade_request(self):
+        """Open a new OS upgrade request pre-filled for Windows 10 -> 11.
+
+        Unlike the Linux path, there is no "next release" to detect - it is
+        always just "11". What actually gates this is win11_status, which
+        needs the agent's TPM/Secure Boot/UEFI scan (win11_check.py) to ever
+        reach 'eligible' - action_approve() re-checks this before letting
+        the request move to Approved, so a stale/unscanned asset cannot be
+        approved by mistake even if this button was clicked anyway.
+        """
+        self.ensure_one()
+        if self.win11_status != 'eligible':
+            raise UserError(_(
+                "This asset is not confirmed eligible for Windows 11 (status: "
+                "%s). Deploy the agent's Windows 11 eligibility check "
+                "(TPM/Secure Boot/UEFI) first - without it this can never "
+                "be approved."
+            ) % dict(self._fields['win11_status'].selection).get(
+                self.win11_status, self.win11_status))
+        return {
+            'name': _('Windows 11 Upgrade Request'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'asset.os.upgrade.request',
+            'view_mode': 'form',
+            'target': 'current',
+            'context': {
+                'default_asset_id': self.id,
+                'default_target_version': 'Windows 11',
+                'default_target_codename': '11',
+            },
+        }
+
     # ── Lifecycle process counts & smart buttons ──────────────────────────
 
     assign_process_count = fields.Integer(

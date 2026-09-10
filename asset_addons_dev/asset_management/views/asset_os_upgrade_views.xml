@@ -120,7 +120,7 @@
 
     <!-- =====================================================
          INHERIT ASSET FORM VIEW - ADD OS UPGRADE TAB
-         Only visible for Linux assets (os_platform == 'linux')
+         Visible for Linux and Windows assets (os_platform)
          ===================================================== -->
     <record id="view_asset_asset_form_os_upgrade" model="ir.ui.view">
         <field name="name">asset.asset.form.os.upgrade</field>
@@ -130,11 +130,12 @@
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
                 <page string="OS Upgrade" name="os_upgrade"
-                      invisible="os_platform != 'linux'"
+                      invisible="os_platform not in ('linux', 'windows')"
                       groups="asset_management.group_asset_user">
+                    <!-- ═══════════ LINUX: distro release upgrade ═══════════ -->
                     <!-- Upgrade is actually being offered right now. -->
                     <div class="alert alert-success d-flex align-items-center gap-2"
-                         role="alert" invisible="not os_upgrade_available">
+                         role="alert" invisible="os_platform != 'linux' or not os_upgrade_available">
                         <i class="fa fa-arrow-circle-up fa-lg me-2"/>
                         <span>
                             <strong>Upgrade available:</strong>
@@ -149,7 +150,7 @@
                          this is the normal state for months after 26.04 ships. -->
                     <div class="alert alert-info d-flex align-items-center gap-2"
                          role="alert"
-                         invisible="os_upgrade_available or not os_upgrade_available_version">
+                         invisible="os_platform != 'linux' or os_upgrade_available or not os_upgrade_available_version">
                         <i class="fa fa-info-circle fa-lg me-2"/>
                         <span>
                             Next release known to this machine:
@@ -161,7 +162,7 @@
                         </span>
                     </div>
 
-                    <group>
+                    <group invisible="os_platform != 'linux'">
                         <group string="Current">
                             <field name="os_version" readonly="1"/>
                             <field name="os_codename" readonly="1"/>
@@ -178,9 +179,53 @@
                         </group>
                     </group>
                     <group string="Release Upgrader Output"
-                           invisible="not os_upgrade_check_output">
+                           invisible="os_platform != 'linux' or not os_upgrade_check_output">
                         <field name="os_upgrade_check_output" readonly="1" nolabel="1"/>
                     </group>
+
+                    <!-- ═══════════ WINDOWS: 10 -> 11 feature upgrade ═══════════ -->
+                    <div class="alert alert-success d-flex align-items-center gap-2"
+                         role="alert" invisible="os_platform != 'windows' or win11_status != 'eligible'">
+                        <i class="fa fa-arrow-circle-up fa-lg me-2"/>
+                        <span><strong>Eligible for Windows 11.</strong> Create an upgrade request below.</span>
+                    </div>
+                    <div class="alert alert-warning d-flex align-items-center gap-2"
+                         role="alert" invisible="os_platform != 'windows' or win11_status != 'blocked'">
+                        <i class="fa fa-exclamation-triangle fa-lg me-2"/>
+                        <span><strong>Blocked from Windows 11</strong> - see blockers below.</span>
+                    </div>
+                    <div class="alert alert-info d-flex align-items-center gap-2"
+                         role="alert" invisible="os_platform != 'windows' or win11_status != 'unknown'">
+                        <i class="fa fa-info-circle fa-lg me-2"/>
+                        <span>
+                            Not yet scanned - deploy the agent's Windows 11 eligibility
+                            check (TPM/Secure Boot/UEFI) to get a definitive answer.
+                        </span>
+                    </div>
+
+                    <group invisible="os_platform != 'windows'">
+                        <group string="Current">
+                            <field name="os_version" readonly="1"/>
+                        </group>
+                        <group string="Windows 11 Eligibility">
+                            <field name="win11_status" readonly="1"/>
+                            <field name="win11_data_source" readonly="1"/>
+                            <field name="win11_tpm_present" readonly="1"/>
+                            <field name="win11_tpm_version" readonly="1"/>
+                            <field name="win11_secure_boot" readonly="1"/>
+                            <field name="win11_uefi_mode" readonly="1"/>
+                            <field name="win11_reported_date" readonly="1"/>
+                            <button name="action_create_win11_upgrade_request" type="object"
+                                    string="Create Windows 11 Upgrade Request"
+                                    class="btn-primary"
+                                    invisible="win11_status != 'eligible'"/>
+                        </group>
+                    </group>
+                    <group string="Blockers"
+                           invisible="os_platform != 'windows' or not win11_blockers">
+                        <field name="win11_blockers" readonly="1" nolabel="1"/>
+                    </group>
+
                     <field name="os_upgrade_request_ids" context="{'default_asset_id': id}">
                         <list decoration-success="state == 'done'"
                               decoration-warning="state == 'in_progress'"

@@ -19,6 +19,17 @@
                 <field name="is_fixed_asset" optional="show"/>
             </xpath>
 
+            <!-- Once a receipt has been generated (incoming_picking_count
+                 > 0), the lines are locked - editing qty/product after
+                 physical receiving has started would silently desync what
+                 was ordered from what was actually received/billed. Amend
+                 via a new PO/backorder instead of rewriting this one.
+                 Combined with the base view's own condition (state ==
+                 'cancel' or locked), not replacing it. -->
+            <xpath expr="//field[@name='order_line']" position="attributes">
+                <attribute name="readonly">state == 'cancel' or locked or incoming_picking_count &gt; 0</attribute>
+            </xpath>
+
         </field>
     </record>
 

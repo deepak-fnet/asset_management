@@ -19,19 +19,26 @@ Features:
     'author': 'Your Company',
     'website': 'https://www.yourcompany.com',
     'license': 'LGPL-3',
-    'depends': ['base', 'mail','asset_management','stock'],
+    'depends': ['base', 'mail', 'asset_management', 'stock', 'website'],
     'data': [
         'security/ir.model.access.csv',
         'data/sequence.xml',
         'data/helpdesk_type_data.xml',
+        'data/mail_template_ticket_confirmation.xml',
         'views/helpdesk_team_views.xml',
         'views/helpdesk_config_views.xml',
         'views/helpdesk_views.xml',
+        'views/repair_management_views_inherit.xml',
+        'views/portal_ticket_form_templates.xml',
         'views/menu.xml',
     ],
     'assets': {
         'web.assets_backend': [
             'asset_helpdesk/static/src/css/asset_helpdesk_kanban.css',
+        ],
+        'web.assets_frontend': [
+            'asset_helpdesk/static/src/css/portal_ticket_form.css',
+            'asset_helpdesk/static/src/js/portal_ticket_form.js',
         ],
     },
     'installable': True,

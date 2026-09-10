@@ -18,6 +18,12 @@ class AssetHelpdeskCategory(models.Model):
              "electrical fixtures, plant equipment. Routes tickets in this "
              "category to issue_type='general' on the repair record, "
              "instead of hardware/software.")
+    default_team_id = fields.Many2one(
+        'asset.helpdesk.team', string='Default Team',
+        help="Team a ticket in this category is routed to when nobody picks "
+             "one explicitly - used by the public self-service ticket form, "
+             "where the submitter has no reason to know the team structure.",
+    )
 
     _sql_constraints = [
         ('name_uniq', 'unique(name)', 'Category name must be unique.'),

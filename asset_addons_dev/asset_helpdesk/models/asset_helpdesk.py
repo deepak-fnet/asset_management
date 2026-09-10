@@ -78,6 +78,23 @@ class AssetHelpdesk(models.Model):
     asset_id = fields.Many2one('asset.asset')
     notes = fields.Text()
 
+    # ── Requester / contact details ──────────────────────────────────────
+    customer_id = fields.Many2one('res.users', string='Customer', tracking=True)
+    email = fields.Char(string='Email')
+    phone = fields.Char(string='Phone')
+    department_id = fields.Many2one('hr.department', string='Department', tracking=True)
+    company_id = fields.Many2one(
+        'res.company', string='Company', default=lambda self: self.env.company,
+    )
+
+    @api.onchange('customer_id')
+    def _onchange_customer_id(self):
+        """Convenience prefill, not a lock - Department stays plain editable
+        so a ticket can still record a different one than whatever the
+        customer's employee record says, if that's ever needed."""
+        if self.customer_id.employee_id:
+            self.department_id = self.customer_id.employee_id.department_id
+
     @api.onchange('team_id')
     def _onchange_team_id(self):
         """Assigned To must belong to the selected Team - changing the team
@@ -127,6 +144,7 @@ class AssetHelpdesk(models.Model):
                         'engineer_id': rec.assigned_to_id.employee_id.id,
                         'asset_id': rec.asset_id.id,
                         'issue_type': issue_type,
+                        'team_id': rec.team_id.id,
                     })
                 rec.repair_id = repair_record.id
                 rec.state = 'in_progress'
@@ -139,6 +157,17 @@ class AssetHelpdesk(models.Model):
                 'target': 'current',
             }
 
+    def _send_portal_confirmation_email(self):
+        """Acknowledgement email for a ticket raised through the public
+        self-service form - confirms it was received and gives the
+        submitter the ticket number to reference later.
+        """
+        template = self.env.ref(
+            'asset_helpdesk.mail_template_ticket_confirmation',
+            raise_if_not_found=False)
+        for rec in self:
+            if template and (rec.email or rec.customer_id.email):
+                template.send_mail(rec.id, force_send=True)
 
     def write(self, vals):
         if 'state' in vals:
@@ -220,6 +249,46 @@ class AssetHelpdeskHistory(models.Model):
 class RepairManagement(models.Model):
     _inherit = 'repair.management'
 
+    # Only meaningful for Internal Team repairs - shown/used there so the
+    # engineer picker can be restricted to that team's own members. Lives
+    # here (not in asset_management) because asset.helpdesk.team is defined
+    # in THIS module - asset_management must not depend on asset_helpdesk.
+    team_id = fields.Many2one(
+        'asset.helpdesk.team', string='Team', tracking=True,
+        help="Restricts Assigned Engineer to this team's members. Carried "
+             "over automatically from the originating ticket when a repair "
+             "is created via Create Repair Management.",
+    )
+    # Not stored: exists only so the view can build a domain on engineer_id
+    # from it - same reason asset.helpdesk.team_member_ids exists (Odoo view
+    # domains cannot dot into a related record's own field directly).
+    team_member_ids = fields.Many2many(
+        'res.users', related='team_id.member_ids', string='Team Members',
+    )
+
+    @api.onchange('team_id')
+    def _onchange_team_id(self):
+        """Changing the team clears an engineer picked under the previous
+        one, instead of leaving a stale choice the new domain would
+        otherwise silently hide."""
+        if self.engineer_id and self.engineer_id.user_id not in self.team_id.member_ids:
+            self.engineer_id = False
+
+    @api.constrains('team_id', 'engineer_id')
+    def _check_engineer_is_team_member(self):
+        """The view domain on engineer_id is UI-only and bypassable (API,
+        import, dev tools) - this is the real guard. Only enforced once a
+        team is actually set - a repair with no team picked yet (or a
+        External Team repair, which has no use for this field) is not
+        constrained by it.
+        """
+        for rec in self:
+            if rec.team_id and rec.engineer_id \
+                    and rec.engineer_id.user_id not in rec.team_id.member_ids:
+                raise UserError(_(
+                    "%(engineer)s is not a member of %(team)s - assign "
+                    "someone from that team, or change the team first."
+                ) % {'engineer': rec.engineer_id.name, 'team': rec.team_id.name})
 
     def action_done(self):
         res = super().action_done()

@@ -21,9 +21,18 @@ periodically sends readings to an API endpoint. This module provides:
         'security/ir.model.access.csv',
         'views/iot_data_views.xml',
         'views/iot_template_views.xml',
+        'views/iot_alert_rule_views.xml',
+        'views/iot_dashboard_views.xml',
         'views/iot_menus.xml',
         'data/iot_template_demo.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'iot_integration/static/src/css/iot_dashboard.css',
+            'iot_integration/static/src/xml/iot_dashboard.xml',
+            'iot_integration/static/src/js/iot_dashboard.js',
+        ],
+    },
     'installable': True,
     'application': True,
     'license': 'LGPL-3',
