@@ -8,7 +8,9 @@
     "temperature": 4.5,
     "humidity": 38.0,
     "battery_level": 92,
-    "door_open": false
+    "door_open": false,
+    "latitude": 12.9716,
+    "longitude": 77.5946
 }</field>
     </record>
 </odoo>

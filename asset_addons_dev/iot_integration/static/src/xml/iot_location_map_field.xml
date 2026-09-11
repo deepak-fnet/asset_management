@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="iot_integration.LocationMapField">
+        <div class="o_iot_location_map">
+            <t t-if="hasLocation">
+                <iframe class="o_iot_location_map_iframe"
+                        t-att-src="embedUrl"
+                        loading="lazy"
+                        frameborder="0"/>
+                <a t-att-href="mapsLink" target="_blank" class="o_iot_location_map_link">
+                    Open in Google Maps
+                </a>
+            </t>
+            <t t-else="">
+                <div class="text-muted o_iot_location_map_empty">
+                    No location data for this reading.
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

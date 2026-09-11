@@ -11,6 +11,8 @@
                 <field name="battery_level"/>
                 <field name="door_open"/>
                 <field name="state"/>
+                <field name="latitude" optional="hide"/>
+                <field name="longitude" optional="hide"/>
                 <field name="received_date"/>
                 <field name="source_ip"/>
             </list>
@@ -38,6 +40,11 @@
                             <field name="door_open"/>
                         </group>
                     </group>
+                    <group string="Location">
+                        <field name="latitude"/>
+                        <field name="longitude"/>
+                    </group>
+                    <field name="latitude" widget="iot_location_map" nolabel="1"/>
                     <group string="Raw Payload">
                         <field name="raw_payload" nolabel="1"/>
                     </group>

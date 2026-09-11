@@ -17,6 +17,8 @@ class IotData(models.Model):
     humidity = fields.Float(string='Humidity (%)')
     battery_level = fields.Float(string='Battery Level (%)')
     door_open = fields.Boolean(string='Door Open')
+    latitude = fields.Float(string='Latitude', digits=(10, 7))
+    longitude = fields.Float(string='Longitude', digits=(10, 7))
     received_date = fields.Datetime(string='Received On', default=fields.Datetime.now, required=True)
     state = fields.Selection([
         ('normal', 'Normal'),
@@ -44,6 +46,8 @@ class IotData(models.Model):
             'humidity': payload.get('humidity'),
             'battery_level': payload.get('battery_level'),
             'door_open': bool(payload.get('door_open')),
+            'latitude': payload.get('latitude') or 0.0,
+            'longitude': payload.get('longitude') or 0.0,
             'raw_payload': str(payload),
             'source_ip': source_ip,
         }
