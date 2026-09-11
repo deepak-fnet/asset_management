@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_document_management_line_form" model="ir.ui.view">
+        <field name="name">document.management.line.form</field>
+        <field name="model">document.management.line</field>
+        <field name="arch" type="xml">
+            <form string="Upload File">
+                <field name="document_id" invisible="1"/>
+                <field name="rev_no" invisible="1"/>
+                <group>
+                    <field name="name" placeholder="e.g. Quality Certificate"/>
+                    <field name="file" filename="file_name"/>
+                    <field name="file_name" invisible="1"/>
+                    <field name="description" placeholder="Optional note about this file..."/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_document_management_line_kanban" model="ir.ui.view">
+        <field name="name">document.management.line.kanban</field>
+        <field name="model">document.management.line</field>
+        <field name="arch" type="xml">
+            <kanban create="0">
+                <field name="is_view"/>
+                <field name="is_download"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card p-3 rounded-3 border-0 shadow-sm">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div t-attf-class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0 #{
+                                        record.file_type.raw_value === 'PDF' ? 'bg-danger-subtle text-danger' :
+                                        record.file_type.raw_value === 'Image' ? 'bg-info-subtle text-info' :
+                                        (record.file_type.raw_value === 'XLS' || record.file_type.raw_value === 'XLSX') ? 'bg-success-subtle text-success' :
+                                        (record.file_type.raw_value === 'DOC' || record.file_type.raw_value === 'DOCX') ? 'bg-primary-subtle text-primary' :
+                                        'bg-secondary-subtle text-secondary'}"
+                                     style="width:52px;height:52px;">
+                                    <i t-attf-class="fa fa-lg #{
+                                            record.file_type.raw_value === 'PDF' ? 'fa-file-pdf-o' :
+                                            record.file_type.raw_value === 'Image' ? 'fa-file-image-o' :
+                                            (record.file_type.raw_value === 'XLS' || record.file_type.raw_value === 'XLSX') ? 'fa-file-excel-o' :
+                                            (record.file_type.raw_value === 'DOC' || record.file_type.raw_value === 'DOCX') ? 'fa-file-word-o' :
+                                            'fa-file-o'}"
+                                       title="File" role="img" aria-label="File"/>
+                                </div>
+                                <div class="flex-grow-1 min-width-0">
+                                    <strong class="o_kanban_record_title d-block text-truncate" style="font-size:14px;">
+                                        <field name="name"/>
+                                    </strong>
+                                    <div class="text-muted small text-truncate">
+                                        <field name="file_type"/> · <field name="upload_date"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button name="action_view_document" type="object"
+                                        class="btn btn-sm btn-outline-primary rounded-pill flex-grow-1"
+                                        invisible="not is_view">
+                                    <i class="fa fa-eye me-1"/>View
+                                </button>
+                                <button name="action_download" type="object"
+                                        class="btn btn-sm btn-outline-secondary rounded-pill flex-grow-1"
+                                        invisible="not is_download">
+                                    <i class="fa fa-download me-1"/>Download
+                                </button>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+</odoo>

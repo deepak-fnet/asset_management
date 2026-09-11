@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <record id="module_category_document_management" model="ir.module.category">
+            <field name="name">Document Management</field>
+            <field name="sequence">54</field>
+        </record>
+
+        <record id="res_groups_privilege_document_management" model="res.groups.privilege">
+            <field name="name">Document Management</field>
+            <field name="category_id" ref="module_category_document_management"/>
+        </record>
+
+        <record id="group_document_user" model="res.groups">
+            <field name="name">User</field>
+            <field name="privilege_id" ref="res_groups_privilege_document_management"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <record id="group_document_contributor" model="res.groups">
+            <field name="name">Contributor</field>
+            <field name="privilege_id" ref="res_groups_privilege_document_management"/>
+            <field name="implied_ids" eval="[(4, ref('group_document_user'))]"/>
+        </record>
+
+        <record id="group_document_manager" model="res.groups">
+            <field name="name">Manager</field>
+            <field name="privilege_id" ref="res_groups_privilege_document_management"/>
+            <field name="implied_ids" eval="[(4, ref('group_document_contributor'))]"/>
+        </record>
+
+        <!-- Kept on its OWN privilege record, deliberately not sharing
+             res_groups_privilege_document_management: groups sharing one
+             privilege render as a single mutually-exclusive dropdown in
+             Settings > Users, and Approver must be assignable independently
+             of the User/Contributor/Manager choice (someone can approve
+             without otherwise managing documents, or vice versa). -->
+        <record id="res_groups_privilege_document_approver" model="res.groups.privilege">
+            <field name="name">Document Management Approver</field>
+            <field name="category_id" ref="module_category_document_management"/>
+        </record>
+
+        <record id="group_document_approver" model="res.groups">
+            <field name="name">Approver</field>
+            <field name="privilege_id" ref="res_groups_privilege_document_approver"/>
+        </record>
+
+    </data>
+
+    <data noupdate="1">
+
+        <!-- document.management: owner or explicitly granted access; managers see all -->
+        <record id="rule_document_manager_all" model="ir.rule">
+            <field name="name">Document: Manager sees all</field>
+            <field name="model_id" ref="model_document_management"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_document_manager'))]"/>
+        </record>
+
+        <record id="rule_document_own_or_granted" model="ir.rule">
+            <field name="name">Document: Own or access granted</field>
+            <field name="model_id" ref="model_document_management"/>
+            <field name="domain_force">['|', ('owner_id', '=', user.id), ('access_ids.user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_document_user'))]"/>
+        </record>
+
+        <!-- document.management.line: same visibility as the parent document -->
+        <record id="rule_document_line_manager_all" model="ir.rule">
+            <field name="name">Document File: Manager sees all</field>
+            <field name="model_id" ref="model_document_management_line"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_document_manager'))]"/>
+        </record>
+
+        <record id="rule_document_line_own_or_granted" model="ir.rule">
+            <field name="name">Document File: Own or access granted</field>
+            <field name="model_id" ref="model_document_management_line"/>
+            <field name="domain_force">['|', ('document_id.owner_id', '=', user.id), ('document_id.access_ids.user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_document_user'))]"/>
+        </record>
+
+        <!-- document.management.access: same visibility as the parent document -->
+        <record id="rule_document_access_manager_all" model="ir.rule">
+            <field name="name">Document Access Line: Manager sees all</field>
+            <field name="model_id" ref="model_document_management_access"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_document_manager'))]"/>
+        </record>
+
+        <record id="rule_document_access_own_or_granted" model="ir.rule">
+            <field name="name">Document Access Line: Own document or granted</field>
+            <field name="model_id" ref="model_document_management_access"/>
+            <field name="domain_force">['|', ('document_id.owner_id', '=', user.id), ('user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_document_user'))]"/>
+        </record>
+
+        <!-- document.management.revision: same visibility as the parent document -->
+        <record id="rule_document_revision_manager_all" model="ir.rule">
+            <field name="name">Document Revision: Manager sees all</field>
+            <field name="model_id" ref="model_document_management_revision"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_document_manager'))]"/>
+        </record>
+
+        <record id="rule_document_revision_own_or_granted" model="ir.rule">
+            <field name="name">Document Revision: Own document or granted</field>
+            <field name="model_id" ref="model_document_management_revision"/>
+            <field name="domain_force">['|', ('document_id.owner_id', '=', user.id), ('document_id.access_ids.user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_document_user'))]"/>
+        </record>
+
+        <!-- document.management.revision.request: same visibility as the parent document, plus approvers -->
+        <record id="rule_document_revision_request_manager_all" model="ir.rule">
+            <field name="name">Revision Request: Manager sees all</field>
+            <field name="model_id" ref="model_document_management_revision_request"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_document_manager'))]"/>
+        </record>
+
+        <record id="rule_document_revision_request_approver_all" model="ir.rule">
+            <field name="name">Revision Request: Approver sees all</field>
+            <field name="model_id" ref="model_document_management_revision_request"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_document_approver'))]"/>
+        </record>
+
+        <record id="rule_document_revision_request_own_or_granted" model="ir.rule">
+            <field name="name">Revision Request: Own document or granted</field>
+            <field name="model_id" ref="model_document_management_revision_request"/>
+            <field name="domain_force">['|', ('document_id.owner_id', '=', user.id), ('document_id.access_ids.user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_document_user'))]"/>
+        </record>
+
+        <!-- document.management.revision.line: same visibility as its request's document, plus approvers -->
+        <record id="rule_document_revision_line_manager_all" model="ir.rule">
+            <field name="name">Revision Request Line: Manager sees all</field>
+            <field name="model_id" ref="model_document_management_revision_line"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_document_manager'))]"/>
+        </record>
+
+        <record id="rule_document_revision_line_approver_all" model="ir.rule">
+            <field name="name">Revision Request Line: Approver sees all</field>
+            <field name="model_id" ref="model_document_management_revision_line"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_document_approver'))]"/>
+        </record>
+
+        <record id="rule_document_revision_line_own_or_granted" model="ir.rule">
+            <field name="name">Revision Request Line: Own document or granted</field>
+            <field name="model_id" ref="model_document_management_revision_line"/>
+            <field name="domain_force">['|', ('request_id.document_id.owner_id', '=', user.id), ('request_id.document_id.access_ids.user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_document_user'))]"/>
+        </record>
+
+    </data>
+</odoo>

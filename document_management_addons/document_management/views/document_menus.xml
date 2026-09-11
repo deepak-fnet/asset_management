@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="menu_document_management_root"
+              name="Document Management"
+              sequence="60"/>
+
+    <menuitem id="menu_document_management_all"
+              name="Documents"
+              parent="menu_document_management_root"
+              action="action_document_management"
+              sequence="10"/>
+
+    <menuitem id="menu_document_revision_request"
+              name="Revision Requests"
+              parent="menu_document_management_root"
+              action="action_document_revision_request"
+              sequence="20"/>
+
+</odoo>

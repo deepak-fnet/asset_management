@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_document_revision_request_list" model="ir.ui.view">
+        <field name="name">document.management.revision.request.list</field>
+        <field name="model">document.management.revision.request</field>
+        <field name="arch" type="xml">
+            <list string="Revision Requests">
+                <field name="name"/>
+                <field name="document_id"/>
+                <field name="requested_by"/>
+                <field name="request_date"/>
+                <field name="cutoff_date"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'applied'"
+                       decoration-warning="state in ('draft', 'submitted', 'approved')"
+                       decoration-danger="state == 'rejected'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_document_revision_request_search" model="ir.ui.view">
+        <field name="name">document.management.revision.request.search</field>
+        <field name="model">document.management.revision.request</field>
+        <field name="arch" type="xml">
+            <search string="Search Revision Requests">
+                <field name="name"/>
+                <field name="document_id"/>
+                <field name="requested_by"/>
+                <filter string="My Requests" name="my_requests" domain="[('requested_by', '=', uid)]"/>
+                <filter string="Pending My Approval" name="pending_approval" domain="[('state', '=', 'submitted')]"/>
+                <separator/>
+                <filter string="Draft" name="filter_draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Submitted" name="filter_submitted" domain="[('state', '=', 'submitted')]"/>
+                <filter string="Approved" name="filter_approved" domain="[('state', '=', 'approved')]"/>
+                <filter string="Applied" name="filter_applied" domain="[('state', '=', 'applied')]"/>
+                <group>
+                    <filter string="Document" name="group_document" context="{'group_by': 'document_id'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_document_revision_request_form" model="ir.ui.view">
+        <field name="name">document.management.revision.request.form</field>
+        <field name="model">document.management.revision.request</field>
+        <field name="arch" type="xml">
+            <form string="Revision Request">
+                <header>
+                    <button name="action_submit" type="object" string="Submit for Approval"
+                            class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_approve" type="object" string="Approve"
+                            class="oe_highlight" invisible="state != 'submitted'"
+                            groups="document_management.group_document_approver"/>
+                    <button name="action_open_reject_wizard" type="object" string="Reject"
+                            invisible="state != 'submitted'"
+                            groups="document_management.group_document_approver"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state in ('applied', 'cancelled', 'rejected') or not can_manage_access"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved,applied"/>
+                </header>
+                <sheet>
+                    <field name="can_manage_access" invisible="1"/>
+                    <widget name="web_ribbon" title="Rejected" bg_color="text-bg-danger" invisible="state != 'rejected'"/>
+                    <widget name="web_ribbon" title="Cancelled" bg_color="text-bg-danger" invisible="state != 'cancelled'"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="document_id" readonly="state != 'draft'"/>
+                            <field name="requested_by" readonly="1"/>
+                            <field name="request_date" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="cutoff_date" readonly="state != 'draft'"/>
+                            <field name="approver_id" invisible="not approver_id"/>
+                            <field name="approved_date" invisible="not approved_date"/>
+                        </group>
+                    </group>
+                    <field name="reason" placeholder="Why is this revision needed?" readonly="state != 'draft'"/>
+                    <field name="rejection_reason" readonly="1" invisible="state != 'rejected'"/>
+                    <notebook>
+                        <page string="Changes" name="changes">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="document_id" column_invisible="1"/>
+                                    <field name="operation"/>
+                                    <field name="target_line_id" readonly="operation == 'add'"/>
+                                    <field name="name"/>
+                                    <field name="new_file" filename="new_file_name" readonly="operation == 'delete'"/>
+                                    <field name="new_file_name" column_invisible="1"/>
+                                    <field name="description"/>
+                                    <button name="action_view_old_file" type="object" icon="fa-eye"
+                                            title="View Existing File" invisible="not target_line_id"/>
+                                    <button name="action_view_new_file" type="object" icon="fa-eye-slash"
+                                            title="View New File" invisible="not new_file"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_document_revision_request" model="ir.actions.act_window">
+        <field name="name">Revision Requests</field>
+        <field name="res_model">document.management.revision.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_document_revision_request_search"/>
+        <field name="context">{'search_default_my_requests': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No revision requests yet
+            </p>
+            <p>
+                Raise one from a released document's "Create Revision" button.
+            </p>
+        </field>
+    </record>
+
+    <record id="view_document_revision_reject_wizard_form" model="ir.ui.view">
+        <field name="name">document.management.revision.reject.wizard.form</field>
+        <field name="model">document.management.revision.reject.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reject Revision Request">
+                <field name="request_id" invisible="1"/>
+                <group>
+                    <field name="reason" nolabel="1" placeholder="Explain why this revision request is being rejected..."/>
+                </group>
+                <footer>
+                    <button string="Reject" type="object" name="action_confirm" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>
