@@ -188,6 +188,7 @@ class AssetAuditLog(models.Model):
         ('location', 'Location Change'),
         ('hardware_change', 'Hardware Change'),
         ('software_change', 'Software Change'),
+        ('security', 'Security Event'),
     ], string='Log Type')
     action = fields.Selection([
         ('uninstall_request', 'Uninstall Request'),
@@ -196,6 +197,17 @@ class AssetAuditLog(models.Model):
         ('windows_update_lock', 'Windows Update Lock'),
         ('folder_lock', 'Folder Lock'),
         ('file_access_block', 'File Access Block'),
+        # Security events (log_type='security') - reported by the agent,
+        # not raised from within Odoo itself like the ones above.
+        ('user_login', 'User Login'),
+        ('user_logout', 'User Logout'),
+        ('failed_login', 'Failed Login Attempt'),
+        ('username_changed', 'Username Changed'),
+        ('password_changed', 'Password Changed'),
+        ('user_created', 'User Account Created'),
+        ('user_deleted', 'User Account Deleted'),
+        ('sudo_granted', 'Admin/Sudo Privilege Granted'),
+        ('file_lock_bypassed', 'Locked File/Folder Permissions Bypassed'),
     ], string='Action')
     old_value = fields.Char(string='Old Value')
     new_value = fields.Char(string='New Value')

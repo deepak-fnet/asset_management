@@ -43,6 +43,17 @@
                         </list>
                     </field>
                 </page>
+                <page string="Security Events">
+                    <field name="security_log_ids" readonly="1">
+                        <list decoration-danger="action in ('failed_login', 'file_lock_bypassed', 'sudo_granted')">
+                            <field name="timestamp"/>
+                            <field name="action" widget="badge"/>
+                            <field name="old_value"/>
+                            <field name="new_value"/>
+                            <field name="description"/>
+                        </list>
+                    </field>
+                </page>
                 <!-- File Access tab removed from here — now handled by
                      asset_file_access_views.xml (view_asset_form_file_access_inherit)
                      which uses the correct asset.file.access.record model -->

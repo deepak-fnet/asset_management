@@ -32,6 +32,13 @@ class AssetRemoteSession(models.Model):
                        default=lambda self: _("New"))
     asset_id = fields.Many2one("asset.asset", string="Asset", required=True,
                                ondelete="cascade", tracking=True)
+    session_type = fields.Selection(
+        [("screen", "Screen Share"), ("terminal", "SSH Terminal")],
+        default="screen", required=True, tracking=True,
+        help="Screen Share asks the user on the machine to Accept/Reject "
+             "first. SSH Terminal is IT-asset access to a company-owned "
+             "machine: it connects instantly, with no on-machine consent "
+             "step - see action_request_ssh_terminal().")
     serial_number = fields.Char(related="asset_id.serial_number", store=True,
                                 string="Serial Number")
     state = fields.Selection(STATE_SELECTION, default="requested",

@@ -545,11 +545,15 @@ class AssetAsset(models.Model):
         string="Assignment History"
     )
 
+    # Excludes hardware_change/software_change - those are high-volume,
+    # low-significance-per-row (every app install/update/remove on every
+    # sync writes one) and already have their own dedicated tabs below.
+    # Left in here too, this tab drowns the handful of things that actually
+    # matter (status/assignment/location/security) in that noise - this was
+    # sitting at ~1600 rows for a single asset before this filter.
     audit_log_ids = fields.One2many(
-        "asset.audit.log",
-        "asset_id",
-        string="Audit Logs"
-    )
+        "asset.audit.log", "asset_id", string="Audit Logs",
+        domain=[("log_type", "not in", ("hardware_change", "software_change"))])
 
     # Separate fields (not the same audit_log_ids reused twice with a
     # view-level domain per tab) - a domain= on an embedded x2many <field>
@@ -564,6 +568,9 @@ class AssetAsset(models.Model):
     software_change_log_ids = fields.One2many(
         "asset.audit.log", "asset_id", string="Software Changes",
         domain=[("log_type", "=", "software_change")])
+    security_log_ids = fields.One2many(
+        "asset.audit.log", "asset_id", string="Security Events",
+        domain=[("log_type", "=", "security")])
 
     # =====================
     # QR CODE
@@ -2820,6 +2827,24 @@ class AssetAsset(models.Model):
             'description': description,
         })
 
+    def _log_security_event(self, action, description, old_value=None, new_value=None):
+        """OS-level security event reported by the agent (login/logout,
+        account/password/sudo changes, a locked path's permissions getting
+        overridden) - log_type='security' keeps these out of the generic
+        Audit Log's hardware/software noise while still using the same
+        table, same as _log_asset_change() above does for inventory
+        changes. See controllers/asset_agent_api.py's /api/asset/security
+        route for where this gets called from."""
+        self.ensure_one()
+        self.env['asset.audit.log'].sudo().create({
+            'asset_id': self.id,
+            'log_type': 'security',
+            'action': action,
+            'old_value': str(old_value) if old_value not in (None, False) else False,
+            'new_value': str(new_value) if new_value not in (None, False) else False,
+            'description': description,
+        })
+
     def action_view_agent_logs(self):
         """Open agent logs for this asset"""
         self.ensure_one()
@@ -3061,6 +3086,25 @@ class AssetAsset(models.Model):
             _logger.info("[Housekeeping] Trimming %s old agent log(s)",
                          len(to_delete))
             to_delete.unlink()
+        return True
+
+    def cron_trim_audit_logs(self, days=180):
+        """Delete asset.audit.log rows older than `days`.
+
+        Same reasoning as cron_trim_agent_logs() above (one scheduled bulk
+        delete instead of the table growing unbounded), but age-based
+        rather than count-based: an audit/security trail is usually kept
+        for "the last N months", not "the last N rows" - a quiet asset
+        should not have its history cut short just because a noisy one
+        pushed the row count up.
+        """
+        cutoff = fields.Datetime.now() - timedelta(days=days)
+        AuditLog = self.env["asset.audit.log"].sudo()
+        stale = AuditLog.search([("date", "<", cutoff)])
+        if stale:
+            _logger.info("[Housekeeping] Trimming %s audit log row(s) older "
+                        "than %s days", len(stale), days)
+            stale.unlink()
         return True
 
     def _cron_reverse_geocode_missing_addresses(self):

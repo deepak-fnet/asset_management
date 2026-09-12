@@ -1083,6 +1083,61 @@ class AssetAgentAPIController(http.Controller):
                 headers=[('Content-Type', 'application/json')]
             )
 
+    @http.route('/api/asset/security/report', type='http', auth='public',
+                methods=['POST'], csrf=False)
+    def security_event_report(self, **kwargs):
+        """Agent reports an OS-level security event: login/logout, a failed
+        login, a username/password change, an account created/deleted, a
+        sudo/admin grant, or a locked path's permissions getting overridden
+        (e.g. `chmod 777` on something the file-access lock set to 000).
+
+        Deliberately one generic endpoint for all of these rather than one
+        route per event type: they share the same shape (which asset, which
+        of the fixed `action` values on asset.audit.log, what changed, a
+        human-readable description) and none of them need a bespoke
+        response - unlike e.g. /api/asset/locks/instructions, which returns
+        a policy the agent has to act on.
+        """
+        try:
+            payload = json.loads(request.httprequest.data or "{}")
+            serial_number = (payload.get("serial_number") or "").strip()
+            action = (payload.get("action") or "").strip()
+            description = payload.get("description") or ""
+            old_value = payload.get("old_value")
+            new_value = payload.get("new_value")
+
+            valid_actions = dict(
+                request.env["asset.audit.log"]._fields["action"].selection
+            )
+            if not serial_number or action not in valid_actions:
+                return request.make_response(
+                    json.dumps({"success": False,
+                               "message": "serial_number required and action "
+                                          "must be one of %s"
+                                          % list(valid_actions)}),
+                    headers=[('Content-Type', 'application/json')]
+                )
+
+            asset = request.env["asset.asset"].sudo().search(
+                [("serial_number", "=", serial_number)], limit=1)
+            if not asset:
+                return request.make_response(
+                    json.dumps({"success": False, "message": "Asset not found"}),
+                    headers=[('Content-Type', 'application/json')]
+                )
+
+            asset._log_security_event(action, description, old_value, new_value)
+            return request.make_response(
+                json.dumps({"success": True}),
+                headers=[('Content-Type', 'application/json')]
+            )
+        except Exception as e:
+            _logger.error(f"[SECURITY EVENT] Error: {e}", exc_info=True)
+            return request.make_response(
+                json.dumps({"success": False, "message": str(e)}),
+                headers=[('Content-Type', 'application/json')]
+            )
+
     # ========================================================================
     # FILE ACCESS POLICY API ENDPOINTS
     # ========================================================================

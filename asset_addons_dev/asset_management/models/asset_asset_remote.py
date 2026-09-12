@@ -3,6 +3,7 @@ from datetime import timedelta
 import secrets
 
 from odoo import fields, models, _
+from odoo.exceptions import UserError
 
 
 class AssetAssetRemote(models.Model):
@@ -88,6 +89,58 @@ class AssetAssetRemote(models.Model):
             "params": {"title": _("Remote Assistance"), "message": msg,
                        "type": mtype, "sticky": False},
         }
+
+    def action_request_ssh_terminal(self):
+        """Open an SSH terminal session on THIS asset and open the viewer
+        immediately - one click, one terminal tab.
+
+        Unlike action_request_remote(), this connects instantly: no
+        Accept/Reject dialog on the machine. This is IT-asset access to a
+        company-owned machine (gated by who can click this button in Odoo,
+        e.g. the Asset Manager group), not a screen-share into someone's
+        personal session, so the session starts life already 'accepted' -
+        the worker treats that exactly like a user who already said yes,
+        and connects straight to the relay. A form-view button acts on one
+        record at a time, so this does not support the bulk/list-view
+        multi-record pattern action_request_remote() does."""
+        self.ensure_one()
+        if not self.serial_number:
+            raise UserError(_(
+                "This asset has no serial number - the agent identifies "
+                "machines by serial, so there is nothing to connect to."))
+
+        Session = self.env["asset.remote.session"].sudo()
+        duration = int(self.env["ir.config_parameter"].sudo().get_param(
+            "asset_remote.default_minutes", "30") or 30)
+        now = fields.Datetime.now()
+
+        session = Session.search([
+            ("asset_id", "=", self.id),
+            ("session_type", "=", "terminal"),
+            ("state", "in", ("accepted", "agent_connected", "connected"))],
+            limit=1)
+        if not session:
+            session = Session.create({
+                "asset_id": self.id,
+                "session_type": "terminal",
+                "session_token": secrets.token_urlsafe(32),
+                "admin_user_id": self.env.user.id,
+                "duration_minutes": duration,
+                "requested_on": now,
+                "consent_on": now,
+                "expiry": now + timedelta(minutes=15),
+                "state": "accepted",
+            })
+            session._log("requested", note=_("SSH terminal requested (no "
+                                             "consent needed - IT asset)"))
+            session.message_post(body=_("SSH terminal requested by %s.")
+                                 % self.env.user.name)
+
+        # The page itself shows "connecting…" until the worker's next poll
+        # (~5s) joins the relay - no need to wait for agent_connected here.
+        return {"type": "ir.actions.act_url",
+                "url": "/asset_remote/viewer/%s" % session.session_token,
+                "target": "new"}
 
     def action_view_remote_sessions(self):
         self.ensure_one()

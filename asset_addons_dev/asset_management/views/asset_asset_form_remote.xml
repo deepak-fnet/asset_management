@@ -12,6 +12,9 @@
                         string="Connect Remote" class="btn-primary"
                         icon="fa-desktop"
                         confirm="Send a remote-assistance request to this machine? The user will be asked to accept on their screen."/>
+                <button name="action_request_ssh_terminal" type="object"
+                        string="SSH Connect" class="btn-secondary"
+                        icon="fa-terminal"/>
             </xpath>
             <!-- Smart button -->
             <xpath expr="//div[@name='button_box']" position="inside">

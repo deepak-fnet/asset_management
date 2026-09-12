@@ -1,0 +1,112 @@
+/* SSH Terminal viewer — same control-room surface as remote_viewer.css,
+   swapping the video canvas for a monospace terminal grid. */
+:root {
+  --ra-bg: #05070d;
+  --ra-panel: #0d1425;
+  --ra-line: #1c2942;
+  --ra-text: #e6ecf7;
+  --ra-mute: #7f92b3;
+  --ra-ok: #34d399;
+  --ra-warn: #fbbf24;
+  --ra-bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--ra-bg);
+  color: var(--ra-text);
+  font-family: "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#ra-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 16px;
+  height: 48px;
+  background: var(--ra-panel);
+  border-bottom: 1px solid var(--ra-line);
+  font-size: 13px;
+  flex: 0 0 auto;
+}
+.ra-spacer { flex: 1 1 auto; }
+#ra-title { font-weight: 600; letter-spacing: .2px; }
+#ra-status { color: var(--ra-mute); }
+
+.ra-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--ra-mute); flex: 0 0 auto;
+}
+.ra-dot.ra-ok   { background: var(--ra-ok);   box-shadow: 0 0 0 0 rgba(52,211,153,.6); animation: ra-pulse 2s infinite; }
+.ra-dot.ra-warn { background: var(--ra-warn); }
+.ra-dot.ra-bad  { background: var(--ra-bad); }
+@keyframes ra-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(52,211,153,.55); }
+  70%  { box-shadow: 0 0 0 7px rgba(52,211,153,0); }
+  100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+}
+
+.ra-btn {
+  background: #1b2740;
+  color: var(--ra-text);
+  border: 1px solid var(--ra-line);
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer;
+}
+.ra-btn:hover { background: #24345a; }
+.ra-danger { background: #7f1d1d; border-color: #b91c1c; }
+.ra-danger:hover { background: #b91c1c; }
+
+#ra-stage {
+  position: relative;
+  flex: 1 1 auto;
+  overflow: hidden;
+  background: #0a0e18;
+  padding: 10px;
+}
+#ra-term {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: auto;
+  white-space: pre;
+  font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  font-size: 14px;
+  line-height: 1.35;
+  color: #d7e2f3;
+  outline: none;
+  caret-color: #34d399;
+}
+#ra-term .fg30 { color: #444444; } #ra-term .fg31 { color: #e05561; }
+#ra-term .fg32 { color: #8cc265; } #ra-term .fg33 { color: #d2b67c; }
+#ra-term .fg34 { color: #4aa5f0; } #ra-term .fg35 { color: #c678dd; }
+#ra-term .fg36 { color: #42b3c2; } #ra-term .fg37 { color: #e6ecf7; }
+#ra-term .fg90 { color: #7f92b3; } #ra-term .fg91 { color: #ef7180; }
+#ra-term .fg92 { color: #a3d977; } #ra-term .fg93 { color: #e8cf8e; }
+#ra-term .fg94 { color: #6cb8f5; } #ra-term .fg95 { color: #d99bec; }
+#ra-term .fg96 { color: #6fd1e0; } #ra-term .fg97 { color: #ffffff; }
+#ra-term .bold { font-weight: 700; }
+
+#ra-overlay {
+  position: absolute; inset: 0;
+  display: grid; place-content: center; justify-items: center; gap: 16px;
+  background: rgba(5,7,13,.86);
+  color: var(--ra-mute);
+}
+#ra-overlay p { margin: 0; font-size: 14px; }
+.ra-spinner {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 3px solid var(--ra-line); border-top-color: #3b82f6;
+  animation: ra-spin 0.9s linear infinite;
+}
+@keyframes ra-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ra-dot.ra-ok { animation: none; }
+  .ra-spinner { animation-duration: 2.4s; }
+}

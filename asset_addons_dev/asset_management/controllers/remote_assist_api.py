@@ -49,6 +49,11 @@ class AssetRemoteController(http.Controller):
             "minutes": session.duration_minutes,
             "session": session.name,
             "state": session.state,
+            "session_type": session.session_type,
+            # Terminal sessions are created already 'accepted' (see
+            # action_request_ssh_terminal()) specifically so they never hit
+            # the consent branch here - "command" only ever comes back
+            # "consent" for a screen-share session still in 'requested'.
             "command": "consent" if session.state == "requested" else "connect",
         }
         return _json(payload)
@@ -107,6 +112,8 @@ class AssetRemoteController(http.Controller):
             return request.make_response(
                 _("You are not the administrator for this session."),
                 headers=[("Content-Type", "text/plain")])
+        if session.session_type == "terminal":
+            return _terminal_viewer_html(session)
         return _viewer_html(session)
 
 
@@ -139,6 +146,37 @@ def _viewer_html(session):
   </div>
   <div id="ra-stage">
     <canvas id="ra-canvas"></canvas>
+    <div id="ra-overlay"><div id="ra-overlay-text">Connecting…</div></div>
+  </div>
+  <script src="%(js)s"></script>
+</body></html>""" % vals
+    return request.make_response(html, headers=[("Content-Type",
+                                                 "text/html")])
+
+
+def _terminal_viewer_html(session):
+    customer = session.asset_id.display_name or _("Asset")
+    vals = {
+        "token": session.session_token, "relay": session.relay_url,
+        "customer": customer,
+        "js": "/asset_management/static/src/js/ssh_terminal_viewer.js",
+        "css": "/asset_management/static/src/css/ssh_terminal_viewer.css",
+    }
+    html = """<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SSH Terminal — %(customer)s</title>
+<link rel="stylesheet" href="%(css)s">
+</head>
+<body data-token="%(token)s" data-relay="%(relay)s" data-customer="%(customer)s">
+  <div id="ra-toolbar">
+    <span id="ra-dot" class="ra-dot ra-warn"></span>
+    <span id="ra-title">%(customer)s</span>
+    <span id="ra-status">initialising…</span>
+    <span class="ra-spacer"></span>
+    <button id="ra-end" class="ra-btn ra-danger">End Session</button>
+  </div>
+  <div id="ra-stage">
+    <pre id="ra-term"></pre>
     <div id="ra-overlay"><div id="ra-overlay-text">Connecting…</div></div>
   </div>
   <script src="%(js)s"></script>
