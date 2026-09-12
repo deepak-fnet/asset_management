@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_voice_to_text_console" model="ir.actions.client">
+        <field name="name">Voice to Text — Test Console</field>
+        <field name="tag">voice_to_text_console</field>
+        <field name="target">current</field>
+    </record>
+
+    <menuitem id="menu_voice_to_text_root"
+              name="Voice to Text"
+              sequence="90"/>
+
+    <menuitem id="menu_voice_to_text_console"
+              name="Test Console"
+              parent="menu_voice_to_text_root"
+              action="action_voice_to_text_console"
+              sequence="10"/>
+
+    <menuitem id="menu_voice_transcript_log"
+              name="Transcript Log"
+              parent="menu_voice_to_text_root"
+              action="voice_transcript_log_action"
+              sequence="20"/>
+
+</odoo>

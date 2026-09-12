@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="voice_to_text.Console" owl="1">
+    <div class="o_voice_to_text_console container-fluid p-4">
+        <h2 class="mb-1">Voice to Text — Test Console</h2>
+        <p class="text-muted">
+            Powered by NVIDIA Parakeet TDT, running on CPU. Speech is captured in
+            <t t-esc="state.chunkSeconds"/>-second windows and transcribed one window
+            at a time — expect a few seconds of delay per window, not word-by-word
+            live captions.
+        </p>
+
+        <div class="alert alert-warning" t-if="!state.enabled">
+            Voice to Text is disabled. Enable it in Settings &gt; Voice to Text.
+        </div>
+        <div class="alert alert-danger" t-if="state.error">
+            <t t-esc="state.error"/>
+        </div>
+
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <button class="btn btn-lg"
+                    t-att-class="state.isRecording ? 'btn-danger' : 'btn-primary'"
+                    t-on-click="toggleRecording"
+                    t-att-disabled="!state.enabled">
+                <i class="fa fa-microphone me-2"/>
+                <t t-esc="state.isRecording ? 'Stop Recording' : 'Start Recording'"/>
+            </button>
+            <button class="btn btn-outline-secondary" t-on-click="clearTranscript">
+                Clear
+            </button>
+            <span t-if="state.isRecording" class="text-danger">
+                <i class="fa fa-circle blink me-1"/> Recording...
+                <t t-if="state.pendingChunks"> (transcribing <t t-esc="state.pendingChunks"/> chunk(s)...)</t>
+            </span>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center p-3">
+                    <div class="fs-4" t-esc="totalWords"/>
+                    <div class="text-muted">Words</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center p-3">
+                    <div class="fs-4"><t t-esc="totalDuration.toFixed(1)"/>s</div>
+                    <div class="text-muted">Audio Captured</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center p-3">
+                    <div class="fs-4" t-esc="wordsPerMinute"/>
+                    <div class="text-muted">Words / Minute</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center p-3">
+                    <div class="fs-4"><t t-esc="averageLatencyMs"/> ms</div>
+                    <div class="text-muted">Avg Transcribe Latency</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-3 mb-4">
+            <h5>Transcript</h5>
+            <p t-if="!state.segments.length" class="text-muted">
+                Nothing transcribed yet — click Start Recording and speak.
+            </p>
+            <p t-esc="fullTranscript"/>
+        </div>
+
+        <div class="card p-3">
+            <h5>Chunk Log</h5>
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Duration</th>
+                        <th>Latency</th>
+                        <th>Text</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="state.segments" t-as="seg" t-key="seg_index">
+                        <tr t-att-class="!seg.ok ? 'table-danger' : ''">
+                            <td t-esc="seg_index + 1"/>
+                            <td><t t-esc="seg.durationSeconds.toFixed(1)"/>s</td>
+                            <td>
+                                <t t-if="seg.ok"><t t-esc="seg.latencyMs"/> ms</t>
+                                <t t-else="">—</t>
+                            </td>
+                            <td>
+                                <t t-if="seg.ok" t-esc="seg.text"/>
+                                <t t-else=""><em t-esc="seg.error"/></t>
+                            </td>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</t>
+
+</templates>

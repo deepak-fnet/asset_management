@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_voice_transcript_log_user,voice.transcript.log user,model_voice_transcript_log,base.group_user,1,1,1,0
+access_voice_transcript_log_admin,voice.transcript.log admin,model_voice_transcript_log,base.group_system,1,1,1,1

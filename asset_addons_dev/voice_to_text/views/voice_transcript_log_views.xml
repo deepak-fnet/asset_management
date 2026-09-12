@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="voice_transcript_log_view_list" model="ir.ui.view">
+        <field name="name">voice.transcript.log.view.list</field>
+        <field name="model">voice.transcript.log</field>
+        <field name="arch" type="xml">
+            <list string="Voice Transcript Log" default_order="create_date desc">
+                <field name="create_date" string="When"/>
+                <field name="user_id"/>
+                <field name="transcript"/>
+                <field name="duration" string="Duration (s)"/>
+                <field name="latency_ms" string="Latency (ms)"/>
+                <field name="words_per_minute" string="WPM"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="voice_transcript_log_view_form" model="ir.ui.view">
+        <field name="name">voice.transcript.log.view.form</field>
+        <field name="model">voice.transcript.log</field>
+        <field name="arch" type="xml">
+            <form string="Voice Transcript Log">
+                <sheet>
+                    <group>
+                        <field name="user_id"/>
+                        <field name="duration"/>
+                        <field name="latency_ms"/>
+                        <field name="words_per_minute"/>
+                    </group>
+                    <field name="transcript"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="voice_transcript_log_action" model="ir.actions.act_window">
+        <field name="name">Transcript Log</field>
+        <field name="res_model">voice.transcript.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

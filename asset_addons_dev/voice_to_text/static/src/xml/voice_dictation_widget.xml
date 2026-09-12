@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="voice_to_text.DictationWidget" owl="1">
+    <div class="o_voice_dictation_widget d-flex align-items-start gap-2">
+        <textarea t-if="props.record.fields[props.name].type === 'text'"
+                  class="o_input flex-grow-1"
+                  t-att-value="props.record.data[props.name]"
+                  t-on-change="(ev) => props.record.update({ [props.name]: ev.target.value })"/>
+        <input t-else="" type="text"
+               class="o_input flex-grow-1"
+               t-att-value="props.record.data[props.name]"
+               t-on-change="(ev) => props.record.update({ [props.name]: ev.target.value })"/>
+
+        <button type="button"
+                class="btn btn-sm"
+                t-att-class="state.isRecording ? 'btn-danger' : 'btn-outline-primary'"
+                t-att-disabled="!state.enabled"
+                t-att-title="state.enabled ? 'Dictate' : 'Voice to Text is disabled in Settings'"
+                t-on-click="toggleRecording">
+            <i class="fa fa-microphone"/>
+        </button>
+    </div>
+    <div class="text-danger small" t-if="state.error" t-esc="state.error"/>
+</t>
+
+</templates>
