@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="construction_management.Dashboard">
+        <div t-att-class="props.className">
+        <Layout display="display">
+            <t t-set-slot="control-panel-always-buttons">
+                <button class="btn btn-secondary" t-on-click="clearFilters">
+                    <i class="fa fa-refresh me-1"/>Clear Filters
+                </button>
+            </t>
+            <div class="o_cm_dashboard">
+                <div class="o_cm_header">
+                    <div class="o_cm_header_icon"><i class="fa fa-building-o"/></div>
+                    <div>
+                        <h2>Construction Overview</h2>
+                        <div class="o_cm_header_sub">
+                            <t t-if="state.data.selected_project">
+                                <t t-esc="state.data.selected_master and state.data.selected_master.name"/>
+                                <i class="fa fa-angle-right mx-1"/>
+                                <t t-esc="state.data.selected_project.name"/>
+                            </t>
+                            <t t-elif="state.data.selected_master">
+                                <t t-esc="state.data.selected_master.name"/> (<t t-esc="state.data.selected_master.partner"/>)
+                            </t>
+                            <t t-else="">All customers and projects</t>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="o_cm_filters">
+                    <div class="o_cm_filter">
+                        <label><i class="fa fa-user me-1"/>Customer</label>
+                        <select class="form-select" t-att-value="state.customerId" t-on-change="onChangeCustomer">
+                            <option value="">All Customers</option>
+                            <t t-foreach="state.data.customers" t-as="c" t-key="c.id">
+                                <option t-att-value="c.id"><t t-esc="c.name"/></option>
+                            </t>
+                        </select>
+                    </div>
+                    <div class="o_cm_filter">
+                        <label><i class="fa fa-building me-1"/>Master Project</label>
+                        <select class="form-select" t-att-value="state.masterId" t-on-change="onChangeMaster">
+                            <option value="">All Master Projects</option>
+                            <t t-foreach="state.data.masters" t-as="m" t-key="m.id">
+                                <option t-att-value="m.id"><t t-esc="m.name"/></option>
+                            </t>
+                        </select>
+                    </div>
+                    <div class="o_cm_filter" t-if="state.masterId">
+                        <label><i class="fa fa-cubes me-1"/>Sub-Project</label>
+                        <select class="form-select" t-att-value="state.projectId" t-on-change="onChangeProject">
+                            <option value="">All Sub-Projects</option>
+                            <t t-foreach="state.data.subprojects" t-as="p" t-key="p.id">
+                                <option t-att-value="p.id"><t t-esc="p.name"/></option>
+                            </t>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="o_cm_kpi_row">
+                    <div class="o_cm_kpi_card">
+                        <div class="o_cm_kpi_icon bg-purple"><i class="fa fa-building"/></div>
+                        <div>
+                            <div class="o_cm_kpi_value"><t t-esc="state.data.summary.master_count"/></div>
+                            <div class="o_cm_kpi_label">Master Projects</div>
+                        </div>
+                    </div>
+                    <div class="o_cm_kpi_card">
+                        <div class="o_cm_kpi_icon bg-teal"><i class="fa fa-cubes"/></div>
+                        <div>
+                            <div class="o_cm_kpi_value"><t t-esc="state.data.summary.subproject_count"/></div>
+                            <div class="o_cm_kpi_label">Sub-Projects</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Level 1: Master Projects -->
+                <div t-if="state.data.masters_detail" class="o_cm_section">
+                    <h4><i class="fa fa-building me-2"/>Master Projects</h4>
+                    <div t-if="!state.data.masters_detail.length" class="o_cm_empty">No master projects found.</div>
+                    <div class="o_cm_card_grid">
+                        <div t-foreach="state.data.masters_detail" t-as="m" t-key="m.id"
+                             class="o_cm_card" t-attf-class="o_cm_border_{{this.statusColor(m.state)}}"
+                             t-on-click="() => this.openRecord('cm.master.project', m.id)">
+                            <div class="o_cm_card_head">
+                                <div class="o_cm_avatar"><t t-esc="this.initials(m.partner)"/></div>
+                                <div class="o_cm_card_head_text">
+                                    <div class="o_cm_card_title"><t t-esc="m.name"/></div>
+                                    <div class="o_cm_card_sub"><t t-esc="m.partner"/></div>
+                                </div>
+                                <span t-attf-class="o_cm_badge bg-{{this.statusColor(m.state)}}"><t t-esc="m.state"/></span>
+                            </div>
+                            <div class="o_cm_progress">
+                                <div t-attf-class="o_cm_progress_bar bg-{{this.progressColor(m.overall_completion)}}"
+                                     t-attf-style="width: {{m.overall_completion}}%;"/>
+                            </div>
+                            <div class="o_cm_card_meta">
+                                <span><t t-esc="m.overall_completion"/>% complete</span>
+                                <span><t t-esc="m.subproject_count"/> sub-projects</span>
+                            </div>
+                            <div class="o_cm_card_costs">
+                                <div>Contract: <b><t t-esc="this.formatMoney(m.total_contract_value)"/></b></div>
+                                <div>Advance: <b><t t-esc="this.formatMoney(m.advance_received)"/></b></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Level 2: Sub-Projects of the selected Master Project -->
+                <div t-if="state.data.subprojects_detail" class="o_cm_section">
+                    <h4>
+                        <i class="fa fa-cubes me-2"/>Sub-Projects
+                        <t t-if="state.data.selected_master"> of <t t-esc="state.data.selected_master.name"/></t>
+                    </h4>
+                    <div t-if="!state.data.subprojects_detail.length" class="o_cm_empty">No sub-projects yet.</div>
+                    <div class="o_cm_card_grid">
+                        <div t-foreach="state.data.subprojects_detail" t-as="p" t-key="p.id"
+                             class="o_cm_card" t-attf-class="o_cm_border_{{this.statusColor(p.cm_status)}}"
+                             t-on-click="() => this.openRecord('project.project', p.id)">
+                            <div class="o_cm_card_head">
+                                <div class="o_cm_card_head_text">
+                                    <div class="o_cm_card_title"><t t-esc="p.name"/></div>
+                                    <div class="o_cm_card_sub"><t t-esc="p.project_no"/></div>
+                                </div>
+                                <span t-attf-class="o_cm_badge bg-{{this.statusColor(p.cm_status)}}"><t t-esc="p.cm_status"/></span>
+                            </div>
+                            <div class="o_cm_progress">
+                                <div t-attf-class="o_cm_progress_bar bg-{{this.progressColor(p.completion_percent)}}"
+                                     t-attf-style="width: {{p.completion_percent}}%;"/>
+                            </div>
+                            <div class="o_cm_card_meta">
+                                <span><t t-esc="p.completion_percent"/>% complete</span>
+                                <span><i class="fa fa-list-ol me-1"/><t t-esc="p.stage_count"/> stages</span>
+                                <span t-if="p.deadline"><i class="fa fa-calendar me-1"/><t t-esc="p.deadline"/></span>
+                            </div>
+                            <div class="o_cm_card_costs">
+                                <div>Budget: <b><t t-esc="this.formatMoney(p.cm_budget)"/></b></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Level 3: Stages of the selected Sub-Project -->
+                <div t-if="state.data.stages" class="o_cm_section">
+                    <h4>
+                        <i class="fa fa-list-ol me-2"/>Stages
+                        <t t-if="state.data.selected_project"> of <t t-esc="state.data.selected_project.name"/></t>
+                    </h4>
+                    <div t-if="!state.data.stages.length" class="o_cm_empty">No stages configured yet.</div>
+                    <div class="o_cm_card_grid">
+                        <div t-foreach="state.data.stages" t-as="s" t-key="s.id"
+                             class="o_cm_card" t-attf-class="o_cm_border_{{this.statusColor(s.state)}}"
+                             t-on-click="() => this.openRecord('cm.stage', s.id)">
+                            <div class="o_cm_card_head">
+                                <div class="o_cm_card_head_text">
+                                    <div class="o_cm_card_title"><t t-esc="s.name"/></div>
+                                </div>
+                                <span t-attf-class="o_cm_badge bg-{{this.statusColor(s.state)}}"><t t-esc="s.state"/></span>
+                            </div>
+                            <div class="o_cm_progress">
+                                <div t-attf-class="o_cm_progress_bar bg-{{this.progressColor(s.percent_complete)}}"
+                                     t-attf-style="width: {{s.percent_complete}}%;"/>
+                            </div>
+                            <div class="o_cm_card_meta">
+                                <span><t t-esc="s.percent_complete"/>% progress</span>
+                                <span t-if="s.target_date"><i class="fa fa-calendar me-1"/>Target: <t t-esc="s.target_date"/></span>
+                            </div>
+                            <div class="o_cm_card_costs o_cm_card_costs_4">
+                                <div><span class="o_cm_cost_label">Budget</span><b><t t-esc="this.formatMoney(s.budget_allocation)"/></b></div>
+                                <div><span class="o_cm_cost_label">BOQ</span><b><t t-esc="this.formatMoney(s.boq_total)"/></b></div>
+                                <div><span class="o_cm_cost_label">Purchased</span><b><t t-esc="this.formatMoney(s.purchased_amount)"/></b></div>
+                                <div><span class="o_cm_cost_label">Used</span><b><t t-esc="this.formatMoney(s.used_amount)"/></b></div>
+                            </div>
+                            <div class="o_cm_card_tasks">
+                                <i class="fa fa-check-square-o me-1"/>Tasks: <t t-esc="s.task_done_count"/>/<t t-esc="s.task_count"/> done
+                                &#183;
+                                Sub-tasks: <t t-esc="s.subtask_done_count"/>/<t t-esc="s.subtask_count"/> done
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Layout>
+        </div>
+    </t>
+</templates>

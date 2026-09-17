@@ -1,0 +1,11 @@
+<odoo>
+    <data>
+        <record id="vendor_comparison_sequence" model="ir.sequence">
+            <field name="name">vendor.comparison</field>
+            <field name="code">vendor.comparison.seq</field>
+            <field name="prefix">VC/%(year)s/%(month)s/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </data>
+</odoo>

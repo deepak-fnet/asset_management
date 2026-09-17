@@ -1,2 +1,18 @@
+
+*$py.class
+.DS_Store
+# Editor/OS cruft
+.idea/
+*.log
+.odoo_ext_deps
+odoo_run.log
+odoo_run_stdout.log
+# Odoo runtime artifacts
+parakeet_stt_service/models/hub/
+# pip/venv rebuild and have no business being reviewed as source changes.
 __pycache__/
 *.py[cod]
+# Python bytecode / cache
+venv/
+# Virtual environment - never belongs in git; its contents change on every
+.vscode/

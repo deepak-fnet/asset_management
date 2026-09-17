@@ -10,6 +10,10 @@ class VoiceTranscriptLog(models.Model):
     user_id = fields.Many2one(
         'res.users', string="User", default=lambda self: self.env.user, readonly=True,
     )
+    model = fields.Selection(
+        [('parakeet', 'Parakeet TDT'), ('indian_voice', 'Indian Voice')],
+        string="Model", default='parakeet', readonly=True,
+    )
     transcript = fields.Text(string="Transcript", readonly=True)
     duration = fields.Float(
         string="Chunk Duration (s)", readonly=True,

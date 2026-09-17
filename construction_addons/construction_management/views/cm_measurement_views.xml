@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cm_measurement_form" model="ir.ui.view">
+        <field name="name">cm.measurement.form</field>
+        <field name="model">cm.measurement</field>
+        <field name="arch" type="xml">
+            <form string="Measurement">
+                <header>
+                    <button name="action_certify" type="object" string="Certify"
+                            class="oe_highlight" invisible="state != 'draft'"
+                            groups="construction_management.group_cm_manager"/>
+                    <button name="action_reset_to_draft" type="object" string="Reset to Draft"
+                            invisible="state != 'certified'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,certified"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="boq_line_id"/>
+                            <field name="stage_id" readonly="1"/>
+                            <field name="product_id" readonly="1"/>
+                            <field name="uom_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="measurement_date"/>
+                            <field name="qty_this_measurement"/>
+                            <field name="rate" readonly="1"/>
+                            <field name="amount" readonly="1"/>
+                            <field name="cumulative_qty" readonly="1"/>
+                            <field name="measured_by"/>
+                        </group>
+                    </group>
+                    <field name="remarks"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cm_measurement_list" model="ir.ui.view">
+        <field name="name">cm.measurement.list</field>
+        <field name="model">cm.measurement</field>
+        <field name="arch" type="xml">
+            <list string="Measurements">
+                <field name="measurement_date"/>
+                <field name="project_id"/>
+                <field name="stage_id"/>
+                <field name="product_id"/>
+                <field name="qty_this_measurement"/>
+                <field name="cumulative_qty"/>
+                <field name="amount" sum="Total"/>
+                <field name="state" widget="badge" decoration-success="state == 'certified'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_cm_measurement" model="ir.actions.act_window">
+        <field name="name">Measurements</field>
+        <field name="res_model">cm.measurement</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

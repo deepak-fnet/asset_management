@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="product_contract_value" model="product.template">
+        <field name="name">Construction Contract Value</field>
+        <field name="type">service</field>
+        <field name="invoice_policy">order</field>
+        <field name="sale_ok">True</field>
+        <field name="purchase_ok">False</field>
+        <field name="list_price">0.0</field>
+    </record>
+</odoo>

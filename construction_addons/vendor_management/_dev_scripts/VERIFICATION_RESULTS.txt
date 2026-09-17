@@ -1,0 +1,79 @@
+STRUCTURAL VERIFICATION RESULTS
+================================================================================
+
+ALL COMPONENTS VERIFIED ✅
+
+1. vendor_category.py - One2many Field
+   ✅ Field name: mandatory_document_line_ids
+   ✅ comodel_name: 'vendor.category.document.line'
+   ✅ inverse_name: 'category_id'
+   ✅ Old Many2many is computed (backward compatibility)
+
+2. vendor_category_document_line.py - Intermediate Model
+   ✅ _name = 'vendor.category.document.line'
+   ✅ category_id (Many2one to 'vendor.category', required=True, ondelete='cascade')
+   ✅ document_type_id (Many2one to 'vendor.document.type', required=True)
+   ✅ requires_expiry (Boolean, default=True)
+
+3. models/__init__.py - Import Order
+   ✅ Line 1: from . import vendor_category_document_line
+   ✅ Line 2: from . import vendor_category
+   ✅ Import order is CORRECT (intermediate model first)
+
+4. security/ir.model.access.csv - Access  Rights
+   ✅ Model ID: vendor_management.model_vendor_category_document_line
+   ✅ base.group_user access exists
+
+================================================================================
+MODEL-ID MAPPING VERIFICATION
+================================================================================
+
+Model _name: 'vendor.category.document.line'
+     ↓ (dots become underscores)
+XML ID: model_vendor_category_document_line
+     ↓ (add module prefix)
+Full ID: vendor_management.model_vendor_category_document_line
+
+✅ This matches the security file
+
+================================================================================
+COMODEL RESOLUTION CHAIN
+================================================================================
+
+When Odoo builds the registry:
+
+1. Imports models/__init__.py
+2. Sees: from . import vendor_category_document_line  ← FIRST
+3. Registers: vendor.category.document.line model
+4. Then: from . import vendor_category  ← SECOND
+5. Parses: mandatory_document_line_ids = fields.One2many(
+              comodel_name='vendor.category.document.line',  ← CAN RESOLVE
+              inverse_name='category_id'
+           )
+6. SUCCESS: Comodel found and linked
+
+================================================================================
+NEXT STEPS - CLEAN UPGRADE
+================================================================================
+
+The structure is 100% correct. Perform clean upgrade:
+
+1. Stop Odoo:
+   sudo systemctl stop odoo
+
+2. Clear cache:
+   find /home/prasanna/dev/odoo/custom_addons/vendor_management -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null
+
+3. Upgrade:
+   cd /home/prasanna/dev/odoo
+   ./odoo-bin -c odoo.conf -u vendor_management -d vendor_management --stop-after-init
+
+4. Check logs for:
+   - "vendor.category.document.line" registered ✅
+   - Views loaded successfully ✅
+   - NO "Field ... does not exist" errors ✅
+
+5. Start Odoo:
+   sudo systemctl start odoo
+
+================================================================================

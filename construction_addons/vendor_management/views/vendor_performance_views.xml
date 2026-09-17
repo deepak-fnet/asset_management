@@ -1,0 +1,236 @@
+<odoo>
+    <!-- Graph View for Performance Trend -->
+    <record id="view_vendor_performance_graph" model="ir.ui.view">
+        <field name="name">vendor.performance.graph</field>
+        <field name="model">vendor.performance</field>
+        <field name="arch" type="xml">
+            <graph string="Performance Trend" type="line">
+                <field name="review_date" type="row"/>
+                <field name="periodic_score" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Search View with Vendor Filter -->
+    <record id="view_vendor_performance_search" model="ir.ui.view">
+        <field name="name">vendor.performance.search</field>
+        <field name="model">vendor.performance</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="vendor_id"/>
+                <field name="review_date"/>
+                <filter string="This Vendor"
+                        name="vendor_id"
+                        domain="[('vendor_id','=',context.get('search_default_vendor_id'))]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action for Performance Trend Graph -->
+    <record id="action_vendor_performance_trend" model="ir.actions.act_window">
+        <field name="name">Performance Trend</field>
+        <field name="res_model">vendor.performance</field>
+        <field name="view_mode">graph,list</field>
+        <field name="search_view_id" ref="view_vendor_performance_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No performance data yet
+            </p>
+            <p>
+                Create periodic performance reviews to see trends.
+            </p>
+        </field>
+    </record>
+
+    <!-- List View -->
+    <record id="view_vendor_performance_list" model="ir.ui.view">
+        <field name="name">vendor.performance.list</field>
+        <field name="model">vendor.performance</field>
+        <field name="arch" type="xml">
+            <list string="Vendor Performance (Periodic)">
+                <field name="vendor_id"/>
+                <field name="review_date"/>
+                <field name="periodic_score" widget="progressbar"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View with Embedded History List -->
+    <record id="view_vendor_performance_form" model="ir.ui.view">
+        <field name="name">vendor.performance.form</field>
+        <field name="model">vendor.performance</field>
+        <field name="arch" type="xml">
+            <form string="Vendor Performance (Periodic)">
+                <header>
+                    <button name="action_submit" string="Submit Review" type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted"/>
+                </header>
+                <sheet>
+                    <!-- Section A: Header Card -->
+                    <div class="vendor-performance-header">
+                        <div class="vp-header-container">
+                            <h2 class="vp-title">
+                                <field name="vendor_id" class="vp-vendor" readonly="id" options="{'no_create': True}" context="{'form_view_ref': 'vendor_management.view_partner_form_vendor_enterprise'}"/>
+                            </h2>
+                            <div class="vp-dates">
+                                <div>
+                                    <span class="vp-label">Review Date:</span>
+                                    <field name="review_date" readonly="state == 'submitted'"/>
+                                </div>
+                                <div>
+                                    <span class="vp-label">Next Review Date:</span>
+                                    <field name="next_review_date"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section B: Overall Score Card -->
+                    <div class="vendor_score_card">
+                        <h3>Overall Performance Score</h3>
+                        <field name="periodic_score" widget="gauge" options="{'max_value': 100, 'style': 'width:150px; height:150px;'}"/>
+                    </div>
+
+                    <!-- Section C: Rating Cards (4-card layout) -->
+                    <div class="vendor_rating_cards">
+                        <div class="vendor_rating_card reliability">
+                            <h4>
+                                <i class="fa fa-shield" title="Reliability"/>
+                                Reliability
+                            </h4>
+                            <field name="reliability" widget="priority" readonly="state == 'submitted'"/>
+                        </div>
+                        <div class="vendor_rating_card compliance">
+                            <h4>
+                                <i class="fa fa-check-circle" title="Compliance"/>
+                                Compliance
+                            </h4>
+                            <field name="compliance" widget="priority" readonly="state == 'submitted'"/>
+                        </div>
+                        <div class="vendor_rating_card behavior">
+                            <h4>
+                                <i class="fa fa-handshake-o" title="Behavior"/>
+                                Behavior
+                            </h4>
+                            <field name="behavior" widget="priority" readonly="state == 'submitted'"/>
+                        </div>
+                        <div class="vendor_rating_card partnership">
+                            <h4>
+                                <i class="fa fa-users" title="Partnership"/>
+                                Partnership
+                            </h4>
+                            <field name="partnership" widget="priority" readonly="state == 'submitted'"/>
+                        </div>
+                    </div>
+
+                    <!-- Section D: Performance History -->
+                    <notebook>
+                        <page string="Performance History" name="performance_history">
+                            <field name="vendor_history_ids" nolabel="1" readonly="1">
+                                <list string="Historical Performance" create="false" edit="false" delete="false">
+                                    <field name="review_date"/>
+                                    <field name="reliability" widget="priority"/>
+                                    <field name="compliance" widget="priority"/>
+                                    <field name="behavior" widget="priority"/>
+                                    <field name="partnership" widget="priority"/>
+                                    <field name="periodic_score" widget="progressbar"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- System A Views -->
+    <record id="view_vendor_performance_overview_list" model="ir.ui.view">
+        <field name="name">vendor.performance.overview.list</field>
+        <field name="model">vendor.performance.overview</field>
+        <field name="arch" type="xml">
+            <list string="Performance Overview (Transactions)">
+                <field name="vendor_id"/>
+                <field name="purchase_id"/>
+                <field name="performance_overview_score" widget="progressbar"/>
+                <field name="create_date" string="Rated On"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vendor_performance_overview_form" model="ir.ui.view">
+        <field name="name">vendor.performance.overview.form</field>
+        <field name="model">vendor.performance.overview</field>
+        <field name="arch" type="xml">
+            <form string="Transaction Performance Rating">
+                <sheet>
+                    <!-- Section A: Header Card -->
+                    <div class="vendor-performance-header">
+                        <div class="vp-header-container">
+                            <h2 class="vp-title">
+                                <field name="vendor_id" class="vp-vendor" options="{'no_create': True}" context="{'form_view_ref': 'vendor_management.view_partner_form_vendor_enterprise'}"/>
+                            </h2>
+                            <div class="vp-dates">
+                                <div>
+                                    <span class="vp-label">PO Reference:</span>
+                                    <field name="purchase_id" nolabel="1"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section B: Overall Score Card -->
+                    <div class="vendor_score_card">
+                        <h3>Overall Performance Score</h3>
+                        <field name="performance_overview_score" widget="gauge" options="{'max_value': 100, 'style': 'width:150px; height:150px;'}"/>
+                        <field name="performance_overview_score" widget="progressbar" options="{'max_value': 100}"/>
+                    </div>
+
+                    <!-- Section C: Rating Cards (4-card layout) -->
+                    <div class="vendor_rating_cards">
+                        <div class="vendor_rating_card quality">
+                            <h4>
+                                <i class="fa fa-star" title="Quality"/>
+                                Quality
+                            </h4>
+                            <field name="quality" widget="priority"/>
+                        </div>
+                        <div class="vendor_rating_card delivery">
+                            <h4>
+                                <i class="fa fa-truck" title="Delivery"/>
+                                Delivery
+                            </h4>
+                            <field name="delivery" widget="priority"/>
+                        </div>
+                        <div class="vendor_rating_card service">
+                            <h4>
+                                <i class="fa fa-wrench" title="Service"/>
+                                Service
+                            </h4>
+                            <field name="service" widget="priority"/>
+                        </div>
+                        <div class="vendor_rating_card overall">
+                            <h4>
+                                <i class="fa fa-bar-chart" title="Overall"/>
+                                Overall
+                            </h4>
+                            <field name="overall" widget="priority"/>
+                        </div>
+                    </div>
+
+                    <!-- Additional Information -->
+                    <group string="Transaction Details" col="2">
+                        <field name="move_id" string="Bill Reference"/>
+                        <field name="create_date" string="Rated On"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Actions -->
+    <record id="action_vendor_performance_overview" model="ir.actions.act_window">
+        <field name="name">Performance Overview</field>
+        <field name="res_model">vendor.performance.overview</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

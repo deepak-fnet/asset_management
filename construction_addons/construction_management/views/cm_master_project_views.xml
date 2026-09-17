@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cm_master_project_form" model="ir.ui.view">
+        <field name="name">cm.master.project.form</field>
+        <field name="model">cm.master.project</field>
+        <field name="arch" type="xml">
+            <form string="Master Project">
+                <header>
+                    <button name="action_close" type="object" string="Close Master Project"
+                            class="oe_highlight" invisible="state != 'active'"
+                            groups="construction_management.group_cm_manager"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_subprojects" type="object"
+                                class="oe_stat_button" icon="fa-building">
+                            <field name="subproject_count" widget="statinfo" string="Sub-Projects"/>
+                        </button>
+                        <button name="action_view_flowchart" type="object"
+                                class="oe_stat_button" icon="fa-sitemap">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Flow Chart</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="lead_id" readonly="1"/>
+                            <field name="sale_order_id" readonly="1"/>
+                            <field name="start_date"/>
+                        </group>
+                        <group>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="total_contract_value"/>
+                            <field name="advance_received"/>
+                            <field name="retention_percent"/>
+                            <field name="dlp_months"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="overall_completion" widget="progressbar" colspan="2"/>
+                    </group>
+                    <notebook>
+                        <page string="Sub-Projects">
+                            <field name="subproject_ids">
+                                <list>
+                                    <field name="project_no"/>
+                                    <field name="name"/>
+                                    <field name="floors"/>
+                                    <field name="cm_budget"/>
+                                    <field name="cm_status"/>
+                                    <field name="completion_percent" widget="progressbar"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cm_master_project_list" model="ir.ui.view">
+        <field name="name">cm.master.project.list</field>
+        <field name="model">cm.master.project</field>
+        <field name="arch" type="xml">
+            <list string="Master Projects">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="total_contract_value"/>
+                <field name="advance_received"/>
+                <field name="overall_completion" widget="progressbar"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_cm_master_project" model="ir.actions.act_window">
+        <field name="name">Master Projects</field>
+        <field name="res_model">cm.master.project</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

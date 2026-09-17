@@ -8,6 +8,7 @@
             <list string="Voice Transcript Log" default_order="create_date desc">
                 <field name="create_date" string="When"/>
                 <field name="user_id"/>
+                <field name="model"/>
                 <field name="transcript"/>
                 <field name="duration" string="Duration (s)"/>
                 <field name="latency_ms" string="Latency (ms)"/>
@@ -24,6 +25,7 @@
                 <sheet>
                     <group>
                         <field name="user_id"/>
+                        <field name="model"/>
                         <field name="duration"/>
                         <field name="latency_ms"/>
                         <field name="words_per_minute"/>

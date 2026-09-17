@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Vendors -->
+    <record id="action_vendor_partners" model="ir.actions.act_window">
+        <field name="name">Vendors</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_vendor','=',True)]</field>
+        <field name="context">{'default_is_vendor': True}</field>
+        <field name="view_ids" eval="[(5, 0, 0), 
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_vendor_partner_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_partner_form_vendor_enterprise')})]"/>
+    </record>
+
+    <record id="action_active_vendors" model="ir.actions.act_window">
+        <field name="name">Active Vendors</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_vendor','=',True), ('vendor_state','=','active')]</field>
+        <field name="context">{'default_is_vendor': True, 'default_vendor_state': 'active'}</field>
+        <field name="view_ids" eval="[(5, 0, 0), 
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_vendor_partner_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_partner_form_vendor_enterprise')})]"/>
+    </record>
+
+    <record id="action_review_vendors" model="ir.actions.act_window">
+        <field name="name">Vendors Under Review</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_vendor','=',True), ('vendor_state','in',('submitted','manager_review'))]</field>
+        <field name="context">{'default_is_vendor': True, 'default_vendor_state': 'submitted'}</field>
+        <field name="view_ids" eval="[(5, 0, 0), 
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_vendor_partner_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_partner_form_vendor_enterprise')})]"/>
+    </record>
+
+    <record id="action_blocked_vendors" model="ir.actions.act_window">
+        <field name="name">Blocked Vendors</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_vendor','=',True), ('vendor_state','=','blocked')]</field>
+        <field name="context">{'default_is_vendor': True, 'default_vendor_state': 'blocked'}</field>
+        <field name="view_ids" eval="[(5, 0, 0), 
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_vendor_partner_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_partner_form_vendor_enterprise')})]"/>
+    </record>
+
+    <!-- Vendor Documents -->
+    <record id="action_expired_documents" model="ir.actions.act_window">
+        <field name="name">Expired Documents</field>
+        <field name="res_model">vendor.document</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_expired', '=', True)]</field>
+    </record>
+
+    <record id="action_expiring_soon_documents" model="ir.actions.act_window">
+        <field name="name">Expiring Soon Documents</field>
+        <field name="res_model">vendor.document</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_expiring_soon', '=', True)]</field>
+    </record>
+
+    <record id="action_approved_documents" model="ir.actions.act_window">
+        <field name="name">Approved Documents</field>
+        <field name="res_model">vendor.document</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', '=', 'approved')]</field>
+    </record>
+
+    <!-- Vendor Audit Logs -->
+    <record id="action_vendor_audit_log" model="ir.actions.act_window">
+        <field name="name">Vendor Audit Log</field>
+        <field name="res_model">vendor.audit.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Vendors with Reviews Due -->
+    <record id="action_vendors_review_due" model="ir.actions.act_window">
+        <field name="name">Reviews Due</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('review_status', 'in', ('soon', 'expired')), ('is_vendor', '=', True)]</field>
+        <field name="context">{'default_is_vendor': True}</field>
+        <field name="view_ids" eval="[(5, 0, 0), 
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_vendor_partner_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_partner_form_vendor_enterprise')})]"/>
+    </record>
+
+</odoo>

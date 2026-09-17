@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_construction_root" name="Construction" sequence="45"/>
+
+    <menuitem id="menu_cm_master_project" name="Master Projects" parent="menu_construction_root"
+              action="action_cm_master_project" sequence="10"/>
+    <menuitem id="menu_cm_stage" name="Stages" parent="menu_construction_root"
+              action="action_cm_stage" sequence="20"/>
+    <menuitem id="menu_cm_material_requests" name="Material Requests" parent="menu_construction_root"
+              action="action_cm_material_requests" groups="purchase.group_purchase_user" sequence="22"/>
+
+    <menuitem id="menu_cm_quality_safety_root" name="Quality &amp; Safety" parent="menu_construction_root" sequence="25"/>
+    <menuitem id="menu_cm_ncr" name="NCRs" parent="menu_cm_quality_safety_root"
+              action="action_cm_ncr" sequence="10"/>
+    <menuitem id="menu_cm_safety_incident" name="Safety Incidents" parent="menu_cm_quality_safety_root"
+              action="action_cm_safety_incident" sequence="20"/>
+
+    <menuitem id="menu_cm_labour_root" name="Labour" parent="menu_construction_root" sequence="27"/>
+    <menuitem id="menu_cm_labour_gang" name="Labour Gangs" parent="menu_cm_labour_root"
+              action="action_cm_labour_gang" sequence="10"/>
+    <menuitem id="menu_cm_labour_attendance" name="Attendance" parent="menu_cm_labour_root"
+              action="action_cm_labour_attendance" sequence="20"/>
+
+    <menuitem id="menu_cm_dpr" name="Daily Progress Reports" parent="menu_construction_root"
+              action="action_cm_dpr" sequence="28"/>
+    <menuitem id="menu_cm_measurement" name="Measurements" parent="menu_construction_root"
+              action="action_cm_measurement" sequence="29"/>
+
+    <menuitem id="menu_cm_budget_line" name="Budget Lines" parent="menu_construction_root"
+              action="action_cm_budget_line" sequence="35"/>
+</odoo>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cm_dpr_form" model="ir.ui.view">
+        <field name="name">cm.dpr.form</field>
+        <field name="model">cm.dpr</field>
+        <field name="arch" type="xml">
+            <form string="Daily Progress Report">
+                <header>
+                    <button name="action_submit" type="object" string="Submit"
+                            class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_approve" type="object" string="Approve"
+                            class="oe_highlight" invisible="state != 'submitted'"
+                            groups="construction_management.group_cm_manager"/>
+                    <button name="action_reset_to_draft" type="object" string="Reset to Draft"
+                            invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="project_id" placeholder="Project"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="stage_id"/>
+                            <field name="date"/>
+                            <field name="weather"/>
+                            <field name="reported_by"/>
+                        </group>
+                        <group>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="total_labour_present" readonly="1"/>
+                            <field name="labour_wage_total" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="narrative" placeholder="Work carried out today..."/>
+                        <field name="material_consumed"/>
+                        <field name="equipment_used"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cm_dpr_list" model="ir.ui.view">
+        <field name="name">cm.dpr.list</field>
+        <field name="model">cm.dpr</field>
+        <field name="arch" type="xml">
+            <list string="Daily Progress Reports">
+                <field name="date"/>
+                <field name="project_id"/>
+                <field name="stage_id"/>
+                <field name="weather"/>
+                <field name="total_labour_present"/>
+                <field name="labour_wage_total"/>
+                <field name="state" widget="badge" decoration-success="state == 'approved'"
+                       decoration-info="state == 'submitted'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_cm_dpr" model="ir.actions.act_window">
+        <field name="name">Daily Progress Reports</field>
+        <field name="res_model">cm.dpr</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

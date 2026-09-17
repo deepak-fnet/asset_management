@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_vendor_contract_list" model="ir.ui.view">
+        <field name="name">vendor.contract.list</field>
+        <field name="model">vendor.contract</field>
+        <field name="arch" type="xml">
+            <list string="Vendor Contracts" decoration-success="state == 'active'" decoration-danger="state == 'terminated'" decoration-info="state == 'draft'">
+                <field name="name"/>
+                <field name="vendor_id"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="value" sum="Total Amount"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'active'" decoration-danger="state == 'terminated'"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vendor_contract_form" model="ir.ui.view">
+        <field name="name">vendor.contract.form</field>
+        <field name="model">vendor.contract</field>
+        <field name="arch" type="xml">
+            <form string="Vendor Contract">
+                <header>
+                    <button name="action_start" type="object" string="Start Contract" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_terminate" type="object" string="Terminate" class="btn-danger"
+                            invisible="state != 'active'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,active,terminated"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Contract Reference"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. CON/2024/001"/>
+                        </h1>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="vendor_section_card">
+                                <div class="vendor_section_title">
+                                    <i class="fa fa-handshake-o" title="Partnership"/> Partnership Details
+                                </div>
+                                <group>
+                                    <field name="vendor_id" options="{'no_create': True}"/>
+                                    <field name="value" widget="monetary"/>
+                                    <field name="active" widget="boolean_toggle"/>
+                                </group>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="vendor_section_card">
+                                <div class="vendor_section_title">
+                                    <i class="fa fa-calendar" title="Calendar"/> Contract Period
+                                </div>
+                                <group>
+                                    <field name="start_date"/>
+                                    <field name="end_date"/>
+                                </group>
+                            </div>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_vendor_contract" model="ir.actions.act_window">
+        <field name="name">Vendor Contracts</field>
+        <field name="res_model">vendor.contract</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

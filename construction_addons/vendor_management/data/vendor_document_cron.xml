@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="cron_mark_expired_documents" model="ir.cron">
+        <field name="name">Mark Expired Vendor Documents</field>
+        <field name="model_id" ref="vendor_management.model_vendor_document"/>
+        <field name="state">code</field>
+        <field name="code">model._update_expired_documents()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+    </record>
+
+</odoo>

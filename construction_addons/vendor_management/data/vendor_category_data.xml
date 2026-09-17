@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="cat_raw" model="vendor.category" forcecreate="0">
+            <field name="name">Raw Materials</field>
+        </record>
+
+        <record id="cat_transport" model="vendor.category" forcecreate="0">
+            <field name="name">Transport</field>
+        </record>
+
+        <record id="cat_it" model="vendor.category" forcecreate="0">
+            <field name="name">IT Services</field>
+        </record>
+
+        <record id="cat_maint" model="vendor.category" forcecreate="0">
+            <field name="name">Maintenance</field>
+        </record>
+
+        <record id="cat_sec" model="vendor.category" forcecreate="0">
+            <field name="name">Security</field>
+        </record>
+
+        <record id="cat_log" model="vendor.category" forcecreate="0">
+            <field name="name">Logistics</field>
+        </record>
+
+    </data>
+</odoo>

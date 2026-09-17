@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cm_labour_gang_form" model="ir.ui.view">
+        <field name="name">cm.labour.gang.form</field>
+        <field name="model">cm.labour.gang</field>
+        <field name="arch" type="xml">
+            <form string="Labour Gang">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_attendance" type="object"
+                                class="oe_stat_button" icon="fa-calendar-check-o">
+                            <field name="attendance_count" widget="statinfo" string="Attendance"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <field name="contractor_partner_id"/>
+                        <field name="category"/>
+                        <field name="standard_hour_rate"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cm_labour_gang_list" model="ir.ui.view">
+        <field name="name">cm.labour.gang.list</field>
+        <field name="model">cm.labour.gang</field>
+        <field name="arch" type="xml">
+            <list string="Labour Gangs">
+                <field name="name"/>
+                <field name="contractor_partner_id"/>
+                <field name="category"/>
+                <field name="standard_hour_rate"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_cm_labour_gang" model="ir.actions.act_window">
+        <field name="name">Labour Gangs</field>
+        <field name="res_model">cm.labour.gang</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_cm_labour_attendance_form" model="ir.ui.view">
+        <field name="name">cm.labour.attendance.form</field>
+        <field name="model">cm.labour.attendance</field>
+        <field name="arch" type="xml">
+            <form string="Labour Attendance">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="project_id"/>
+                            <field name="stage_id"/>
+                            <field name="date"/>
+                        </group>
+                        <group>
+                            <field name="gang_id"/>
+                            <field name="category" readonly="1"/>
+                            <field name="count_present"/>
+                            <field name="hours"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="wage_amount" readonly="1"/>
+                        </group>
+                    </group>
+                    <field name="remarks"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cm_labour_attendance_list" model="ir.ui.view">
+        <field name="name">cm.labour.attendance.list</field>
+        <field name="model">cm.labour.attendance</field>
+        <field name="arch" type="xml">
+            <list string="Labour Attendance" editable="bottom">
+                <field name="date"/>
+                <field name="project_id"/>
+                <field name="stage_id"/>
+                <field name="gang_id"/>
+                <field name="category"/>
+                <field name="count_present"/>
+                <field name="hours"/>
+                <field name="wage_amount" sum="Total"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_cm_labour_attendance" model="ir.actions.act_window">
+        <field name="name">Labour Attendance</field>
+        <field name="res_model">cm.labour.attendance</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

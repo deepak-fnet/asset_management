@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Portal User: ONLY own record -->
+    <record id="rule_portal_vendor_partner" model="ir.rule">
+        <field name="name">Portal Vendor - Own Record</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="0"/>
+        <field name="perm_unlink" eval="0"/>
+        <field name="domain_force">[('id','=',user.partner_id.id)]</field>
+    </record>
+
+    <record id="rule_portal_purchase_order" model="ir.rule">
+        <field name="name">Portal Vendor - Own RFQs</field>
+        <field name="model_id" ref="purchase.model_purchase_order"/>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="0"/>
+        <field name="perm_create" eval="0"/>
+        <field name="perm_unlink" eval="0"/>
+        <field name="domain_force">
+            ['|', ('partner_id', '=', user.partner_id.id), ('vendor_ids', 'in', [user.partner_id.id])]
+        </field>
+    </record>
+
+    <record id="rule_portal_vendor_quote" model="ir.rule">
+        <field name="name">Portal Vendor - Own Quotes</field>
+        <field name="model_id" ref="model_vendor_quote"/>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="0"/>
+        <field name="perm_unlink" eval="0"/>
+        <field name="domain_force">[('vendor_id','=',user.partner_id.id)]</field>
+    </record>
+
+    <record id="rule_portal_vendor_quote_line" model="ir.rule">
+        <field name="name">Portal Vendor - Own Quote Lines</field>
+        <field name="model_id" ref="model_vendor_quote_line"/>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="0"/>
+        <field name="perm_unlink" eval="0"/>
+        <field name="domain_force">[('quote_id.vendor_id','=',user.partner_id.id)]</field>
+    </record>
+
+    <record id="rule_portal_purchase_order_line" model="ir.rule">
+        <field name="name">Portal Vendor - Own PO Lines</field>
+        <field name="model_id" ref="purchase.model_purchase_order_line"/>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="0"/>
+        <field name="perm_unlink" eval="0"/>
+        <field name="domain_force">
+            ['|', ('order_id.partner_id', '=', user.partner_id.id), ('order_id.vendor_ids', 'in', [user.partner_id.id])]
+        </field>
+    </record>
+
+    <!-- Vendor USER: vendors + own contact -->
+    <record id="rule_vendor_user_partner" model="ir.rule">
+        <field name="name">Vendor User - Vendors + Own</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="groups" eval="[(4, ref('vendor_management.group_vendor_user'))]"/>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="1"/>
+        <field name="perm_unlink" eval="0"/>
+        <field name="domain_force">
+            ['|', ('is_vendor','=',True), ('id','=',user.partner_id.id)]
+        </field>
+    </record>
+
+    <!-- Vendor MANAGER: all vendors -->
+    <record id="rule_vendor_manager_partner" model="ir.rule">
+        <field name="name">Vendor Manager - Vendors</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="groups" eval="[(4, ref('vendor_management.group_vendor_manager'))]"/>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="1"/>
+        <field name="perm_unlink" eval="0"/>
+        <field name="domain_force">
+            ['|', ('is_vendor','=',True), ('id','=',user.partner_id.id)]
+        </field>
+    </record>
+
+    <!-- Vendor MD: everything -->
+    <record id="rule_vendor_md_partner" model="ir.rule">
+        <field name="name">Vendor MD - All Partners</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="groups" eval="[(4, ref('vendor_management.group_vendor_md'))]"/>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="1"/>
+        <field name="perm_unlink" eval="1"/>
+        <field name="domain_force">[(1,'=',1)]</field>
+    </record>
+
+</odoo>

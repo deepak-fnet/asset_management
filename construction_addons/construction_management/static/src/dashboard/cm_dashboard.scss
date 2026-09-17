@@ -1,0 +1,258 @@
+// Scrolling is handled by Odoo's own .o_content pane (set by the Layout component) -
+// this element must NOT declare its own height/overflow, or it fights that pane and
+// clips content instead of scrolling, especially when stacked on a breadcrumb.
+.o_cm_dashboard {
+    padding: 24px 32px;
+    background: #f8f7fa;
+
+    .o_cm_header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+
+        .o_cm_header_icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #714B67, #9d6d92);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        h2 {
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .o_cm_header_sub {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+    }
+
+    .o_cm_filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 24px;
+        background: #fff;
+        border: 1px solid #e5e1e6;
+        border-radius: 10px;
+        padding: 16px 20px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+
+        .o_cm_filter {
+            display: flex;
+            flex-direction: column;
+            min-width: 220px;
+
+            label {
+                font-weight: 600;
+                font-size: 0.78rem;
+                text-transform: uppercase;
+                letter-spacing: 0.02em;
+                color: #714B67;
+                margin-bottom: 5px;
+            }
+        }
+    }
+
+    .o_cm_kpi_row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 32px;
+
+        .o_cm_kpi_card {
+            flex: 1 1 220px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: #fff;
+            border: 1px solid #e5e1e6;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+
+            .o_cm_kpi_icon {
+                width: 48px;
+                height: 48px;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.3rem;
+                color: #fff;
+                flex-shrink: 0;
+
+                &.bg-purple { background: #714B67; }
+                &.bg-teal { background: #17a2b8; }
+            }
+
+            .o_cm_kpi_value {
+                font-size: 2rem;
+                font-weight: 700;
+                color: #2b2b2b;
+                line-height: 1.1;
+            }
+
+            .o_cm_kpi_label {
+                color: #6c757d;
+                font-size: 0.85rem;
+            }
+        }
+    }
+
+    .o_cm_section {
+        margin-bottom: 40px;
+
+        h4 {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+            font-weight: 700;
+            color: #2b2b2b;
+
+            i {
+                color: #714B67;
+            }
+        }
+
+        .o_cm_empty {
+            color: #6c757d;
+            font-style: italic;
+        }
+    }
+
+    .o_cm_card_grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+        gap: 18px;
+    }
+
+    .o_cm_card {
+        background: #fff;
+        border: 1px solid #e5e1e6;
+        border-left: 4px solid #adb5bd;
+        border-radius: 10px;
+        padding: 16px 18px;
+        cursor: pointer;
+        transition: box-shadow 0.15s ease, transform 0.15s ease;
+
+        &:hover {
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        &.o_cm_border_success { border-left-color: #28a745; }
+        &.o_cm_border_primary { border-left-color: #0d6efd; }
+        &.o_cm_border_info { border-left-color: #17a2b8; }
+        &.o_cm_border_warning { border-left-color: #ffc107; }
+        &.o_cm_border_danger { border-left-color: #dc3545; }
+        &.o_cm_border_secondary { border-left-color: #adb5bd; }
+
+        .o_cm_card_head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+
+            .o_cm_avatar {
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                background: #714B67;
+                color: #fff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                flex-shrink: 0;
+            }
+
+            .o_cm_card_head_text {
+                flex: 1;
+                min-width: 0;
+            }
+        }
+
+        .o_cm_card_title {
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        .o_cm_card_sub {
+            color: #6c757d;
+            font-size: 0.82rem;
+        }
+
+        .o_cm_card_meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 0.83rem;
+            color: #495057;
+            margin-bottom: 10px;
+
+            i { color: #adb5bd; }
+        }
+
+        .o_cm_card_costs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 12px;
+            font-size: 0.83rem;
+            color: #495057;
+            border-top: 1px solid #f0eef1;
+            padding-top: 10px;
+            margin-top: 4px;
+
+            &.o_cm_card_costs_4 {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .o_cm_cost_label {
+                display: block;
+                color: #adb5bd;
+                font-size: 0.72rem;
+                text-transform: uppercase;
+            }
+        }
+
+        .o_cm_card_tasks {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 10px;
+        }
+    }
+
+    .o_cm_badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 10px;
+        font-size: 0.72rem;
+        text-transform: capitalize;
+        color: #fff;
+        white-space: nowrap;
+
+        &.bg-warning { color: #4a3a00; }
+    }
+
+    .o_cm_progress {
+        height: 9px;
+        border-radius: 5px;
+        background: #eee7ec;
+        overflow: hidden;
+        margin-bottom: 10px;
+
+        .o_cm_progress_bar {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+    }
+}

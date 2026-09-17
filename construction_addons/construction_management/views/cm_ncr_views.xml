@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cm_ncr_form" model="ir.ui.view">
+        <field name="name">cm.ncr.form</field>
+        <field name="model">cm.ncr</field>
+        <field name="arch" type="xml">
+            <form string="Non-Conformance Report">
+                <header>
+                    <button name="action_review" type="object" string="Send for Review"
+                            class="oe_highlight" invisible="state != 'open'"/>
+                    <button name="action_close" type="object" string="Close"
+                            class="oe_highlight" invisible="state != 'in_review'"
+                            groups="construction_management.group_cm_manager"/>
+                    <button name="action_reopen" type="object" string="Reopen"
+                            invisible="state != 'closed'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="open,in_review,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="project_id"/>
+                            <field name="stage_id"/>
+                            <field name="date"/>
+                        </group>
+                        <group>
+                            <field name="severity"/>
+                            <field name="raised_by"/>
+                            <field name="closed_date" readonly="1" invisible="not closed_date"/>
+                        </group>
+                    </group>
+                    <group string="Details">
+                        <field name="description" nolabel="1" colspan="2"/>
+                    </group>
+                    <group>
+                        <field name="root_cause"/>
+                        <field name="corrective_action"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cm_ncr_list" model="ir.ui.view">
+        <field name="name">cm.ncr.list</field>
+        <field name="model">cm.ncr</field>
+        <field name="arch" type="xml">
+            <list string="NCRs">
+                <field name="name"/>
+                <field name="project_id"/>
+                <field name="stage_id"/>
+                <field name="date"/>
+                <field name="severity" widget="badge" decoration-danger="severity == 'critical'"
+                       decoration-warning="severity == 'major'"/>
+                <field name="state" widget="badge" decoration-success="state == 'closed'"
+                       decoration-info="state == 'in_review'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_cm_ncr" model="ir.actions.act_window">
+        <field name="name">NCRs</field>
+        <field name="res_model">cm.ncr</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>
