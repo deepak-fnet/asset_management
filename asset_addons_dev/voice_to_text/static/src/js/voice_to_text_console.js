@@ -14,6 +14,7 @@ class VoiceToTextConsole extends Component {
             enabled: true,
             isRecording: false,
             chunkSeconds: 4,
+            selectedModel: "parakeet",
             segments: [], // {text, durationSeconds, latencyMs, ok, error}
             error: "",
             pendingChunks: 0,
@@ -87,6 +88,7 @@ class VoiceToTextConsole extends Component {
             const result = await rpc("/api/voice_to_text/transcribe", {
                 audio_b64: audioB64,
                 duration: durationSeconds,
+                model: this.state.selectedModel,
             });
             if (result.ok) {
                 this.state.segments.push({
@@ -114,6 +116,12 @@ class VoiceToTextConsole extends Component {
     }
 
     clearTranscript() {
+        this.state.segments = [];
+    }
+
+    setModel(ev) {
+        this.state.selectedModel = ev.target.value;
+        // Keep comparisons clean — stats/transcript shouldn't mix across models.
         this.state.segments = [];
     }
 }

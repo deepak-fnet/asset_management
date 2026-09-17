@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_purchase_requisition_form_inherit_construction" model="ir.ui.view">
+        <field name="name">purchase.requisition.form.inherit.construction</field>
+        <field name="model">purchase.requisition</field>
+        <field name="inherit_id" ref="purchase_requisition.view_purchase_requisition_form"/>
+        <field name="arch" type="xml">
+            <field name="vendor_id" position="after">
+                <field name="project_id"/>
+                <field name="stage_id"/>
+            </field>
+        </field>
+    </record>
+</odoo>

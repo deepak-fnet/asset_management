@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="construction_management.FlowchartFinance">
+        <div class="o_flow_finance_grid">
+            <div class="o_flow_finance_item">
+                <span>Budget</span><b><t t-esc="this.formatMoney(finance.budget)"/></b>
+            </div>
+            <div class="o_flow_finance_item">
+                <span>Purchased</span><b><t t-esc="this.formatMoney(finance.purchased)"/></b>
+            </div>
+            <div class="o_flow_finance_item">
+                <span>Billed</span><b><t t-esc="this.formatMoney(finance.billed)"/></b>
+            </div>
+            <div class="o_flow_finance_item">
+                <span>Pending Bill</span><b><t t-esc="this.formatMoney(finance.pending_bill)"/></b>
+            </div>
+            <div class="o_flow_finance_item">
+                <span>Payments</span><b><t t-esc="this.formatMoney(finance.payments)"/></b>
+            </div>
+            <div t-attf-class="o_flow_finance_item o_flow_finance_profit {{this.financeClass(finance.profit)}}">
+                <span>Profit / Loss</span><b><t t-esc="this.formatMoney(finance.profit)"/></b>
+            </div>
+        </div>
+    </t>
+    <t t-name="construction_management.Flowchart">
+        <div t-att-class="props.className">
+        <Layout display="display">
+            <div class="o_cm_flowchart">
+                <div class="o_flow_header">
+                    <div class="o_flow_header_icon"><i class="fa fa-sitemap"/></div>
+                    <div class="o_flow_header_text">
+                        <h2>
+                            <t t-if="state.data.master" t-esc="state.data.master.name"/>
+                            <t t-else="">Construction Project Flow</t>
+                        </h2>
+                        <div class="o_cm_header_sub">
+                            <t t-if="state.data.selected_stage">
+                                <t t-esc="state.data.selected_project.name"/>
+                                <i class="fa fa-angle-right mx-1"/>
+                                <t t-esc="state.data.selected_stage.name"/>
+                            </t>
+                            <t t-elif="state.data.selected_project" t-esc="state.data.selected_project.name"/>
+                            <t t-else="">Pick a master project to see its flow</t>
+                        </div>
+                    </div>
+                    <div class="o_flow_master_picker" t-if="!this.lockedToMaster">
+                        <select class="form-select" t-att-value="state.masterId" t-on-change="onChangeMaster">
+                            <option value="">Select Master Project</option>
+                            <t t-foreach="state.data.masters" t-as="m" t-key="m.id">
+                                <option t-att-value="m.id"><t t-esc="m.name"/></option>
+                            </t>
+                        </select>
+                    </div>
+                </div>
+
+                <div t-if="!state.data.master" class="o_cm_empty">
+                    Select a master project above to draw its flow.
+                </div>
+
+                <t t-if="state.data.master">
+                    <div class="o_flow_center">
+                        <div class="o_flow_node o_flow_start">Start</div>
+                        <div class="o_flow_arrow_down"/>
+                        <div class="o_flow_node o_flow_project"
+                             t-on-click="() => this.openRecord('cm.master.project', state.data.master.id)">
+                            <i class="fa fa-briefcase"/>
+                            <div>
+                                <div class="o_flow_node_tag">Master Project</div>
+                                <b><t t-esc="state.data.master.name"/></b>
+                                <div class="o_flow_node_sub"><i class="fa fa-user me-1"/><t t-esc="state.data.master.partner"/></div>
+                            </div>
+                        </div>
+                        <div class="o_flow_arrow_down"/>
+                        <div class="o_flow_finance_card">
+                            <div class="o_flow_finance_title"><i class="fa fa-balance-scale me-1"/>Budget vs Actual - Overall</div>
+                            <t t-set="finance" t-value="state.data.master"/>
+                            <t t-call="construction_management.FlowchartFinance"/>
+                        </div>
+                    </div>
+
+                    <div class="o_flow_branch_row">
+                        <div class="o_flow_branch_item" t-foreach="state.data.subprojects" t-as="p" t-key="p.id">
+                            <div t-attf-class="o_flow_node o_flow_subproject o_flow_status_{{this.statusColor(p.cm_status)}} {{state.projectId == p.id ? 'o_flow_selected' : ''}}"
+                                 t-on-click="() => this.selectProject(p.id)">
+                                <i class="fa fa-building"/>
+                                <div><t t-esc="p.name"/></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div t-if="!state.data.subprojects.length" class="o_cm_empty">No sub-projects under this master project yet.</div>
+
+                    <div t-if="state.data.selected_project" class="o_flow_detail_row">
+                        <div class="o_flow_panel">
+                            <div class="o_flow_panel_title">
+                                <t t-esc="state.data.selected_project.name"/> - Stages
+                            </div>
+                            <div t-if="!state.data.stages.length" class="o_cm_empty">No stages configured yet.</div>
+                            <t t-foreach="state.data.stages" t-as="s" t-key="s.id">
+                                <div t-attf-class="o_flow_node o_flow_stage o_flow_status_{{this.statusColor(s.state)}} {{state.stageId == s.id ? 'o_flow_selected' : ''}}"
+                                     t-on-click="() => this.selectStage(s.id)">
+                                    <i class="fa fa-th-large"/>
+                                    <div><t t-esc="s.name"/></div>
+                                </div>
+                                <div class="o_flow_arrow_down" t-if="!s_last"/>
+                            </t>
+                        </div>
+
+                        <div t-if="state.data.selected_stage" class="o_flow_panel o_flow_panel_wide">
+                            <div class="o_flow_panel_title">
+                                <t t-esc="state.data.selected_project.name"/>
+                                <i class="fa fa-arrow-right mx-1"/>
+                                <t t-esc="state.data.selected_stage.name"/> (Detailed Flow)
+                            </div>
+
+                            <div class="o_flow_node o_flow_stage_detail"
+                                 t-on-click="() => this.openRecord('cm.stage', state.data.selected_stage.id)">
+                                <i class="fa fa-th-large"/>
+                                <div><t t-esc="state.data.selected_stage.name"/></div>
+                            </div>
+                            <div class="o_flow_arrow_down"/>
+
+                            <div class="o_flow_finance_card">
+                                <div class="o_flow_finance_title"><i class="fa fa-balance-scale me-1"/>Budget vs Actual - This Stage</div>
+                                <t t-set="finance" t-value="state.data.selected_stage"/>
+                                <t t-call="construction_management.FlowchartFinance"/>
+                            </div>
+                            <div class="o_flow_arrow_down"/>
+
+                            <div class="o_flow_tasks_table_wrap">
+                                <div class="o_flow_tasks_title"><i class="fa fa-list me-1"/>Tasks / Work</div>
+                                <div t-if="!state.data.tasks.length" class="o_cm_empty">No room/work tasks yet</div>
+                                <div t-else="" class="o_flow_table_scroll">
+                                    <table class="o_flow_tasks_table">
+                                        <thead>
+                                            <tr>
+                                                <th>Task / Work</th>
+                                                <th>Assigned</th>
+                                                <th>Deadline</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-foreach="state.data.tasks" t-as="tk" t-key="tk.id">
+                                                <td>
+                                                    <i t-attf-class="fa me-1 {{tk.is_closed ? 'fa-check-square-o o_flow_task_done' : 'fa-square-o'}}"/>
+                                                    <t t-esc="tk.name"/>
+                                                </td>
+                                                <td><t t-esc="tk.assignees.length ? tk.assignees.join(', ') : 'Unassigned'"/></td>
+                                                <td><t t-esc="tk.deadline or '-'"/></td>
+                                                <td>
+                                                    <span t-attf-class="o_cm_badge bg-{{tk.is_closed ? 'success' : 'secondary'}}">
+                                                        <t t-esc="tk.status_label"/>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="o_flow_arrow_down"/>
+
+                            <div class="o_flow_pipeline">
+                                <t t-foreach="['not_started', 'in_progress', 'completed', 'certified']" t-as="st" t-key="st">
+                                    <div t-attf-class="o_flow_pipe_step {{state.data.selected_stage.state === st ? 'o_flow_pipe_current' : ''}}">
+                                        <t t-esc="st.split('_').join(' ')"/>
+                                    </div>
+                                    <div class="o_flow_pipe_arrow" t-if="!st_last"><i class="fa fa-long-arrow-right"/></div>
+                                </t>
+                            </div>
+
+                            <div t-if="state.data.selected_stage.state !== 'certified'" class="o_flow_loop_note">
+                                <i class="fa fa-refresh me-1"/>Not yet certified - work continues until every task is
+                                done and the stage is certified.
+                            </div>
+                            <div t-else="" class="o_flow_done_note">
+                                <i class="fa fa-check-circle me-1"/>Certified - stage work is complete and signed off.
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </Layout>
+        </div>
+    </t>
+</templates>

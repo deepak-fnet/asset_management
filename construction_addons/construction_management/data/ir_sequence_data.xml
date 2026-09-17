@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_cm_master_project" model="ir.sequence">
+        <field name="name">Construction Master Project</field>
+        <field name="code">cm.master.project</field>
+        <field name="prefix">MPR-%(year)s-</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="seq_cm_ncr" model="ir.sequence">
+        <field name="name">Construction NCR</field>
+        <field name="code">cm.ncr</field>
+        <field name="prefix">NCR-%(year)s-</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="seq_cm_safety_incident" model="ir.sequence">
+        <field name="name">Construction Safety Incident</field>
+        <field name="code">cm.safety.incident</field>
+        <field name="prefix">SAF-%(year)s-</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

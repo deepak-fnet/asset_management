@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cm_budget_line_list" model="ir.ui.view">
+        <field name="name">cm.budget.line.list</field>
+        <field name="model">cm.budget.line</field>
+        <field name="arch" type="xml">
+            <list string="Budget Lines" editable="bottom">
+                <field name="project_id" column_invisible="context.get('default_project_id')"/>
+                <field name="cost_head"/>
+                <field name="planned_amount"/>
+                <field name="actual_amount" readonly="1"/>
+                <field name="variance"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_cm_budget_line" model="ir.actions.act_window">
+        <field name="name">Budget Lines</field>
+        <field name="res_model">cm.budget.line</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cm_safety_incident_form" model="ir.ui.view">
+        <field name="name">cm.safety.incident.form</field>
+        <field name="model">cm.safety.incident</field>
+        <field name="arch" type="xml">
+            <form string="Safety Incident">
+                <header>
+                    <button name="action_close" type="object" string="Close"
+                            class="oe_highlight" invisible="state != 'open'"
+                            groups="construction_management.group_cm_manager"/>
+                    <button name="action_reopen" type="object" string="Reopen"
+                            invisible="state != 'closed'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="open,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="project_id"/>
+                            <field name="stage_id"/>
+                            <field name="incident_date"/>
+                        </group>
+                        <group>
+                            <field name="severity"/>
+                            <field name="reported_by"/>
+                            <field name="closed_date" readonly="1" invisible="not closed_date"/>
+                        </group>
+                    </group>
+                    <group string="Details">
+                        <field name="description" nolabel="1" colspan="2"/>
+                    </group>
+                    <group>
+                        <field name="corrective_action"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cm_safety_incident_list" model="ir.ui.view">
+        <field name="name">cm.safety.incident.list</field>
+        <field name="model">cm.safety.incident</field>
+        <field name="arch" type="xml">
+            <list string="Safety Incidents">
+                <field name="name"/>
+                <field name="project_id"/>
+                <field name="stage_id"/>
+                <field name="incident_date"/>
+                <field name="severity" widget="badge" decoration-danger="severity in ('major', 'fatal')"
+                       decoration-warning="severity == 'minor'"/>
+                <field name="state" widget="badge" decoration-success="state == 'closed'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_cm_safety_incident" model="ir.actions.act_window">
+        <field name="name">Safety Incidents</field>
+        <field name="res_model">cm.safety.incident</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

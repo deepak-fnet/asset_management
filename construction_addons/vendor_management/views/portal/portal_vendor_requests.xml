@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="portal_vendor_requests" name="New Vendor Request">
+        <t t-call="portal.portal_layout">
+            <div class="container mt-4">
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h2 class="fw-bold">New Document Request</h2>
+                        <p class="text-muted">Submit a request to upload or update a compliance document.</p>
+                        <hr/>
+                    </div>
+                </div>
+
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body p-4">
+                                <form method="post" action="/my/vendor/request/new">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                                    <div class="mb-4">
+                                        <label class="form-label fw-bold">Document Type</label>
+                                        <select name="doc_type_id" class="form-select form-select-lg" required="required">
+                                            <t t-foreach="doc_types" t-as="d">
+                                                <option t-att-value="d.id"><t t-esc="d.name"/></option>
+                                            </t>
+                                        </select>
+                                        <div class="form-text">Select the category of the document you want to submit.</div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label class="form-label fw-bold">Description / Purpose</label>
+                                        <textarea name="description" class="form-control" rows="4" required="required" placeholder="Provide details about why this document is being submitted or updated..."></textarea>
+                                    </div>
+
+                                    <div class="d-flex justify-content-end gap-2 mt-4">
+                                        <a href="/my/vendor" class="btn btn-light px-4">Cancel</a>
+                                        <button type="submit" class="btn btn-primary px-5">
+                                            <i class="fa fa-paper-plane me-1" title="Submit Icon"/> Submit Request
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>

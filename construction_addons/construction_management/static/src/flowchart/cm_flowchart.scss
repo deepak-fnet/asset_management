@@ -1,0 +1,338 @@
+// Scrolling is handled by Odoo's own .o_content pane (set by the Layout component) -
+// this element must NOT declare its own height/overflow, or it fights that pane and
+// clips content instead of scrolling, especially when stacked on a breadcrumb.
+.o_cm_flowchart {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 24px 32px;
+    background: #f8f7fa;
+
+    * { box-sizing: border-box; }
+
+    .o_flow_header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 28px;
+
+        .o_flow_header_icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #714B67, #9d6d92);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .o_flow_header_text {
+            flex: 1;
+            min-width: 0;
+
+            h2 { margin: 0; font-weight: 700; }
+        }
+
+        .o_cm_header_sub { color: #6c757d; font-size: 0.9rem; }
+
+        .o_flow_master_picker {
+            min-width: 240px;
+        }
+    }
+
+    .o_cm_empty { color: #6c757d; font-style: italic; margin: 12px 0; }
+
+    // --- Connectors ---
+    .o_flow_arrow_down {
+        width: 3px;
+        height: 28px;
+        background: #c9c3cb;
+        margin: 0 auto;
+        position: relative;
+
+        &::after {
+            content: "";
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 8px solid #c9c3cb;
+        }
+    }
+
+    .o_flow_center {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .o_flow_branch_row {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+        border-top: 3px solid #c9c3cb;
+        padding-top: 26px;
+        margin: 26px auto 0;
+        width: 100%;
+        max-width: 1200px;
+
+        .o_flow_branch_item {
+            position: relative;
+            flex: 1 1 160px;
+            min-width: 160px;
+            max-width: 260px;
+
+            &::before {
+                content: "";
+                position: absolute;
+                top: -26px;
+                left: 50%;
+                width: 3px;
+                height: 26px;
+                background: #c9c3cb;
+            }
+        }
+    }
+
+    // --- Node boxes ---
+    .o_flow_node {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: #fff;
+        border: 2px solid #e5e1e6;
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 0.9rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+        i { font-size: 1.1rem; color: #714B67; flex-shrink: 0; }
+    }
+
+    .o_flow_start {
+        background: #28a745;
+        color: #fff;
+        border-color: #28a745;
+        border-radius: 20px;
+        padding: 8px 28px;
+        font-weight: 600;
+    }
+
+    .o_flow_project {
+        background: #f3ecf2;
+        border-color: #714B67;
+        cursor: pointer;
+        text-align: left;
+        min-width: 260px;
+        padding: 16px 20px;
+
+        i { font-size: 1.6rem; }
+
+        &:hover { box-shadow: 0 4px 12px rgba(113, 75, 103, 0.25); }
+    }
+
+    .o_flow_node_tag {
+        color: #714B67;
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 2px;
+    }
+
+    .o_flow_node_sub { color: #6c757d; font-size: 0.78rem; margin-top: 2px; }
+
+    // --- Budget vs Actual finance card ---
+    .o_flow_finance_card {
+        background: #fff;
+        border: 1px solid #e5e1e6;
+        border-radius: 10px;
+        padding: 16px 20px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        width: 100%;
+        max-width: 720px;
+    }
+
+    .o_flow_finance_title {
+        font-weight: 700;
+        color: #714B67;
+        font-size: 0.85rem;
+        margin-bottom: 12px;
+        text-align: left;
+
+        i { color: #714B67; }
+    }
+
+    .o_flow_finance_grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: 12px;
+    }
+
+    .o_flow_finance_item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        background: #f8f7fa;
+        border-radius: 8px;
+        padding: 8px 10px;
+        text-align: left;
+
+        span { color: #6c757d; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.02em; }
+        b { font-size: 0.95rem; color: #2b2b2b; }
+
+        &.o_flow_finance_profit b { color: #1e6b32; }
+        &.o_flow_finance_loss b { color: #b02a37; }
+    }
+
+    .o_flow_subproject, .o_flow_stage, .o_flow_stage_detail {
+        width: 100%;
+        cursor: pointer;
+        justify-content: center;
+        font-weight: 600;
+
+        &:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12); }
+    }
+
+    .o_flow_stage_detail { justify-content: flex-start; margin: 0 auto; max-width: 100%; width: fit-content; }
+
+    .o_flow_selected {
+        box-shadow: 0 0 0 3px rgba(113, 75, 103, 0.35);
+    }
+
+    .o_flow_status_success { border-color: #28a745; background: #eaf6ec; }
+    .o_flow_status_primary { border-color: #0d6efd; background: #eaf1ff; }
+    .o_flow_status_info { border-color: #17a2b8; background: #e8f7f9; }
+    .o_flow_status_warning { border-color: #ffc107; background: #fff8e1; }
+    .o_flow_status_secondary { border-color: #adb5bd; background: #f4f4f5; }
+
+    // --- Detail row: two side-by-side panels ---
+    .o_flow_detail_row {
+        display: flex;
+        gap: 24px;
+        margin-top: 32px;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .o_flow_panel {
+        flex: 1 1 280px;
+        min-width: 0;
+        background: #fff;
+        border: 1px dashed #c9c3cb;
+        border-radius: 10px;
+        padding: 18px;
+        text-align: center;
+
+        &.o_flow_panel_wide { flex: 2 1 420px; }
+    }
+
+    .o_flow_panel_title {
+        font-weight: 700;
+        background: #714B67;
+        color: #fff;
+        border-radius: 6px;
+        padding: 8px 14px;
+        margin-bottom: 18px;
+        font-size: 0.88rem;
+    }
+
+    .o_flow_tasks_table_wrap {
+        text-align: left;
+        width: 100%;
+        margin-top: 4px;
+    }
+
+    .o_flow_tasks_title {
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: #2b2b2b;
+
+        i { color: #714B67; }
+    }
+
+    .o_flow_table_scroll {
+        overflow-x: auto;
+        width: 100%;
+    }
+
+    .o_flow_tasks_table {
+        width: 100%;
+        min-width: 420px;
+        border-collapse: collapse;
+        font-size: 0.83rem;
+
+        th, td {
+            padding: 7px 10px;
+            border-bottom: 1px solid #eee4ec;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        thead th {
+            color: #6c757d;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            border-bottom: 2px solid #e5e1e6;
+        }
+
+        tbody tr:hover { background: #faf8fa; }
+
+        .o_flow_task_done { color: #28a745; }
+    }
+
+    .o_flow_pipeline {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 4px;
+
+        .o_flow_pipe_step {
+            border: 2px solid #dcd8de;
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 0.78rem;
+            text-transform: capitalize;
+            color: #6c757d;
+            background: #fff;
+
+            &.o_flow_pipe_current {
+                background: #714B67;
+                border-color: #714B67;
+                color: #fff;
+                font-weight: 700;
+            }
+        }
+
+        .o_flow_pipe_arrow { color: #c9c3cb; }
+    }
+
+    .o_flow_loop_note, .o_flow_done_note {
+        text-align: center;
+        margin-top: 14px;
+        font-size: 0.82rem;
+        padding: 8px;
+        border-radius: 8px;
+    }
+
+    .o_flow_loop_note { color: #8a5a00; background: #fff8e1; }
+    .o_flow_done_note { color: #1e6b32; background: #eaf6ec; }
+
+    @media (max-width: 900px) {
+        padding: 16px;
+
+        .o_flow_header_text h2 { font-size: 1.2rem; }
+        .o_flow_master_picker { min-width: 0; flex: 1 1 100%; }
+        .o_flow_branch_item { flex-basis: 100%; max-width: 100%; }
+    }
+}

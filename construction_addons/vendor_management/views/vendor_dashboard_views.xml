@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <record id="view_vendor_dashboard_form" model="ir.ui.view">
+    <field name="name">vendor.dashboard.form</field>
+    <field name="model">vendor.dashboard</field>
+    <field name="arch" type="xml">
+      <form string="Vendor Control Center" create="false" edit="false" class="o_vendor_dashboard">
+        <sheet>
+          <div class="text-center mb-4">
+            <h1 class="fw-bold text-primary">Vendor Control Center</h1>
+            <p class="text-muted">Real-time overview of vendor ecosystem health</p>
+          </div>
+
+          <div class="row g-4 mb-4">
+            <div class="col-md-4">
+              <button type="object" name="action_open_active" class="o_vendor_card bg-success w-100 p-4 text-start border-0">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h5 class="mb-1 text-white opacity-75">Active Vendors</h5>
+                    <div class="h1 fw-bold mb-0 text-white"><field name="active_vendors"/></div>
+                  </div>
+                  <i class="fa fa-check-circle fa-3x text-white opacity-25" title="Active Vendors Icon"/>
+                </div>
+              </button>
+            </div>
+
+            <div class="col-md-4">
+              <button type="object" name="action_open_review" class="o_vendor_card bg-warning w-100 p-4 text-start border-0">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h5 class="mb-1 text-white opacity-75">Under Review</h5>
+                    <div class="h1 fw-bold mb-0 text-white"><field name="under_review_vendors"/></div>
+                  </div>
+                  <i class="fa fa-clock-o fa-3x text-white opacity-25" title="Under Review Icon"/>
+                </div>
+              </button>
+            </div>
+
+            <div class="col-md-4">
+              <button type="object" name="action_open_blocked" class="o_vendor_card bg-danger w-100 p-4 text-start border-0">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h5 class="mb-1 text-white opacity-75">Blocked</h5>
+                    <div class="h1 fw-bold mb-0 text-white"><field name="blocked_vendors"/></div>
+                  </div>
+                  <i class="fa fa-ban fa-3x text-white opacity-25" title="Blocked Icon"/>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div class="row g-4 mb-4">
+            <div class="col-md-4">
+              <div class="o_vendor_card bg-primary w-100 p-4 text-start">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h5 class="mb-1 text-white opacity-75">Purchase Orders</h5>
+                    <div class="h1 fw-bold mb-0 text-white"><field name="total_pos"/></div>
+                  </div>
+                  <i class="fa fa-shopping-cart fa-3x text-white opacity-25" title="Purchase Orders Icon"/>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="o_vendor_card bg-secondary w-100 p-4 text-start">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h5 class="mb-1 text-white opacity-75">Vendor Bills</h5>
+                    <div class="h1 fw-bold mb-0 text-white"><field name="total_invoices"/></div>
+                  </div>
+                  <i class="fa fa-money fa-3x text-white opacity-25" title="Bills Icon"/>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="o_vendor_card bg-success w-100 p-4 text-start">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h5 class="mb-1 text-white opacity-75">Avg Performance</h5>
+                    <div class="h1 fw-bold mb-0 text-white"><field name="avg_performance"/>%</div>
+                  </div>
+                  <i class="fa fa-star fa-3x text-white opacity-25" title="Performance Icon"/>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="vendor_section_title mt-5">
+            <i class="fa fa-file-text-o" title="Compliance Icon"/> Compliance Overview
+          </div>
+
+          <div class="row g-4">
+            <div class="col-md-6">
+              <button type="object" name="action_open_expired_docs" class="o_vendor_card bg-dark w-100 p-4 text-start border-0">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h5 class="mb-1 text-white opacity-75">Expired Documents</h5>
+                    <div class="h1 fw-bold mb-0 text-white"><field name="expired_docs"/></div>
+                  </div>
+                  <i class="fa fa-exclamation-triangle fa-3x text-white opacity-25" title="Expired Documents Icon"/>
+                </div>
+              </button>
+            </div>
+
+            <div class="col-md-6">
+              <div class="o_vendor_card bg-info w-100 p-4 text-start">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h5 class="mb-1 text-white opacity-75">Approved Documents</h5>
+                    <div class="h1 fw-bold mb-0 text-white"><field name="approved_docs"/></div>
+                  </div>
+                  <i class="fa fa-shield fa-3x text-white opacity-25" title="Approved Documents Icon"/>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </sheet>
+      </form>
+    </field>
+  </record>
+</odoo>

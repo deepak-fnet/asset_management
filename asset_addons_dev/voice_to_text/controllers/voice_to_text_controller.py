@@ -33,6 +33,9 @@ class VoiceToTextController(http.Controller):
     def transcribe(self, **kwargs):
         audio_b64 = kwargs.get("audio_b64")
         duration = kwargs.get("duration") or 0.0
+        model = kwargs.get("model") or "parakeet"
+        if model not in ("parakeet", "indian_voice"):
+            model = "parakeet"
 
         if not audio_b64:
             return {"ok": False, "message": "No audio data provided."}
@@ -47,7 +50,7 @@ class VoiceToTextController(http.Controller):
             return {"ok": False, "message": "Invalid audio data: %s" % e}
 
         ok, text_or_error, latency_ms = stt_service.transcribe_audio(
-            base_url, audio_bytes, filename="chunk.wav", timeout=timeout,
+            base_url, audio_bytes, filename="chunk.wav", timeout=timeout, model=model,
         )
 
         if ok:
@@ -55,6 +58,7 @@ class VoiceToTextController(http.Controller):
                 "transcript": text_or_error,
                 "duration": duration,
                 "latency_ms": latency_ms,
+                "model": model,
             })
             return {"ok": True, "text": text_or_error, "latency_ms": latency_ms}
 

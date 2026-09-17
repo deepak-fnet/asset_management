@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_vendor" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.vendor</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="100"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Vendor Management" string="Vendor Management" name="vendor_management">
+                    <block title="Performance Settings">
+                        <setting string="Transaction Review Threshold" help="PO Amount above which rating popup appears">
+                            <field name="transaction_review_threshold"/>
+                        </setting>
+                        <setting string="Review Frequency" help="Periodic review frequency in months">
+                            <field name="review_frequency"/>
+                        </setting>
+                    </block>
+                    <block title="Risk Score Weights">
+                        <setting string="Missing Documents Weight" help="Score added for each missing mandatory document">
+                            <field name="risk_score_weight_missing"/>
+                        </setting>
+                        <setting string="Expired Documents Weight" help="Score added for each expired mandatory document">
+                            <field name="risk_score_weight_expired"/>
+                        </setting>
+                        <setting string="Rejected Documents Weight" help="Score added for each rejected mandatory document">
+                            <field name="risk_score_weight_rejected"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_vendor_config_settings" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">main</field>
+        <field name="context">{'module' : 'vendor_management'}</field>
+    </record>
+</odoo>

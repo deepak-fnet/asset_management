@@ -1,0 +1,5 @@
+<odoo>
+    <record id="vendor_dashboard_singleton" model="vendor.dashboard">
+        <field name="id">1</field>
+    </record>
+</odoo>

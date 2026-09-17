@@ -1,0 +1,20 @@
+# Python bytecode / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment - never belongs in git; its contents change on every
+# pip/venv rebuild and have no business being reviewed as source changes.
+venv/
+
+# Odoo runtime artifacts
+*.log
+.odoo_ext_deps
+odoo_run.log
+odoo_run_stdout.log
+
+# Editor/OS cruft
+.DS_Store
+.idea/
+.vscode/
+parakeet_stt_service/models/hub/

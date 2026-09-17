@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="edit_project_inherit_construction" model="ir.ui.view">
+        <field name="name">project.project.form.inherit.construction</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_cm_stages" type="object" class="oe_stat_button" icon="fa-tasks">
+                    <field name="cm_stage_count" widget="statinfo" string="Stages"/>
+                </button>
+                <button name="action_view_budget_lines" type="object" class="oe_stat_button" icon="fa-calculator">
+                    <field name="budget_line_count" widget="statinfo" string="Budget Lines"/>
+                </button>
+            </xpath>
+            <xpath expr="//group[field[@name='user_id']]" position="after">
+                <group string="Construction">
+                    <group>
+                        <field name="master_project_id"/>
+                        <field name="project_no"/>
+                        <field name="floors"/>
+                    </group>
+                    <group>
+                        <field name="cm_budget"/>
+                        <field name="cm_status" readonly="1"/>
+                    </group>
+                </group>
+                <group>
+                    <field name="completion_percent" widget="progressbar" colspan="2"/>
+                </group>
+                <group string="Purchase vs Budget">
+                    <group>
+                        <field name="purchased_amount"/>
+                        <field name="billed_amount"/>
+                        <field name="pending_bill_amount"/>
+                    </group>
+                    <group>
+                        <field name="payment_total"/>
+                        <field name="profit_amount"/>
+                    </group>
+                </group>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page name="construction_closure" string="Closure">
+                    <button name="action_close_subproject" type="object" string="Close Sub-Project"
+                            class="oe_highlight" invisible="cm_status == 'closed'"
+                            groups="construction_management.group_cm_manager"/>
+                    <group>
+                        <field name="final_inspection_done"/>
+                        <field name="final_payment_cleared" readonly="1"/>
+                        <field name="client_signoff"/>
+                        <field name="handover_date"/>
+                        <field name="warranty_months"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

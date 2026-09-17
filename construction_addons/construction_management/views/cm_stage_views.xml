@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cm_stage_form" model="ir.ui.view">
+        <field name="name">cm.stage.form</field>
+        <field name="model">cm.stage</field>
+        <field name="arch" type="xml">
+            <form string="Construction Stage">
+                <header>
+                    <button name="action_start" type="object" string="Start"
+                            class="oe_highlight" invisible="state != 'not_started'"/>
+                    <button name="action_mark_completed" type="object" string="Mark Completed"
+                            class="oe_highlight" invisible="state != 'in_progress'"/>
+                    <button name="action_certify" type="object" string="Certify"
+                            class="oe_highlight" invisible="state != 'completed'"
+                            groups="construction_management.group_cm_manager"/>
+                    <button name="action_create_requisition" type="object" string="Create Procurement Plan"
+                            groups="purchase.group_purchase_user"
+                            invisible="not boq_total"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="not_started,in_progress,completed,certified"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_procurement_plans" type="object"
+                                class="oe_stat_button" icon="fa-clipboard"
+                                invisible="not procurement_plan_count">
+                            <field name="procurement_plan_count" widget="statinfo" string="Procurement Plans"/>
+                        </button>
+                        <button name="action_view_purchase_orders" type="object"
+                                class="oe_stat_button" icon="fa-shopping-cart">
+                            <field name="purchase_order_count" widget="statinfo" string="Purchase Orders"/>
+                        </button>
+                        <button name="action_view_payments" type="object"
+                                class="oe_stat_button" icon="fa-credit-card">
+                            <field name="payment_count" widget="statinfo" string="Payments"/>
+                        </button>
+                        <button name="action_view_measurements" type="object"
+                                class="oe_stat_button" icon="fa-balance-scale">
+                            <field name="measurement_count" widget="statinfo" string="Measurements"/>
+                        </button>
+                        <button name="action_view_labour_attendance" type="object"
+                                class="oe_stat_button" icon="fa-users">
+                            <field name="labour_attendance_count" widget="statinfo" string="Labour"/>
+                        </button>
+                        <button name="action_view_dprs" type="object"
+                                class="oe_stat_button" icon="fa-clipboard">
+                            <field name="dpr_count" widget="statinfo" string="DPRs"/>
+                        </button>
+                        <button name="action_view_ncrs" type="object"
+                                class="oe_stat_button" icon="fa-exclamation-triangle">
+                            <field name="ncr_count" widget="statinfo" string="NCRs"/>
+                        </button>
+                        <button name="action_view_safety_incidents" type="object"
+                                class="oe_stat_button" icon="fa-medkit">
+                            <field name="safety_incident_count" widget="statinfo" string="Safety"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="project_id"/>
+                            <field name="master_project_id" invisible="1"/>
+                            <field name="sequence"/>
+                            <field name="target_date"/>
+                            <field name="milestone_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="budget_allocation"/>
+                            <field name="boq_total"/>
+                            <field name="boq_actual_total"/>
+                            <field name="measured_amount"/>
+                        </group>
+                    </group>
+                    <group string="Purchase vs Budget">
+                        <group>
+                            <field name="purchased_amount"/>
+                            <field name="billed_amount"/>
+                            <field name="pending_bill_amount"/>
+                        </group>
+                        <group>
+                            <field name="payment_total"/>
+                            <field name="profit_amount"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="percent_complete" widget="progressbar" colspan="2"/>
+                    </group>
+                    <group invisible="not certified_by" string="Certification">
+                        <field name="certified_by" readonly="1"/>
+                        <field name="certified_date" readonly="1"/>
+                    </group>
+                    <notebook>
+                        <page string="BOQ">
+                            <button name="action_fetch_boq_from_lead" type="object" string="Fetch BOQ from Lead"
+                                    class="btn-secondary mb-2" invisible="not can_fetch_lead_boq"/>
+                            <field name="can_fetch_lead_boq" invisible="1"/>
+                            <field name="boq_line_ids">
+                                <list editable="bottom" decoration-muted="fulfillment_status == 'issued'">
+                                    <field name="product_id" readonly="source_line_id"/>
+                                    <field name="product_type" column_invisible="1"/>
+                                    <field name="source_line_id" column_invisible="1"/>
+                                    <field name="quantity" readonly="state != 'draft'"/>
+                                    <field name="uom_id"/>
+                                    <field name="rate" readonly="1" string="Rate (Est.)"/>
+                                    <field name="amount" string="Amount (Est.)" sum="Total"/>
+                                    <field name="actual_amount" string="Actual Amount" sum="Total"/>
+                                    <field name="state" string="Request Status" widget="badge"
+                                           decoration-info="state == 'requested'"
+                                           decoration-success="state == 'procurement'"/>
+                                    <field name="fulfillment_status" string="Fulfillment" widget="badge"
+                                           decoration-warning="fulfillment_status == 'partial'"
+                                           decoration-success="fulfillment_status in ('received', 'issued')"/>
+                                    <button name="action_raise_request" type="object" string="Raise Request"
+                                            invisible="state != 'draft' or not quantity"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Purchase Orders">
+                            <field name="purchase_order_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="partner_id"/>
+                                    <field name="date_order"/>
+                                    <field name="amount_total"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Store Ledger">
+                            <button name="action_create_material_issue" type="object"
+                                    string="Create Material Issue (Internal Transfer)"
+                                    class="btn-primary mb-2"/>
+                            <field name="boq_line_ids">
+                                <list create="0" delete="0" edit="0">
+                                    <field name="product_id"/>
+                                    <field name="uom_id"/>
+                                    <field name="quantity" string="Requested Qty"/>
+                                    <field name="purchased_qty"/>
+                                    <field name="purchased_amount" string="Purchased Amount (Real)" sum="Total"/>
+                                    <field name="received_qty"/>
+                                    <field name="issued_qty" string="Issued to Site"/>
+                                    <field name="issued_amount" string="Issued Amount (Real)" sum="Total"/>
+                                    <field name="balance_qty" string="Balance in Store"/>
+                                    <field name="fulfillment_status" widget="badge"
+                                           decoration-warning="fulfillment_status == 'partial'"
+                                           decoration-success="fulfillment_status in ('received', 'issued')"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Progress (Tasks)">
+                            <field name="task_ids" domain="[('parent_id', '=', False)]"
+                                   context="{'default_project_id': project_id, 'default_cm_stage_id': id,
+                                             'default_partner_id': project_id.partner_id}">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="user_ids" widget="many2many_avatar_user" optional="show"/>
+                                    <field name="date_deadline"/>
+                                    <field name="subtask_count" string="Sub-tasks"/>
+                                    <field name="closed_subtask_count" string="Done"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Payments">
+                            <field name="payment_ids" readonly="1">
+                                <list>
+                                    <field name="date"/>
+                                    <field name="partner_id"/>
+                                    <field name="partner_type"/>
+                                    <field name="amount"/>
+                                    <field name="journal_id"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cm_stage_list" model="ir.ui.view">
+        <field name="name">cm.stage.list</field>
+        <field name="model">cm.stage</field>
+        <field name="arch" type="xml">
+            <list string="Construction Stages">
+                <field name="sequence" widget="handle"/>
+                <field name="project_id"/>
+                <field name="name"/>
+                <field name="budget_allocation"/>
+                <field name="boq_total"/>
+                <field name="target_date"/>
+                <field name="percent_complete" widget="progressbar"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_cm_stage" model="ir.actions.act_window">
+        <field name="name">Construction Stages</field>
+        <field name="res_model">cm.stage</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_cm_stage_pnl_list" model="ir.ui.view">
+        <field name="name">cm.stage.pnl.list</field>
+        <field name="model">cm.stage</field>
+        <field name="arch" type="xml">
+            <list string="Profit &amp; Loss by Stage" create="0" delete="0" edit="0">
+                <field name="project_id"/>
+                <field name="name"/>
+                <field name="budget_allocation" sum="Total"/>
+                <field name="purchased_amount" sum="Total"/>
+                <field name="billed_amount" sum="Total"/>
+                <field name="pending_bill_amount" sum="Total"/>
+                <field name="payment_total" sum="Total"/>
+                <field name="profit_amount" sum="Total"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cm_boq_line_ledger_list" model="ir.ui.view">
+        <field name="name">cm.boq.line.ledger.list</field>
+        <field name="model">cm.boq.line</field>
+        <field name="arch" type="xml">
+            <list string="Store Ledger" create="0" delete="0" edit="0">
+                <field name="stage_id"/>
+                <field name="product_id"/>
+                <field name="uom_id"/>
+                <field name="quantity" string="Requested Qty"/>
+                <field name="purchased_qty"/>
+                <field name="purchased_amount" string="Purchased Amount (Real)" sum="Total"/>
+                <field name="received_qty"/>
+                <field name="issued_qty" string="Issued to Site"/>
+                <field name="issued_amount" string="Issued Amount (Real)" sum="Total"/>
+                <field name="balance_qty" string="Balance in Store"/>
+                <field name="fulfillment_status" widget="badge"
+                       decoration-warning="fulfillment_status == 'partial'"
+                       decoration-success="fulfillment_status in ('received', 'issued')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cm_boq_line_request_list" model="ir.ui.view">
+        <field name="name">cm.boq.line.request.list</field>
+        <field name="model">cm.boq.line</field>
+        <field name="arch" type="xml">
+            <list string="Material Requests" create="0" delete="0" edit="0">
+                <field name="stage_id"/>
+                <field name="project_id"/>
+                <field name="product_id"/>
+                <field name="uom_id"/>
+                <field name="quantity" string="Requested Qty"/>
+                <field name="state" string="Request Status" widget="badge"
+                       decoration-info="state == 'requested'"
+                       decoration-success="state == 'procurement'"/>
+                <field name="fulfillment_status" string="Fulfillment" widget="badge"
+                       decoration-warning="fulfillment_status == 'partial'"
+                       decoration-success="fulfillment_status in ('received', 'issued')"/>
+                <field name="requisition_id"/>
+                <button name="action_create_requisition" type="object" string="Create Procurement Plan"
+                        class="btn-link" invisible="state != 'requested'"
+                        groups="purchase.group_purchase_user"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_cm_material_requests" model="ir.actions.act_window">
+        <field name="name">Material Requests</field>
+        <field name="res_model">cm.boq.line</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_cm_boq_line_request_list"/>
+        <field name="domain">[('stage_id', '!=', False), ('state', '!=', 'draft')]</field>
+    </record>
+</odoo>

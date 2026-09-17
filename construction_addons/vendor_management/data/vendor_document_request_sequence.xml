@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="seq_vendor_document_request" model="ir.sequence">
+        <field name="name">Vendor Document Request</field>
+        <field name="code">vendor.document.request</field>
+        <field name="prefix">VREQ/</field>
+        <field name="padding">4</field>
+    </record>
+</odoo>

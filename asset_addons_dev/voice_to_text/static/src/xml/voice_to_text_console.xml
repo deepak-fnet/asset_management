@@ -5,10 +5,9 @@
     <div class="o_voice_to_text_console container-fluid p-4">
         <h2 class="mb-1">Voice to Text — Test Console</h2>
         <p class="text-muted">
-            Powered by NVIDIA Parakeet TDT, running on CPU. Speech is captured in
-            <t t-esc="state.chunkSeconds"/>-second windows and transcribed one window
-            at a time — expect a few seconds of delay per window, not word-by-word
-            live captions.
+            Speech is captured in <t t-esc="state.chunkSeconds"/>-second windows and
+            transcribed one window at a time — expect a few seconds of delay per
+            window, not word-by-word live captions.
         </p>
 
         <div class="alert alert-warning" t-if="!state.enabled">
@@ -16,6 +15,29 @@
         </div>
         <div class="alert alert-danger" t-if="state.error">
             <t t-esc="state.error"/>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold d-block">Model</label>
+            <div class="btn-group" role="group">
+                <input type="radio" class="btn-check" name="stt_model" id="model_parakeet"
+                       value="parakeet" t-att-checked="state.selectedModel === 'parakeet'"
+                       t-att-disabled="state.isRecording" t-on-change="setModel"/>
+                <label class="btn btn-outline-primary" for="model_parakeet">Parakeet TDT</label>
+
+                <input type="radio" class="btn-check" name="stt_model" id="model_indian_voice"
+                       value="indian_voice" t-att-checked="state.selectedModel === 'indian_voice'"
+                       t-att-disabled="state.isRecording" t-on-change="setModel"/>
+                <label class="btn btn-outline-primary" for="model_indian_voice">Indian Voice</label>
+            </div>
+            <div class="text-muted small mt-1">
+                <t t-if="state.selectedModel === 'parakeet'">
+                    NVIDIA Parakeet TDT — fast, best on native/standard English accents.
+                </t>
+                <t t-else="">
+                    Whisper large-v3 — slower, tuned for Indian-accented English (per AI4Bharat's Svarah benchmark).
+                </t>
+            </div>
         </div>
 
         <div class="d-flex align-items-center gap-3 mb-4">

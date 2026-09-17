@@ -41,8 +41,11 @@ def check_health(base_url, timeout=10):
         return False, msg
 
 
-def transcribe_audio(base_url, audio_bytes, filename="chunk.wav", timeout=30):
+def transcribe_audio(base_url, audio_bytes, filename="chunk.wav", timeout=30, model="parakeet"):
     """Send a WAV audio chunk to the STT microservice for transcription.
+
+    `model` selects the backend: "parakeet" (Parakeet TDT) or "indian_voice"
+    (Whisper, tuned for Indian-accented English).
 
     Returns (ok: bool, text_or_error: str, latency_ms: float)
     """
@@ -54,6 +57,7 @@ def transcribe_audio(base_url, audio_bytes, filename="chunk.wav", timeout=30):
         resp = requests.post(
             base_url.rstrip('/') + '/transcribe',
             files={"audio": (filename, audio_bytes, "audio/wav")},
+            data={"model": model},
             timeout=timeout,
         )
         resp.raise_for_status()

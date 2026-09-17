@@ -1,0 +1,669 @@
+/* ============================================================
+   VENDOR MANAGEMENT — Advanced Dashboard v2 (vd2-*)
+   ============================================================ */
+
+.vd2 {
+
+    /* ========================================================
+       THEME — change the whole dashboard look from this block.
+       Active palette: PETROL / CYAN
+       ======================================================== */
+    --vd2-primary: #0e7490;                 /* brand accent          */
+    --vd2-primary-2: #22d3ee;               /* light companion (gradients) */
+    --vd2-primary-soft: #e6f7fb;            /* tinted backgrounds    */
+    --vd2-ring: rgba(14, 116, 144, 0.35);   /* focus ring            */
+    --vd2-on-light: #08313d;                /* ink text on white pills/buttons */
+    --vd2-hero-g1: #071a24;                 /* header gradient stops */
+    --vd2-hero-g2: #0b3140;
+    --vd2-hero-g3: #11505f;
+    --vd2-hero-glow1: rgba(34, 211, 238, 0.30);
+    --vd2-hero-glow2: rgba(45, 212, 191, 0.12);
+
+    /* -------- ALTERNATE: INDIGO CLASSIC (uncomment to use) --------
+    --vd2-primary: #4f46e5;
+    --vd2-primary-2: #8b5cf6;
+    --vd2-primary-soft: #eef2ff;
+    --vd2-ring: rgba(79, 70, 229, 0.35);
+    --vd2-on-light: #1e1b4b;
+    --vd2-hero-g1: #0d1230;
+    --vd2-hero-g2: #191e4c;
+    --vd2-hero-g3: #232a6b;
+    --vd2-hero-glow1: rgba(99, 102, 241, 0.38);
+    --vd2-hero-glow2: rgba(56, 189, 248, 0.14);
+    ---------------------------------------------------------------- */
+
+    /* -------- ALTERNATE: EMERALD SLATE (uncomment to use) ----------
+    --vd2-primary: #059669;
+    --vd2-primary-2: #34d399;
+    --vd2-primary-soft: #e7f8f1;
+    --vd2-ring: rgba(5, 150, 105, 0.35);
+    --vd2-on-light: #06281c;
+    --vd2-hero-g1: #0b1411;
+    --vd2-hero-g2: #10231c;
+    --vd2-hero-g3: #14532d;
+    --vd2-hero-glow1: rgba(52, 211, 153, 0.28);
+    --vd2-hero-glow2: rgba(163, 230, 53, 0.10);
+    ---------------------------------------------------------------- */
+
+    /* neutrals */
+    --vd2-bg: #f5f6fa;
+    --vd2-card: #ffffff;
+    --vd2-border: #e7eaf3;
+    --vd2-text: #101828;
+    --vd2-muted: #667085;
+    --vd2-faint: #98a2b3;
+    --vd2-radius: 14px;
+    --vd2-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+    --vd2-shadow-lift: 0 12px 28px rgba(16, 24, 40, 0.10);
+
+    background: var(--vd2-bg);
+    min-height: 100%;
+    height: 100%;
+    overflow-y: auto;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    color: var(--vd2-text);
+    padding-bottom: 28px;
+
+    * { box-sizing: border-box; }
+    button { font: inherit; }
+    button:focus-visible, input:focus-visible {
+        outline: 2px solid var(--vd2-ring);
+        outline-offset: 2px;
+        border-radius: 8px;
+    }
+}
+
+/* ---------------- Command bar (sticky hero) ---------------- */
+.vd2-hero {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background:
+        radial-gradient(900px 320px at 88% -40%, var(--vd2-hero-glow1), transparent 60%),
+        radial-gradient(600px 260px at 8% 130%, var(--vd2-hero-glow2), transparent 60%),
+        linear-gradient(135deg, var(--vd2-hero-g1) 0%, var(--vd2-hero-g2) 55%, var(--vd2-hero-g3) 100%);
+    color: #fff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 6px 18px rgba(7, 26, 36, 0.28);
+}
+.vd2-hero-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 20px 28px;
+}
+/* explicit white — Odoo's backend h1 color rule otherwise wins over inheritance */
+.vd2 .vd2-hero-left h1 {
+    color: #fff;
+    font-size: 22px;
+    font-weight: 800;
+    margin: 0 0 5px;
+    letter-spacing: -0.3px;
+}
+.vd2-hero-sub {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12.5px;
+    color: rgba(255, 255, 255, 0.75);
+    i { font-size: 12px; opacity: 0.8; }
+}
+.vd2-updated { color: rgba(255, 255, 255, 0.52); }
+.vd2-sep {
+    width: 3px; height: 3px; border-radius: 50%;
+    background: currentColor; opacity: 0.5;
+    display: inline-block; margin: 0 2px;
+}
+.vd2-hero-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Segmented range control */
+.vd2-seg {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    padding: 3px;
+    gap: 2px;
+}
+.vd2-seg-btn {
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+    &:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+    &.active {
+        background: #fff;
+        color: var(--vd2-on-light);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+}
+.vd2-seg-custom {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    i { font-size: 11px; }
+}
+
+.vd2-icon-btn {
+    width: 36px; height: 36px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.10);
+    color: #fff; cursor: pointer;
+    transition: background 0.15s;
+    &:hover { background: rgba(255, 255, 255, 0.22); }
+}
+.vd2-btn-primary {
+    border: none; border-radius: 10px;
+    background: #fff; color: var(--vd2-on-light);
+    font-weight: 700; font-size: 13px;
+    padding: 9px 16px; cursor: pointer;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.22);
+    transition: transform 0.15s, box-shadow 0.15s;
+    &:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28); }
+    &.dark { background: var(--vd2-primary); color: #fff; }
+}
+
+/* Refresh progress strip */
+.vd2-progress {
+    position: absolute;
+    left: 0; right: 0; bottom: -1px;
+    height: 2.5px;
+    overflow: hidden;
+    span {
+        display: block;
+        width: 40%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, var(--vd2-primary-2), #fff, transparent);
+        animation: vd2slide 1.1s ease-in-out infinite;
+    }
+}
+@keyframes vd2slide {
+    from { transform: translateX(-100%); }
+    to   { transform: translateX(350%); }
+}
+
+/* ---------------- Custom range popover ---------------- */
+.vd2-range-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: transparent;
+}
+.vd2-range-pop {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 130px;
+    z-index: 41;
+    width: 340px;
+    background: #fff;
+    color: var(--vd2-text);
+    border: 1px solid var(--vd2-border);
+    border-radius: 14px;
+    box-shadow: 0 18px 44px rgba(16, 24, 40, 0.18);
+    padding: 16px;
+    animation: vd2pop 0.16s ease-out both;
+    @media (max-width: 768px) { right: 12px; left: 12px; width: auto; }
+}
+@keyframes vd2pop {
+    from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.vd2-range-title {
+    font-size: 12px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    color: var(--vd2-muted);
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 12px;
+    i { color: var(--vd2-primary); }
+}
+.vd2-range-fields {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+}
+.vd2-range-dash { color: var(--vd2-faint); padding-bottom: 10px; font-weight: 700; }
+.vd2-field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    span { font-size: 11px; font-weight: 700; color: var(--vd2-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+}
+.vd2-input {
+    border: 1px solid var(--vd2-border);
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-size: 13px;
+    color: var(--vd2-text);
+    background: #fbfcfe;
+    width: 100%;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    &:focus {
+        border-color: var(--vd2-primary);
+        box-shadow: 0 0 0 3px var(--vd2-primary-soft);
+        outline: none;
+    }
+}
+.vd2-range-error {
+    margin-top: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #b91c1c;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 9px;
+    padding: 7px 10px;
+    display: flex; align-items: center; gap: 7px;
+}
+.vd2-range-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 14px;
+}
+.vd2-btn-ghost {
+    border: 1px solid var(--vd2-border);
+    background: #fff;
+    color: var(--vd2-muted);
+    font-size: 12.5px; font-weight: 700;
+    padding: 8px 14px; border-radius: 10px; cursor: pointer;
+    transition: background 0.15s;
+    &:hover { background: #f6f7fb; color: var(--vd2-text); }
+}
+.vd2-btn-apply {
+    border: none;
+    background: var(--vd2-primary);
+    color: #fff;
+    font-size: 12.5px; font-weight: 700;
+    padding: 8px 16px; border-radius: 10px; cursor: pointer;
+    box-shadow: 0 3px 10px var(--vd2-ring);
+    transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+    &:hover { transform: translateY(-1px); filter: brightness(1.06); }
+}
+
+/* ---------------- Loading / error ---------------- */
+.vd2-loading {
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px; padding: 90px 0; color: var(--vd2-muted); font-size: 14px;
+}
+.vd2-spinner {
+    width: 26px; height: 26px;
+    border: 3px solid var(--vd2-primary-soft);
+    border-top-color: var(--vd2-primary);
+    border-radius: 50%;
+    animation: vd2spin 0.8s linear infinite;
+}
+@keyframes vd2spin { to { transform: rotate(360deg); } }
+
+.vd2-error {
+    text-align: center;
+    padding: 80px 24px;
+    color: var(--vd2-muted);
+    i { font-size: 34px; opacity: 0.35; margin-bottom: 14px; display: block; }
+    h3 { color: var(--vd2-text); font-size: 16px; font-weight: 800; margin: 0 0 6px; }
+    p { font-size: 13px; margin: 0 0 18px; }
+}
+
+/* ---------------- Layout ---------------- */
+.vd2-body {
+    padding: 22px 28px 0;
+    transition: opacity 0.2s;
+    &.is-refreshing { opacity: 0.55; pointer-events: none; }
+}
+
+.vd2-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 18px;
+    @media (max-width: 1400px) { grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 992px)  { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 576px)  { grid-template-columns: 1fr; }
+}
+.vd2-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 18px;
+    @media (max-width: 1200px) { grid-template-columns: 1fr; }
+}
+.vd2-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 18px;
+    @media (max-width: 1200px) { grid-template-columns: 1fr; }
+}
+.vd2-span2 { grid-column: span 2; @media (max-width: 1200px) { grid-column: span 1; } }
+
+/* Entry stagger (respects reduced-motion) */
+.vd2-kpi, .vd2-card { animation: vd2fadeup 0.35s ease-out both; }
+@for $i from 1 through 8 {
+    .vd2-kpi:nth-child(#{$i}) { animation-delay: #{$i * 0.03}s; }
+}
+@keyframes vd2fadeup {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .vd2 *, .vd2 *::before, .vd2 *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ---------------- Cards ---------------- */
+.vd2-card {
+    background: var(--vd2-card);
+    border: 1px solid var(--vd2-border);
+    border-radius: var(--vd2-radius);
+    padding: 18px;
+    box-shadow: var(--vd2-shadow);
+}
+.vd2-card-head {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    h3 {
+        font-size: 13.5px; font-weight: 800; margin: 0;
+        color: var(--vd2-text);
+        display: flex; align-items: center; gap: 9px;
+        letter-spacing: -0.1px;
+    }
+}
+.vd2-head-side {
+    display: flex; flex-direction: column; align-items: flex-end; gap: 1px;
+}
+.vd2-head-total {
+    font-size: 15px; font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.2px;
+}
+.vd2-muted { color: var(--vd2-muted); font-size: 12px; &.sm { font-size: 11.5px; } }
+.vd2-link {
+    border: none; background: var(--vd2-primary-soft); color: var(--vd2-primary);
+    font-size: 12px; font-weight: 700; padding: 5px 12px;
+    border-radius: 999px; cursor: pointer;
+    transition: filter 0.15s;
+    &:hover { filter: brightness(0.96); }
+}
+.vd2-tag {
+    background: var(--vd2-primary-soft); color: var(--vd2-primary);
+    font-size: 10px; font-weight: 800;
+    padding: 2px 7px; border-radius: 999px; margin-left: 4px;
+    white-space: nowrap;
+}
+
+/* ---------------- Icon tints (KPI tiles + card-head icons) ----------------
+   Set only the `color`; the tinted background derives from it, so the whole
+   dashboard re-themes from the THEME block above. */
+.vd2-kpi-icon, .vd2-hicon {
+    background: #f1f3f9; /* fallback for old browsers */
+    background: color-mix(in srgb, currentColor 12%, #ffffff);
+}
+.vd2-ic-brand  { color: var(--vd2-primary); }
+.vd2-ic-green  { color: #16a34a; }
+.vd2-ic-amber  { color: #d97706; }
+.vd2-ic-red    { color: #dc2626; }
+.vd2-ic-teal   { color: #0d9488; }
+.vd2-ic-blue   { color: #2563eb; }
+.vd2-ic-purple { color: #9333ea; }
+.vd2-ic-slate  { color: #475569; }
+
+.vd2-hicon {
+    width: 26px; height: 26px; flex: 0 0 26px;
+    border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px;
+}
+
+/* ---------------- KPI cards ---------------- */
+.vd2-kpi {
+    background: var(--vd2-card);
+    border: 1px solid var(--vd2-border);
+    border-radius: var(--vd2-radius);
+    padding: 16px;
+    display: flex; gap: 14px; align-items: flex-start;
+    cursor: pointer;
+    box-shadow: var(--vd2-shadow);
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+    &:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--vd2-shadow-lift);
+        border-color: #d8dded;
+    }
+}
+.vd2-kpi-icon {
+    width: 44px; height: 44px; flex: 0 0 44px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+}
+.vd2-kpi-meta { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.vd2-kpi-label {
+    font-size: 11px; font-weight: 700; color: var(--vd2-muted);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    display: flex; align-items: center;
+}
+.vd2-kpi-value {
+    font-size: 27px; font-weight: 800; line-height: 1.1;
+    letter-spacing: -0.6px;
+    color: var(--vd2-text);
+    font-variant-numeric: tabular-nums;
+}
+.vd2-sub {
+    font-size: 11.5px; color: var(--vd2-muted);
+    display: flex; gap: 4px; flex-wrap: wrap; align-items: center;
+}
+.vd2-delta {
+    font-size: 11.5px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 3px;
+    font-variant-numeric: tabular-nums;
+    &.up   { color: #16a34a; }
+    &.down { color: #dc2626; }
+}
+
+/* ---------------- Chips & badges ---------------- */
+.vd2-chip {
+    font-size: 10.5px; font-weight: 700;
+    padding: 2px 8px; border-radius: 999px;
+    white-space: nowrap; cursor: pointer;
+    &.green  { background: #dcfce7; color: #15803d; }
+    &.warn   { background: #fef3c7; color: #b45309; }
+    &.orange { background: #ffedd5; color: #c2410c; }
+    &.red    { background: #fee2e2; color: #b91c1c; }
+    &.blue   { background: #dbeafe; color: #1d4ed8; }
+    &.purple { background: #f3e8ff; color: #7e22ce; }
+}
+.vd2-badge {
+    font-size: 11px; font-weight: 800;
+    padding: 3px 10px; border-radius: 999px;
+    font-variant-numeric: tabular-nums;
+}
+.vd2-risk-low  { background: #dcfce7; color: #15803d; }
+.vd2-risk-med  { background: #fef3c7; color: #b45309; }
+.vd2-risk-high { background: #fee2e2; color: #b91c1c; }
+.vd2-grade {
+    display: inline-flex; width: 26px; height: 26px;
+    align-items: center; justify-content: center;
+    border-radius: 8px; background: var(--vd2-primary-soft); color: var(--vd2-primary);
+    font-weight: 800; font-size: 12px;
+}
+
+/* ---------------- Spend chart (themable via classes) ---------------- */
+.vd2-spend-svg { width: 100%; height: 210px; display: block; }
+.vd2-axis { font-size: 9px; fill: var(--vd2-faint); font-weight: 600; }
+.vd2-spend-stop-a { stop-color: var(--vd2-primary); }
+.vd2-spend-stop-b { stop-color: var(--vd2-primary); }
+.vd2-spend-line { stroke: var(--vd2-primary); }
+.vd2-spend-dot  { stroke: var(--vd2-primary); fill: #fff; }
+.vd2-spend-halo { fill: var(--vd2-primary); }
+
+/* ---------------- Donut ---------------- */
+.vd2-donut-wrap { display: flex; align-items: center; gap: 16px; }
+.vd2-donut { width: 150px; height: 150px; flex: 0 0 150px; }
+.vd2-donut-seg { cursor: pointer; transition: opacity 0.15s; &:hover { opacity: 0.75; } }
+.vd2-donut-num { font-size: 22px; font-weight: 800; fill: var(--vd2-text); }
+.vd2-donut-lbl { font-size: 9px; fill: var(--vd2-muted); text-transform: uppercase; letter-spacing: 1px; }
+.vd2-legend { flex: 1; min-width: 0; max-height: 160px; overflow-y: auto; }
+.vd2-legend-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 6px; border-radius: 8px; cursor: pointer; font-size: 12.5px;
+    &:hover { background: #f7f8fc; }
+}
+.vd2-legend-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vd2-legend-val { font-weight: 800; font-variant-numeric: tabular-nums; }
+.vd2-dot { width: 10px; height: 10px; border-radius: 3px; flex: 0 0 10px; display: inline-block; }
+
+/* ---------------- Horizontal bars (risk / top vendors) ---------------- */
+.vd2-hbar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 4px; border-radius: 10px; cursor: pointer;
+    &:hover { background: #f7f8fc; }
+}
+.vd2-hbar-label { flex: 0 0 96px; font-size: 12.5px; font-weight: 700;
+    small { color: var(--vd2-muted); font-weight: 600; } }
+.vd2-hbar-track {
+    flex: 1; height: 10px; border-radius: 999px; background: #f1f3f9; overflow: hidden;
+    &.thin { height: 6px; }
+}
+.vd2-hbar-fill {
+    height: 100%; border-radius: 999px; transition: width 0.5s ease;
+    &.brand { background: linear-gradient(90deg, var(--vd2-primary), var(--vd2-primary-2)); }
+}
+.vd2-hbar-val { flex: 0 0 30px; text-align: right; font-weight: 800; font-size: 13px; font-variant-numeric: tabular-nums; }
+
+/* ---------------- Compliance ring ---------------- */
+.vd2-ring-wrap { display: flex; align-items: center; gap: 18px; }
+.vd2-ring { width: 130px; height: 130px; flex: 0 0 130px; }
+.vd2-ring-num { font-size: 24px; font-weight: 800; fill: var(--vd2-text); }
+.vd2-ring-lbl { font-size: 9px; fill: var(--vd2-muted); text-transform: uppercase; letter-spacing: 1px; }
+.vd2-ring-legend {
+    display: flex; flex-direction: column; gap: 8px; font-size: 12.5px;
+    div { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    b { margin-left: auto; font-variant-numeric: tabular-nums; }
+}
+
+/* ---------------- Document funnel ---------------- */
+.vd2-funnel-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 4px; border-radius: 8px; cursor: pointer;
+    &:hover { background: #f7f8fc; }
+}
+.vd2-funnel-label { flex: 0 0 110px; font-size: 12px; font-weight: 600; color: #344054; }
+.vd2-funnel-track { flex: 1; height: 9px; background: #f1f3f9; border-radius: 999px; overflow: hidden; }
+.vd2-funnel-fill {
+    height: 100%; border-radius: 999px; transition: width 0.5s;
+    &.st-draft { background: #94a3b8; }
+    &.st-submitted { background: #3b82f6; }
+    &.st-manager_review { background: #f59e0b; }
+    &.st-md_approval { background: #8b5cf6; }
+    &.st-approved { background: #22c55e; }
+    &.st-rejected { background: #ef4444; }
+    &.st-expired { background: #1e293b; }
+}
+.vd2-funnel-val { flex: 0 0 26px; text-align: right; font-weight: 800; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+
+/* ---------------- Tables ---------------- */
+.vd2-table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+    th {
+        text-align: left; font-size: 10.5px; text-transform: uppercase;
+        letter-spacing: 0.6px; color: var(--vd2-muted);
+        padding: 6px 8px; border-bottom: 1px solid var(--vd2-border);
+    }
+    td { padding: 10px 8px; border-bottom: 1px solid #f2f4f9; }
+    tbody tr { cursor: pointer; transition: background 0.12s; &:hover { background: #f7f8fc; } }
+    tbody tr:last-child td { border-bottom: none; }
+    .text-end { text-align: right; }
+}
+.vd2-strong { font-weight: 700; }
+.vd2-linkish { cursor: pointer; &:hover { color: var(--vd2-primary); } }
+
+/* ---------------- Queue / leaderboard / feed ---------------- */
+.vd2-queue-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 8px; border-radius: 10px; cursor: pointer;
+    border-bottom: 1px solid #f2f4f9;
+    &:last-child { border-bottom: none; }
+    &:hover { background: #f7f8fc; }
+}
+.vd2-top-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 9px 6px; border-radius: 10px; cursor: pointer;
+    &:hover { background: #f7f8fc; }
+}
+.vd2-rank {
+    width: 26px; height: 26px; flex: 0 0 26px;
+    border-radius: 8px; background: var(--vd2-primary-soft); color: var(--vd2-primary);
+    font-weight: 800; font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+}
+.vd2-top-mid { flex: 1; min-width: 0; }
+.vd2-top-line { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 13px; }
+.vd2-top-amt { font-weight: 800; color: #344054; font-variant-numeric: tabular-nums; }
+
+.vd2-feed { max-height: 300px; overflow-y: auto; }
+.vd2-feed-row {
+    display: flex; gap: 10px; padding: 8px 4px;
+    border-bottom: 1px solid #f2f4f9; font-size: 13px;
+    &:last-child { border-bottom: none; }
+}
+.vd2-feed-dot { width: 9px; height: 9px; border-radius: 50%; margin-top: 5px; flex: 0 0 9px; }
+.vd2-feed-body { min-width: 0; }
+
+/* ---------------- Empty states / misc ---------------- */
+.vd2-empty {
+    color: var(--vd2-muted); font-size: 12.5px; padding: 8px 4px;
+    &.big {
+        text-align: center; padding: 32px 0; font-size: 13px;
+        i { display: block; font-size: 26px; margin-bottom: 8px; opacity: 0.4; }
+    }
+}
+.vd2-footnote {
+    text-align: center; color: var(--vd2-muted); font-size: 12px; padding: 4px 0 10px;
+    display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;
+    b { color: #344054; }
+}
+
+/* scrollbars */
+.vd2-legend::-webkit-scrollbar, .vd2-feed::-webkit-scrollbar { width: 5px; }
+.vd2-legend::-webkit-scrollbar-thumb, .vd2-feed::-webkit-scrollbar-thumb {
+    background: #cbd5e1; border-radius: 999px;
+}
+
+/* ============================================================
+   LEGACY — kept for the fallback vendor.dashboard form view
+   ============================================================ */
+.o_vendor_dashboard { background-color: #f8f9fa; min-height: 100%; }
+
+.o_vendor_card {
+    border-radius: 16px !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.3s ease;
+    &:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1) !important; }
+    &.bg-success { background: linear-gradient(135deg, #28a745 0%, #218838 100%) !important; }
+    &.bg-warning { background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%) !important; }
+    &.bg-danger  { background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important; }
+    &.bg-dark    { background: linear-gradient(135deg, #343a40 0%, #23272b 100%) !important; }
+    &.bg-info    { background: linear-gradient(135deg, #17a2b8 0%, #117a8b 100%) !important; }
+    &.bg-primary { background: linear-gradient(135deg, #007bff 0%, #0069d9 100%) !important; }
+}

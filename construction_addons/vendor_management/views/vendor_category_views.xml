@@ -1,0 +1,104 @@
+<odoo>
+    <!-- List view for vendor.category.document.line -->
+    <record id="view_vendor_category_document_line_tree" model="ir.ui.view">
+        <field name="name">vendor.category.document.line.tree</field>
+        <field name="model">vendor.category.document.line</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="document_type_id" 
+                       domain="[('active', '=', True)]"
+                       options="{'no_create': False, 'no_create_edit': False}"
+                       context="{'default_active': True}"/>
+                <field name="is_mandatory" widget="boolean_toggle"/>
+                <field name="requires_expiry" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vendor_category_form" model="ir.ui.view">
+        <field name="name">vendor.category.form</field>
+        <field name="model">vendor.category</field>
+        <field name="arch" type="xml">
+            <form string="Vendor Category">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. IT Services"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="icon"/>
+                            <field name="color" widget="color_picker"/>
+                        </group>
+                        <group>
+                            <field name="active"/>
+                            <field name="vendor_count"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Mandatory Documents" name="mandatory_docs">
+                            <group string="Document Requirements" colspan="4">
+                                <field name="mandatory_document_line_ids" nolabel="1" 
+                                       context="{'default_category_id': id}"/>
+                            </group>
+                        </page>
+                        <page string="Custom Rules" name="custom_rules">
+                            <field name="custom_rules" placeholder="Enter custom rules or description for this category..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_vendor_category_list" model="ir.ui.view">
+        <field name="name">vendor.category.list</field>
+        <field name="model">vendor.category</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="icon_display" widget="html" string="Icon"/>
+                <field name="vendor_count"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vendor_category_kanban" model="ir.ui.view">
+        <field name="name">vendor.category.kanban</field>
+        <field name="model">vendor.category</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="name"/>
+                <field name="icon"/>
+                <field name="color"/>
+                <field name="vendor_count"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_global_click oe_kanban_card">
+                            <div class="o_kanban_record_top">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="o_kanban_record_title" style="font-size: 1.2rem;">
+                                        <i t-att-class="'fa ' + (record.icon.value or 'fa-tags') + ' me-2'" t-att-style="'color: ' + (['#46bef2','#f06050','#f4a520','#16a085','#875a7b','#00a09d','#e26d6d','#0d6efd','#6c757d','#198754','#dc3545','#fd7e14'][record.color.raw_value] || '#46bef2')" title="Category Icon"/>
+                                        <t t-esc="record.name.value"/>
+                                    </strong>
+                                </div>
+                            </div>
+                            <div class="o_kanban_record_body mt-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge rounded-pill bg-light text-dark border">
+                                        <t t-esc="record.vendor_count.value"/> Vendors
+                                    </span>
+                                    <span class="text-muted small">
+                                        ID: <t t-esc="record.id.raw_value"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,257 @@
+<odoo>
+    <!-- Modern List View for Vendors -->
+    <record id="view_vendor_partner_list" model="ir.ui.view">
+        <field name="name">res.partner.vendor.list</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <list string="Vendors" decoration-success="vendor_state == 'active'" decoration-info="vendor_state in ('submitted', 'manager_review')" decoration-danger="vendor_state == 'blocked'">
+                <field name="name"/>
+                <field name="email"/>
+                <field name="phone"/>
+                <field name="vendor_category_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                <field name="compliance_status" widget="badge" decoration-success="compliance_status == 'ok'" decoration-warning="compliance_status == 'pending'"/>
+                <field name="risk_score" widget="progressbar"/>
+                <field name="vendor_state" widget="badge" decoration-info="vendor_state in ('submitted', 'manager_review')" decoration-success="vendor_state == 'active'" decoration-danger="vendor_state == 'blocked'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vendor Form - Inherit from base and add custom elements -->
+    <record id="view_partner_form_vendor_enterprise" model="ir.ui.view">
+        <field name="name">res.partner.form.vendor.enterprise</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="priority">200</field>
+        <field name="arch" type="xml">
+
+            <!-- 0a. Scope class on the sheet (used by vendor_partner_form.scss) -->
+            <xpath expr="//sheet" position="attributes">
+                <attribute name="class" add="vendor_partner_sheet" separator=" "/>
+            </xpath>
+
+            <!-- 0b. Workflow Buttons -->
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <!-- Primary Workflow -->
+                    <button name="action_submit_for_review" string="Submit" type="object" 
+                            invisible="vendor_state != 'draft'" class="btn-primary"
+                            groups="vendor_management.group_vendor_user"/>
+                    
+                    <button name="action_mark_reviewed" string="Mark Reviewed" type="object" 
+                            invisible="vendor_state != 'submitted'" class="btn-primary"
+                            groups="vendor_management.group_vendor_manager"/>
+                    
+                    <button name="action_approve_activate" string="Approve" type="object" 
+                            invisible="vendor_state != 'manager_review'" class="btn-success"
+                            groups="vendor_management.group_vendor_md"/>
+                    
+                    <button name="action_reject" string="Reject" type="object" 
+                            invisible="vendor_state not in ('submitted', 'manager_review')" class="btn-danger"
+                            groups="vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
+                    
+                    <!-- Lifecycle Management -->
+                    <button name="action_block_vendor" string="Block Vendor" type="object" 
+                            invisible="vendor_state != 'active'" class="btn-danger"
+                            groups="vendor_management.group_vendor_md"/>
+                    
+                    <button name="action_unblock_vendor" string="Unblock Vendor" type="object" 
+                            invisible="vendor_state != 'blocked'" class="btn-success"
+                            groups="vendor_management.group_vendor_md"/>
+                    
+                    <field name="vendor_state" widget="statusbar" statusbar_visible="draft,submitted,manager_review,active"/>
+                </header>
+            </xpath>
+
+            <!-- 1. Smart Buttons -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_rfqs" type="object" class="oe_stat_button" icon="fa-file-text-o">
+                    <field name="rfq_count" widget="statinfo" string="RFQs"/>
+                </button>
+                <button name="action_view_purchase_orders" type="object" class="oe_stat_button" icon="fa-shopping-cart">
+                    <field name="po_count" widget="statinfo" string="Orders"/>
+                </button>
+                <button name="action_view_periodic_reviews" type="object" class="oe_stat_button" icon="fa-line-chart">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_text">Periodic</span>
+                        <span class="o_stat_text">Reviews</span>
+                    </div>
+                </button>
+
+            </xpath>
+
+            <!-- 2. Structured Dashboard Cards -->
+            <xpath expr="//sheet/notebook[1]" position="before">
+                <div class="vendor_dashboard_container mt-3 mb-4">
+                    <!-- Row 1: Core Info & Performance -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-md-6">
+                            <div class="vendor_section_card vendor_card_info h-100">
+                                <div class="vendor_section_title">
+                                    <span class="vendor_title_icon"><i class="fa fa-info-circle" title="Basic Info"/></span>
+                                    <span>Basic Vendor Info</span>
+                                </div>
+                                <group>
+                                    <field name="is_vendor"/>
+                                    <field name="vendor_state" widget="badge" decoration-info="vendor_state in ('submitted', 'manager_review')" decoration-success="vendor_state == 'active'" decoration-danger="vendor_state == 'blocked'"/>
+                                    <field name="vendor_category_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                                </group>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="vendor_section_card vendor_card_perf h-100">
+                                <div class="vendor_section_title">
+                                    <span class="vendor_title_icon"><i class="fa fa-line-chart" title="Performance Overview"/></span>
+                                    <span>Overall Performance</span>
+                                </div>
+                                <group>
+                                    <field name="performance_grade" widget="badge" decoration-success="performance_grade in ('A', 'B')" decoration-warning="performance_grade == 'C'" decoration-danger="performance_grade in ('D', 'F')"/>
+                                    <field name="performance_overview_score" widget="progressbar"/>
+                                </group>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Compliance & Statistics -->
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <div class="vendor_section_card vendor_card_risk h-100">
+                                <div class="vendor_section_title">
+                                    <span class="vendor_title_icon"><i class="fa fa-shield" title="Compliance Status"/></span>
+                                    <span>Compliance &amp; Risk</span>
+                                </div>
+                                <group>
+                                    <field name="compliance_status" widget="badge" decoration-success="compliance_status == 'ok'" decoration-warning="compliance_status == 'pending'"/>
+                                    <field name="risk_score" widget="progressbar"/>
+                                </group>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="vendor_section_card vendor_card_stats h-100">
+                                <div class="vendor_section_title">
+                                    <span class="vendor_title_icon"><i class="fa fa-bar-chart" title="Vendor Statistics"/></span>
+                                    <span>Vendor Statistics</span>
+                                </div>
+                                <div class="vendor_stats_body">
+                                    <!-- Top level counts (Clickable tiles) -->
+                                    <div class="vendor_stats_tiles">
+                                        <button type="object" name="action_view_rfqs" class="btn vendor_stat_tile">
+                                            <span class="vendor_stat_tile_icon"><i class="fa fa-file-text-o" title="RFQs"/></span>
+                                            <span class="vendor_stat_tile_meta">
+                                                <span class="vendor_stat_tile_label">RFQs</span>
+                                                <span class="vendor_stat_tile_value"><field name="rfq_count"/></span>
+                                            </span>
+                                        </button>
+                                        <button type="object" name="action_view_purchase_orders" class="btn vendor_stat_tile">
+                                            <span class="vendor_stat_tile_icon"><i class="fa fa-shopping-cart" title="Orders"/></span>
+                                            <span class="vendor_stat_tile_meta">
+                                                <span class="vendor_stat_tile_label">Orders</span>
+                                                <span class="vendor_stat_tile_value"><field name="po_count"/></span>
+                                            </span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Multi-Currency Summary (Clickable rows) -->
+                                    <div class="vendor_stats_rows">
+                                        <button type="object" name="action_view_purchased" class="btn vendor_stat_row">
+                                            <span class="vendor_stat_row_label"><i class="fa fa-money" title="Purchased"/> Purchased</span>
+                                            <span class="vendor_stat_row_value text-primary"><field name="purchase_display"/></span>
+                                        </button>
+                                        <button type="object" name="action_view_paid" class="btn vendor_stat_row">
+                                            <span class="vendor_stat_row_label"><i class="fa fa-check-circle" title="Paid"/> Paid</span>
+                                            <span class="vendor_stat_row_value text-success"><field name="paid_display"/></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+            
+            <!-- 3. Custom Vendor Notebook AFTER Core Notebook -->
+            <xpath expr="//sheet/notebook[1]" position="after">
+                <notebook>
+                    <page name="documents" string="Documents">
+                        <field name="document_ids">
+                            <list editable="bottom" decoration-danger="is_expired" decoration-success="state == 'approved'">
+                                <field name="doc_type_id"/>
+                                <field name="document_number" required="state != 'draft'"/>
+                                <field name="expiry_date" required="state != 'draft'"/>
+                                <field name="attachment" widget="binary" filename="filename" required="state != 'draft'"/>
+                                <field name="filename" column_invisible="True"/>
+                                <field name="state" widget="badge" decoration-info="state in ('submitted', 'manager_review', 'md_approval')" decoration-success="state == 'approved'" decoration-danger="state == 'rejected'" decoration-muted="state == 'draft'" decoration-warning="state == 'expired'"/>
+                                <field name="is_expired" column_invisible="True"/>
+
+                                <button name="action_submit" type="object" string="Submit" 
+                                        invisible="state != 'draft'" 
+                                        groups="vendor_management.group_vendor_user" class="btn-secondary"/>
+                                
+                                <button name="action_manager_review" type="object" string="Review" 
+                                        invisible="state != 'submitted'" 
+                                        groups="vendor_management.group_vendor_manager" class="btn-primary"/>
+                                
+                                <button name="action_approve" type="object" string="Approve" 
+                                        invisible="state != 'manager_review'" 
+                                        groups="vendor_management.group_vendor_md" class="btn-success"/>
+                                
+                                <button name="action_reject" type="object" string="Reject" 
+                                        invisible="state not in ('submitted', 'manager_review')" 
+                                        groups="vendor_management.group_vendor_manager,vendor_management.group_vendor_md" class="btn-danger"/>
+                            </list>
+                        </field>
+                    </page>
+                    <page name="contracts" string="Contracts">
+                        <field name="contract_ids">
+                            <list editable="bottom">
+                                <field name="name"/>
+                                <field name="start_date"/>
+                                <field name="end_date"/>
+                                <field name="value"/>
+                                <field name="state" widget="badge"/>
+                            </list>
+                        </field>
+                    </page>
+                    <page name="vendor_performance" string="Vendor Performance">
+                        <group>
+                            <separator string="Performance Overview"/>
+                            <field name="performance_overview_ids" nolabel="1">
+                                <list create="false">
+                                    <field name="purchase_id"/>
+                                    <field name="quality" widget="priority"/>
+                                    <field name="delivery" widget="priority"/>
+                                    <field name="service" widget="priority"/>
+                                    <field name="overall" widget="priority"/>
+                                    <field name="performance_overview_score" widget="progressbar"/>
+                                </list>
+                            </field>
+                        </group>
+                        <group class="mt16">
+                            <separator string="Periodic Reviews"/>
+                            <field name="performance_ids" nolabel="1">
+                                <list>
+                                    <field name="review_date"/>
+                                    <field name="reliability" widget="priority"/>
+                                    <field name="compliance" widget="priority"/>
+                                    <field name="behavior" widget="priority"/>
+                                    <field name="partnership" widget="priority"/>
+                                    <field name="periodic_score" widget="progressbar"/>
+                                </list>
+                            </field>
+                        </group>
+                    </page>
+                    <page name="audit_logs" string="Global Audit Log">
+                        <field name="audit_log_ids">
+                            <list create="false" edit="false">
+                                <field name="create_date" string="Date"/>
+                                <field name="changed_by" widget="many2one_avatar_user"/>
+                                <field name="event_type" widget="badge" decoration-info="event_type == 'created'" decoration-success="event_type == 'approved'" decoration-danger="event_type == 'blacklisted'" decoration-muted="event_type == 'deleted'"/>
+                                <field name="action"/>
+                                <field name="note" string="Description"/>
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+</odoo>

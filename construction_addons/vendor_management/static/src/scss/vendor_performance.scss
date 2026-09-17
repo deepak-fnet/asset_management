@@ -1,0 +1,29 @@
+.vendor-performance-header {
+    background: linear-gradient(135deg, #4e73df, #6f42c1);
+    border-radius: 18px;
+    padding: 40px 35px;
+    margin-bottom: 25px;
+}
+
+/* Header text only */
+.vendor-performance-header h2,
+.vendor-performance-header span,
+.vendor-performance-header .o_field_widget {
+    color: #ffffff !important;
+}
+
+/* Input text in edit mode */
+.vendor-performance-header .o_input {
+    color: #ffffff !important;
+    background: transparent !important;
+    border: none !important;
+}
+
+/* FIX arrow icons inside header */
+.vendor-performance-header .o_external_button,
+.vendor-performance-header .fa,
+.vendor-performance-header i {
+    color: #ffffff !important;
+}
+
+/* DO NOT TOUCH dropdown menu styles */

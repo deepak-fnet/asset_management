@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="crm_lead_view_form_inherit_construction" model="ir.ui.view">
+        <field name="name">crm.lead.form.inherit.construction</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_master_project" type="object" class="oe_stat_button"
+                        icon="fa-building" invisible="not master_project_id">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Master Project</span>
+                    </div>
+                </button>
+                <button name="action_view_flowchart" type="object" class="oe_stat_button"
+                        icon="fa-sitemap" invisible="not master_project_id">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Flow Chart</span>
+                    </div>
+                </button>
+                <button name="action_create_quotation" type="object" class="oe_stat_button"
+                        icon="fa-file-text-o" invisible="sale_order_id or not boq_line_ids">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Create Quotation</span>
+                    </div>
+                </button>
+                <button name="action_view_sale_order" type="object" class="oe_stat_button"
+                        icon="fa-file-text-o" invisible="not sale_order_id">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Sale Order</span>
+                    </div>
+                </button>
+                <button name="action_view_purchase_orders" type="object" class="oe_stat_button"
+                        icon="fa-shopping-cart" invisible="not purchase_order_count">
+                    <field name="purchase_order_count" widget="statinfo" string="Purchase Orders"/>
+                </button>
+                <button name="action_view_stage_pnl" type="object" class="oe_stat_button"
+                        icon="fa-balance-scale" invisible="not master_project_id">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">P&amp;L by Stage</span>
+                    </div>
+                </button>
+            </xpath>
+            <xpath expr="//group[@name='lead_info']" position="after">
+                <group name="construction_lead_info" invisible="type == 'lead'">
+                    <field name="land_extent"/>
+                    <field name="tender_reference"/>
+                    <field name="emd_amount"/>
+                    <field name="tender_submission_date"/>
+                    <field name="master_project_id" readonly="1"/>
+                    <field name="sale_order_id" readonly="1"/>
+                </group>
+                <group name="construction_profitability" string="Budget vs Actuals"
+                       invisible="not sale_order_id">
+                    <group>
+                        <field name="budget_amount"/>
+                        <field name="purchased_amount"/>
+                        <field name="billed_amount"/>
+                    </group>
+                    <group>
+                        <field name="pending_bill_amount"/>
+                        <field name="total_purchase_payment"/>
+                        <field name="profit_amount"/>
+                    </group>
+                </group>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page name="construction_estimation" string="Estimation BOQ" invisible="type == 'lead'">
+                    <field name="boq_line_ids" context="{'default_lead_id': id}">
+                        <list editable="bottom">
+                            <field name="product_id"/>
+                            <field name="product_type"/>
+                            <field name="quantity"/>
+                            <field name="uom_id"/>
+                            <field name="rate"/>
+                            <field name="amount" sum="Total"/>
+                        </list>
+                    </field>
+                    <group>
+                        <field name="estimation_total"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

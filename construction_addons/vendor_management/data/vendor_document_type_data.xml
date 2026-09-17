@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="doc_type_pan" model="vendor.document.type">
+            <field name="name">PAN Card</field>
+            <field name="code">PAN</field>
+            <field name="validation_regex">^[A-Z]{5}[0-9]{4}[A-Z]{1}$</field>
+        </record>
+
+        <record id="doc_type_gst" model="vendor.document.type">
+            <field name="name">GST Certificate</field>
+            <field name="code">GST</field>
+            <field name="validation_regex">^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$</field>
+        </record>
+
+        <record id="doc_type_cin" model="vendor.document.type">
+            <field name="name">CIN Number</field>
+            <field name="code">CIN</field>
+            <field name="validation_regex">^[LU]{1}[0-9]{5}[A-Z]{2}[0-9]{4}[PLC]{3}[0-9]{6}$</field>
+        </record>
+    </data>
+</odoo>

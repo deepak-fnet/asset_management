@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="portal_vendor_purchase_order_rule" model="ir.rule">
+        <field name="name">Portal Vendor: Own Purchase Orders Only</field>
+        <field name="model_id" ref="purchase.model_purchase_order"/>
+        <field name="domain_force">[('partner_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="portal_vendor_quote_rule" model="ir.rule">
+        <field name="name">Portal Vendor: Own Quotes Only</field>
+        <field name="model_id" ref="model_vendor_quote"/>
+        <field name="domain_force">[('vendor_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="portal_vendor_quote_line_rule" model="ir.rule">
+        <field name="name">Portal Vendor: Own Quote Lines Only</field>
+        <field name="model_id" ref="model_vendor_quote_line"/>
+        <field name="domain_force">[('quote_id.vendor_id', '=', user.partner_id.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+</odoo>
