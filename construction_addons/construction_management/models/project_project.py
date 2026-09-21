@@ -36,6 +36,11 @@ class ProjectProject(models.Model):
     billed_amount = fields.Monetary(compute='_compute_financials', string='Billed Amount')
     pending_bill_amount = fields.Monetary(compute='_compute_financials', string='Pending Bill')
     payment_total = fields.Monetary(compute='_compute_financials', string='Payments Made')
+    labour_wage_total = fields.Monetary(
+        compute='_compute_financials', string='Labour Wages (Attendance)',
+        help="Sum of Labour Attendance wages across every stage - shown only as a cross-check "
+             "against the Labour BOQ line's real purchased/billed amount; not included in "
+             "Billed Amount or Profit / Loss, which come only from real bills.")
     profit_amount = fields.Monetary(
         compute='_compute_financials', string='Profit / Loss',
         help="Allocated Budget minus Billed Amount across every stage of this sub-project.")
@@ -74,7 +79,8 @@ class ProjectProject(models.Model):
             else:
                 project.completion_percent = 0.0
 
-    @api.depends('cm_stage_ids.purchased_amount', 'cm_stage_ids.billed_amount', 'cm_stage_ids.payment_total')
+    @api.depends('cm_stage_ids.purchased_amount', 'cm_stage_ids.billed_amount', 'cm_stage_ids.payment_total',
+                 'cm_stage_ids.labour_wage_total')
     def _compute_financials(self):
         for project in self:
             stages = project.cm_stage_ids
@@ -82,6 +88,7 @@ class ProjectProject(models.Model):
             project.billed_amount = sum(stages.mapped('billed_amount'))
             project.pending_bill_amount = project.purchased_amount - project.billed_amount
             project.payment_total = sum(stages.mapped('payment_total'))
+            project.labour_wage_total = sum(stages.mapped('labour_wage_total'))
             project.profit_amount = project.cm_budget - project.billed_amount
 
     def _compute_final_payment_cleared(self):

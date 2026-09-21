@@ -40,6 +40,11 @@ class CrmLead(models.Model):
     total_purchase_payment = fields.Monetary(
         string='Purchase Payments Made', compute='_compute_financials', currency_field='company_currency',
         help="Sum of all payments actually registered against vendor bills for this project's purchases.")
+    labour_wage_total = fields.Monetary(
+        string='Labour Wages (Attendance)', compute='_compute_financials', currency_field='company_currency',
+        help="Sum of Labour Attendance wages across every stage - shown only as a cross-check "
+             "against the Labour BOQ line's real purchased/billed amount; not included in Billed "
+             "Amount or Profit / Loss, which come only from real bills.")
     profit_amount = fields.Monetary(
         string='Profit / Loss (Budget - Billed)', compute='_compute_financials',
         currency_field='company_currency')
@@ -52,7 +57,8 @@ class CrmLead(models.Model):
     @api.depends('sale_order_id.amount_total', 'master_project_id.subproject_ids.cm_stage_ids.purchase_order_ids',
                  'master_project_id.subproject_ids.cm_stage_ids.purchased_amount',
                  'master_project_id.subproject_ids.cm_stage_ids.billed_amount',
-                 'master_project_id.subproject_ids.cm_stage_ids.payment_total')
+                 'master_project_id.subproject_ids.cm_stage_ids.payment_total',
+                 'master_project_id.subproject_ids.cm_stage_ids.labour_wage_total')
     def _compute_financials(self):
         for lead in self:
             stages = lead.master_project_id.subproject_ids.cm_stage_ids
@@ -64,6 +70,7 @@ class CrmLead(models.Model):
             lead.billed_amount = sum(stages.mapped('billed_amount'))
             lead.pending_bill_amount = lead.purchased_amount - lead.billed_amount
             lead.total_purchase_payment = sum(stages.mapped('payment_total'))
+            lead.labour_wage_total = sum(stages.mapped('labour_wage_total'))
             lead.profit_amount = lead.budget_amount - lead.billed_amount
 
     def action_set_won(self):

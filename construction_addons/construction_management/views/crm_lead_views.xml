@@ -50,19 +50,6 @@
                     <field name="master_project_id" readonly="1"/>
                     <field name="sale_order_id" readonly="1"/>
                 </group>
-                <group name="construction_profitability" string="Budget vs Actuals"
-                       invisible="not sale_order_id">
-                    <group>
-                        <field name="budget_amount"/>
-                        <field name="purchased_amount"/>
-                        <field name="billed_amount"/>
-                    </group>
-                    <group>
-                        <field name="pending_bill_amount"/>
-                        <field name="total_purchase_payment"/>
-                        <field name="profit_amount"/>
-                    </group>
-                </group>
             </xpath>
             <xpath expr="//notebook" position="inside">
                 <page name="construction_estimation" string="Estimation BOQ" invisible="type == 'lead'">
@@ -78,6 +65,22 @@
                     </field>
                     <group>
                         <field name="estimation_total"/>
+                    </group>
+                </page>
+                <page name="construction_profitability" string="Budget vs Actuals"
+                      invisible="not sale_order_id">
+                    <group>
+                        <group>
+                            <field name="budget_amount"/>
+                            <field name="purchased_amount"/>
+                            <field name="billed_amount"/>
+                        </group>
+                        <group>
+                            <field name="pending_bill_amount"/>
+                            <field name="total_purchase_payment"/>
+                            <field name="labour_wage_total"/>
+                            <field name="profit_amount"/>
+                        </group>
                     </group>
                 </page>
             </xpath>

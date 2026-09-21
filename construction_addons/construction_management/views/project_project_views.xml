@@ -36,6 +36,7 @@
                     </group>
                     <group>
                         <field name="payment_total"/>
+                        <field name="labour_wage_total"/>
                         <field name="profit_amount"/>
                     </group>
                 </group>

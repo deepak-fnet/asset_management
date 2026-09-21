@@ -25,14 +25,17 @@ class ConstructionBudgetLine(models.Model):
         'A budget line for this cost head already exists on this project.',
     )
 
-    @api.depends('project_id.cm_stage_ids.purchased_amount', 'project_id.cm_stage_ids.dpr_ids.labour_wage_total')
+    @api.depends('project_id.cm_stage_ids.boq_line_ids.purchased_amount',
+                 'project_id.cm_stage_ids.boq_line_ids.product_id.type')
     def _compute_actual_amount(self):
         for line in self:
-            stages = line.project_id.cm_stage_ids
+            boq_lines = line.project_id.cm_stage_ids.boq_line_ids
             if line.cost_head == 'material':
-                line.actual_amount = sum(stages.mapped('purchased_amount'))
+                line.actual_amount = sum(
+                    l.purchased_amount for l in boq_lines if l.product_id.type != 'service')
             elif line.cost_head == 'labour':
-                line.actual_amount = sum(stages.mapped('dpr_ids.labour_wage_total'))
+                line.actual_amount = sum(
+                    l.purchased_amount for l in boq_lines if l.product_id.type == 'service')
             else:
                 line.actual_amount = 0.0
 

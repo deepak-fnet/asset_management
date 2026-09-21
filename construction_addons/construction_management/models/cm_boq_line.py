@@ -64,7 +64,7 @@ class ConstructionBoqLine(models.Model):
              "storekeeper on each Material Issue, since the rate actually paid can differ from "
              "the BOQ's original estimate.")
     actual_amount = fields.Monetary(
-        compute='_compute_purchase_stats', string='Amount', currency_field='currency_id',
+        compute='_compute_purchase_stats', string='Actual Amount', currency_field='currency_id',
         help="The real cost recognized so far for this line: for materials, the cumulative "
              "amount actually issued to site; for labour/services (no physical issue step), "
              "the purchased/billed amount. Starts at 0 - this is not a qty x rate estimate.")
