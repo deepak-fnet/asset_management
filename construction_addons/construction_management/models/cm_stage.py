@@ -26,7 +26,7 @@ class ConstructionStage(models.Model):
         compute='_compute_boq_total', store=True, string='Material Total (for PO)',
         help="BOQ total excluding service/labour lines - what a Purchase Order for this stage covers.")
     boq_actual_total = fields.Monetary(
-        compute='_compute_boq_total', string='BOQ Actual',
+        compute='_compute_boq_actual_total', string='BOQ Actual',
         help="Sum of the real Actual Amount across every BOQ line - material actually issued to "
              "site plus labour/services actually purchased. Starts at 0 and grows as work "
              "happens; BOQ Total above stays a fixed qty x rate estimate for comparison.")
@@ -49,11 +49,11 @@ class ConstructionStage(models.Model):
     procurement_plan_ids = fields.One2many('purchase.requisition', 'stage_id', string='Procurement Plans')
     procurement_plan_count = fields.Integer(compute='_compute_purchase_order_count')
     purchased_amount = fields.Monetary(
-        compute='_compute_cost_amounts', string='Purchased',
+        compute='_compute_purchased_amount', string='Purchased',
         help="Real total (price total, not qty x BOQ rate) of confirmed Purchase Order lines "
              "raised for this stage's BOQ items - actual vendor rates may differ line to line.")
     used_amount = fields.Monetary(
-        compute='_compute_cost_amounts', string='Used (Paid to Vendors)',
+        compute='_compute_used_amount', string='Used (Paid to Vendors)',
         help="Sum of payments actually registered against vendor bills for this stage's purchases.")
     billed_amount = fields.Monetary(
         compute='_compute_payments', string='Billed Amount',
@@ -64,10 +64,18 @@ class ConstructionStage(models.Model):
         help="Purchased minus Billed - ordered but not yet invoiced by the vendor.")
     profit_amount = fields.Monetary(
         compute='_compute_payments', string='Profit / Loss',
-        help="Budget Allocation minus Billed Amount for this stage.")
+        help="Budget Allocation minus Billed Amount for this stage. Labour is expected to be its "
+             "own BOQ line, purchased/billed like any other item, so its cost is already included "
+             "here through Billed Amount - see Labour Wages below only as a cross-check against "
+             "the attendance log, it is not subtracted separately.")
     payment_ids = fields.Many2many('account.payment', compute='_compute_payments', string='Payments')
     payment_count = fields.Integer(compute='_compute_payments')
     payment_total = fields.Monetary(compute='_compute_payments', string='Payments Made')
+    labour_wage_total = fields.Monetary(
+        compute='_compute_labour_wage_total', string='Labour Wages (Attendance)',
+        help="Sum of wages from Labour Attendance logged against this stage - shown only as a "
+             "cross-check against the Labour BOQ line's real purchased/billed amount; it is not "
+             "included in Purchased/Billed/Profit above, which come only from real bills.")
 
     ncr_ids = fields.One2many('cm.ncr', 'stage_id', string='NCRs')
     ncr_count = fields.Integer(compute='_compute_quality_safety_counts')
@@ -101,6 +109,9 @@ class ConstructionStage(models.Model):
             stage.material_boq_total = sum(
                 line.amount for line in stage.boq_line_ids if line.product_id.type != 'service'
             )
+
+    def _compute_boq_actual_total(self):
+        for stage in self:
             stage.boq_actual_total = sum(stage.boq_line_ids.mapped('actual_amount'))
 
     @api.depends('task_ids.state', 'task_ids.child_ids.state')
@@ -134,10 +145,14 @@ class ConstructionStage(models.Model):
             stage.subtask_count = len(children)
             stage.subtask_done_count = len(children.filtered('is_closed'))
 
-    @api.depends('boq_line_ids.purchased_amount', 'payment_total')
-    def _compute_cost_amounts(self):
+    @api.depends('boq_line_ids.purchased_amount')
+    def _compute_purchased_amount(self):
         for stage in self:
             stage.purchased_amount = sum(stage.boq_line_ids.mapped('purchased_amount'))
+
+    @api.depends('payment_total')
+    def _compute_used_amount(self):
+        for stage in self:
             stage.used_amount = stage.payment_total
 
     @api.depends('purchase_order_ids.state', 'budget_allocation', 'purchased_amount')
@@ -154,6 +169,11 @@ class ConstructionStage(models.Model):
             stage.billed_amount = sum(bills.mapped('amount_total'))
             stage.pending_bill_amount = stage.purchased_amount - stage.billed_amount
             stage.profit_amount = stage.budget_allocation - stage.billed_amount
+
+    @api.depends('labour_attendance_ids.wage_amount')
+    def _compute_labour_wage_total(self):
+        for stage in self:
+            stage.labour_wage_total = sum(stage.labour_attendance_ids.mapped('wage_amount'))
 
     @api.depends('master_project_id.lead_id.boq_line_ids', 'boq_line_ids.source_line_id')
     def _compute_can_fetch_lead_boq(self):

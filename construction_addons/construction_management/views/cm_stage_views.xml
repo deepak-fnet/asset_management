@@ -83,6 +83,7 @@
                         </group>
                         <group>
                             <field name="payment_total"/>
+                            <field name="labour_wage_total"/>
                             <field name="profit_amount"/>
                         </group>
                     </group>
@@ -219,6 +220,7 @@
                 <field name="billed_amount" sum="Total"/>
                 <field name="pending_bill_amount" sum="Total"/>
                 <field name="payment_total" sum="Total"/>
+                <field name="labour_wage_total" sum="Total"/>
                 <field name="profit_amount" sum="Total"/>
             </list>
         </field>
