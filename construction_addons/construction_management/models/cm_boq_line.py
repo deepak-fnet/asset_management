@@ -16,6 +16,9 @@ class ConstructionBoqLine(models.Model):
 
     stage_id = fields.Many2one('cm.stage', ondelete='cascade', index=True)
     lead_id = fields.Many2one('crm.lead', string='Opportunity (Estimation)', ondelete='cascade', index=True)
+    costing_id = fields.Many2one(
+        'cm.costing', string='Sale Costing', index=True,
+        help="Set once this estimation line has been pulled into a Sale Costing document.")
     source_line_id = fields.Many2one(
         'cm.boq.line', string='Estimation Source', readonly=True, copy=False,
         help="The lead-level estimation BOQ line this execution line was fetched from, if any.")
@@ -31,6 +34,14 @@ class ConstructionBoqLine(models.Model):
              "line added directly on a stage may have no known rate yet until it's purchased.")
     currency_id = fields.Many2one('res.currency', compute='_compute_currency_id')
     amount = fields.Monetary(compute='_compute_amount', store=True)
+
+    margin_percent = fields.Float(
+        string='Margin (%)', default=0.0,
+        help="Percentage added on top of Rate to arrive at the Sell Rate, e.g. 10 for 10%.")
+    margin_value = fields.Monetary(compute='_compute_margin_sell', store=True, currency_field='currency_id')
+    sell_rate = fields.Float(string='Sell Rate', compute='_compute_margin_sell', store=True)
+    sell_amount = fields.Monetary(
+        string='Sell Amount', compute='_compute_margin_sell', store=True, currency_field='currency_id')
 
     state = fields.Selection([
         ('draft', 'Draft'),
@@ -98,6 +109,13 @@ class ConstructionBoqLine(models.Model):
     def _compute_amount(self):
         for line in self:
             line.amount = line.quantity * line.rate
+
+    @api.depends('quantity', 'rate', 'margin_percent')
+    def _compute_margin_sell(self):
+        for line in self:
+            line.sell_rate = line.rate * (1 + line.margin_percent / 100.0)
+            line.margin_value = line.quantity * line.rate * line.margin_percent / 100.0
+            line.sell_amount = line.quantity * line.sell_rate
 
     @api.onchange('product_id')
     def _onchange_product_id(self):

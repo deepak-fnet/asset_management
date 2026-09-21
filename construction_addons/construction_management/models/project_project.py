@@ -9,6 +9,9 @@ class ProjectProject(models.Model):
     master_project_id = fields.Many2one(
         'cm.master.project', string='Master Project', tracking=True, index=True, ondelete='cascade')
     project_no = fields.Char(string='Project No.', copy=False)
+    sale_order_line_id = fields.Many2one(
+        'sale.order.line', string='Source Quotation Line', copy=False, index=True,
+        help="The quotation line this sub-project was auto-created from, if any.")
     allow_task_dependencies = fields.Boolean(default=True)
     allow_milestones = fields.Boolean(default=True)
     cm_budget = fields.Monetary(string='Allocated Budget', currency_field='currency_id', tracking=True)

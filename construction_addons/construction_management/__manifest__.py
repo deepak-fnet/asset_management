@@ -9,8 +9,9 @@ Construction Project Management
 ================================
 End-to-end construction project flow on top of CRM, Project and Purchase:
 
-* CRM lead -> Master Project on "Mark as Won"
-* Master Project split into Sub-Projects (project.project), each with its own budget
+* CRM lead -> Estimation BOQ -> Sale Costing (cost + margin per item) -> Quotation
+* Confirming the Quotation creates the Master Project and one Sub-Project per
+  quotation line (project.project), each with its own budget
 * Sub-Project split into configurable Stages (Basement, Walls, Roofing, ...)
 * Stage-wise Bill of Quantities (BOQ), fetched from the lead's estimation BOQ
 * Site raises a material/labour request; purchase team plans procurement, RFQs multiple
@@ -40,8 +41,8 @@ End-to-end construction project flow on top of CRM, Project and Purchase:
         'security/construction_security.xml',
         'security/ir.model.access.csv',
         'data/ir_sequence_data.xml',
-        'data/product_data.xml',
         'views/cm_master_project_views.xml',
+        'views/cm_costing_views.xml',
         'views/cm_stage_views.xml',
         'views/project_project_views.xml',
         'views/crm_lead_views.xml',

@@ -4,6 +4,8 @@
 
     <menuitem id="menu_cm_master_project" name="Master Projects" parent="menu_construction_root"
               action="action_cm_master_project" sequence="10"/>
+    <menuitem id="menu_cm_costing" name="Sale Costings" parent="menu_construction_root"
+              action="action_cm_costing" sequence="15"/>
     <menuitem id="menu_cm_stage" name="Stages" parent="menu_construction_root"
               action="action_cm_stage" sequence="20"/>
     <menuitem id="menu_cm_material_requests" name="Material Requests" parent="menu_construction_root"

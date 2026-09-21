@@ -3,6 +3,7 @@ from . import cm_master_project
 from . import project_project
 from . import cm_stage
 from . import cm_boq_line
+from . import cm_costing
 from . import purchase_order
 from . import project_task
 from . import cm_ncr

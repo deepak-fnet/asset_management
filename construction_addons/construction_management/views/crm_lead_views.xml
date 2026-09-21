@@ -5,6 +5,14 @@
         <field name="model">crm.lead</field>
         <field name="inherit_id" ref="crm.crm_lead_view_form"/>
         <field name="arch" type="xml">
+            <button name="action_sale_quotations_new" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </button>
+            <xpath expr="//button[@name='action_sale_quotations_new']" position="before">
+                <button string="Sale Costing" name="action_create_costing" type="object" class="oe_highlight"
+                        invisible="type == 'lead' or costing_id or not boq_line_ids"
+                        title="Create the Sale Costing (cost + margin buildup) for this opportunity"/>
+            </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_view_master_project" type="object" class="oe_stat_button"
                         icon="fa-building" invisible="not master_project_id">
@@ -18,10 +26,10 @@
                         <span class="o_stat_text">Flow Chart</span>
                     </div>
                 </button>
-                <button name="action_create_quotation" type="object" class="oe_stat_button"
-                        icon="fa-file-text-o" invisible="sale_order_id or not boq_line_ids">
+                <button name="action_view_costing" type="object" class="oe_stat_button"
+                        icon="fa-calculator" invisible="not costing_id">
                     <div class="o_stat_info">
-                        <span class="o_stat_text">Create Quotation</span>
+                        <span class="o_stat_text">Sale Costing</span>
                     </div>
                 </button>
                 <button name="action_view_sale_order" type="object" class="oe_stat_button"
@@ -48,9 +56,10 @@
                     <field name="emd_amount"/>
                     <field name="tender_submission_date"/>
                     <field name="master_project_id" readonly="1"/>
+                    <field name="costing_id" readonly="1"/>
                     <field name="sale_order_id" readonly="1"/>
                 </group>
-                <group name="construction_profitability" string="Budget vs Actuals"
+                <group name="construction_profitability" string="Budget vs Actuals" colspan="2"
                        invisible="not sale_order_id">
                     <group>
                         <field name="budget_amount"/>

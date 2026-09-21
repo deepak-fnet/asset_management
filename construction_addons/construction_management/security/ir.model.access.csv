@@ -5,6 +5,8 @@ access_cm_stage_user,cm.stage.user,model_cm_stage,group_cm_user,1,1,1,0
 access_cm_stage_manager,cm.stage.manager,model_cm_stage,group_cm_manager,1,1,1,1
 access_cm_boq_line_user,cm.boq.line.user,model_cm_boq_line,group_cm_user,1,1,1,0
 access_cm_boq_line_manager,cm.boq.line.manager,model_cm_boq_line,group_cm_manager,1,1,1,1
+access_cm_costing_user,cm.costing.user,model_cm_costing,group_cm_user,1,1,1,0
+access_cm_costing_manager,cm.costing.manager,model_cm_costing,group_cm_manager,1,1,1,1
 access_cm_dashboard_user,cm.dashboard.user,model_cm_dashboard,group_cm_user,1,0,0,0
 access_cm_dashboard_manager,cm.dashboard.manager,model_cm_dashboard,group_cm_manager,1,0,0,0
 access_cm_ncr_user,cm.ncr.user,model_cm_ncr,group_cm_user,1,1,1,0

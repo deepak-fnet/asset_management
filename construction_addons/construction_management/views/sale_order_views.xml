@@ -9,6 +9,62 @@
                 <field name="retention_percent"/>
                 <field name="dlp_months"/>
             </field>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_costing" type="object" class="oe_stat_button"
+                        icon="fa-calculator" invisible="not costing_id">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Sale Costing</span>
+                    </div>
+                </button>
+                <button name="action_view_purchase_orders" type="object" class="oe_stat_button"
+                        icon="fa-shopping-cart" invisible="not purchase_order_count"
+                        groups="purchase.group_purchase_user">
+                    <field name="purchase_order_count" widget="statinfo" string="Purchase Orders"/>
+                </button>
+                <button name="action_view_master_project" type="object" class="oe_stat_button"
+                        icon="fa-building" invisible="not master_project_id">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Project</span>
+                    </div>
+                </button>
+                <button name="action_view_flowchart" type="object" class="oe_stat_button"
+                        icon="fa-sitemap" invisible="not master_project_id">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Flow Chart</span>
+                    </div>
+                </button>
+                <button name="action_view_stage_pnl" type="object" class="oe_stat_button"
+                        icon="fa-balance-scale" invisible="not master_project_id">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">P&amp;L by Stage</span>
+                    </div>
+                </button>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page name="construction_project_info" string="Project Info" invisible="not master_project_id">
+                    <group>
+                        <group>
+                            <field name="master_project_id" readonly="1"/>
+                            <field name="master_project_state" readonly="1"/>
+                            <field name="master_project_start_date" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="advance_received"/>
+                            <field name="overall_completion" widget="progressbar"/>
+                        </group>
+                    </group>
+                    <field name="subproject_ids" readonly="1">
+                        <list>
+                            <field name="project_no"/>
+                            <field name="name"/>
+                            <field name="floors"/>
+                            <field name="cm_budget" sum="Total Budget"/>
+                            <field name="cm_status"/>
+                            <field name="completion_percent" widget="progressbar"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
         </field>
     </record>
 </odoo>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cm_costing_form" model="ir.ui.view">
+        <field name="name">cm.costing.form</field>
+        <field name="model">cm.costing</field>
+        <field name="arch" type="xml">
+            <form string="Sale Costing">
+                <header>
+                    <button name="action_confirm" type="object" string="Confirm"
+                            class="oe_highlight" invisible="state != 'draft'">
+                        <i class="fa fa-check me-1"/>Confirm
+                    </button>
+                    <button name="action_create_quotation" type="object" string="Create Quotation"
+                            class="oe_highlight" invisible="state != 'confirmed'">
+                        <i class="fa fa-file-text-o me-1"/>Create Quotation
+                    </button>
+                    <button name="action_reset_to_draft" type="object" string="Reset to Draft"
+                            invisible="state != 'confirmed'">
+                        <i class="fa fa-undo me-1"/>Reset to Draft
+                    </button>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,done"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Quoted" bg_color="text-bg-success" invisible="state != 'done'"/>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_sale_order" type="object"
+                                class="oe_stat_button" icon="fa-file-text-o" invisible="not sale_order_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Quotation</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <span class="o_form_label text-muted">Sale Costing</span>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="lead_id" readonly="state != 'draft'"/>
+                            <field name="partner_id" widget="res_partner_many2one"
+                                   context="{'res_partner_search_mode': 'customer'}"/>
+                            <field name="sale_order_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="company_id" invisible="1"/>
+                            <field name="currency_id" invisible="1"/>
+                            <label for="margin_percent_overall" string="Overall Margin"/>
+                            <div class="o_row">
+                                <field name="margin_percent_overall" widget="progressbar"
+                                       options="{'editable': false}"/>
+                            </div>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="costing_lines" string="Costing Lines">
+                            <field name="line_ids" readonly="state != 'draft'"
+                                   context="{'default_lead_id': lead_id}">
+                                <list editable="bottom"
+                                      decoration-danger="margin_percent &lt;= 0"
+                                      decoration-warning="margin_percent &gt; 0 and margin_percent &lt; 10"
+                                      decoration-success="margin_percent &gt;= 10">
+                                    <field name="product_id" string="Item"/>
+                                    <field name="quantity"/>
+                                    <field name="uom_id"/>
+                                    <field name="rate" string="Cost Rate"/>
+                                    <field name="amount" string="Cost Amount"/>
+                                    <field name="margin_percent" string="Margin %"/>
+                                    <field name="margin_value" string="Margin Value"/>
+                                    <field name="sell_rate" string="Sell Rate"/>
+                                    <field name="sell_amount" string="Sell Amount" class="fw-bold"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer" name="costing_totals">
+                                <field name="cost_total"/>
+                                <field name="margin_total"/>
+                                <field name="sell_total" class="oe_subtotal_footer_separator"/>
+                            </group>
+                            <div class="clearfix"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cm_costing_list" model="ir.ui.view">
+        <field name="name">cm.costing.list</field>
+        <field name="model">cm.costing</field>
+        <field name="arch" type="xml">
+            <list string="Sale Costings" decoration-muted="state == 'draft'">
+                <field name="name"/>
+                <field name="lead_id"/>
+                <field name="partner_id"/>
+                <field name="cost_total" optional="hide"/>
+                <field name="margin_percent_overall" string="Margin %" widget="progressbar" optional="hide"/>
+                <field name="sell_total" class="fw-bold"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'confirmed'"
+                       decoration-success="state == 'done'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_cm_costing" model="ir.actions.act_window">
+        <field name="name">Sale Costings</field>
+        <field name="res_model">cm.costing</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

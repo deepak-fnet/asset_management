@@ -20,6 +20,7 @@ class CrmLead(models.Model):
         string='Estimation Total', compute='_compute_estimation_total', currency_field='company_currency')
 
     # --- Quotation / Proposal ---
+    costing_id = fields.Many2one('cm.costing', string='Sale Costing', readonly=True, copy=False)
     sale_order_id = fields.Many2one('sale.order', string='Contract Quotation', readonly=True, copy=False)
 
     # --- Purchase / Profitability roll-up (across all sub-projects/stages) ---
@@ -66,47 +67,31 @@ class CrmLead(models.Model):
             lead.total_purchase_payment = sum(stages.mapped('payment_total'))
             lead.profit_amount = lead.budget_amount - lead.billed_amount
 
-    def action_set_won(self):
-        res = super().action_set_won()
-        for lead in self:
-            if not lead.master_project_id:
-                lead._handle_partner_assignment(create_missing=True)
-                lead.master_project_id = self.env['cm.master.project'].create({
-                    'partner_id': lead.partner_id.id,
-                    'lead_id': lead.id,
-                    'sale_order_id': lead.sale_order_id.id,
-                    'total_contract_value': lead.sale_order_id.amount_total or lead.expected_revenue,
-                    'start_date': fields.Date.context_today(lead),
-                })
-        return res
-
-    def action_create_quotation(self):
+    def action_create_costing(self):
         self.ensure_one()
-        if self.sale_order_id:
-            raise UserError(_("A quotation has already been created for this opportunity: %s") % self.sale_order_id.name)
+        if self.costing_id:
+            raise UserError(_("A costing has already been created for this opportunity: %s") % self.costing_id.name)
         if not self.boq_line_ids:
-            raise UserError(_("Add at least one Estimation BOQ line before creating a quotation."))
-        if not self.partner_id:
-            self._handle_partner_assignment(create_missing=True)
-        contract_product = self.env.ref('construction_management.product_contract_value')
-        order = self.env['sale.order'].create({
-            'partner_id': self.partner_id.id,
-            'opportunity_id': self.id,
-            'order_line': [(0, 0, {
-                'product_id': contract_product.product_variant_id.id,
-                'name': self.name,
-                'product_uom_qty': 1,
-                'price_unit': self.estimation_total,
-                'tax_ids': [(6, 0, [])],
-            })],
-        })
-        self.sale_order_id = order.id
+            raise UserError(_("Add at least one Estimation BOQ line before creating a costing."))
+        costing = self.env['cm.costing'].create({'lead_id': self.id})
+        self.boq_line_ids.write({'costing_id': costing.id})
+        self.costing_id = costing.id
         return {
             'type': 'ir.actions.act_window',
-            'name': _('Quotation'),
-            'res_model': 'sale.order',
+            'name': _('Sale Costing'),
+            'res_model': 'cm.costing',
             'view_mode': 'form',
-            'res_id': order.id,
+            'res_id': costing.id,
+        }
+
+    def action_view_costing(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Sale Costing'),
+            'res_model': 'cm.costing',
+            'view_mode': 'form',
+            'res_id': self.costing_id.id,
         }
 
     def action_view_sale_order(self):

@@ -8,6 +8,14 @@
         <field name="company_id" eval="False"/>
     </record>
 
+    <record id="seq_cm_costing" model="ir.sequence">
+        <field name="name">Construction Sale Costing</field>
+        <field name="code">cm.costing</field>
+        <field name="prefix">SC-%(year)s-</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
     <record id="seq_cm_ncr" model="ir.sequence">
         <field name="name">Construction NCR</field>
         <field name="code">cm.ncr</field>
