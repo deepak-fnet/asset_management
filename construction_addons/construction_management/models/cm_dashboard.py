@@ -126,7 +126,11 @@ class ConstructionDashboard(models.AbstractModel):
             'profit': master.total_contract_value - billed,
         }
         result['subprojects'] = [
-            {'id': p.id, 'name': p.name, 'cm_status': p.cm_status} for p in master.subproject_ids
+            {
+                'id': p.id, 'name': p.name, 'cm_status': p.cm_status,
+                'budget': p.cm_budget, 'billed': p.billed_amount, 'profit': p.profit_amount,
+            }
+            for p in master.subproject_ids
         ]
 
         project = Project.browse(int(project_id)).exists() if project_id else Project.browse()

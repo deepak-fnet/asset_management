@@ -83,7 +83,16 @@
                             <div t-attf-class="o_flow_node o_flow_subproject o_flow_status_{{this.statusColor(p.cm_status)}} {{state.projectId == p.id ? 'o_flow_selected' : ''}}"
                                  t-on-click="() => this.selectProject(p.id)">
                                 <i class="fa fa-building"/>
-                                <div><t t-esc="p.name"/></div>
+                                <div>
+                                    <div><t t-esc="p.name"/></div>
+                                    <div class="o_flow_subproject_metrics">
+                                        <div>Budget: <b><t t-esc="this.formatMoney(p.budget)"/></b></div>
+                                        <div>Actual: <b><t t-esc="this.formatMoney(p.billed)"/></b></div>
+                                        <div t-attf-class="{{this.financeClass(p.profit)}}">
+                                            P/L: <b><t t-esc="this.formatMoney(p.profit)"/></b>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -59,6 +59,7 @@
                                       decoration-danger="margin_percent &lt;= 0"
                                       decoration-warning="margin_percent &gt; 0 and margin_percent &lt; 10"
                                       decoration-success="margin_percent &gt;= 10">
+                                    <field name="lead_id" column_invisible="1"/>
                                     <field name="product_id" string="Item"/>
                                     <field name="quantity"/>
                                     <field name="uom_id"/>
@@ -88,7 +89,7 @@
         <field name="name">cm.costing.list</field>
         <field name="model">cm.costing</field>
         <field name="arch" type="xml">
-            <list string="Sale Costings" decoration-muted="state == 'draft'">
+            <list string="Sale Costings" decoration-muted="state == 'draft'" create="0">
                 <field name="name"/>
                 <field name="lead_id"/>
                 <field name="partner_id"/>

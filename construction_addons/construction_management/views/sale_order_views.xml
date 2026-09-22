@@ -53,6 +53,17 @@
                             <field name="overall_completion" widget="progressbar"/>
                         </group>
                     </group>
+                    <group string="Budget vs Actuals">
+                        <group>
+                            <field name="budget_amount"/>
+                            <field name="purchased_amount"/>
+                            <field name="billed_amount"/>
+                        </group>
+                        <group>
+                            <field name="pending_bill_amount"/>
+                            <field name="profit_amount"/>
+                        </group>
+                    </group>
                     <field name="subproject_ids" readonly="1">
                         <list>
                             <field name="project_no"/>

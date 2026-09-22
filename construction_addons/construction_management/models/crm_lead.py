@@ -78,8 +78,6 @@ class CrmLead(models.Model):
         self.ensure_one()
         if self.costing_id:
             raise UserError(_("A costing has already been created for this opportunity: %s") % self.costing_id.name)
-        if not self.boq_line_ids:
-            raise UserError(_("Add at least one Estimation BOQ line before creating a costing."))
         costing = self.env['cm.costing'].create({'lead_id': self.id})
         self.boq_line_ids.write({'costing_id': costing.id})
         self.costing_id = costing.id

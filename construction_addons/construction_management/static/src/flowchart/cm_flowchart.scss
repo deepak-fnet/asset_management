@@ -201,6 +201,20 @@
         &:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12); }
     }
 
+    .o_flow_subproject_metrics {
+        margin-top: 4px;
+        font-size: 0.72rem;
+        font-weight: 400;
+        color: #6c757d;
+        text-align: left;
+
+        div { display: flex; justify-content: space-between; gap: 8px; }
+        b { color: #2b2b2b; }
+
+        div:last-child b { color: #1e6b32; }
+        div:last-child.o_flow_finance_loss b { color: #b02a37; }
+    }
+
     .o_flow_stage_detail { justify-content: flex-start; margin: 0 auto; max-width: 100%; width: fit-content; }
 
     .o_flow_selected {

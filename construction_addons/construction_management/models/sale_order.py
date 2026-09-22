@@ -17,6 +17,13 @@ class SaleOrder(models.Model):
     advance_received = fields.Monetary(related='master_project_id.advance_received')
     overall_completion = fields.Float(related='master_project_id.overall_completion', string='Overall Completion (%)')
     purchase_order_count = fields.Integer(related='opportunity_id.purchase_order_count')
+    budget_amount = fields.Monetary(
+        related='opportunity_id.budget_amount', string='Total Project Cost')
+    purchased_amount = fields.Monetary(related='opportunity_id.purchased_amount', string='Purchase Cost')
+    billed_amount = fields.Monetary(related='opportunity_id.billed_amount', string='Bill Cost')
+    pending_bill_amount = fields.Monetary(
+        related='opportunity_id.pending_bill_amount', string='Pending Billing')
+    profit_amount = fields.Monetary(related='opportunity_id.profit_amount', string='Profit / Loss')
     subproject_ids = fields.One2many(
         'project.project', compute='_compute_subproject_ids', string='Sub-Projects')
 
