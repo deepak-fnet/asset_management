@@ -6,16 +6,27 @@
         <field name="arch" type="xml">
             <form string="Daily Progress Report">
                 <header>
-                    <button name="action_submit" type="object" string="Submit"
-                            class="oe_highlight" invisible="state != 'draft'"/>
-                    <button name="action_approve" type="object" string="Approve"
-                            class="oe_highlight" invisible="state != 'submitted'"
+                    <button name="action_submit" type="object" string="Submit for Verification"
+                            class="oe_highlight" invisible="approval_state != 'draft'"/>
+                    <button name="action_verify" type="object" string="Verify"
+                            class="oe_highlight" invisible="approval_state != 'submitted'"
                             groups="construction_management.group_cm_manager"/>
+                    <button name="action_approve" type="object" string="Approve"
+                            class="oe_highlight" invisible="approval_state != 'verified'"
+                            groups="construction_management.group_cm_manager"/>
+                    <button name="action_reject" type="object" string="Reject"
+                            invisible="approval_state not in ('submitted', 'verified')"
+                            groups="construction_management.group_cm_manager"
+                            confirm="Reject this DPR? Make sure you have entered the Rejection Reason."/>
                     <button name="action_reset_to_draft" type="object" string="Reset to Draft"
-                            invisible="state == 'draft'"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved"/>
+                            invisible="approval_state in ('draft', 'approved')"/>
+                    <field name="approval_state" widget="statusbar"
+                           statusbar_visible="draft,submitted,verified,approved"/>
                 </header>
                 <sheet>
+                    <div class="alert alert-danger" role="alert" invisible="approval_state != 'rejected'">
+                        This DPR was rejected. See Rejection Reason below.
+                    </div>
                     <div class="oe_title">
                         <h1>
                             <field name="project_id" placeholder="Project"/>
@@ -39,6 +50,20 @@
                         <field name="material_consumed"/>
                         <field name="equipment_used"/>
                     </group>
+                    <group string="Approval Trail" invisible="approval_state in ('draft', 'submitted')">
+                        <group>
+                            <field name="verified_by" readonly="1" invisible="not verified_by"/>
+                            <field name="verified_date" readonly="1" invisible="not verified_date"/>
+                        </group>
+                        <group>
+                            <field name="approved_by" readonly="1" invisible="not approved_by"/>
+                            <field name="approved_date" readonly="1" invisible="not approved_date"/>
+                        </group>
+                    </group>
+                    <group string="Rejection Reason" invisible="approval_state == 'approved'">
+                        <field name="rejection_reason" nolabel="1" readonly="approval_state == 'rejected'"
+                               placeholder="Required before rejecting."/>
+                    </group>
                 </sheet>
                 <chatter/>
             </form>
@@ -56,8 +81,10 @@
                 <field name="weather"/>
                 <field name="total_labour_present"/>
                 <field name="labour_wage_total"/>
-                <field name="state" widget="badge" decoration-success="state == 'approved'"
-                       decoration-info="state == 'submitted'"/>
+                <field name="approval_state" widget="badge"
+                       decoration-success="approval_state == 'approved'"
+                       decoration-info="approval_state in ('submitted', 'verified')"
+                       decoration-danger="approval_state == 'rejected'"/>
             </list>
         </field>
     </record>

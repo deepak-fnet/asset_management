@@ -30,4 +30,12 @@
 
     <menuitem id="menu_cm_budget_line" name="Budget Lines" parent="menu_construction_root"
               action="action_cm_budget_line" sequence="35"/>
+    <menuitem id="menu_cm_milestone_bill" name="Milestone Bills" parent="menu_construction_root"
+              action="action_cm_milestone_bill" sequence="40"/>
+    <menuitem id="menu_cm_variation_order" name="Variation Orders" parent="menu_construction_root"
+              action="action_cm_variation_order" sequence="42"/>
+    <menuitem id="menu_cm_handover_certificate" name="Handover Certificates" parent="menu_construction_root"
+              action="action_cm_handover_certificate" sequence="44"/>
+    <menuitem id="menu_cm_snag_item" name="Snag Items" parent="menu_construction_root"
+              action="action_cm_snag_item" sequence="46"/>
 </odoo>

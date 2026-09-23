@@ -12,6 +12,16 @@
                 <button name="action_view_budget_lines" type="object" class="oe_stat_button" icon="fa-calculator">
                     <field name="budget_line_count" widget="statinfo" string="Budget Lines"/>
                 </button>
+                <button name="action_view_handover_certificates" type="object"
+                        class="oe_stat_button" icon="fa-certificate"
+                        invisible="not handover_certificate_count">
+                    <field name="handover_certificate_count" widget="statinfo" string="Handover Certificate"/>
+                </button>
+                <button name="action_view_snag_items" type="object"
+                        class="oe_stat_button" icon="fa-wrench"
+                        invisible="not snag_item_count">
+                    <field name="open_snag_item_count" widget="statinfo" string="Open Snags"/>
+                </button>
             </xpath>
             <xpath expr="//group[field[@name='user_id']]" position="after">
                 <group string="Construction">
@@ -19,6 +29,7 @@
                         <field name="master_project_id"/>
                         <field name="project_no"/>
                         <field name="floors"/>
+                        <field name="variation_order_id" readonly="1" invisible="not variation_order_id"/>
                     </group>
                     <group>
                         <field name="cm_budget"/>
@@ -46,12 +57,20 @@
                     <button name="action_close_subproject" type="object" string="Close Sub-Project"
                             class="oe_highlight" invisible="cm_status == 'closed'"
                             groups="construction_management.group_cm_manager"/>
-                    <group>
-                        <field name="final_inspection_done"/>
-                        <field name="final_payment_cleared" readonly="1"/>
-                        <field name="client_signoff"/>
-                        <field name="handover_date"/>
-                        <field name="warranty_months"/>
+                    <group string="Handover Checklist">
+                        <group>
+                            <field name="final_inspection_done"/>
+                            <field name="final_payment_cleared" readonly="1"/>
+                            <field name="client_signoff"/>
+                            <field name="keys_handed_over"/>
+                        </group>
+                        <group>
+                            <field name="electricity_connection_transferred"/>
+                            <field name="water_connection_transferred"/>
+                            <field name="warranty_documents_handed_over"/>
+                            <field name="handover_date"/>
+                            <field name="warranty_months"/>
+                        </group>
                     </group>
                 </page>
             </xpath>

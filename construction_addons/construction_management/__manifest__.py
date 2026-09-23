@@ -19,12 +19,15 @@ End-to-end construction project flow on top of CRM, Project and Purchase:
 * Real stock receipt into WH/Stock and partial Material Issue to site (internal transfers)
 * Vendor bills and registered payments (account.move/account.payment) rolled up per stage,
   sub-project and lead: Purchased, Billed, Pending Bill, Payments Made, Profit/Loss vs Budget
+* Client-side Milestone Billing: advance payment, progress milestones and Retention, each
+  raised as its own invoice; Retention auto-invoices itself on its release date via a daily cron
 * Sub-project closure checklist; Master Project closes once all sub-projects are closed
 """,
     'author': 'Kevin-Nelthropp',
     'license': 'LGPL-3',
     'depends': [
         'crm',
+        'sale_management',
         'sale_crm',
         'project',
         'project_account',
@@ -41,8 +44,15 @@ End-to-end construction project flow on top of CRM, Project and Purchase:
         'security/construction_security.xml',
         'security/ir.model.access.csv',
         'data/ir_sequence_data.xml',
+        'data/cm_milestone_bill_cron.xml',
         'views/cm_master_project_views.xml',
         'views/cm_costing_views.xml',
+        'views/cm_milestone_bill_views.xml',
+        'views/cm_variation_order_views.xml',
+        'views/cm_handover_certificate_views.xml',
+        'views/cm_snag_item_views.xml',
+        'views/cm_material_issue_wizard_views.xml',
+        'views/cm_material_return_wizard_views.xml',
         'views/cm_stage_views.xml',
         'views/project_project_views.xml',
         'views/crm_lead_views.xml',

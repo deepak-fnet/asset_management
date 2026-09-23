@@ -31,4 +31,28 @@
         <field name="padding">4</field>
         <field name="company_id" eval="False"/>
     </record>
+
+    <record id="seq_cm_variation_order" model="ir.sequence">
+        <field name="name">Construction Variation Order</field>
+        <field name="code">cm.variation.order</field>
+        <field name="prefix">VO-%(year)s-</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="seq_cm_handover_certificate" model="ir.sequence">
+        <field name="name">Construction Handover Certificate</field>
+        <field name="code">cm.handover.certificate</field>
+        <field name="prefix">HC-%(year)s-</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="seq_cm_snag_item" model="ir.sequence">
+        <field name="name">Construction Snag Item</field>
+        <field name="code">cm.snag.item</field>
+        <field name="prefix">SNAG-%(year)s-</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
 </odoo>

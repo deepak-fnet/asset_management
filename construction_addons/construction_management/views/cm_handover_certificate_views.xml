@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cm_handover_certificate_list" model="ir.ui.view">
+        <field name="name">cm.handover.certificate.list</field>
+        <field name="model">cm.handover.certificate</field>
+        <field name="arch" type="xml">
+            <list string="Handover Certificates" create="0">
+                <field name="name"/>
+                <field name="project_id"/>
+                <field name="partner_id"/>
+                <field name="handover_date"/>
+                <field name="warranty_expiry_date"/>
+                <field name="issued_by"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cm_handover_certificate_form" model="ir.ui.view">
+        <field name="name">cm.handover.certificate.form</field>
+        <field name="model">cm.handover.certificate</field>
+        <field name="arch" type="xml">
+            <form string="Handover Certificate" create="0">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_project" type="object"
+                                class="oe_stat_button" icon="fa-building">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Sub-Project</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="project_id" readonly="1"/>
+                            <field name="master_project_id" readonly="1"/>
+                            <field name="partner_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="handover_date" readonly="1"/>
+                            <field name="warranty_months" readonly="1"/>
+                            <field name="warranty_expiry_date" readonly="1"/>
+                            <field name="issued_by" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Handover Checklist (as confirmed at issue time)">
+                        <group>
+                            <field name="final_inspection_done" readonly="1"/>
+                            <field name="client_signoff" readonly="1"/>
+                            <field name="keys_handed_over" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="electricity_connection_transferred" readonly="1"/>
+                            <field name="water_connection_transferred" readonly="1"/>
+                            <field name="warranty_documents_handed_over" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_cm_handover_certificate" model="ir.actions.act_window">
+        <field name="name">Handover Certificates</field>
+        <field name="res_model">cm.handover.certificate</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

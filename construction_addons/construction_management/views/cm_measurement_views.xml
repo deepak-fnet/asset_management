@@ -9,11 +9,18 @@
                     <button name="action_certify" type="object" string="Certify"
                             class="oe_highlight" invisible="state != 'draft'"
                             groups="construction_management.group_cm_manager"/>
+                    <button name="action_reject" type="object" string="Reject"
+                            invisible="state != 'draft'"
+                            groups="construction_management.group_cm_manager"
+                            confirm="Reject this measurement? Make sure you have entered the reason in Remarks."/>
                     <button name="action_reset_to_draft" type="object" string="Reset to Draft"
-                            invisible="state != 'certified'"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,certified"/>
+                            invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,certified,rejected"/>
                 </header>
                 <sheet>
+                    <div class="alert alert-danger" role="alert" invisible="state != 'rejected'">
+                        This measurement was rejected. See Remarks below for the reason.
+                    </div>
                     <group>
                         <group>
                             <field name="boq_line_id"/>
@@ -31,7 +38,10 @@
                             <field name="measured_by"/>
                         </group>
                     </group>
-                    <field name="remarks"/>
+                    <group string="Reviewer Remarks">
+                        <field name="remarks" nolabel="1"
+                               placeholder="Enter your observations here. Required before rejecting."/>
+                    </group>
                 </sheet>
                 <chatter/>
             </form>
@@ -50,7 +60,8 @@
                 <field name="qty_this_measurement"/>
                 <field name="cumulative_qty"/>
                 <field name="amount" sum="Total"/>
-                <field name="state" widget="badge" decoration-success="state == 'certified'"/>
+                <field name="state" widget="badge" decoration-success="state == 'certified'"
+                       decoration-danger="state == 'rejected'"/>
             </list>
         </field>
     </record>

@@ -23,6 +23,13 @@
                                 <span class="o_stat_text">Flow Chart</span>
                             </div>
                         </button>
+                        <button name="action_view_sale_order" type="object"
+                                class="oe_stat_button" icon="fa-file-text-o"
+                                invisible="not sale_order_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Sale Order</span>
+                            </div>
+                        </button>
                     </div>
                     <div class="oe_title">
                         <label for="name"/>
@@ -54,6 +61,8 @@
                                     <field name="name"/>
                                     <field name="floors"/>
                                     <field name="cm_budget"/>
+                                    <field name="billed_amount" string="Consumed Amount" sum="Total"/>
+                                    <field name="profit_amount" string="Profit / Loss" sum="Total"/>
                                     <field name="cm_status"/>
                                     <field name="completion_percent" widget="progressbar"/>
                                 </list>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cm_material_issue_wizard_form" model="ir.ui.view">
+        <field name="name">cm.material.issue.wizard.form</field>
+        <field name="model">cm.material.issue.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Quick Material Issue">
+                <field name="stage_id" invisible="1"/>
+                <p class="text-muted">
+                    Enter exactly what is being issued to site right now - leave a line at 0 to
+                    skip it. You can come back and issue more of the same item again later.
+                </p>
+                <field name="line_ids">
+                    <list editable="bottom" create="0">
+                        <field name="boq_line_id" column_invisible="1"/>
+                        <field name="product_id" readonly="1"/>
+                        <field name="uom_id" readonly="1"/>
+                        <field name="available_qty" readonly="1"/>
+                        <field name="quantity"/>
+                    </list>
+                </field>
+                <footer>
+                    <button name="action_issue" type="object" string="Issue" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

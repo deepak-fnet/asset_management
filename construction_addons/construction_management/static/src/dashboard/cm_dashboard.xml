@@ -3,178 +3,975 @@
     <t t-name="construction_management.Dashboard">
         <div t-att-class="props.className">
         <Layout display="display">
-            <t t-set-slot="control-panel-always-buttons">
-                <button class="btn btn-secondary" t-on-click="clearFilters">
-                    <i class="fa fa-refresh me-1"/>Clear Filters
-                </button>
-            </t>
             <div class="o_cm_dashboard">
-                <div class="o_cm_header">
-                    <div class="o_cm_header_icon"><i class="fa fa-building-o"/></div>
-                    <div>
-                        <h2>Construction Overview</h2>
-                        <div class="o_cm_header_sub">
-                            <t t-if="state.data.selected_project">
-                                <t t-esc="state.data.selected_master and state.data.selected_master.name"/>
-                                <i class="fa fa-angle-right mx-1"/>
-                                <t t-esc="state.data.selected_project.name"/>
-                            </t>
-                            <t t-elif="state.data.selected_master">
-                                <t t-esc="state.data.selected_master.name"/> (<t t-esc="state.data.selected_master.partner"/>)
-                            </t>
-                            <t t-else="">All customers and projects</t>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="o_cm_filters">
-                    <div class="o_cm_filter">
-                        <label><i class="fa fa-user me-1"/>Customer</label>
-                        <select class="form-select" t-att-value="state.customerId" t-on-change="onChangeCustomer">
-                            <option value="">All Customers</option>
-                            <t t-foreach="state.data.customers" t-as="c" t-key="c.id">
-                                <option t-att-value="c.id"><t t-esc="c.name"/></option>
-                            </t>
-                        </select>
-                    </div>
-                    <div class="o_cm_filter">
-                        <label><i class="fa fa-building me-1"/>Master Project</label>
-                        <select class="form-select" t-att-value="state.masterId" t-on-change="onChangeMaster">
-                            <option value="">All Master Projects</option>
-                            <t t-foreach="state.data.masters" t-as="m" t-key="m.id">
-                                <option t-att-value="m.id"><t t-esc="m.name"/></option>
-                            </t>
-                        </select>
-                    </div>
-                    <div class="o_cm_filter" t-if="state.masterId">
-                        <label><i class="fa fa-cubes me-1"/>Sub-Project</label>
-                        <select class="form-select" t-att-value="state.projectId" t-on-change="onChangeProject">
-                            <option value="">All Sub-Projects</option>
-                            <t t-foreach="state.data.subprojects" t-as="p" t-key="p.id">
-                                <option t-att-value="p.id"><t t-esc="p.name"/></option>
-                            </t>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="o_cm_kpi_row">
-                    <div class="o_cm_kpi_card">
-                        <div class="o_cm_kpi_icon bg-purple"><i class="fa fa-building"/></div>
-                        <div>
-                            <div class="o_cm_kpi_value"><t t-esc="state.data.summary.master_count"/></div>
-                            <div class="o_cm_kpi_label">Master Projects</div>
+                <!-- ============ SITE BOARD HEADER ============ -->
+                <div class="o_cm_siteboard">
+                    <div class="o_cm_siteboard_grid"/>
+                    <div class="o_cm_siteboard_body">
+                        <div class="o_cm_siteboard_badge"><i class="fa fa-building"/></div>
+                        <div class="o_cm_siteboard_text">
+                            <div class="o_cm_siteboard_kicker">Management Information System</div>
+                            <h1>Construction Control Room</h1>
+                            <div class="o_cm_siteboard_sub">
+                                <t t-if="!state.selectedMasterId">
+                                    Every project, one board &#8212; profitability, cash position and what needs attention today
+                                </t>
+                                <t t-else="">
+                                    <t t-esc="state.selectedLabel"/>
+                                </t>
+                            </div>
                         </div>
-                    </div>
-                    <div class="o_cm_kpi_card">
-                        <div class="o_cm_kpi_icon bg-teal"><i class="fa fa-cubes"/></div>
-                        <div>
-                            <div class="o_cm_kpi_value"><t t-esc="state.data.summary.subproject_count"/></div>
-                            <div class="o_cm_kpi_label">Sub-Projects</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Level 1: Master Projects -->
-                <div t-if="state.data.masters_detail" class="o_cm_section">
-                    <h4><i class="fa fa-building me-2"/>Master Projects</h4>
-                    <div t-if="!state.data.masters_detail.length" class="o_cm_empty">No master projects found.</div>
-                    <div class="o_cm_card_grid">
-                        <div t-foreach="state.data.masters_detail" t-as="m" t-key="m.id"
-                             class="o_cm_card" t-attf-class="o_cm_border_{{this.statusColor(m.state)}}"
-                             t-on-click="() => this.openRecord('cm.master.project', m.id)">
-                            <div class="o_cm_card_head">
-                                <div class="o_cm_avatar"><t t-esc="this.initials(m.partner)"/></div>
-                                <div class="o_cm_card_head_text">
-                                    <div class="o_cm_card_title"><t t-esc="m.name"/></div>
-                                    <div class="o_cm_card_sub"><t t-esc="m.partner"/></div>
+                        <div class="o_cm_search_wrap">
+                            <div class="o_cm_search">
+                                <i class="fa fa-search o_cm_search_ico"/>
+                                <input type="text" class="o_cm_search_input"
+                                       placeholder="Search project, opportunity or customer..."
+                                       t-att-value="state.query"
+                                       t-on-input="onSearchInput"
+                                       t-on-focus="onSearchFocus"
+                                       t-on-blur="onSearchBlur"/>
+                                <button t-if="state.selectedMasterId" class="o_cm_search_clear" t-on-click="clearProject">
+                                    <i class="fa fa-times me-1"/>All
+                                </button>
+                                <button class="o_cm_icon_btn" title="Refresh" t-on-click="refreshAll">
+                                    <i class="fa fa-refresh"/>
+                                </button>
+                            </div>
+                            <div t-if="state.showSuggestions and state.suggestions.length" class="o_cm_suggest">
+                                <div t-foreach="state.suggestions" t-as="s" t-key="s.id"
+                                     class="o_cm_suggest_item" t-on-click="() => this.pickProject(s)">
+                                    <div class="o_cm_suggest_chip"><t t-esc="initials(s.partner)"/></div>
+                                    <div class="o_cm_suggest_text">
+                                        <div class="o_cm_suggest_name"><t t-esc="s.lead_name or s.name"/></div>
+                                        <div class="o_cm_suggest_sub">
+                                            <t t-esc="s.name"/> &#183; <t t-esc="s.partner"/>
+                                        </div>
+                                    </div>
+                                    <span t-attf-class="o_cm_pill o_cm_pill--{{statusColor(s.state)}}"><t t-esc="s.state"/></span>
                                 </div>
-                                <span t-attf-class="o_cm_badge bg-{{this.statusColor(m.state)}}"><t t-esc="m.state"/></span>
-                            </div>
-                            <div class="o_cm_progress">
-                                <div t-attf-class="o_cm_progress_bar bg-{{this.progressColor(m.overall_completion)}}"
-                                     t-attf-style="width: {{m.overall_completion}}%;"/>
-                            </div>
-                            <div class="o_cm_card_meta">
-                                <span><t t-esc="m.overall_completion"/>% complete</span>
-                                <span><t t-esc="m.subproject_count"/> sub-projects</span>
-                            </div>
-                            <div class="o_cm_card_costs">
-                                <div>Contract: <b><t t-esc="this.formatMoney(m.total_contract_value)"/></b></div>
-                                <div>Advance: <b><t t-esc="this.formatMoney(m.advance_received)"/></b></div>
                             </div>
                         </div>
                     </div>
+                    <div class="o_cm_hazard"/>
                 </div>
 
-                <!-- Level 2: Sub-Projects of the selected Master Project -->
-                <div t-if="state.data.subprojects_detail" class="o_cm_section">
-                    <h4>
-                        <i class="fa fa-cubes me-2"/>Sub-Projects
-                        <t t-if="state.data.selected_master"> of <t t-esc="state.data.selected_master.name"/></t>
-                    </h4>
-                    <div t-if="!state.data.subprojects_detail.length" class="o_cm_empty">No sub-projects yet.</div>
-                    <div class="o_cm_card_grid">
-                        <div t-foreach="state.data.subprojects_detail" t-as="p" t-key="p.id"
-                             class="o_cm_card" t-attf-class="o_cm_border_{{this.statusColor(p.cm_status)}}"
-                             t-on-click="() => this.openRecord('project.project', p.id)">
-                            <div class="o_cm_card_head">
-                                <div class="o_cm_card_head_text">
-                                    <div class="o_cm_card_title"><t t-esc="p.name"/></div>
-                                    <div class="o_cm_card_sub"><t t-esc="p.project_no"/></div>
+                <!-- ================================================================= -->
+                <!-- ==================== DEFAULT: ALL PROJECTS ===================== -->
+                <!-- ================================================================= -->
+                <t t-if="!state.selectedMasterId">
+                <t t-if="state.mis">
+
+                    <!-- COUNTS STRIP -->
+                    <div class="o_cm_counts">
+                        <div class="o_cm_count">
+                            <b><t t-esc="state.mis.counts.master_total"/></b>
+                            <span>Total Projects</span>
+                        </div>
+                        <div class="o_cm_count o_cm_count--green">
+                            <b><t t-esc="state.mis.counts.master_closed"/></b>
+                            <span>Completed</span>
+                        </div>
+                        <div class="o_cm_count o_cm_count--blue">
+                            <b><t t-esc="state.mis.counts.master_active"/></b>
+                            <span>Active</span>
+                        </div>
+                        <div class="o_cm_count">
+                            <b><t t-esc="state.mis.counts.subproject_total"/></b>
+                            <span>Sub-Projects (<t t-esc="state.mis.counts.subproject_completed"/> done)</span>
+                        </div>
+                        <div class="o_cm_count">
+                            <b><t t-esc="state.mis.counts.po_count"/></b>
+                            <span>Purchase Orders</span>
+                        </div>
+                        <div class="o_cm_count">
+                            <b><t t-esc="state.mis.counts.vendor_bill_count"/></b>
+                            <span>Vendor Bills</span>
+                        </div>
+                        <div class="o_cm_count">
+                            <b><t t-esc="state.mis.counts.client_invoice_count"/></b>
+                            <span>Client Invoices</span>
+                        </div>
+                    </div>
+
+                    <!-- KPI TILES -->
+                    <div class="o_cm_kpis">
+                        <div class="o_cm_kpi o_cm_kpi--steel">
+                            <div class="o_cm_kpi_top"/>
+                            <div class="o_cm_kpi_ico"><i class="fa fa-file-text-o"/></div>
+                            <div class="o_cm_kpi_num">
+                                <span class="o_cm_cur"><t t-esc="currency"/></span><t t-esc="formatCompact(state.mis.totals.contract)"/>
+                            </div>
+                            <div class="o_cm_kpi_lbl">Contract Value</div>
+                            <div class="o_cm_kpi_foot"><t t-esc="state.mis.projects.length"/> projects in portfolio</div>
+                        </div>
+
+                        <div class="o_cm_kpi o_cm_kpi--amber">
+                            <div class="o_cm_kpi_top"/>
+                            <div class="o_cm_kpi_ico"><i class="fa fa-inr"/></div>
+                            <div class="o_cm_kpi_num">
+                                <span class="o_cm_cur"><t t-esc="currency"/></span><t t-esc="formatCompact(state.mis.totals.client_billed)"/>
+                            </div>
+                            <div class="o_cm_kpi_lbl">Billed to Client</div>
+                            <div class="o_cm_kpi_foot"><t t-esc="state.mis.totals.billed_pct"/>% of contract value raised</div>
+                        </div>
+
+                        <div class="o_cm_kpi o_cm_kpi--green">
+                            <div class="o_cm_kpi_top"/>
+                            <div class="o_cm_kpi_ico"><i class="fa fa-arrow-down"/></div>
+                            <div class="o_cm_kpi_num">
+                                <span class="o_cm_cur"><t t-esc="currency"/></span><t t-esc="formatCompact(state.mis.totals.client_received)"/>
+                            </div>
+                            <div class="o_cm_kpi_lbl">Cash Received</div>
+                            <div class="o_cm_kpi_foot">From posted client invoices</div>
+                        </div>
+
+                        <div class="o_cm_kpi o_cm_kpi--orange">
+                            <div class="o_cm_kpi_top"/>
+                            <div class="o_cm_kpi_ico"><i class="fa fa-hourglass-half"/></div>
+                            <div class="o_cm_kpi_num">
+                                <span class="o_cm_cur"><t t-esc="currency"/></span><t t-esc="formatCompact(state.mis.totals.outstanding)"/>
+                            </div>
+                            <div class="o_cm_kpi_lbl">Outstanding</div>
+                            <div class="o_cm_kpi_foot">Invoiced, not yet collected</div>
+                        </div>
+
+                        <div class="o_cm_kpi o_cm_kpi--rust">
+                            <div class="o_cm_kpi_top"/>
+                            <div class="o_cm_kpi_ico"><i class="fa fa-truck"/></div>
+                            <div class="o_cm_kpi_num">
+                                <span class="o_cm_cur"><t t-esc="currency"/></span><t t-esc="formatCompact(state.mis.totals.cost)"/>
+                            </div>
+                            <div class="o_cm_kpi_lbl">Project Cost</div>
+                            <div class="o_cm_kpi_foot">Vendor bills posted across all sites</div>
+                        </div>
+
+                        <div t-attf-class="o_cm_kpi {{ state.mis.totals.margin >= 0 ? 'o_cm_kpi--profit' : 'o_cm_kpi--loss' }}">
+                            <div class="o_cm_kpi_top"/>
+                            <div class="o_cm_kpi_ico"><i class="fa fa-balance-scale"/></div>
+                            <div class="o_cm_kpi_num">
+                                <span class="o_cm_cur"><t t-esc="currency"/></span><t t-esc="formatCompact(state.mis.totals.margin)"/>
+                            </div>
+                            <div class="o_cm_kpi_lbl">Gross Margin</div>
+                            <div class="o_cm_kpi_foot"><t t-esc="state.mis.totals.margin_pct"/>% of contract value</div>
+                        </div>
+                    </div>
+
+                    <!-- PROJECT-WISE P&amp;L TREND: which project is winning / losing, at a glance -->
+                    <div class="o_cm_panel o_cm_panel--headline">
+                        <div class="o_cm_panel_head">
+                            <h3><i class="fa fa-line-chart me-2"/>Profit &amp; Loss Trend by Stage &#8212; All Projects</h3>
+                            <div class="o_cm_head_tools">
+                                <span class="o_cm_panel_note">
+                                    One line per project &#8212; cumulative budget variance % of that project's total budget, so a &#8377;31 Cr
+                                    and a &#8377;11 L project are directly comparable. Above zero is winning, below is losing.
+                                    A project with a huge swing can flatten the rest &#8212; click it in the legend to hide it and
+                                    the scale will zoom to fit whatever is left.
+                                </span>
+                                <button t-if="state.mis.charts.pnl_by_stage.labels.length" class="o_cm_view_btn"
+                                        t-on-click="() => this.openFullscreen('pnlByStage')">
+                                    <i class="fa fa-expand me-1"/>View
+                                </button>
+                            </div>
+                        </div>
+                        <div class="o_cm_panel_body">
+                            <div t-if="!state.mis.charts.pnl_by_stage.labels.length" class="o_cm_empty">
+                                No stages with a budget allocation yet to plot.
+                            </div>
+                            <div t-else="" class="o_cm_chart_wrap o_cm_chart_wrap--xl"><canvas t-ref="pnlByStageChart"/></div>
+                        </div>
+                    </div>
+
+                    <div class="o_cm_split">
+                        <!-- CASH FLOW -->
+                        <div class="o_cm_panel">
+                            <div class="o_cm_panel_head">
+                                <h3><i class="fa fa-exchange me-2"/>Cash Position</h3>
+                                <span class="o_cm_panel_note">Client money in vs vendor money out</span>
+                            </div>
+                            <div class="o_cm_panel_body">
+                                <div class="o_cm_flow">
+                                    <div class="o_cm_flow_row">
+                                        <div class="o_cm_flow_label"><i class="fa fa-arrow-down o_cm_in"/>Money In</div>
+                                        <div class="o_cm_flow_track">
+                                            <div class="o_cm_flow_bar o_cm_bar_in"
+                                                 t-attf-style="width: {{ flowWidth(state.mis.totals.client_received, state.mis.totals) }}%;"/>
+                                        </div>
+                                        <div class="o_cm_flow_val"><t t-esc="currency"/><t t-esc="formatMoney(state.mis.totals.client_received)"/></div>
+                                    </div>
+                                    <div class="o_cm_flow_row">
+                                        <div class="o_cm_flow_label"><i class="fa fa-arrow-up o_cm_out"/>Money Out</div>
+                                        <div class="o_cm_flow_track">
+                                            <div class="o_cm_flow_bar o_cm_bar_out"
+                                                 t-attf-style="width: {{ flowWidth(state.mis.totals.vendor_paid, state.mis.totals) }}%;"/>
+                                        </div>
+                                        <div class="o_cm_flow_val"><t t-esc="currency"/><t t-esc="formatMoney(state.mis.totals.vendor_paid)"/></div>
+                                    </div>
                                 </div>
-                                <span t-attf-class="o_cm_badge bg-{{this.statusColor(p.cm_status)}}"><t t-esc="p.cm_status"/></span>
+                                <div t-attf-class="o_cm_net {{ state.mis.totals.net_cash >= 0 ? 'o_cm_net_pos' : 'o_cm_net_neg' }}">
+                                    <span>Net Cash Position</span>
+                                    <b><t t-esc="currency"/><t t-esc="formatMoney(state.mis.totals.net_cash)"/></b>
+                                </div>
+                                <div class="o_cm_minigrid">
+                                    <div>
+                                        <span class="o_cm_mini_lbl">Purchased (Ordered)</span>
+                                        <b><t t-esc="currency"/><t t-esc="formatMoney(state.mis.totals.purchased)"/></b>
+                                    </div>
+                                    <div>
+                                        <span class="o_cm_mini_lbl">Pending Vendor Bills</span>
+                                        <b><t t-esc="currency"/><t t-esc="formatMoney(state.mis.totals.pending_bill)"/></b>
+                                    </div>
+                                    <div>
+                                        <span class="o_cm_mini_lbl">Labour Wages</span>
+                                        <b><t t-esc="currency"/><t t-esc="formatMoney(state.mis.totals.labour)"/></b>
+                                    </div>
+                                    <div>
+                                        <span class="o_cm_mini_lbl">Still To Bill Client</span>
+                                        <b><t t-esc="currency"/><t t-esc="formatMoney(state.mis.totals.contract - state.mis.totals.client_billed)"/></b>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="o_cm_progress">
-                                <div t-attf-class="o_cm_progress_bar bg-{{this.progressColor(p.completion_percent)}}"
-                                     t-attf-style="width: {{p.completion_percent}}%;"/>
+                        </div>
+
+                        <!-- ATTENTION -->
+                        <div class="o_cm_panel">
+                            <div class="o_cm_panel_head">
+                                <h3><i class="fa fa-bell-o me-2"/>Needs Attention</h3>
+                                <span class="o_cm_panel_note">Across every active site</span>
                             </div>
-                            <div class="o_cm_card_meta">
-                                <span><t t-esc="p.completion_percent"/>% complete</span>
-                                <span><i class="fa fa-list-ol me-1"/><t t-esc="p.stage_count"/> stages</span>
-                                <span t-if="p.deadline"><i class="fa fa-calendar me-1"/><t t-esc="p.deadline"/></span>
-                            </div>
-                            <div class="o_cm_card_costs">
-                                <div>Budget: <b><t t-esc="this.formatMoney(p.cm_budget)"/></b></div>
+                            <div class="o_cm_panel_body">
+                                <div t-if="!state.mis.alerts.length" class="o_cm_allclear">
+                                    <i class="fa fa-check-circle"/>
+                                    <div>All clear &#8212; nothing needs attention right now.</div>
+                                </div>
+                                <div t-foreach="state.mis.alerts" t-as="a" t-key="a.key"
+                                     t-attf-class="o_cm_alert o_cm_alert--{{a.level}}">
+                                    <div class="o_cm_alert_ico"><i t-attf-class="fa {{a.icon}}"/></div>
+                                    <div class="o_cm_alert_body">
+                                        <div class="o_cm_alert_title"><t t-esc="a.title"/></div>
+                                        <div class="o_cm_alert_detail"><t t-esc="a.detail"/></div>
+                                    </div>
+                                    <div class="o_cm_alert_count">
+                                        <t t-if="a.is_amount"><t t-esc="currency"/><t t-esc="formatCompact(a.count)"/></t>
+                                        <t t-else=""><t t-esc="a.count"/></t>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Level 3: Stages of the selected Sub-Project -->
-                <div t-if="state.data.stages" class="o_cm_section">
-                    <h4>
-                        <i class="fa fa-list-ol me-2"/>Stages
-                        <t t-if="state.data.selected_project"> of <t t-esc="state.data.selected_project.name"/></t>
-                    </h4>
-                    <div t-if="!state.data.stages.length" class="o_cm_empty">No stages configured yet.</div>
-                    <div class="o_cm_card_grid">
-                        <div t-foreach="state.data.stages" t-as="s" t-key="s.id"
-                             class="o_cm_card" t-attf-class="o_cm_border_{{this.statusColor(s.state)}}"
-                             t-on-click="() => this.openRecord('cm.stage', s.id)">
-                            <div class="o_cm_card_head">
-                                <div class="o_cm_card_head_text">
-                                    <div class="o_cm_card_title"><t t-esc="s.name"/></div>
+                    <!-- WHERE ARE WE LOSING? -->
+                    <div class="o_cm_panel o_cm_panel--loss">
+                        <div class="o_cm_panel_head">
+                            <h3><i class="fa fa-exclamation-triangle me-2"/>Where Are We Losing?</h3>
+                            <span class="o_cm_panel_note">
+                                <t t-if="state.mis.loss.count">
+                                    <t t-esc="state.mis.loss.count"/> stages over budget &#183;
+                                    total overrun <b class="o_cm_neg"><t t-esc="currency"/><t t-esc="formatMoney(state.mis.loss.total_overrun)"/></b>
+                                </t>
+                                <t t-else="">Cost vs the budget envelope, stage by stage</t>
+                            </span>
+                        </div>
+                        <div class="o_cm_panel_body o_cm_panel_body--flush">
+                            <div t-if="!state.mis.loss.rows.length" class="o_cm_allclear">
+                                <i class="fa fa-check-circle"/>
+                                <div>No stage has exceeded its budget. Nothing is leaking right now.</div>
+                            </div>
+                            <table t-if="state.mis.loss.rows.length" class="o_cm_table">
+                                <thead>
+                                    <tr>
+                                        <th>Stage</th>
+                                        <th>Sub-Project</th>
+                                        <th class="text-end">Budget</th>
+                                        <th class="text-end">Actual Cost</th>
+                                        <th class="text-end">Overrun</th>
+                                        <th class="o_cm_th_bar">Overrun %</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="state.mis.loss.rows" t-as="l" t-key="l.id"
+                                        t-on-click="() => this.openRecord('cm.stage', l.id)">
+                                        <td><b><t t-esc="l.stage"/></b></td>
+                                        <td class="o_cm_proj_sub"><t t-esc="l.project"/></td>
+                                        <td class="text-end o_cm_num"><t t-esc="formatMoney(l.budget)"/></td>
+                                        <td class="text-end o_cm_num"><t t-esc="formatMoney(l.actual)"/></td>
+                                        <td class="text-end o_cm_num o_cm_neg">+<t t-esc="formatMoney(l.overrun)"/></td>
+                                        <td class="o_cm_td_bar">
+                                            <div class="o_cm_stack">
+                                                <div class="o_cm_stack_over" t-attf-style="width: {{ cappedPct(l.overrun_pct) }}%;"/>
+                                            </div>
+                                            <div class="o_cm_stack_note o_cm_neg"><t t-esc="l.overrun_pct"/>% over budget</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- WHERE WE WON -->
+                    <div class="o_cm_panel o_cm_panel--win">
+                        <div class="o_cm_panel_head">
+                            <h3><i class="fa fa-trophy me-2"/>Where We Won</h3>
+                            <span class="o_cm_panel_note">
+                                <t t-if="state.mis.win.count">
+                                    <t t-esc="state.mis.win.count"/> completed stages came in under budget &#183;
+                                    total saved <b class="o_cm_pos"><t t-esc="currency"/><t t-esc="formatMoney(state.mis.win.total_saving)"/></b>
+                                </t>
+                                <t t-else="">Finished stages that beat their budget</t>
+                            </span>
+                        </div>
+                        <div class="o_cm_panel_body o_cm_panel_body--flush">
+                            <div t-if="!state.mis.win.rows.length" class="o_cm_empty">
+                                No completed stage has come in under budget yet.
+                            </div>
+                            <table t-if="state.mis.win.rows.length" class="o_cm_table">
+                                <thead>
+                                    <tr>
+                                        <th>Stage</th>
+                                        <th>Sub-Project</th>
+                                        <th class="text-end">Budget</th>
+                                        <th class="text-end">Actual Cost</th>
+                                        <th class="text-end">Saved</th>
+                                        <th class="o_cm_th_bar">Saved %</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="state.mis.win.rows" t-as="w" t-key="w.id"
+                                        t-on-click="() => this.openRecord('cm.stage', w.id)">
+                                        <td><b><t t-esc="w.stage"/></b></td>
+                                        <td class="o_cm_proj_sub"><t t-esc="w.project"/></td>
+                                        <td class="text-end o_cm_num"><t t-esc="formatMoney(w.budget)"/></td>
+                                        <td class="text-end o_cm_num"><t t-esc="formatMoney(w.actual)"/></td>
+                                        <td class="text-end o_cm_num o_cm_pos">&#8722;<t t-esc="formatMoney(w.saving)"/></td>
+                                        <td class="o_cm_td_bar">
+                                            <div class="o_cm_stack">
+                                                <div class="o_cm_stack_save" t-attf-style="width: {{ cappedPct(w.saving_pct) }}%;"/>
+                                            </div>
+                                            <div class="o_cm_stack_note o_cm_pos"><t t-esc="w.saving_pct"/>% under budget</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- DEADLINES -->
+                    <div class="o_cm_panel">
+                        <div class="o_cm_panel_head">
+                            <h3><i class="fa fa-calendar me-2"/>Schedule &amp; Deadlines</h3>
+                            <span class="o_cm_panel_note">Where we stand against target dates</span>
+                        </div>
+                        <div class="o_cm_panel_body">
+                            <div class="o_cm_sched_counts">
+                                <div class="o_cm_sched_count o_cm_sched_count--late">
+                                    <b><t t-esc="state.mis.schedule.counts.overdue"/></b><span>Overdue</span>
                                 </div>
-                                <span t-attf-class="o_cm_badge bg-{{this.statusColor(s.state)}}"><t t-esc="s.state"/></span>
+                                <div class="o_cm_sched_count o_cm_sched_count--soon">
+                                    <b><t t-esc="state.mis.schedule.counts.due_soon"/></b><span>Due in 30 days</span>
+                                </div>
+                                <div class="o_cm_sched_count o_cm_sched_count--ok">
+                                    <b><t t-esc="state.mis.schedule.counts.on_track"/></b><span>On Track</span>
+                                </div>
+                                <div class="o_cm_sched_count o_cm_sched_count--late">
+                                    <b><t t-esc="state.mis.schedule.counts.delivered_late"/></b><span>Delivered Late</span>
+                                </div>
+                                <div class="o_cm_sched_count o_cm_sched_count--done">
+                                    <b><t t-esc="state.mis.schedule.counts.delivered_on_time"/></b><span>Delivered On Time</span>
+                                </div>
                             </div>
-                            <div class="o_cm_progress">
-                                <div t-attf-class="o_cm_progress_bar bg-{{this.progressColor(s.percent_complete)}}"
-                                     t-attf-style="width: {{s.percent_complete}}%;"/>
+                            <div class="o_cm_split o_cm_split--tight">
+                                <div>
+                                    <div class="o_cm_subhead o_cm_neg"><i class="fa fa-clock-o me-1"/>Overdue / Late</div>
+                                    <div t-if="!state.mis.schedule.overdue.length and !state.mis.schedule.late_delivery.length"
+                                         class="o_cm_empty o_cm_empty--tight">Nothing overdue, nothing delivered late.</div>
+                                    <div t-foreach="state.mis.schedule.overdue" t-as="o" t-key="'od' + o.id"
+                                         class="o_cm_sched_row" t-on-click="() => this.openRecord('cm.stage', o.id)">
+                                        <div class="o_cm_sched_text">
+                                            <b><t t-esc="o.stage"/></b>
+                                            <span><t t-esc="o.project"/></span>
+                                        </div>
+                                        <div class="o_cm_sched_date">
+                                            <span class="o_cm_neg"><t t-esc="deadlineLabel(o.days)"/></span>
+                                            <small><t t-esc="o.target_date"/></small>
+                                        </div>
+                                    </div>
+                                    <div t-foreach="state.mis.schedule.late_delivery" t-as="o" t-key="'ld' + o.id"
+                                         class="o_cm_sched_row" t-on-click="() => this.openRecord('cm.stage', o.id)">
+                                        <div class="o_cm_sched_text">
+                                            <b><t t-esc="o.stage"/></b>
+                                            <span><t t-esc="o.project"/> &#183; finished <t t-esc="o.delivered"/></span>
+                                        </div>
+                                        <div class="o_cm_sched_date">
+                                            <span class="o_cm_neg"><t t-esc="deadlineLabel(o.days)"/></span>
+                                            <small>target <t t-esc="o.target_date"/></small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="o_cm_subhead"><i class="fa fa-hourglass-half me-1"/>Coming Up</div>
+                                    <div t-if="!state.mis.schedule.due_soon.length" class="o_cm_empty o_cm_empty--tight">Nothing due in the next 30 days.</div>
+                                    <div t-foreach="state.mis.schedule.due_soon" t-as="o" t-key="o.id"
+                                         class="o_cm_sched_row" t-on-click="() => this.openRecord('cm.stage', o.id)">
+                                        <div class="o_cm_sched_text">
+                                            <b><t t-esc="o.stage"/></b>
+                                            <span><t t-esc="o.project"/></span>
+                                        </div>
+                                        <div class="o_cm_sched_date">
+                                            <span t-attf-class="{{ deadlineClass(o.days) }}"><t t-esc="deadlineLabel(o.days)"/></span>
+                                            <small><t t-esc="o.target_date"/></small>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="o_cm_card_meta">
-                                <span><t t-esc="s.percent_complete"/>% progress</span>
-                                <span t-if="s.target_date"><i class="fa fa-calendar me-1"/>Target: <t t-esc="s.target_date"/></span>
+                        </div>
+                    </div>
+
+                    <!-- CHARTS - each gets the full width; two-up made the labels unreadable -->
+                    <div class="o_cm_panel">
+                        <div class="o_cm_panel_head">
+                            <h3><i class="fa fa-bar-chart me-2"/>Contract vs Cost vs Billed</h3>
+                            <button t-if="state.mis.charts.projects.labels.length" class="o_cm_view_btn"
+                                    t-on-click="() => this.openFullscreen('projectBars')">
+                                <i class="fa fa-expand me-1"/>View
+                            </button>
+                        </div>
+                        <div class="o_cm_panel_body">
+                            <div t-if="!state.mis.charts.projects.labels.length" class="o_cm_empty">No projects yet.</div>
+                            <div t-else="" class="o_cm_chart_wrap o_cm_chart_wrap--lg"><canvas t-ref="projectChart"/></div>
+                        </div>
+                    </div>
+
+                    <div class="o_cm_panel">
+                        <div class="o_cm_panel_head">
+                            <h3><i class="fa fa-line-chart me-2"/>Cost vs Revenue Trend</h3>
+                            <button t-if="state.mis.charts.timeline.labels.length" class="o_cm_view_btn"
+                                    t-on-click="() => this.openFullscreen('timeline')">
+                                <i class="fa fa-expand me-1"/>View
+                            </button>
+                        </div>
+                        <div class="o_cm_panel_body">
+                            <div t-if="!state.mis.charts.timeline.labels.length" class="o_cm_empty">
+                                No posted bills or invoices yet to plot.
                             </div>
-                            <div class="o_cm_card_costs o_cm_card_costs_4">
-                                <div><span class="o_cm_cost_label">Budget</span><b><t t-esc="this.formatMoney(s.budget_allocation)"/></b></div>
-                                <div><span class="o_cm_cost_label">BOQ</span><b><t t-esc="this.formatMoney(s.boq_total)"/></b></div>
-                                <div><span class="o_cm_cost_label">Purchased</span><b><t t-esc="this.formatMoney(s.purchased_amount)"/></b></div>
-                                <div><span class="o_cm_cost_label">Used</span><b><t t-esc="this.formatMoney(s.used_amount)"/></b></div>
+                            <t t-else="">
+                                <div class="o_cm_chart_wrap o_cm_chart_wrap--lg"><canvas t-ref="timelineChart"/></div>
+                                <div t-if="state.mis.charts.timeline.labels.length &lt; 3" class="o_cm_chart_note">
+                                    Only <t t-esc="state.mis.charts.timeline.labels.length"/> month(s) of posted bills/invoices so far,
+                                    so this looks like a dot rather than a trend &#8212; it fills in as more get posted over time.
+                                    The chart above (by stage, not by date) works from day one instead.
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+
+                    <div t-if="state.mis.charts.cost_heads.labels.length" class="o_cm_panel">
+                        <div class="o_cm_panel_head">
+                            <h3><i class="fa fa-pie-chart me-2"/>Planned vs Actual by Cost Head</h3>
+                            <button class="o_cm_view_btn" t-on-click="() => this.openFullscreen('costHeads')">
+                                <i class="fa fa-expand me-1"/>View
+                            </button>
+                        </div>
+                        <div class="o_cm_panel_body">
+                            <div class="o_cm_chart_wrap o_cm_chart_wrap--lg"><canvas t-ref="costHeadChart"/></div>
+                        </div>
+                    </div>
+
+                    <!-- PORTFOLIO PROFITABILITY -->
+                    <div class="o_cm_panel">
+                        <div class="o_cm_panel_head">
+                            <h3><i class="fa fa-cubes me-2"/>Project Portfolio</h3>
+                            <span class="o_cm_panel_note">Worst margin first &#8212; click any row to open it here</span>
+                        </div>
+                        <div class="o_cm_panel_body o_cm_panel_body--flush">
+                            <div t-if="!state.mis.projects.length" class="o_cm_empty">No projects yet.</div>
+                            <table t-if="state.mis.projects.length" class="o_cm_table">
+                                <thead>
+                                    <tr>
+                                        <th>Project</th>
+                                        <th class="text-end">Contract</th>
+                                        <th class="text-end">Cost</th>
+                                        <th class="text-end">Margin</th>
+                                        <th class="o_cm_th_bar">Billed vs Contract</th>
+                                        <th class="text-center">Progress</th>
+                                        <th class="text-center">Deadline</th>
+                                        <th class="text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="state.mis.projects" t-as="p" t-key="p.id"
+                                        t-on-click="() => this.pickProject({id: p.id, name: p.name, lead_name: p.lead_name, partner: p.partner, state: p.state})">
+                                        <td>
+                                            <div class="o_cm_proj">
+                                                <div class="o_cm_chip"><t t-esc="initials(p.partner)"/></div>
+                                                <div>
+                                                    <div class="o_cm_proj_name">
+                                                        <t t-esc="p.lead_name or p.name"/>
+                                                        <i t-if="p.over_budget" class="fa fa-exclamation-triangle o_cm_warn_ico"
+                                                           title="Cost has exceeded the contract value"/>
+                                                    </div>
+                                                    <div class="o_cm_proj_sub">
+                                                        <t t-esc="p.name"/> &#183; <t t-esc="p.partner"/> &#183; <t t-esc="p.subproject_count"/> sub-projects
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-end o_cm_num"><t t-esc="formatMoney(p.contract)"/></td>
+                                        <td class="text-end o_cm_num"><t t-esc="formatMoney(p.cost)"/></td>
+                                        <td t-attf-class="text-end o_cm_num {{ marginClass(p.margin) }}">
+                                            <t t-esc="formatMoney(p.margin)"/>
+                                            <div class="o_cm_pct"><t t-esc="p.margin_pct"/>%</div>
+                                        </td>
+                                        <td class="o_cm_td_bar">
+                                            <div class="o_cm_stack">
+                                                <div class="o_cm_stack_billed"
+                                                     t-attf-style="width: {{ cappedPct(p.billed_pct) }}%;"/>
+                                            </div>
+                                            <div class="o_cm_stack_note">
+                                                <t t-esc="formatMoney(p.client_billed)"/> of <t t-esc="formatMoney(p.contract)"/>
+                                                (<t t-esc="p.billed_pct"/>%)
+                                            </div>
+                                        </td>
+                                        <td class="text-center" style="width: 130px;">
+                                            <div class="o_cm_prog">
+                                                <div t-attf-class="o_cm_prog_bar bg-{{ progressColor(p.completion) }}"
+                                                     t-attf-style="width: {{p.completion}}%;"/>
+                                            </div>
+                                            <div class="o_cm_pct"><t t-esc="p.completion"/>%</div>
+                                        </td>
+                                        <td class="text-center o_cm_deadline_cell">
+                                            <div t-if="p.overdue_stages" class="o_cm_neg">
+                                                <i class="fa fa-exclamation-circle me-1"/><t t-esc="p.overdue_stages"/> late
+                                            </div>
+                                            <div t-if="p.next_deadline" t-attf-class="{{ deadlineClass(p.days_to_deadline) }}">
+                                                <t t-esc="deadlineLabel(p.days_to_deadline)"/>
+                                                <small class="d-block text-muted"><t t-esc="p.next_deadline"/></small>
+                                            </div>
+                                            <span t-if="!p.next_deadline and !p.overdue_stages" class="o_cm_flat">&#8212;</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-attf-class="o_cm_pill o_cm_pill--{{ statusColor(p.state) }}">
+                                                <t t-esc="p.state"/>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </t>
+                <div t-else="" class="o_cm_loading"><i class="fa fa-spinner fa-spin me-2"/>Loading company data...</div>
+                </t>
+
+                <!-- ================================================================= -->
+                <!-- ==================== SELECTED PROJECT DETAIL ==================== -->
+                <!-- ================================================================= -->
+                <t t-if="state.selectedMasterId">
+                <div t-if="state.detailLoading" class="o_cm_loading"><i class="fa fa-spinner fa-spin me-2"/>Loading project...</div>
+                <t t-if="state.detail and !state.detailLoading">
+                    <t t-set="d" t-value="state.detail"/>
+
+                    <!-- PROJECT HEADER STRIP -->
+                    <div class="o_cm_projhead">
+                        <div class="o_cm_projhead_chip"><t t-esc="initials(d.master.partner)"/></div>
+                        <div class="o_cm_projhead_text">
+                            <div class="o_cm_projhead_name">
+                                <a href="#" t-on-click.prevent="() => this.openRecord('cm.master.project', d.master.id)">
+                                    <t t-esc="d.master.lead_name or d.master.name"/>
+                                </a>
+                                <span t-attf-class="o_cm_pill o_cm_pill--{{statusColor(d.master.state)}} ms-2"><t t-esc="d.master.state"/></span>
                             </div>
-                            <div class="o_cm_card_tasks">
-                                <i class="fa fa-check-square-o me-1"/>Tasks: <t t-esc="s.task_done_count"/>/<t t-esc="s.task_count"/> done
-                                &#183;
-                                Sub-tasks: <t t-esc="s.subtask_done_count"/>/<t t-esc="s.subtask_count"/> done
+                            <div class="o_cm_projhead_sub">
+                                <t t-esc="d.master.name"/> &#183; <t t-esc="d.master.partner"/>
+                            </div>
+                        </div>
+                        <div class="o_cm_projhead_prog">
+                            <div class="o_cm_prog o_cm_prog--wide">
+                                <div t-attf-class="o_cm_prog_bar bg-{{progressColor(d.master.overall_completion)}}"
+                                     t-attf-style="width: {{d.master.overall_completion}}%;"/>
+                            </div>
+                            <span><t t-esc="d.master.overall_completion"/>% overall</span>
+                        </div>
+                    </div>
+
+                    <!-- P&amp;L KPI ROW -->
+                    <div class="o_cm_kpis">
+                        <div class="o_cm_kpi o_cm_kpi--steel">
+                            <div class="o_cm_kpi_top"/>
+                            <div class="o_cm_kpi_ico"><i class="fa fa-file-text-o"/></div>
+                            <div class="o_cm_kpi_num"><span class="o_cm_cur"><t t-esc="currency"/></span><t t-esc="formatCompact(d.pnl.contract)"/></div>
+                            <div class="o_cm_kpi_lbl">Contract Value</div>
+                        </div>
+                        <div class="o_cm_kpi o_cm_kpi--rust">
+                            <div class="o_cm_kpi_top"/>
+                            <div class="o_cm_kpi_ico"><i class="fa fa-truck"/></div>
+                            <div class="o_cm_kpi_num"><span class="o_cm_cur"><t t-esc="currency"/></span><t t-esc="formatCompact(d.pnl.cost)"/></div>
+                            <div class="o_cm_kpi_lbl">Cost</div>
+                        </div>
+                        <div class="o_cm_kpi o_cm_kpi--amber">
+                            <div class="o_cm_kpi_top"/>
+                            <div class="o_cm_kpi_ico"><i class="fa fa-inr"/></div>
+                            <div class="o_cm_kpi_num"><span class="o_cm_cur"><t t-esc="currency"/></span><t t-esc="formatCompact(d.pnl.client_billed)"/></div>
+                            <div class="o_cm_kpi_lbl">Billed</div>
+                            <div class="o_cm_kpi_foot"><t t-esc="d.pnl.billed_pct"/>%</div>
+                        </div>
+                        <div class="o_cm_kpi o_cm_kpi--orange">
+                            <div class="o_cm_kpi_top"/>
+                            <div class="o_cm_kpi_ico"><i class="fa fa-hourglass-half"/></div>
+                            <div class="o_cm_kpi_num"><span class="o_cm_cur"><t t-esc="currency"/></span><t t-esc="formatCompact(d.pnl.outstanding)"/></div>
+                            <div class="o_cm_kpi_lbl">Outstanding</div>
+                        </div>
+                        <div t-attf-class="o_cm_kpi {{ d.pnl.margin >= 0 ? 'o_cm_kpi--profit' : 'o_cm_kpi--loss' }}">
+                            <div class="o_cm_kpi_top"/>
+                            <div class="o_cm_kpi_ico"><i class="fa fa-balance-scale"/></div>
+                            <div class="o_cm_kpi_num"><span class="o_cm_cur"><t t-esc="currency"/></span><t t-esc="formatCompact(d.pnl.margin)"/></div>
+                            <div class="o_cm_kpi_lbl">Profit / Loss</div>
+                            <div class="o_cm_kpi_foot"><t t-esc="d.pnl.margin_pct"/>%</div>
+                        </div>
+                    </div>
+
+                    <!-- SALES INFO -->
+                    <div class="o_cm_panel">
+                        <div class="o_cm_panel_head">
+                            <h3><i class="fa fa-handshake-o me-2"/>Sales Information</h3>
+                        </div>
+                        <div class="o_cm_panel_body">
+                            <t t-if="d.sales">
+                                <div class="o_cm_minigrid">
+                                    <div>
+                                        <span class="o_cm_mini_lbl">Sale Order</span>
+                                        <b class="o_cm_link" t-on-click="() => this.openRecord('sale.order', d.sales.id)"><t t-esc="d.sales.name"/></b>
+                                    </div>
+                                    <div>
+                                        <span class="o_cm_mini_lbl">Order Date</span>
+                                        <b><t t-esc="d.sales.date_order"/></b>
+                                    </div>
+                                    <div>
+                                        <span class="o_cm_mini_lbl">Amount (Untaxed)</span>
+                                        <b><t t-esc="currency"/><t t-esc="formatMoney(d.sales.amount_untaxed)"/></b>
+                                    </div>
+                                    <div>
+                                        <span class="o_cm_mini_lbl">Amount (Total)</span>
+                                        <b><t t-esc="currency"/><t t-esc="formatMoney(d.sales.amount_total)"/></b>
+                                    </div>
+                                    <div>
+                                        <span class="o_cm_mini_lbl">Invoice Status</span>
+                                        <b><t t-esc="d.sales.invoice_status"/></b>
+                                    </div>
+                                    <div>
+                                        <span class="o_cm_mini_lbl">Milestone Bills</span>
+                                        <b><t t-esc="d.sales.milestone_bill_count"/></b>
+                                    </div>
+                                </div>
+                            </t>
+                            <div t-else="" class="o_cm_empty">No Sale Order linked to this project.</div>
+                        </div>
+                    </div>
+
+                    <!-- P&amp;L LINE CHART -->
+                    <div class="o_cm_panel">
+                        <div class="o_cm_panel_head">
+                            <h3><i class="fa fa-line-chart me-2"/>Profit &amp; Loss Trend</h3>
+                            <button t-if="d.trend.labels.length" class="o_cm_view_btn"
+                                    t-on-click="() => this.openFullscreen('pnl')">
+                                <i class="fa fa-expand me-1"/>View
+                            </button>
+                        </div>
+                        <div class="o_cm_panel_body">
+                            <div t-if="!d.trend.labels.length" class="o_cm_empty">
+                                No posted bills or invoices yet to plot a trend.
+                            </div>
+                            <div t-else="" class="o_cm_chart_wrap o_cm_chart_wrap--lg">
+                                <canvas t-ref="pnlChart"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STAGE BUDGET vs ACTUAL (BAR) -->
+                    <div class="o_cm_panel">
+                        <div class="o_cm_panel_head">
+                            <h3><i class="fa fa-bar-chart me-2"/>Budget vs Actual by Stage</h3>
+                            <div class="o_cm_head_tools">
+                                <select class="o_cm_mini_select" t-att-value="state.stageFilter"
+                                        t-on-change="onChangeStageFilter">
+                                    <option value="">All sub-projects</option>
+                                    <t t-foreach="d.subproject_options" t-as="so" t-key="so.id">
+                                        <option t-att-value="so.id"><t t-esc="so.name"/></option>
+                                    </t>
+                                </select>
+                                <button t-if="d.stage_chart.labels.length" class="o_cm_view_btn"
+                                        t-on-click="() => this.openFullscreen('stageBars')">
+                                    <i class="fa fa-expand me-1"/>View
+                                </button>
+                            </div>
+                        </div>
+                        <div class="o_cm_panel_body">
+                            <div t-if="!d.stage_chart.labels.length" class="o_cm_empty">No stages configured yet.</div>
+                            <t t-else="">
+                                <div class="o_cm_chart_wrap o_cm_chart_wrap--lg"><canvas t-ref="stageChart"/></div>
+                                <div class="o_cm_chart_note">
+                                    <t t-if="stageChartInfo.truncated">
+                                        Showing the <b><t t-esc="stageChartInfo.shown"/></b> largest of
+                                        <b><t t-esc="stageChartInfo.total"/></b> stages &#8212;
+                                        filter by sub-project or hit View for all of them.
+                                    </t>
+                                    <t t-else="">
+                                        <t t-esc="stageChartInfo.shown"/> stage(s) shown &#183; bars above budget = money lost there
+                                    </t>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+
+                    <!-- COST HEADS -->
+                    <div t-if="d.cost_heads.labels.length" class="o_cm_panel">
+                        <div class="o_cm_panel_head">
+                            <h3><i class="fa fa-pie-chart me-2"/>Planned vs Actual by Cost Head</h3>
+                            <button class="o_cm_view_btn" t-on-click="() => this.openFullscreen('costHeads')">
+                                <i class="fa fa-expand me-1"/>View
+                            </button>
+                        </div>
+                        <div class="o_cm_panel_body">
+                            <div class="o_cm_chart_wrap o_cm_chart_wrap--lg"><canvas t-ref="costHeadChart"/></div>
+                        </div>
+                    </div>
+
+                    <!-- WHERE THIS PROJECT LOSES -->
+                    <div class="o_cm_panel o_cm_panel--loss">
+                        <div class="o_cm_panel_head">
+                            <h3><i class="fa fa-exclamation-triangle me-2"/>Where This Project Is Losing</h3>
+                            <span class="o_cm_panel_note">
+                                <t t-if="d.loss.count">
+                                    <t t-esc="d.loss.count"/> stages over budget &#183;
+                                    <b class="o_cm_neg"><t t-esc="currency"/><t t-esc="formatMoney(d.loss.total_overrun)"/></b> overrun
+                                </t>
+                                <t t-else="">Stage cost against its budget envelope</t>
+                            </span>
+                        </div>
+                        <div class="o_cm_panel_body o_cm_panel_body--flush">
+                            <div t-if="!d.loss.rows.length" class="o_cm_allclear">
+                                <i class="fa fa-check-circle"/>
+                                <div>Every stage is still within its budget.</div>
+                            </div>
+                            <table t-if="d.loss.rows.length" class="o_cm_table">
+                                <thead>
+                                    <tr>
+                                        <th>Stage</th>
+                                        <th>Sub-Project</th>
+                                        <th class="text-end">Budget</th>
+                                        <th class="text-end">Actual Cost</th>
+                                        <th class="text-end">Overrun</th>
+                                        <th class="text-end">%</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="d.loss.rows" t-as="l" t-key="l.id"
+                                        t-on-click="() => this.openRecord('cm.stage', l.id)">
+                                        <td><b><t t-esc="l.stage"/></b></td>
+                                        <td class="o_cm_proj_sub"><t t-esc="l.project"/></td>
+                                        <td class="text-end o_cm_num"><t t-esc="formatMoney(l.budget)"/></td>
+                                        <td class="text-end o_cm_num"><t t-esc="formatMoney(l.actual)"/></td>
+                                        <td class="text-end o_cm_num o_cm_neg">+<t t-esc="formatMoney(l.overrun)"/></td>
+                                        <td class="text-end o_cm_num o_cm_neg"><t t-esc="l.overrun_pct"/>%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- WHERE THIS PROJECT WON -->
+                    <div class="o_cm_panel o_cm_panel--win">
+                        <div class="o_cm_panel_head">
+                            <h3><i class="fa fa-trophy me-2"/>Where This Project Won</h3>
+                            <span class="o_cm_panel_note">
+                                <t t-if="d.win.count">
+                                    <t t-esc="d.win.count"/> stages under budget &#183;
+                                    <b class="o_cm_pos"><t t-esc="currency"/><t t-esc="formatMoney(d.win.total_saving)"/></b> saved
+                                </t>
+                                <t t-else="">Completed stages that beat their budget</t>
+                            </span>
+                        </div>
+                        <div class="o_cm_panel_body o_cm_panel_body--flush">
+                            <div t-if="!d.win.rows.length" class="o_cm_empty">
+                                No completed stage came in under budget on this project.
+                            </div>
+                            <table t-if="d.win.rows.length" class="o_cm_table">
+                                <thead>
+                                    <tr>
+                                        <th>Stage</th>
+                                        <th>Sub-Project</th>
+                                        <th class="text-end">Budget</th>
+                                        <th class="text-end">Actual Cost</th>
+                                        <th class="text-end">Saved</th>
+                                        <th class="text-end">%</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="d.win.rows" t-as="w" t-key="w.id"
+                                        t-on-click="() => this.openRecord('cm.stage', w.id)">
+                                        <td><b><t t-esc="w.stage"/></b></td>
+                                        <td class="o_cm_proj_sub"><t t-esc="w.project"/></td>
+                                        <td class="text-end o_cm_num"><t t-esc="formatMoney(w.budget)"/></td>
+                                        <td class="text-end o_cm_num"><t t-esc="formatMoney(w.actual)"/></td>
+                                        <td class="text-end o_cm_num o_cm_pos">&#8722;<t t-esc="formatMoney(w.saving)"/></td>
+                                        <td class="text-end o_cm_num o_cm_pos"><t t-esc="w.saving_pct"/>%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- THIS PROJECT'S SCHEDULE -->
+                    <div class="o_cm_panel">
+                        <div class="o_cm_panel_head">
+                            <h3><i class="fa fa-calendar me-2"/>Schedule &amp; Deadlines</h3>
+                            <span class="o_cm_panel_note">Stage target dates for this project</span>
+                        </div>
+                        <div class="o_cm_panel_body">
+                            <div class="o_cm_sched_counts">
+                                <div class="o_cm_sched_count o_cm_sched_count--late">
+                                    <b><t t-esc="d.schedule.counts.overdue"/></b><span>Overdue</span>
+                                </div>
+                                <div class="o_cm_sched_count o_cm_sched_count--soon">
+                                    <b><t t-esc="d.schedule.counts.due_soon"/></b><span>Due in 30 days</span>
+                                </div>
+                                <div class="o_cm_sched_count o_cm_sched_count--ok">
+                                    <b><t t-esc="d.schedule.counts.on_track"/></b><span>On Track</span>
+                                </div>
+                                <div class="o_cm_sched_count o_cm_sched_count--late">
+                                    <b><t t-esc="d.schedule.counts.delivered_late"/></b><span>Delivered Late</span>
+                                </div>
+                                <div class="o_cm_sched_count o_cm_sched_count--done">
+                                    <b><t t-esc="d.schedule.counts.delivered_on_time"/></b><span>On Time</span>
+                                </div>
+                            </div>
+                            <div t-if="!d.schedule.overdue.length and !d.schedule.due_soon.length and !d.schedule.late_delivery.length"
+                                 class="o_cm_empty o_cm_empty--tight">
+                                No target dates set on this project's stages yet.
+                            </div>
+                            <div t-foreach="d.schedule.late_delivery" t-as="o" t-key="'ld' + o.id"
+                                 class="o_cm_sched_row" t-on-click="() => this.openRecord('cm.stage', o.id)">
+                                <div class="o_cm_sched_text">
+                                    <b><t t-esc="o.stage"/></b>
+                                    <span><t t-esc="o.project"/> &#183; finished <t t-esc="o.delivered"/></span>
+                                </div>
+                                <div class="o_cm_sched_date">
+                                    <span class="o_cm_neg"><t t-esc="deadlineLabel(o.days)"/></span>
+                                    <small>target <t t-esc="o.target_date"/></small>
+                                </div>
+                            </div>
+                            <div t-foreach="d.schedule.overdue" t-as="o" t-key="'od' + o.id"
+                                 class="o_cm_sched_row" t-on-click="() => this.openRecord('cm.stage', o.id)">
+                                <div class="o_cm_sched_text">
+                                    <b><t t-esc="o.stage"/></b><span><t t-esc="o.project"/></span>
+                                </div>
+                                <div class="o_cm_sched_date">
+                                    <span class="o_cm_neg"><t t-esc="deadlineLabel(o.days)"/></span>
+                                    <small><t t-esc="o.target_date"/></small>
+                                </div>
+                            </div>
+                            <div t-foreach="d.schedule.due_soon" t-as="o" t-key="'ds' + o.id"
+                                 class="o_cm_sched_row" t-on-click="() => this.openRecord('cm.stage', o.id)">
+                                <div class="o_cm_sched_text">
+                                    <b><t t-esc="o.stage"/></b><span><t t-esc="o.project"/></span>
+                                </div>
+                                <div class="o_cm_sched_date">
+                                    <span t-attf-class="{{ deadlineClass(o.days) }}"><t t-esc="deadlineLabel(o.days)"/></span>
+                                    <small><t t-esc="o.target_date"/></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SUB-PROJECTS + STAGES -->
+                    <div class="o_cm_panel">
+                        <div class="o_cm_panel_head">
+                            <h3><i class="fa fa-cubes me-2"/>Sub-Projects &amp; Stages</h3>
+                            <span class="o_cm_panel_note"><t t-esc="d.subprojects.length"/> sub-projects</span>
+                        </div>
+                        <div class="o_cm_panel_body">
+                            <div t-if="!d.subprojects.length" class="o_cm_empty">No sub-projects yet.</div>
+                            <div t-foreach="d.subprojects" t-as="sp" t-key="sp.id" class="o_cm_subblock">
+                                <div class="o_cm_subblock_head" t-on-click="() => this.openRecord('project.project', sp.id)">
+                                    <div class="o_cm_subblock_title">
+                                        <i class="fa fa-cube me-2"/><t t-esc="sp.name"/>
+                                        <span t-attf-class="o_cm_pill o_cm_pill--{{statusColor(sp.cm_status)}} ms-2"><t t-esc="sp.cm_status"/></span>
+                                    </div>
+                                    <div class="o_cm_prog o_cm_prog--sm">
+                                        <div t-attf-class="o_cm_prog_bar bg-{{progressColor(sp.completion_percent)}}"
+                                             t-attf-style="width: {{sp.completion_percent}}%;"/>
+                                    </div>
+                                    <div class="o_cm_subblock_nums">
+                                        <span>Budget <b><t t-esc="currency"/><t t-esc="formatMoney(sp.cm_budget)"/></b></span>
+                                        <span>Billed <b><t t-esc="currency"/><t t-esc="formatMoney(sp.billed_amount)"/></b></span>
+                                        <span t-attf-class="{{ marginClass(sp.profit_amount) }}">
+                                            Variance <b><t t-esc="currency"/><t t-esc="formatMoney(sp.profit_amount)"/></b>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div t-if="sp.stages.length" class="o_cm_stagetable_wrap">
+                                    <table class="o_cm_stagetable">
+                                        <thead>
+                                            <tr>
+                                                <th>Stage</th>
+                                                <th class="text-end">Budget</th>
+                                                <th class="text-end">BOQ</th>
+                                                <th class="text-end">Purchased</th>
+                                                <th class="text-end">Billed</th>
+                                                <th class="text-center">Progress</th>
+                                                <th class="text-center">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-foreach="sp.stages" t-as="st" t-key="st.id"
+                                                t-on-click="() => this.openRecord('cm.stage', st.id)">
+                                                <td><t t-esc="st.name"/></td>
+                                                <td class="text-end o_cm_num"><t t-esc="formatMoney(st.budget_allocation)"/></td>
+                                                <td class="text-end o_cm_num"><t t-esc="formatMoney(st.boq_total)"/></td>
+                                                <td class="text-end o_cm_num"><t t-esc="formatMoney(st.purchased_amount)"/></td>
+                                                <td class="text-end o_cm_num"><t t-esc="formatMoney(st.billed_amount)"/></td>
+                                                <td class="text-center" style="width: 110px;">
+                                                    <div class="o_cm_prog o_cm_prog--sm">
+                                                        <div t-attf-class="o_cm_prog_bar bg-{{progressColor(st.percent_complete)}}"
+                                                             t-attf-style="width: {{st.percent_complete}}%;"/>
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span t-attf-class="o_cm_pill o_cm_pill--{{statusColor(st.state)}}"><t t-esc="st.state"/></span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div t-else="" class="o_cm_empty o_cm_empty--tight">No stages configured yet.</div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+                </t>
+
+                <!-- ===================== FULL SCREEN CHART OVERLAY ===================== -->
+                <div t-if="state.fullscreenChart" class="o_cm_modal" t-on-click="closeFullscreen">
+                    <div class="o_cm_modal_box" t-on-click.stop="() => {}">
+                        <div class="o_cm_modal_head">
+                            <h3><i class="fa fa-bar-chart me-2"/><t t-esc="fullscreenTitle"/></h3>
+                            <div class="o_cm_head_tools">
+                                <select t-if="state.fullscreenChart === 'stageBars'" class="o_cm_mini_select"
+                                        t-att-value="state.stageFilter" t-on-change="onChangeStageFilter">
+                                    <option value="">All sub-projects</option>
+                                    <t t-foreach="state.detail.subproject_options" t-as="so" t-key="so.id">
+                                        <option t-att-value="so.id"><t t-esc="so.name"/></option>
+                                    </t>
+                                </select>
+                                <button class="o_cm_view_btn" t-on-click="closeFullscreen">
+                                    <i class="fa fa-times me-1"/>Close
+                                </button>
+                            </div>
+                        </div>
+                        <div class="o_cm_modal_body">
+                            <div class="o_cm_modal_scroll">
+                                <div class="o_cm_modal_canvas" t-attf-style="width: {{ fullscreenChartWidth }};">
+                                    <canvas t-ref="fullscreenChart"/>
+                                </div>
                             </div>
                         </div>
                     </div>

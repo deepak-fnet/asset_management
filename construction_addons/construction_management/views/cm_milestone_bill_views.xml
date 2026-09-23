@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cm_milestone_bill_list" model="ir.ui.view">
+        <field name="name">cm.milestone.bill.list</field>
+        <field name="model">cm.milestone.bill</field>
+        <field name="arch" type="xml">
+            <list string="Milestone Bills" create="0" decoration-muted="state == 'invoiced'">
+                <field name="sale_order_id"/>
+                <field name="name"/>
+                <field name="milestone_type"/>
+                <field name="amount_type"/>
+                <field name="percentage"/>
+                <field name="amount" sum="Total"/>
+                <field name="release_date"/>
+                <field name="state" widget="badge"
+                       decoration-warning="state == 'to_invoice'"
+                       decoration-success="state == 'invoiced'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cm_milestone_bill_form" model="ir.ui.view">
+        <field name="name">cm.milestone.bill.form</field>
+        <field name="model">cm.milestone.bill</field>
+        <field name="arch" type="xml">
+            <form string="Milestone Bill" create="0">
+                <header>
+                    <button name="action_create_invoice" type="object" string="Create Invoice"
+                            class="oe_highlight" invisible="state == 'invoiced'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_invoice" type="object"
+                                class="oe_stat_button" icon="fa-file-text-o" invisible="not invoice_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Invoice</span>
+                            </div>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="sale_order_id" readonly="1"/>
+                            <field name="name"/>
+                            <field name="milestone_type"/>
+                        </group>
+                        <group>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="amount_type"/>
+                            <field name="percentage" invisible="amount_type != 'percent'"/>
+                            <field name="manual_amount" invisible="amount_type != 'actual'"/>
+                            <field name="amount" readonly="1"/>
+                            <field name="release_date" invisible="milestone_type != 'retention'"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_cm_milestone_bill" model="ir.actions.act_window">
+        <field name="name">Milestone Bills</field>
+        <field name="res_model">cm.milestone.bill</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

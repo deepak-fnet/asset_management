@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cm_variation_order_list" model="ir.ui.view">
+        <field name="name">cm.variation.order.list</field>
+        <field name="model">cm.variation.order</field>
+        <field name="arch" type="xml">
+            <list string="Variation Orders" decoration-muted="state == 'rejected'">
+                <field name="name"/>
+                <field name="sale_order_id"/>
+                <field name="partner_id"/>
+                <field name="date"/>
+                <field name="amount_total" sum="Total"/>
+                <field name="state" widget="badge"
+                       decoration-warning="state == 'draft'"
+                       decoration-success="state == 'approved'"
+                       decoration-danger="state == 'rejected'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cm_variation_order_form" model="ir.ui.view">
+        <field name="name">cm.variation.order.form</field>
+        <field name="model">cm.variation.order</field>
+        <field name="arch" type="xml">
+            <form string="Variation Order">
+                <header>
+                    <button name="action_approve" type="object" string="Approve"
+                            class="oe_highlight" invisible="state != 'draft'"
+                            groups="construction_management.group_cm_manager"
+                            confirm="Approving will add these lines to the contract and create a new sub-project for each - this cannot be undone. Continue?"/>
+                    <button name="action_reject" type="object" string="Reject"
+                            invisible="state != 'draft'"
+                            groups="construction_management.group_cm_manager"
+                            confirm="Reject this Variation Order? Make sure you have entered the Rejection Reason."/>
+                    <button name="action_reset_to_draft" type="object" string="Reset to Draft"
+                            invisible="state != 'rejected'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,approved,rejected"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_subprojects" type="object"
+                                class="oe_stat_button" icon="fa-building"
+                                invisible="not subproject_count">
+                            <field name="subproject_count" widget="statinfo" string="Sub-Projects"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="sale_order_id" readonly="state != 'draft'"/>
+                            <field name="partner_id" readonly="1"/>
+                            <field name="date"/>
+                        </group>
+                        <group>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="amount_total" readonly="1"/>
+                            <field name="new_contract_value" readonly="1"/>
+                            <field name="prepared_by" readonly="1"/>
+                            <field name="approved_by" readonly="1" invisible="not approved_by"/>
+                            <field name="approved_date" readonly="1" invisible="not approved_date"/>
+                        </group>
+                    </group>
+                    <group string="Reason for This Change">
+                        <field name="reason" nolabel="1" readonly="state != 'draft'"
+                               placeholder="Why is this scope change needed - client request, site condition, design change..."/>
+                    </group>
+                    <field name="line_ids" readonly="state != 'draft'">
+                        <list editable="bottom">
+                            <field name="product_id"/>
+                            <field name="name"/>
+                            <field name="quantity"/>
+                            <field name="uom_id"/>
+                            <field name="price_unit"/>
+                            <field name="amount" sum="Total"/>
+                            <field name="sale_order_line_id" column_invisible="1"/>
+                        </list>
+                    </field>
+                    <group string="Rejection Reason" invisible="state == 'approved'">
+                        <field name="rejection_reason" nolabel="1" readonly="state == 'rejected'"
+                               placeholder="Required before rejecting - why this Variation Order is not being approved."/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_cm_variation_order" model="ir.actions.act_window">
+        <field name="name">Variation Orders</field>
+        <field name="res_model">cm.variation.order</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

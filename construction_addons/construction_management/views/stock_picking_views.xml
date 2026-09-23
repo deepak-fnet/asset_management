@@ -10,9 +10,10 @@
             </field>
             <field name="move_ids" position="before">
                 <field name="is_material_issue" invisible="1"/>
+                <field name="is_material_return" invisible="1"/>
             </field>
             <xpath expr="//field[@name='move_ids']/list/field[@name='quantity']" position="after">
-                <field name="issue_amount" column_invisible="not parent.is_material_issue"
+                <field name="issue_amount" column_invisible="not (parent.is_material_issue or parent.is_material_return)"
                        readonly="parent.state in ('done', 'cancel')"/>
             </xpath>
         </field>

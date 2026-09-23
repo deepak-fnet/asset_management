@@ -12,6 +12,10 @@ class ProjectProject(models.Model):
     sale_order_line_id = fields.Many2one(
         'sale.order.line', string='Source Quotation Line', copy=False, index=True,
         help="The quotation line this sub-project was auto-created from, if any.")
+    variation_order_id = fields.Many2one(
+        'cm.variation.order', string='Source Variation Order', copy=False, index=True,
+        help="Set if this sub-project was created from new scope added after the contract was "
+             "confirmed, via a Variation Order, rather than from the original quotation.")
     allow_task_dependencies = fields.Boolean(default=True)
     allow_milestones = fields.Boolean(default=True)
     cm_budget = fields.Monetary(string='Allocated Budget', currency_field='currency_id', tracking=True)
@@ -43,17 +47,31 @@ class ProjectProject(models.Model):
         compute='_compute_financials', string='Labour Wages (Attendance)',
         help="Sum of Labour Attendance wages across every stage - shown only as a cross-check "
              "against the Labour BOQ line's real purchased/billed amount; not included in "
-             "Billed Amount or Profit / Loss, which come only from real bills.")
+             "Billed Amount or Budget Variance, which come only from real bills.")
     profit_amount = fields.Monetary(
-        compute='_compute_financials', string='Profit / Loss',
-        help="Allocated Budget minus Billed Amount across every stage of this sub-project.")
+        compute='_compute_financials', string='Budget Variance',
+        help="Allocated Budget minus Billed Amount across every stage of this sub-project - "
+             "whether spend stayed within the internal cost budget. This is NOT the contract "
+             "margin (Allocated Budget here is a pure cost envelope, unlike the Sale Order's "
+             "Profit/Loss which is measured against the marked-up contract value) - the two "
+             "numbers will not match, by design.")
 
     final_inspection_done = fields.Boolean(string='Final Quality Inspection Done')
     final_payment_cleared = fields.Boolean(
         string='Final Payment Cleared', compute='_compute_final_payment_cleared')
     client_signoff = fields.Boolean(string='Client Sign-off')
+    keys_handed_over = fields.Boolean(string='Keys Handed Over')
+    electricity_connection_transferred = fields.Boolean(string='Electricity Connection Transferred')
+    water_connection_transferred = fields.Boolean(string='Water Connection Transferred')
+    warranty_documents_handed_over = fields.Boolean(string='Warranty Documents Handed Over')
     handover_date = fields.Date(string='Handover Date')
     warranty_months = fields.Integer(string='Warranty Period (Months)')
+    handover_certificate_ids = fields.One2many(
+        'cm.handover.certificate', 'project_id', string='Handover Certificates')
+    handover_certificate_count = fields.Integer(compute='_compute_handover_certificate_count')
+    snag_item_ids = fields.One2many('cm.snag.item', 'project_id', string='Snag Items')
+    snag_item_count = fields.Integer(compute='_compute_snag_item_count')
+    open_snag_item_count = fields.Integer(compute='_compute_snag_item_count')
 
     def _compute_cm_stage_count(self):
         for project in self:
@@ -107,6 +125,16 @@ class ProjectProject(models.Model):
         for project in self:
             project.budget_line_count = len(project.budget_line_ids)
 
+    def _compute_handover_certificate_count(self):
+        for project in self:
+            project.handover_certificate_count = len(project.handover_certificate_ids)
+
+    def _compute_snag_item_count(self):
+        for project in self:
+            project.snag_item_count = len(project.snag_item_ids)
+            project.open_snag_item_count = len(
+                project.snag_item_ids.filtered(lambda s: s.state != 'verified'))
+
     def action_view_budget_lines(self):
         self.ensure_one()
         return {
@@ -136,10 +164,58 @@ class ProjectProject(models.Model):
                 raise UserError(_(
                     "All stages must be certified before closing this sub-project. "
                     "Not yet certified: %s") % ', '.join(not_certified.mapped('name')))
-            if not project.final_inspection_done:
-                raise UserError(_("Final quality inspection must be completed first."))
             if not project.final_payment_cleared:
                 raise UserError(_("All payments linked to this sub-project must be marked paid first."))
-            if not project.client_signoff:
-                raise UserError(_("Client sign-off is required before closure."))
+            checklist = [
+                (project.final_inspection_done, _("Final Quality Inspection Done")),
+                (project.client_signoff, _("Client Sign-off / Acceptance")),
+                (project.keys_handed_over, _("Keys Handed Over")),
+                (project.electricity_connection_transferred, _("Electricity Connection Transferred")),
+                (project.water_connection_transferred, _("Water Connection Transferred")),
+                (project.warranty_documents_handed_over, _("Warranty Documents Handed Over")),
+            ]
+            missing = [label for done, label in checklist if not done]
+            if missing:
+                raise UserError(_(
+                    "Complete the handover checklist before closing this sub-project. "
+                    "Still missing: %s") % ', '.join(missing))
             project.cm_status = 'closed'
+            project._cm_create_handover_certificate()
+
+    def _cm_create_handover_certificate(self):
+        self.ensure_one()
+        if self.handover_certificate_ids:
+            return self.handover_certificate_ids[0]
+        return self.env['cm.handover.certificate'].create({
+            'project_id': self.id,
+            'handover_date': self.handover_date or fields.Date.context_today(self),
+            'warranty_months': self.warranty_months,
+            'final_inspection_done': self.final_inspection_done,
+            'client_signoff': self.client_signoff,
+            'keys_handed_over': self.keys_handed_over,
+            'electricity_connection_transferred': self.electricity_connection_transferred,
+            'water_connection_transferred': self.water_connection_transferred,
+            'warranty_documents_handed_over': self.warranty_documents_handed_over,
+            'issued_by': self.env.user.id,
+        })
+
+    def action_view_handover_certificates(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Handover Certificates'),
+            'res_model': 'cm.handover.certificate',
+            'view_mode': 'list,form',
+            'domain': [('project_id', '=', self.id)],
+        }
+
+    def action_view_snag_items(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Snag Items'),
+            'res_model': 'cm.snag.item',
+            'view_mode': 'list,form',
+            'domain': [('project_id', '=', self.id)],
+            'context': {'default_project_id': self.id},
+        }

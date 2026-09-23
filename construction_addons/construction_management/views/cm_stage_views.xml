@@ -104,9 +104,9 @@
                                     <field name="product_id" readonly="source_line_id"/>
                                     <field name="product_type" column_invisible="1"/>
                                     <field name="source_line_id" column_invisible="1"/>
-                                    <field name="quantity" readonly="state != 'draft'"/>
+                                    <field name="quantity"/>
                                     <field name="uom_id"/>
-                                    <field name="rate" readonly="1" string="Rate (Est.)"/>
+                                    <field name="rate" readonly="state == 'procurement'" string="Rate (Est.)"/>
                                     <field name="amount" string="Amount (Est.)" sum="Total"/>
                                     <field name="actual_amount" string="Actual Amount" sum="Total"/>
                                     <field name="state" string="Request Status" widget="badge"
@@ -132,11 +132,18 @@
                             </field>
                         </page>
                         <page string="Store Ledger">
+                            <button name="action_open_quick_material_issue" type="object"
+                                    string="Quick Issue (pick items + qty)"
+                                    class="btn-primary mb-2"/>
                             <button name="action_create_material_issue" type="object"
                                     string="Create Material Issue (Internal Transfer)"
-                                    class="btn-primary mb-2"/>
+                                    class="btn-secondary mb-2"/>
+                            <button name="action_open_quick_material_return" type="object"
+                                    string="Return Excess Material"
+                                    class="btn-secondary mb-2"/>
                             <field name="boq_line_ids">
-                                <list create="0" delete="0" edit="0">
+                                <list create="0" delete="0" edit="0"
+                                      decoration-warning="returnable_qty > 0">
                                     <field name="product_id"/>
                                     <field name="uom_id"/>
                                     <field name="quantity" string="Requested Qty"/>
@@ -144,6 +151,9 @@
                                     <field name="purchased_amount" string="Purchased Amount (Real)" sum="Total"/>
                                     <field name="received_qty"/>
                                     <field name="issued_qty" string="Issued to Site"/>
+                                    <field name="consumed_qty"/>
+                                    <field name="returnable_qty"/>
+                                    <field name="returned_qty"/>
                                     <field name="issued_amount" string="Issued Amount (Real)" sum="Total"/>
                                     <field name="balance_qty" string="Balance in Store"/>
                                     <field name="fulfillment_status" widget="badge"
@@ -230,7 +240,8 @@
         <field name="name">cm.boq.line.ledger.list</field>
         <field name="model">cm.boq.line</field>
         <field name="arch" type="xml">
-            <list string="Store Ledger" create="0" delete="0" edit="0">
+            <list string="Store Ledger" create="0" delete="0" edit="0"
+                  decoration-warning="returnable_qty > 0">
                 <field name="stage_id"/>
                 <field name="product_id"/>
                 <field name="uom_id"/>
@@ -239,6 +250,9 @@
                 <field name="purchased_amount" string="Purchased Amount (Real)" sum="Total"/>
                 <field name="received_qty"/>
                 <field name="issued_qty" string="Issued to Site"/>
+                <field name="consumed_qty"/>
+                <field name="returnable_qty"/>
+                <field name="returned_qty"/>
                 <field name="issued_amount" string="Issued Amount (Real)" sum="Total"/>
                 <field name="balance_qty" string="Balance in Store"/>
                 <field name="fulfillment_status" widget="badge"

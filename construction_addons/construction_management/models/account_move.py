@@ -7,3 +7,4 @@ class AccountMove(models.Model):
 
     stage_id = fields.Many2one('cm.stage', string='Construction Stage', copy=False)
     project_id = fields.Many2one('project.project', string='Construction Project', copy=False)
+    milestone_bill_id = fields.Many2one('cm.milestone.bill', string='Milestone Bill', copy=False)

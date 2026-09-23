@@ -89,3 +89,13 @@ class ConstructionMasterProject(models.Model):
             'name': _('Flow Chart'),
             'context': {'default_master_id': self.id},
         }
+
+    def action_view_sale_order(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Sale Order'),
+            'res_model': 'sale.order',
+            'view_mode': 'form',
+            'res_id': self.sale_order_id.id,
+        }

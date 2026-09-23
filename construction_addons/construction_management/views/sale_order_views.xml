@@ -39,6 +39,14 @@
                         <span class="o_stat_text">P&amp;L by Stage</span>
                     </div>
                 </button>
+                <button name="action_view_milestone_bills" type="object" class="oe_stat_button"
+                        icon="fa-money" invisible="not milestone_bill_count">
+                    <field name="milestone_bill_count" widget="statinfo" string="Milestone Bills"/>
+                </button>
+                <button name="action_view_variation_orders" type="object" class="oe_stat_button"
+                        icon="fa-exchange" invisible="not variation_order_count">
+                    <field name="variation_order_count" widget="statinfo" string="Variation Orders"/>
+                </button>
             </xpath>
             <xpath expr="//notebook" position="inside">
                 <page name="construction_project_info" string="Project Info" invisible="not master_project_id">
@@ -61,6 +69,7 @@
                         </group>
                         <group>
                             <field name="pending_bill_amount"/>
+                            <field name="labour_wage_total"/>
                             <field name="profit_amount"/>
                         </group>
                     </group>
@@ -72,6 +81,26 @@
                             <field name="cm_budget" sum="Total Budget"/>
                             <field name="cm_status"/>
                             <field name="completion_percent" widget="progressbar"/>
+                        </list>
+                    </field>
+                </page>
+                <page name="construction_milestone_billing" string="Milestone Billing" invisible="state != 'sale'">
+                    <field name="milestone_bill_ids" context="{'default_sale_order_id': id}">
+                        <list editable="bottom" decoration-muted="state == 'invoiced'">
+                            <field name="sale_order_id" column_invisible="1"/>
+                            <field name="name"/>
+                            <field name="milestone_type"/>
+                            <field name="amount_type"/>
+                            <field name="percentage"/>
+                            <field name="manual_amount"/>
+                            <field name="amount" sum="Total"/>
+                            <field name="release_date"/>
+                            <field name="state" widget="badge"
+                                   decoration-warning="state == 'to_invoice'"
+                                   decoration-success="state == 'invoiced'"/>
+                            <field name="invoice_id" readonly="1"/>
+                            <button name="action_create_invoice" type="object" string="Create Invoice"
+                                    class="btn-link" invisible="state == 'invoiced'"/>
                         </list>
                     </field>
                 </page>

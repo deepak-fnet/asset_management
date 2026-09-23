@@ -23,10 +23,11 @@ class ConstructionMeasurement(models.Model):
                                         "measurement's date.")
     amount = fields.Monetary(compute='_compute_amount', store=True)
     measured_by = fields.Many2one('res.users', default=lambda self: self.env.user)
-    remarks = fields.Char()
+    remarks = fields.Text(help="The reviewer's own observation - required when rejecting.")
     state = fields.Selection([
         ('draft', 'Draft'),
         ('certified', 'Certified'),
+        ('rejected', 'Rejected'),
     ], default='draft', tracking=True, copy=False)
 
     @api.depends('boq_line_id', 'qty_this_measurement', 'state', 'measurement_date')
@@ -58,6 +59,14 @@ class ConstructionMeasurement(models.Model):
             if rec.state != 'draft':
                 raise UserError(_("Only a draft measurement can be certified."))
             rec.state = 'certified'
+
+    def action_reject(self):
+        for rec in self:
+            if rec.state != 'draft':
+                raise UserError(_("Only a draft measurement can be rejected."))
+            if not rec.remarks:
+                raise UserError(_("Enter a reason in Remarks before rejecting."))
+            rec.state = 'rejected'
 
     def action_reset_to_draft(self):
         self.write({'state': 'draft'})

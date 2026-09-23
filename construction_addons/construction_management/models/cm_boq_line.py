@@ -65,15 +65,31 @@ class ConstructionBoqLine(models.Model):
              "product on this stage.")
     issued_qty = fields.Float(
         compute='_compute_purchase_stats', string='Issued Qty',
-        help="Quantity actually issued to site (validated Material Issue internal transfers).")
+        help="Quantity currently out at site (validated Material Issue transfers minus any "
+             "Material Return transfers back to the warehouse).")
+    returned_qty = fields.Float(
+        compute='_compute_purchase_stats', string='Returned Qty',
+        help="Quantity sent back from site to the warehouse as unused (validated Material "
+             "Return internal transfers).")
+    consumed_qty = fields.Float(
+        compute='_compute_purchase_stats', string='Consumed (Certified)',
+        help="Quantity certified as actually used on site so far, from certified Measurement "
+             "records against this BOQ item.")
+    returnable_qty = fields.Float(
+        compute='_compute_purchase_stats', string='Returnable to Store',
+        help="Issued Qty minus Consumed (Certified) - material physically sent to site that "
+             "certified measurement shows was never used, and so can be sent back to the "
+             "warehouse (e.g. issued 1600kg cement, only 1500kg certified as used -> 100kg "
+             "returnable).")
     balance_qty = fields.Float(
         compute='_compute_purchase_stats', string='Balance in Store',
-        help="Received Qty minus Issued Qty - what is still available in the store to issue.")
+        help="Received Qty minus Issued Qty - what is still available in the store to issue "
+             "(a Material Return adds back to this, since it reduces net Issued Qty).")
     issued_amount = fields.Monetary(
         compute='_compute_purchase_stats', string='Issued Amount', currency_field='currency_id',
-        help="Real cumulative value of material issued to site so far - typed in by the "
-             "storekeeper on each Material Issue, since the rate actually paid can differ from "
-             "the BOQ's original estimate.")
+        help="Real net value of material issued to site so far (issued minus returned) - typed "
+             "in by the storekeeper on each Material Issue/Return, since the rate actually paid "
+             "can differ from the BOQ's original estimate.")
     actual_amount = fields.Monetary(
         compute='_compute_purchase_stats', string='Actual Amount', currency_field='currency_id',
         help="The real cost recognized so far for this line: for materials, the cumulative "
@@ -89,6 +105,15 @@ class ConstructionBoqLine(models.Model):
              "fully issued to site), independent of the request/procurement workflow state above - "
              "a line can sit at 'In Procurement' forever even after it is fully received, since "
              "that field only tracks whether it went through the request+RFQ workflow.")
+
+    def _compute_display_name(self):
+        # No natural 'name' field on this model - without this override, any Many2one
+        # pointing here (e.g. cm.measurement.boq_line_id) falls back to showing the raw
+        # "cm.boq.line,80" technical reference instead of something a user can read.
+        for line in self:
+            context = (line.stage_id.name if line.stage_id else line.lead_id.name) or ''
+            label = line.product_id.display_name or _('New')
+            line.display_name = f"{label} ({context})" if context else label
 
     @api.depends('stage_id.project_id')
     def _compute_project_id(self):
@@ -128,6 +153,7 @@ class ConstructionBoqLine(models.Model):
             if not line.stage_id:
                 line.purchased_qty = line.purchased_amount = 0.0
                 line.received_qty = line.issued_qty = line.balance_qty = 0.0
+                line.returned_qty = line.consumed_qty = line.returnable_qty = 0.0
                 line.issued_amount = line.actual_amount = 0.0
                 line.fulfillment_status = 'pending'
                 continue
@@ -144,12 +170,24 @@ class ConstructionBoqLine(models.Model):
                 ('state', '=', 'done'),
             ])
             issue_moves = moves.filtered(lambda m: m.picking_id.is_material_issue)
-            line.received_qty = sum(moves.filtered(lambda m: not m.picking_id.is_material_issue).mapped('quantity'))
-            line.issued_qty = sum(issue_moves.mapped('quantity'))
+            return_moves = moves.filtered(lambda m: m.picking_id.is_material_return)
+            line.received_qty = sum(
+                moves.filtered(
+                    lambda m: not m.picking_id.is_material_issue and not m.picking_id.is_material_return
+                ).mapped('quantity'))
+            gross_issued_qty = sum(issue_moves.mapped('quantity'))
+            line.returned_qty = sum(return_moves.mapped('quantity'))
+            line.issued_qty = gross_issued_qty - line.returned_qty
             line.balance_qty = line.received_qty - line.issued_qty
-            line.issued_amount = sum(issue_moves.mapped('issue_amount'))
+            gross_issued_amount = sum(issue_moves.mapped('issue_amount'))
+            line.issued_amount = gross_issued_amount - sum(return_moves.mapped('issue_amount'))
             line.actual_amount = (
                 line.purchased_amount if line.product_id.type == 'service' else line.issued_amount)
+            certified_measurements = self.env['cm.measurement'].search([
+                ('boq_line_id', '=', line.id), ('state', '=', 'certified'),
+            ])
+            line.consumed_qty = sum(certified_measurements.mapped('qty_this_measurement'))
+            line.returnable_qty = max(line.issued_qty - line.consumed_qty, 0.0)
             if line.product_id.type == 'service':
                 # Services have no physical stock movement - they're "received" the moment
                 # they're purchased, since delivery and consumption happen at the same time.

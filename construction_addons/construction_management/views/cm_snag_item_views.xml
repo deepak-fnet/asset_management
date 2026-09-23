@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cm_snag_item_list" model="ir.ui.view">
+        <field name="name">cm.snag.item.list</field>
+        <field name="model">cm.snag.item</field>
+        <field name="arch" type="xml">
+            <list string="Snag Items" decoration-muted="state == 'verified'"
+                  decoration-danger="severity == 'critical' and state != 'verified'">
+                <field name="name"/>
+                <field name="project_id"/>
+                <field name="partner_id"/>
+                <field name="reported_date"/>
+                <field name="severity" widget="badge"
+                       decoration-danger="severity == 'critical'"
+                       decoration-warning="severity == 'major'"/>
+                <field name="is_within_dlp" widget="boolean_toggle" readonly="1"/>
+                <field name="assigned_to"/>
+                <field name="rectification_cost_total" sum="Total"/>
+                <field name="state" widget="badge"
+                       decoration-info="state in ('open', 'in_progress')"
+                       decoration-warning="state == 'fixed'"
+                       decoration-success="state == 'verified'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_cm_snag_item_form" model="ir.ui.view">
+        <field name="name">cm.snag.item.form</field>
+        <field name="model">cm.snag.item</field>
+        <field name="arch" type="xml">
+            <form string="Snag Item">
+                <header>
+                    <button name="action_start" type="object" string="Start"
+                            class="oe_highlight" invisible="state != 'open'"/>
+                    <button name="action_mark_fixed" type="object" string="Mark Fixed"
+                            class="oe_highlight" invisible="state != 'in_progress'"/>
+                    <button name="action_client_verify" type="object" string="Client Verify"
+                            class="oe_highlight" invisible="state != 'fixed'"/>
+                    <button name="action_client_reject" type="object" string="Client Rejects Fix"
+                            invisible="state != 'fixed'"
+                            confirm="Send this back for rework? Make sure Client Remarks explains why."/>
+                    <field name="state" widget="statusbar" statusbar_visible="open,in_progress,fixed,verified"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-warning" role="alert" invisible="is_within_dlp or not warranty_expiry_date">
+                        This snag was reported after the Defect Liability Period expired
+                        (<field name="warranty_expiry_date" readonly="1" nolabel="1"/>) - consider
+                        billing the client instead of absorbing this cost.
+                    </div>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_pickings" type="object"
+                                class="oe_stat_button" icon="fa-truck"
+                                invisible="not picking_count">
+                            <field name="picking_count" widget="statinfo" string="Material Issued"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="project_id"/>
+                            <field name="stage_id"/>
+                            <field name="partner_id" readonly="1"/>
+                            <field name="reported_date"/>
+                            <field name="reported_by"/>
+                        </group>
+                        <group>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="severity"/>
+                            <field name="assigned_to"/>
+                            <field name="cost_borne_by"/>
+                            <field name="is_within_dlp" readonly="1"/>
+                            <field name="rectification_cost_total" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="description" placeholder="What's wrong - e.g. 'Bathroom leak near washbasin pipe joint'"/>
+                    </group>
+                    <notebook>
+                        <page string="Rectification Cost">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="uom_id"/>
+                                    <field name="quantity"/>
+                                    <field name="rate"/>
+                                    <field name="amount" sum="Total"/>
+                                </list>
+                            </field>
+                            <button name="action_issue_rectification_material" type="object"
+                                    string="Issue Rectification Material" class="btn-secondary mt-2"/>
+                        </page>
+                        <page string="Client Feedback" invisible="state == 'open'">
+                            <group>
+                                <field name="fixed_date" readonly="1"/>
+                                <field name="verified_date" readonly="1"/>
+                            </group>
+                            <field name="client_remarks" placeholder="Client's feedback on the fix..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_cm_snag_item" model="ir.actions.act_window">
+        <field name="name">Snag Items</field>
+        <field name="res_model">cm.snag.item</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

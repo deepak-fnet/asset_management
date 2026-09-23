@@ -63,11 +63,14 @@ class ConstructionStage(models.Model):
         compute='_compute_payments', string='Pending Bill',
         help="Purchased minus Billed - ordered but not yet invoiced by the vendor.")
     profit_amount = fields.Monetary(
-        compute='_compute_payments', string='Profit / Loss',
-        help="Budget Allocation minus Billed Amount for this stage. Labour is expected to be its "
-             "own BOQ line, purchased/billed like any other item, so its cost is already included "
-             "here through Billed Amount - see Labour Wages below only as a cross-check against "
-             "the attendance log, it is not subtracted separately.")
+        compute='_compute_payments', string='Budget Variance',
+        help="Budget Allocation minus Billed Amount for this stage - whether spend stayed within "
+             "the internal cost budget. This is NOT the contract margin (Budget Allocation here is "
+             "a pure cost envelope, unlike the Sale Order's Profit/Loss which is measured against "
+             "the marked-up contract value) - the two numbers will not match, by design. Labour is "
+             "expected to be its own BOQ line, purchased/billed like any other item, so its cost is "
+             "already included here through Billed Amount - see Labour Wages below only as a "
+             "cross-check against the attendance log, it is not subtracted separately.")
     payment_ids = fields.Many2many('account.payment', compute='_compute_payments', string='Payments')
     payment_count = fields.Integer(compute='_compute_payments')
     payment_total = fields.Monetary(compute='_compute_payments', string='Payments Made')
@@ -161,8 +164,10 @@ class ConstructionStage(models.Model):
             bills = self.env['account.move'].search([
                 ('stage_id', '=', stage.id), ('move_type', '=', 'in_invoice'), ('state', '=', 'posted'),
             ])
-            payments = self.env['account.payment'].search(
-                [('reconciled_bill_ids', 'in', bills.ids)]) if bills else self.env['account.payment']
+            payments = self.env['account.payment'].search([
+                ('reconciled_bill_ids', 'in', bills.ids),
+                ('state', 'not in', ('canceled', 'rejected')),
+            ]) if bills else self.env['account.payment']
             stage.payment_ids = payments
             stage.payment_count = len(payments)
             stage.payment_total = sum(payments.mapped('amount'))
@@ -390,6 +395,45 @@ class ConstructionStage(models.Model):
                 'company_id': warehouse.company_id.id,
             })
         return location
+
+    def action_open_quick_material_issue(self):
+        self.ensure_one()
+        material_lines = self.boq_line_ids.filtered(
+            lambda l: l.product_id.type != 'service' and l.quantity > l.issued_qty)
+        if not material_lines:
+            raise UserError(_("No material items requested on this stage yet to issue."))
+        wizard = self.env['cm.material.issue.wizard'].create({
+            'stage_id': self.id,
+            'line_ids': [Command.create({'boq_line_id': line.id}) for line in material_lines],
+        })
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Quick Material Issue'),
+            'res_model': 'cm.material.issue.wizard',
+            'view_mode': 'form',
+            'res_id': wizard.id,
+            'target': 'new',
+        }
+
+    def action_open_quick_material_return(self):
+        self.ensure_one()
+        returnable_lines = self.boq_line_ids.filtered(lambda l: l.returnable_qty > 0)
+        if not returnable_lines:
+            raise UserError(_("Nothing is returnable right now - Issued Qty is not ahead of "
+                               "certified Measurement for any item on this stage."))
+        wizard = self.env['cm.material.return.wizard'].create({
+            'stage_id': self.id,
+            'line_ids': [Command.create({'boq_line_id': line.id, 'quantity': line.returnable_qty})
+                         for line in returnable_lines],
+        })
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Return Excess Material'),
+            'res_model': 'cm.material.return.wizard',
+            'view_mode': 'form',
+            'res_id': wizard.id,
+            'target': 'new',
+        }
 
     def action_create_material_issue(self):
         self.ensure_one()
