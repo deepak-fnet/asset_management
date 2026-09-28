@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="param_ai_url" model="ir.config_parameter">
+        <field name="key">visiting_card.ai_url</field>
+        <field name="value">https://dweeb-trailing-demise.ngrok-free.dev</field>
+    </record>
+    <record id="param_ai_model" model="ir.config_parameter">
+        <field name="key">visiting_card.ai_model</field>
+        <field name="value">Qwen/Qwen2.5-7B-Instruct-GPTQ-Int4</field>
+    </record>
+</odoo>

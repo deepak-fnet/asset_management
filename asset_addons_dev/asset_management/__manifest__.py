@@ -1,6 +1,6 @@
 {
     "name": "Asset Management Pro",
-    "version": "19.0.1.0.0",
+    "version": "19.0.1.1.0",
     "summary": "Enterprise Asset Management with AI-Powered Agent Monitoring",
     "description": """
 Professional Enterprise Asset Management System
@@ -106,6 +106,11 @@ Professional Enterprise Asset Management System
         "data/asset_os_upgrade_sequence.xml",
         "data/asset_update_policy_cron.xml",
         "data/asset_update_policy_demo.xml",
+
+        # ==========================================
+        # REPORTS (MUST BE BEFORE VIEWS THAT BUTTON TO THEM)
+        # ==========================================
+        "reports/asset_qr_report.xml",
 
         # ==========================================
         # CORE VIEWS (ACTIONS MUST BE BEFORE MENUS)

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_visiting_card_scan_root" name="Scan Card" sequence="24"
+              action="action_visiting_card_scan_wizard"/>
+
+    <menuitem id="menu_visiting_card_root" name="Visiting Cards" sequence="25"/>
+    <menuitem id="menu_visiting_card_main" name="All Cards" parent="menu_visiting_card_root"
+              action="action_visiting_card" sequence="10"/>
+</odoo>

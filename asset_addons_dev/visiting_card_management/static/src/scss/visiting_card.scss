@@ -1,0 +1,40 @@
+.o_vc_label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $o-gray-600;
+    margin-bottom: 0.35rem;
+}
+
+.o_vc_card_slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    padding: 0.5rem;
+    border: 1px solid $border-color;
+    border-radius: 0.75rem;
+    background: $o-gray-100;
+
+    .o_field_image {
+        margin: 0;
+    }
+
+    img {
+        max-width: 100%;
+        max-height: 200px;
+        object-fit: contain;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+}
+
+.o_vc_raw_text {
+    font-family: $font-family-monospace;
+    font-size: 0.8rem;
+    white-space: pre-wrap;
+    background: $o-gray-100;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+}

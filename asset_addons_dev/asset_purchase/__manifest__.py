@@ -1,6 +1,6 @@
 {
     'name': 'Asset Purchase Integration',
-    'version': '19.0.2.0.0',
+    'version': '19.0.2.1.0',
     'summary': 'Create fixed asset records automatically when a purchase receipt is validated',
     'description': """
 Asset Purchase Integration
@@ -16,18 +16,27 @@ Bridges the purchase/receipt flow with the asset register:
 - Product category to asset defaults mapping (machine type, plant, location,
   department).
 - Traceability from each asset back to its receipt, purchase order and serial.
+- "Include GST in Asset Cost" toggle on the PO line: when set, the asset(s)
+  created from that line capitalise the tax-inclusive unit price instead of
+  the pre-tax one.
+- Once a vendor bill is posted against the same PO/product, the asset is
+  auto-linked back to it (Vendor Bill field + Open Vendor Bill button), so
+  the original invoice document is always reachable from the asset record.
 """,
     'author': 'Futurenet Technologies',
     'category': 'Inventory/Purchase',
     'license': 'LGPL-3',
     # general_asset owns asset.asset's general-asset extension and the views
     # this module inherits. vendor_management was declared but never used by
-    # any code here, so it is dropped.
+    # any code here, so it is dropped. account (a standard Odoo module, not
+    # another custom addon) is needed to link a created asset back to the
+    # real vendor bill it was invoiced on, once one is posted.
     'depends': [
         'general_asset',
         'stock',
         'purchase',
         'purchase_stock',
+        'account',
     ],
     'data': [
         'security/ir.model.access.csv',

@@ -305,6 +305,11 @@
                             string="View Agent Logs"
                             class="btn-secondary"/>
 
+                    <button name="%(asset_management.action_report_asset_qr)d" type="action"
+                            string="Print QR Code"
+                            class="btn-secondary"
+                            invisible="not qr_code"/>
+
                     <field name="state"
                            widget="statusbar"
                            statusbar_visible="draft,submit,assigned,maintenance,scrapped"/>
@@ -679,7 +684,7 @@
                                         <!-- Warranty Start (hidden for virtual assets) -->
                                         <div class="spec_item" invisible="is_virtual_asset">
                                             <span class="o_form_label">Warranty Start</span>
-                                            <field name="warranty_start_date" class="spec_value" readonly="1"/>
+                                            <field name="warranty_start_date" class="spec_value"/>
                                         </div>
 
                                         <!-- Warranty End (hidden for virtual assets) -->
@@ -736,7 +741,7 @@
                                     </div>
                                     <div class="spec_item">
                                         <span class="o_form_label">Warranty Expiry</span>
-                                        <field name="warranty_end_date" class="spec_value"/>
+                                        <field name="warranty_end_date" class="spec_value" readonly="1"/>
                                     </div>
                                     <div class="spec_item">
                                         <span class="o_form_label">AMC Status</span>

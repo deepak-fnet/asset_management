@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- =====================
+         PRINT QR CODE - LABEL/TAG REPORT
+         This is deliberately NOT a formal A4 document. It exists to be
+         printed, cut out (or peeled, if run through label stock) and
+         stuck on the physical asset next to its serial number, so a
+         technician can scan it on-site without opening the asset record.
+         A small custom paperformat keeps wkhtmltopdf from wasting a
+         full A4 sheet on three lines of text and a QR image.
+         ===================== -->
+    <record id="paperformat_asset_qr_tag" model="report.paperformat">
+        <field name="name">Asset QR Code Tag</field>
+        <field name="default" eval="False"/>
+        <field name="format">custom</field>
+        <field name="page_height">100</field>
+        <field name="page_width">80</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">3</field>
+        <field name="margin_bottom">3</field>
+        <field name="margin_left">3</field>
+        <field name="margin_right">3</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="disable_shrinking" eval="True"/>
+        <field name="dpi">96</field>
+    </record>
+
+    <record id="action_report_asset_qr" model="ir.actions.report">
+        <field name="name">Print QR Code</field>
+        <field name="model">asset.asset</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">asset_management.report_asset_qr_document</field>
+        <field name="report_file">asset_management.report_asset_qr_document</field>
+        <field name="print_report_name">'QR Code - %s' % object.asset_code</field>
+        <field name="paperformat_id" ref="paperformat_asset_qr_tag"/>
+        <field name="binding_model_id" ref="model_asset_asset"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Single self-contained template: report_name on the action points
+         straight at this one, so there is no separate "wrapper" template
+         to keep in sync - just web.html_container (for the <html>/<head>
+         shell) plus a plain, explicitly-sized div per asset. We skip
+         web.external_layout/web.basic_layout on purpose: those pull in
+         company letterhead/footer styling meant for full A4 documents,
+         which would fight with an 80x100mm tag and add nothing a sticker
+         needs. -->
+    <template id="report_asset_qr_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <div style="width: 74mm; min-height: 94mm; margin: 0 auto; padding: 4mm; box-sizing: border-box; text-align: center; font-family: sans-serif; page-break-after: always;">
+                    <div style="font-size: 14px; font-weight: bold; word-wrap: break-word;" t-esc="doc.asset_name"/>
+                    <div style="font-size: 11px; color: #555555; margin-bottom: 4mm;" t-esc="doc.asset_code"/>
+                    <img t-if="doc.qr_code" t-att-src="image_data_uri(doc.qr_code)"
+                         style="width: 45mm; height: 45mm;" alt="QR Code"/>
+                    <div t-if="not doc.qr_code" style="font-size: 10px; color: #999999; padding: 10mm 0;">
+                        QR code not available (add a serial number to generate it)
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

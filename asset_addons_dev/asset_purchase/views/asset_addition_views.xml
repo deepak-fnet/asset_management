@@ -18,8 +18,14 @@
                             <field name="procurement_vendor_id" readonly="1"/>
                             <field name="purchase_date" readonly="1"/>
                             <field name="invoice_ref" readonly="1"/>
+                            <field name="invoice_move_id" readonly="1"/>
                             <field name="purchase_cost" readonly="1"/>
                             <field name="currency_id" invisible="1"/>
+                            <field name="invoice_attachment_id" invisible="1"/>
+                            <field name="invoice_attachment_name" invisible="1"/>
+                            <field name="invoice_attachment_datas" filename="invoice_attachment_name"
+                                   string="Invoice Copy" widget="binary" readonly="1"
+                                   invisible="not invoice_attachment_id"/>
                         </group>
                         <group string="Receipt" name="receipt_details">
                             <field name="purchase_order_id" readonly="1"/>
@@ -40,6 +46,9 @@
                         <button name="action_open_source_picking" type="object"
                                 string="Open Receipt" class="btn-link"
                                 icon="fa-arrow-right" invisible="not picking_id"/>
+                        <button name="action_view_invoice" type="object"
+                                string="Open Vendor Bill" class="btn-link"
+                                icon="fa-arrow-right" invisible="not invoice_move_id"/>
                     </div>
                 </page>
             </xpath>

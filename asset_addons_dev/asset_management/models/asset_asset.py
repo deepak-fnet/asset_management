@@ -278,21 +278,21 @@ class AssetAsset(models.Model):
     # Computed warranty start: equals purchase_date
     warranty_start_date = fields.Date(
         string="Warranty Start",
-        compute="_compute_warranty_dates",
+        compute="_compute_warranty_start_date",
         store=True,
         readonly=False,
         tracking=True,
         help="Warranty start date. Computed from purchase date, but can be manually overridden."
     )
 
-    # Computed warranty end: purchase_date + warranty_period_months
+    # Computed warranty end: warranty_start_date + warranty_period_months
     warranty_end_date = fields.Date(
         string="Warranty End",
-        compute="_compute_warranty_dates",
+        compute="_compute_warranty_end_date",
         store=True,
         readonly=False,
         tracking=True,
-        help="Warranty end date. Computed from purchase date + warranty period, but can be manually overridden."
+        help="Warranty end date. Computed from warranty start date + warranty period, but can be manually overridden."
     )
 
     amc_expiry_date = fields.Date(
@@ -1542,36 +1542,34 @@ class AssetAsset(models.Model):
         for asset in self:
             asset.is_virtual_asset = asset.acquisition_type in ('virtual', 'cloud')
 
-    @api.depends("purchase_date", "warranty_period_months")
-    def _compute_warranty_dates(self):
-        """
-        Compute warranty start and end dates from purchase date and warranty period.
-        - warranty_start = purchase_date
-        - warranty_end = purchase_date + warranty_period_months
-
-        These are stored and can be manually overridden if needed.
+    @api.depends("purchase_date")
+    def _compute_warranty_start_date(self):
+        """Default warranty_start_date from purchase_date once, the first
+        time it is empty. Kept as its own compute (not bundled with
+        _compute_warranty_end_date) - a field that is both store=True,
+        readonly=False and one of two outputs of the same compute method
+        gets treated by the ORM as "already resolved" the moment a user
+        writes to it directly, which silently skips recomputing the sibling
+        output on that same call. Splitting the two means a direct write to
+        warranty_start_date still correctly retriggers
+        _compute_warranty_end_date below, since that method no longer
+        shares an output with the field being written.
         """
         for asset in self:
-            try:
-                # Only auto-compute if we have the required data
-                if asset.purchase_date:
-                    # Warranty start defaults to purchase date
-                    if not asset.warranty_start_date:
-                        asset.warranty_start_date = asset.purchase_date
+            if not asset.warranty_start_date and asset.purchase_date:
+                asset.warranty_start_date = asset.purchase_date
 
-                    # Warranty end computed from purchase_date + months
-                    if asset.warranty_period_months and asset.warranty_period_months > 0:
-                        asset.warranty_end_date = asset.purchase_date + relativedelta(
-                            months=asset.warranty_period_months)
-                    elif not asset.warranty_end_date:
-                        # No warranty period specified, leave end date empty
-                        asset.warranty_end_date = False
-                else:
-                    # No purchase date - keep existing values or set to False
-                    if not asset.warranty_start_date:
-                        asset.warranty_start_date = False
-                    if not asset.warranty_end_date:
-                        asset.warranty_end_date = False
+    @api.depends("warranty_start_date", "warranty_period_months")
+    def _compute_warranty_end_date(self):
+        """Compute warranty end date from warranty start date + warranty
+        period. Recomputes whenever either input changes."""
+        for asset in self:
+            try:
+                if asset.warranty_start_date and asset.warranty_period_months and asset.warranty_period_months > 0:
+                    asset.warranty_end_date = asset.warranty_start_date + relativedelta(
+                        months=asset.warranty_period_months)
+                elif not asset.warranty_period_months:
+                    asset.warranty_end_date = False
             except Exception as e:
                 _logger.warning(f"Error computing warranty dates for {asset.asset_code}: {e}")
 

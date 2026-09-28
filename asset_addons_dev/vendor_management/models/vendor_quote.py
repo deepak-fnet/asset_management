@@ -259,7 +259,13 @@ class VendorQuoteLine(models.Model):
                 line.quote_id.rfq_id.comparison_state = 'received'
             rfqs |= line.quote_id.rfq_id
         rfqs._sync_quote_states()
-        return {'type': 'ir.actions.client', 'tag': 'reload'}
+        # No explicit action returned: the web client already re-reads every
+        # field on the current record after any button call, which is
+        # enough to refresh comparison_line_ids/is_winning_line/
+        # vendor_finalized/Approval Status/Progress. Returning the
+        # 'ir.actions.client'/'reload' tag (as this used to) forces a full
+        # browser reload - it fixed the same staleness but also reset the
+        # active notebook tab and scroll position on every click.
 
     def action_unselect_line(self):
         """Withdraw this vendor's award for this product line, if still theirs."""
@@ -273,4 +279,3 @@ class VendorQuoteLine(models.Model):
             po_line.write({'vendor_id': False, 'winning_quote_line_id': False})
             rfqs |= line.quote_id.rfq_id
         rfqs._sync_quote_states()
-        return {'type': 'ir.actions.client', 'tag': 'reload'}

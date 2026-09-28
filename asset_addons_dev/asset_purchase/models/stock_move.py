@@ -17,6 +17,12 @@ class StockMove(models.Model):
         compute='_compute_is_fixed_asset', store=True, readonly=False,
         help="On validation, one fixed asset record is created per unit received "
              "on this line.")
+    # Plain (no compute/default): mirrored straight from the purchase order
+    # line via _prepare_stock_move_vals, same as is_fixed_asset itself. A
+    # receipt with no purchase order at all has nothing to mirror it from,
+    # so it just stays False there - correct, since "include GST" only means
+    # anything when there is a priced PO line behind the move.
+    include_gst_in_asset_cost = fields.Boolean(string="Include GST in Asset Cost")
     asset_count = fields.Integer(string="Assets", compute='_compute_asset_count')
 
     @api.depends('product_id')
@@ -41,9 +47,10 @@ class StockMove(models.Model):
         return super()._prepare_merge_moves_distinct_fields() + ['is_fixed_asset']
 
     def _prepare_move_split_vals(self, qty):
-        """Keep the flag on backorder splits."""
+        """Keep the flags on backorder splits."""
         vals = super()._prepare_move_split_vals(qty)
         vals['is_fixed_asset'] = self.is_fixed_asset
+        vals['include_gst_in_asset_cost'] = self.include_gst_in_asset_cost
         return vals
 
     # ------------------------------------------------------------------
@@ -98,6 +105,24 @@ class StockMove(models.Model):
                 "receipts must be visible under General Assets.", category.name)
         return category
 
+    def _asset_unit_cost(self):
+        """Per-unit cost to capitalise on the asset(s) created from this move.
+
+        Pre-tax (self.price_unit) by default. When include_gst_in_asset_cost
+        is set, uses the PO line's own tax-inclusive total divided by its
+        quantity instead - deliberately not "price_unit * (1 + rate)": that
+        would mean hardcoding/re-deriving the tax rate here, where reading
+        price_total (already computed by core from the line's real tax_ids,
+        handling multiple/compound taxes correctly) and dividing by quantity
+        gives the true tax-inclusive per-unit price with no rate assumptions
+        of our own.
+        """
+        self.ensure_one()
+        line = self.purchase_line_id
+        if self.include_gst_in_asset_cost and line and line.product_qty:
+            return line.price_total / line.product_qty
+        return self.price_unit
+
     def _asset_base_vals(self, mapping):
         """Values shared by every asset created from this move.
 
@@ -121,6 +146,7 @@ class StockMove(models.Model):
         partner = order.partner_id
         date_done = picking.date_done or fields.Datetime.now()
         receipt_date = fields.Datetime.context_timestamp(self, date_done).date()
+        unit_cost = self._asset_unit_cost()
         return {
             'asset_name': self.product_id.display_name,
             'category_id': self._resolve_asset_category(mapping).id,
@@ -135,7 +161,7 @@ class StockMove(models.Model):
             # appeared nowhere assignable.
             'is_general_asset': True,
             'sub_category_id': mapping.sub_category_id.id or False,
-            'asset_value': self.price_unit,
+            'asset_value': unit_cost,
             'acquisition_date': receipt_date,
             'plant_id': mapping.plant_id.id or False,
             'location_id': mapping.location_id.id or False,
@@ -145,7 +171,7 @@ class StockMove(models.Model):
             'receipt_date': receipt_date,
             'invoice_ref': getattr(order, 'bill_reference', '') or '',
             'procurement_vendor_id': partner.id or False,
-            'purchase_cost': self.price_unit,
+            'purchase_cost': unit_cost,
             'acquisition_type': 'purchased',
             'stock_move_id': self.id,
             'picking_id': picking.id or False,
