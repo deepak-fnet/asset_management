@@ -7,13 +7,21 @@ class PurchaseOrder(models.Model):
 
     approver_ids = fields.Many2many(
         "res.users", "purchase_order_approver_rel", "order_id", "user_id",
-        string="Approvers",
-        help="Users who must approve this Purchase Order before it can be "
-             "confirmed. Leave empty if this order does not require approval.",
+        string="Approvers", compute="_compute_approver_ids", store=True,
+        help="Users required to approve this Purchase Order, resolved from "
+             "the approval rules that match its total. Read-only: populated "
+             "by 'Submit for Approval'. Empty means this order does not "
+             "require approval (yet).",
     )
     approval_line_ids = fields.One2many(
         "purchase.approval.line", "order_id", string="Approvals",
     )
+
+    @api.depends("approval_line_ids.approver_id")
+    def _compute_approver_ids(self):
+        for order in self:
+            order.approver_ids = order.approval_line_ids.approver_id
+
     approval_status = fields.Selection(
         [
             ("draft", "Not Submitted"),
@@ -103,14 +111,13 @@ class PurchaseOrder(models.Model):
         for vals in vals_list:
             # Respect anything explicitly passed in (imports, other modules,
             # duplicating an order) — only fall back to the default flow.
-            if vals.get("approval_config_id") or vals.get("approver_ids"):
+            if vals.get("approval_config_id"):
                 continue
             company = self.env["res.company"].browse(vals["company_id"]) \
                 if vals.get("company_id") else self.env.company
             config = Config._get_default_config(company)
-            if config and config.approver_ids:
+            if config and config.line_ids:
                 vals["approval_config_id"] = config.id
-                vals["approver_ids"] = [(6, 0, config.approver_ids.ids)]
         return super().create(vals_list)
 
     def action_apply_approval_config(self):
@@ -121,46 +128,76 @@ class PurchaseOrder(models.Model):
                 self.env["purchase.approval.config"]._get_default_config(order.company_id)
             if not config:
                 raise UserError("No approval configuration is available.")
-            order.write({
-                "approval_config_id": config.id,
-                "approver_ids": [(6, 0, config.approver_ids.ids)],
-            })
+            order.approval_config_id = config.id
         return True
 
     # ------------------------------------------------------------------
     def action_submit_for_approval(self):
         for order in self:
-            if not order.approver_ids:
+            lines = order.approval_config_id.line_ids
+
+            # Highest-sequence tier whose amount band contains the order
+            # total: lower_limit <= amount_total, and amount_total <=
+            # upper_limit unless upper_limit is 0 (open-ended top tier).
+            matched = lines.filtered(
+                lambda l: order.amount_total >= l.lower_limit
+                and (not l.upper_limit or order.amount_total <= l.upper_limit)
+            )
+            if not matched:
                 raise UserError(
-                    "Please select at least one Approver before submitting "
-                    "this Purchase Order for approval."
+                    "No approval rule matches this order amount."
+                )
+            matched_line = matched.sorted("sequence")[-1]
+
+            # Cascading: qualifying for the matched tier also requires every
+            # lower tier's sign-off, in sequence order.
+            required_tiers = lines.filtered(
+                lambda l: l.sequence <= matched_line.sequence
+            ).sorted("sequence")
+
+            # One entry per required approver, keyed to the lowest (earliest)
+            # tier sequence that requires them.
+            required_sequence = {}
+            for tier in required_tiers:
+                for user in tier.role_id.user_ids:
+                    required_sequence.setdefault(user, tier.sequence)
+
+            if not required_sequence:
+                raise UserError(
+                    "The matched approval rule has no approvers assigned. "
+                    "Add users to the approval role(s) before submitting."
                 )
 
+            required_users = self.env["res.users"].browse(
+                [user.id for user in required_sequence]
+            )
             existing = order.approval_line_ids
             existing_approvers = existing.mapped("approver_id")
 
-            # Drop lines for approvers who were removed from approver_ids.
-            (existing.filtered(lambda l: l.approver_id not in order.approver_ids)).unlink()
+            # Drop lines for approvers no longer required by any tier.
+            (existing.filtered(lambda l: l.approver_id not in required_users)).unlink()
 
-            # Resubmitting resets every remaining line back to pending, so a
-            # previous rejection (or a stale approval on a changed order)
-            # doesn't silently carry over.
-            kept = order.approval_line_ids
-            if kept:
-                kept.write({
+            # Resubmitting resets every remaining line back to pending (and
+            # re-syncs its sequence to the matched rule), so a previous
+            # rejection (or a stale approval on a changed order) doesn't
+            # silently carry over.
+            for line in order.approval_line_ids:
+                line.write({
+                    "sequence": required_sequence[line.approver_id],
                     "status": "pending",
                     "comment": False,
                     "action_date": False,
                 })
 
-            new_approvers = order.approver_ids - existing_approvers
+            new_approvers = required_users - existing_approvers
             for user in new_approvers:
                 self.env["purchase.approval.line"].create({
                     "order_id": order.id,
                     "approver_id": user.id,
+                    "sequence": required_sequence[user],
                 })
 
-            for user in order.approver_ids:
+            for user in required_users:
                 order.activity_schedule(
                     "mail.mail_activity_data_todo",
                     user_id=user.id,
@@ -170,7 +207,7 @@ class PurchaseOrder(models.Model):
 
             order.message_post(
                 body="Submitted for approval to: %s"
-                     % ", ".join(order.approver_ids.mapped("display_name"))
+                     % ", ".join(required_users.mapped("display_name"))
             )
         return True
 
@@ -189,10 +226,19 @@ class PurchaseOrder(models.Model):
     # ------------------------------------------------------------------
     def button_confirm(self):
         for order in self:
-            if order.approver_ids and order.approval_status != "approved":
+            # Gated on approval_config_id, NOT approver_ids: approver_ids is
+            # only populated by action_submit_for_approval() (it rolls up
+            # approval_line_ids.approver_id, and those lines only exist once
+            # submitted). Gating on it meant an order nobody had submitted
+            # yet had an empty approver_ids and sailed straight through -
+            # skipping "Submit for Approval" skipped approval entirely.
+            # approval_config_id is set at create() time, before any
+            # submission, so this actually blocks confirm until the order
+            # has been submitted AND fully approved.
+            if order.approval_config_id and order.approval_status != "approved":
                 raise UserError(
-                    "This Purchase Order requires approval from all assigned "
-                    "Approvers before it can be confirmed.\n\n"
+                    "This Purchase Order requires approval before it can be "
+                    "confirmed. Submit it for approval first.\n\n"
                     "Approval status: %s"
                     % (order.approval_progress or "Not submitted")
                 )
@@ -204,12 +250,12 @@ class PurchaseOrder(models.Model):
     # incomplete. This does not rely on button_confirm() being called, so it
     # stays correct even alongside other modules that override or bypass it.
     # ------------------------------------------------------------------
-    @api.constrains("state", "approver_ids")
+    @api.constrains("state", "approval_config_id", "approval_status")
     def _check_approved_before_purchase(self):
         for order in self:
-            if order.state == "purchase" and order.approver_ids and order.approval_status != "approved":
+            if order.state == "purchase" and order.approval_config_id and order.approval_status != "approved":
                 raise ValidationError(
-                    "This Purchase Order requires approval from all assigned "
-                    "Approvers before it can be confirmed.\n\n"
+                    "This Purchase Order requires approval before it can be "
+                    "confirmed. Submit it for approval first.\n\n"
                     "Approval status: %s" % (order.approval_progress or "Not submitted")
                 )

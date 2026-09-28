@@ -28,15 +28,23 @@ class PurchaseApprovalLine(models.Model):
 
     can_action = fields.Boolean(
         string="Can Act", compute="_compute_can_action",
-        help="Technical field: True only for the assigned approver, and "
-             "only while their own line is still pending.",
+        help="Technical field: True only for the assigned approver, only "
+             "while their own line is still pending, and only once every "
+             "lower-sequence line on the same order has already been "
+             "approved (sequential/tiered approval).",
     )
 
-    @api.depends("approver_id", "status")
+    @api.depends("approver_id", "status", "sequence",
+                 "order_id.approval_line_ids.status", "order_id.approval_line_ids.sequence")
     def _compute_can_action(self):
         uid = self.env.user
         for line in self:
-            line.can_action = (line.approver_id == uid and line.status == "pending")
+            is_own_pending = (line.approver_id == uid and line.status == "pending")
+            lower_tier_outstanding = any(
+                other.sequence < line.sequence and other.status in ("pending", "rejected")
+                for other in line.order_id.approval_line_ids if other.id != line.id
+            )
+            line.can_action = is_own_pending and not lower_tier_outstanding
 
     def _check_is_own_line(self):
         for line in self:

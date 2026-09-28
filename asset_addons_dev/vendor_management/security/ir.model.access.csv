@@ -55,3 +55,8 @@ access_vendor_performance_review_wizard_user,Vendor Performance Review Wizard Us
 access_vendor_performance_review_wizard_manager,Vendor Performance Review Wizard Manager,vendor_management.model_vendor_performance_review_wizard,vendor_management.group_vendor_manager,1,1,1,1
 access_vendor_performance_review_wizard_md,Vendor Performance Review Wizard MD,vendor_management.model_vendor_performance_review_wizard,vendor_management.group_vendor_md,1,1,1,1
 access_purchase_order_line_portal,Purchase Order Line Portal,purchase.model_purchase_order_line,base.group_portal,1,1,0,0
+
+access_vendor_bill_user,Vendor Bill User,vendor_management.model_vendor_bill,vendor_management.group_purchase_role_user,1,1,1,0
+access_vendor_bill_stores,Vendor Bill Stores,vendor_management.model_vendor_bill,vendor_management.group_purchase_role_stores,1,1,0,0
+access_vendor_bill_finance,Vendor Bill Finance,vendor_management.model_vendor_bill,vendor_management.group_purchase_role_finance,1,1,0,0
+access_vendor_bill_manager,Vendor Bill Manager,vendor_management.model_vendor_bill,vendor_management.group_vendor_manager,1,1,1,1

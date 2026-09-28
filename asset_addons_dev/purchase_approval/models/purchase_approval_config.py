@@ -32,10 +32,10 @@ class PurchaseApprovalConfig(models.Model):
         help="Technical: flat list of the users on the configuration lines.",
     )
 
-    @api.depends("line_ids.user_id")
+    @api.depends("line_ids.role_id.user_ids")
     def _compute_approver_ids(self):
         for config in self:
-            config.approver_ids = config.line_ids.mapped("user_id")
+            config.approver_ids = config.line_ids.role_id.user_ids
 
     @api.constrains("is_default", "active", "company_id")
     def _check_single_default(self):
@@ -86,13 +86,18 @@ class PurchaseApprovalConfigLine(models.Model):
         "purchase.approval.config", string="Configuration",
         required=True, ondelete="cascade", index=True,
     )
-    sequence = fields.Integer(default=10)
-    user_id = fields.Many2one(
-        "res.users", string="Approver", required=True,
+    sequence = fields.Integer(
+        default=10,
+        help="Drives the cascade order of the tiers: qualifying for a tier "
+             "also requires every lower-sequence tier's sign-off.",
     )
-
-    _sql_constraints = [
-        ("uniq_user_per_config",
-         "unique(config_id, user_id)",
-         "The same approver cannot be added twice to one approval configuration."),
-    ]
+    role_id = fields.Many2one(
+        "purchase.approval.role", string="Approval Role", required=True,
+        help="Every user holding this role must approve when this tier "
+             "applies.",
+    )
+    lower_limit = fields.Float(string="Lower Limit", required=True, default=0.0)
+    upper_limit = fields.Float(
+        string="Upper Limit", required=True, default=0.0,
+        help="Leave at 0 for an open-ended top tier with no upper bound.",
+    )

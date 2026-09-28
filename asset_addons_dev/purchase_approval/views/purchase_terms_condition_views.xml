@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record model="ir.ui.view" id="purchase_terms_condition_view_list">
+        <field name="name">purchase.terms.condition.list</field>
+        <field name="model">purchase.terms.condition</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="purchase_terms_condition_view_form">
+        <field name="name">purchase.terms.condition.form</field>
+        <field name="model">purchase.terms.condition</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Delivery Period"/></h1>
+                    </div>
+                    <field name="value_ids">
+                        <list editable="bottom">
+                            <field name="value"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_purchase_terms_condition">
+        <field name="name">Purchase Terms Conditions</field>
+        <field name="res_model">purchase.terms.condition</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Define a term or condition type
+            </p>
+            <p>
+                Each term (e.g. "Payment Terms") can have several canned text
+                values to choose from when it is added to a Purchase Order.
+            </p>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="purchase_terms_condition_template_view_list">
+        <field name="name">purchase.terms.condition.template.list</field>
+        <field name="model">purchase.terms.condition.template</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="term_ids" widget="many2many_tags"/>
+            </list>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="purchase_terms_condition_template_view_form">
+        <field name="name">purchase.terms.condition.template.form</field>
+        <field name="model">purchase.terms.condition.template</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Standard Terms"/></h1>
+                    </div>
+                    <field name="term_ids" widget="many2many_tags"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_purchase_terms_condition_template">
+        <field name="name">Terms Conditions Template</field>
+        <field name="res_model">purchase.terms.condition.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Define a Terms &amp; Conditions template
+            </p>
+            <p>
+                Bundle several term types together so they can be applied to
+                a Purchase Order in one click.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_purchase_terms_condition"
+              name="Purchase Terms Conditions"
+              parent="purchase.menu_purchase_config"
+              action="action_purchase_terms_condition"
+              groups="purchase.group_purchase_manager"
+              sequence="91"/>
+
+    <menuitem id="menu_purchase_terms_condition_template"
+              name="Terms Conditions Template"
+              parent="purchase.menu_purchase_config"
+              action="action_purchase_terms_condition_template"
+              groups="purchase.group_purchase_manager"
+              sequence="92"/>
+
+</odoo>

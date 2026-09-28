@@ -61,33 +61,16 @@
         </field>
     </record>
 
-    <!-- Vendor USER: vendors + own contact -->
-    <record id="rule_vendor_user_partner" model="ir.rule">
-        <field name="name">Vendor User - Vendors + Own</field>
-        <field name="model_id" ref="base.model_res_partner"/>
-        <field name="groups" eval="[(4, ref('vendor_management.group_vendor_user'))]"/>
-        <field name="perm_read" eval="1"/>
-        <field name="perm_write" eval="1"/>
-        <field name="perm_create" eval="1"/>
-        <field name="perm_unlink" eval="0"/>
-        <field name="domain_force">
-            ['|', ('is_vendor','=',True), ('id','=',user.partner_id.id)]
-        </field>
-    </record>
-
-    <!-- Vendor MANAGER: all vendors -->
-    <record id="rule_vendor_manager_partner" model="ir.rule">
-        <field name="name">Vendor Manager - Vendors</field>
-        <field name="model_id" ref="base.model_res_partner"/>
-        <field name="groups" eval="[(4, ref('vendor_management.group_vendor_manager'))]"/>
-        <field name="perm_read" eval="1"/>
-        <field name="perm_write" eval="1"/>
-        <field name="perm_create" eval="1"/>
-        <field name="perm_unlink" eval="0"/>
-        <field name="domain_force">
-            ['|', ('is_vendor','=',True), ('id','=',user.partner_id.id)]
-        </field>
-    </record>
+    <!-- group_vendor_user / group_vendor_manager are INTERNAL operational
+         roles (they imply purchase/stock/sales_team groups covering normal
+         backend work), not the portal login - restricting them to
+         "is_vendor OR own partner" (a domain that makes sense for the
+         actual portal rule above) broke basic navigation for any internal
+         staff holding either group: they couldn't see their own company
+         record, colleagues, or customers anywhere res.partner is touched
+         (Buyer fields, Contacts, etc). Removed; only Vendor MD ever had a
+         real (unrestricted) rule here, and the portal rule above already
+         correctly scopes actual external vendor logins. -->
 
     <!-- Vendor MD: everything -->
     <record id="rule_vendor_md_partner" model="ir.rule">

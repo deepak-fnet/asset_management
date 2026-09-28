@@ -4,42 +4,117 @@
         <field name="name">purchase.order.form.inherit.vendor.mgmt</field>
         <field name="model">purchase.order</field>
         <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <!-- Higher than the default 16: core's purchase_requisition does a
+             position="replace" on the whole partner_id field node (not just
+             an attribute), which silently discards this view's invisible=1
+             on that field if applied first. Forcing this view to apply last
+             among partner_id's inheritors is the standard fix. -->
+        <field name="priority">99</field>
         <field name="arch" type="xml">
             <xpath expr="//header" position="inside">
-                <button name="action_send_to_vendors" type="object" string="Send to Multiple Vendors" 
-                        invisible="state != 'draft' or comparison_state != 'draft'" class="btn-primary"/>
-                <button name="action_compare_quotes" type="object" string="Compare Quotes" 
-                        invisible="comparison_state == 'draft'" class="btn-info"/>
-
-                <button name="action_create_final_po" type="object" string="Convert to PO" 
-                        invisible="comparison_state != 'approved'" class="btn-primary"/>
-                <button name="action_open_rating_wizard" type="object" string="Rate Vendor" 
+                <button name="action_send_to_vendors" type="object" string="Send to Multiple Vendors"
+                        invisible="state != 'draft' or comparison_state != 'draft'" class="btn-primary"
+                        groups="vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
+                <button name="action_compare_quotes" type="object" string="Compare Quotes"
+                        invisible="comparison_state == 'draft'" class="btn-info"
+                        groups="vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
+                <button name="action_open_rating_wizard" type="object" string="Rate Vendor"
                         invisible="state not in ('purchase', 'done') or is_rated" class="btn-info"/>
             </xpath>
-            <xpath expr="//field[@name='partner_id']" position="attributes">
-                <!-- Gated on vendor_finalized alone, not state: this field and
-                     vendor_ids below are two views of the same decision (one
-                     vendor picked, yes/no), and native "Send RFQ" moving
-                     state to 'sent' is not that decision. Tying this to state
-                     made the multiple selected vendors visually vanish - back
-                     to a single (and, worse, seemingly arbitrary) vendor -
-                     the moment an RFQ was sent, well before anyone had
-                     actually finalized one. -->
-                <attribute name="invisible">not vendor_finalized</attribute>
-                <attribute name="readonly">state != 'draft'</attribute>
-                <attribute name="domain">[('is_vendor', '=', True), ('vendor_state', '=', 'active'), ('active', '=', True)]</attribute>
-                <attribute name="options">{'no_create': True}</attribute>
+            <!-- Same screen as the "Compare Quotes" header button above
+                 (action_compare_quotes, the vendor-grouped comparison
+                 screen), just also reachable as a stat button in the
+                 button box - same visual spot as Receipt/Price Comparison. -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button type="object" name="action_compare_quotes" class="oe_stat_button"
+                        icon="fa-balance-scale" invisible="comparison_state == 'draft'">
+                    <div class="o_field_statinfo">
+                        <span class="o_stat_text">Vendor Comparison</span>
+                    </div>
+                </button>
             </xpath>
+            <!-- The native one-click "upload a bill" bypass (header widget + its
+                 action_create_invoice()) would let anyone skip the Upload ->
+                 Stores approve -> Finance confirm chain entirely: it bills every
+                 line to order.partner_id in one shot, with no per-vendor
+                 awareness at all. -->
+            <xpath expr="//widget[@name='purchase_file_uploader']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <!-- Confirm Order: stay hidden until every line has a confirmed
+                 vendor AND (no approval flow applies, or it's fully approved)
+                 - mirrors button_confirm()'s own server-side gates exactly,
+                 so nobody sees a button that would just error on click.
+
+                 Checks approval_config_id, NOT approver_ids: approver_ids
+                 only gets populated by actually submitting for approval
+                 (see purchase_approval's button_confirm override), so
+                 gating on it let Confirm Order show for any order nobody
+                 had submitted yet - skipping Submit skipped approval
+                 entirely. approval_config_id is set at create() time,
+                 before any submission.
+
+                 Restricted to Purchase User (+ the vendor_manager/md
+                 super-roles every other action button here already allows). -->
+            <xpath expr="//button[@id='draft_confirm']" position="attributes">
+                <attribute name="invisible">state != 'draft' or not vendor_finalized or (approval_config_id and approval_status != 'approved')</attribute>
+                <attribute name="groups">vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md</attribute>
+            </xpath>
+            <xpath expr="//button[@id='bid_confirm']" position="attributes">
+                <attribute name="invisible">state != 'sent' or not vendor_finalized or (approval_config_id and approval_status != 'approved')</attribute>
+                <attribute name="groups">vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md</attribute>
+            </xpath>
+            <!-- Trim the button bar down to what this workflow actually uses:
+                 vendor bills replace the native "Send PO"/one-click-bill
+                 path, receiving/comparison/rating are the real post-confirm
+                 actions, and Acknowledge/Print aren't part of this flow. -->
+            <!-- "string" isn't an allowed inheritance selector, and all three
+                 action_rfq_send buttons share that name - this is the 3rd
+                 (state == 'purchase', "Send PO") in core's fixed button order. -->
+            <xpath expr="(//button[@name='action_rfq_send'])[3]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_acknowledge']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//button[@name='print_quotation']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//button[@name='%(purchase.action_report_purchase_order)d']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <!-- Always hidden, never just conditionally: this workflow's
+                 only real vendor-selection input is vendor_ids (the m2m)
+                 below. partner_id is kept around purely as a best-effort
+                 backend reference - synced to whichever vendor was most
+                 recently confirmed on a line (see
+                 vendor.quote.line.action_select_line) and to picking
+                 creation's fallback single-vendor path - required=False now
+                 (see purchase_order.py) so hiding it can never block a save
+                 on a field nobody can see or fill in.
+
+                 Full node position="replace", not position="attributes": core's
+                 purchase_requisition ALSO fully replaces this same field node
+                 (its own <field name="partner_id" position="replace"> in
+                 addons/purchase_requisition/views/purchase_views.xml), which
+                 silently discards a mere invisible="1" attribute tweak from
+                 any view applied before it. Replacing wholesale - after
+                 giving this view priority 99 so it applies last - wins
+                 outright regardless of merge order. -->
+            <field name="partner_id" position="replace">
+                <field name="partner_id" widget="res_partner_many2one" invisible="1"/>
+            </field>
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="vendor_finalized" invisible="1"/>
                 <field name="comparison_state" invisible="1"/>
                 <field name="is_rated" invisible="1"/>
                 <field name="vendor_ids" widget="many2many_tags"
-                       domain="[('is_vendor', '=', True), ('vendor_state', '=', 'active'), ('active', '=', True)]"
-                       invisible="vendor_finalized"/>
+                       domain="[('is_vendor', '=', True), ('vendor_state', '=', 'active'), ('active', '=', True)]"/>
                 <!-- Feature 8: RFQ Expiry Date (optional) -->
                 <field name="expiry_date"/>
-                <!-- Feature 11: Bill Reference (mandatory on confirm) -->
+                <!-- Optional free-text billing reference - no longer mandatory
+                     on confirm (see purchase_order.py button_confirm), vendor
+                     bills are now per-vendor and created post-receipt. -->
                 <field name="bill_reference"/>
             </xpath>
             <xpath expr="//field[@name='order_line']//field[@name='product_id']" position="attributes">
@@ -51,31 +126,77 @@
                      untouched. -->
                 <attribute name="readonly">state == 'cancel' or is_downpayment</attribute>
             </xpath>
+            <xpath expr="//field[@name='order_line']//field[@name='product_id']" position="after">
+                <field name="vendor_id" optional="show"
+                       readonly="parent.state != 'purchase'"
+                       domain="[('is_vendor', '=', True)]"
+                       help="Set from the Vendor Comparison grid during RFQ. Only editable directly for lines added after the order is already confirmed."/>
+            </xpath>
             <xpath expr="//notebook" position="inside">
                 <page string="Vendor Comparison" invisible="comparison_state == 'draft'">
-                    <field name="quote_ids" readonly="1">
-                        <list default_order="rank asc" decoration-success="state == 'selected'" decoration-info="state == 'submitted'" decoration-danger="state == 'rejected'">
-                            <field name="rank"/>
+                    <p class="text-muted" colspan="2">
+                        Confirm one vendor per product below - different products can go to different vendors.
+                    </p>
+                    <field name="comparison_line_ids" readonly="1" nolabel="1">
+                        <list default_order="product_id asc, vendor_price asc" create="false" delete="false"
+                              decoration-success="is_winning_line">
+                            <field name="product_id"/>
                             <field name="vendor_id"/>
-                            <field name="rfq_id" string="RFQ/PO Number"/>
-                            <field name="rating" string="Vendor Rating"/>
-                            <field name="total_amount"/>
+                            <field name="product_qty"/>
+                            <field name="vendor_price"/>
+                            <field name="price_subtotal"/>
                             <field name="delivery_date"/>
-                            <field name="line_notes_summary" string="Vendor Notes"/>
-                            <field name="note" string="General Notes" optional="show"/>
-                            <field name="any_quote_selected" column_invisible="True"/>
-                            <field name="state" widget="badge" decoration-success="state == 'selected'" decoration-info="state == 'submitted'" decoration-danger="state == 'rejected'"/>
-                            <button name="action_select" type="object" string="Select" 
-                                    class="btn-primary"
-                                    invisible="state == 'selected' or any_quote_selected"
-                                    groups="vendor_management.group_vendor_md"/>
-                            <button name="action_unselect" type="object" string="Unselect" 
-                                    class="btn-danger"
-                                    invisible="state != 'selected'"
-                                    groups="vendor_management.group_vendor_md"/>
+                            <field name="is_winning_line" column_invisible="True"/>
+                            <button name="action_select_line" type="object" string="Confirm"
+                                    class="btn-primary" invisible="is_winning_line"
+                                    groups="vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
+                            <button name="action_unselect_line" type="object" string="Unselect"
+                                    class="btn-danger" invisible="not is_winning_line"
+                                    groups="vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
                         </list>
                     </field>
                 </page>
+                <page string="Vendor Bills" invisible="not vendor_bill_ids">
+                    <field name="vendor_bill_ids" readonly="1" nolabel="1">
+                        <list create="false" delete="false">
+                            <field name="vendor_id"/>
+                            <field name="qty_ordered"/>
+                            <field name="qty_received"/>
+                            <field name="move_id"/>
+                            <field name="state" widget="badge"
+                                   decoration-info="state in ('to_receive', 'uploaded')"
+                                   decoration-warning="state in ('submitted', 'stores_approved')"
+                                   decoration-success="state == 'finance_confirmed'"/>
+                            <button name="action_view_receive" type="object" string="Receive"
+                                    class="btn-secondary"
+                                    groups="vendor_management.group_purchase_role_stores,vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
+                            <button name="action_upload_bill" type="object" string="Upload Bill"
+                                    class="btn-primary" invisible="qty_received &lt;= 0 or state != 'to_receive'"
+                                    groups="vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
+                            <button name="action_submit_bill" type="object" string="Submit"
+                                    class="btn-primary" invisible="state != 'uploaded'"
+                                    groups="vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
+                            <button name="action_stores_approve" type="object" string="Stores Approve"
+                                    class="btn-primary" invisible="state != 'submitted'"
+                                    groups="vendor_management.group_purchase_role_stores,vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
+                            <button name="action_finance_confirm" type="object" string="Finance Confirm"
+                                    class="btn-primary" invisible="state != 'stores_approved'"
+                                    groups="vendor_management.group_purchase_role_finance,vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+    <record id="purchase_order_view_tree_inherit_vendor_mgmt" model="ir.ui.view">
+        <field name="name">purchase.order.view.tree.inherit.vendor.mgmt</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_view_tree"/>
+        <field name="arch" type="xml">
+            <!-- Same bypass as the header widget above, but as a bulk action
+                 over multiple orders at once. -->
+            <xpath expr="//header//button[@name='action_create_invoice']" position="attributes">
+                <attribute name="invisible">1</attribute>
             </xpath>
         </field>
     </record>

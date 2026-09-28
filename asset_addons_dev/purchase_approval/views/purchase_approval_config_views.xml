@@ -43,13 +43,19 @@
                             <field name="line_ids">
                                 <list editable="bottom">
                                     <field name="sequence" widget="handle"/>
-                                    <field name="user_id"/>
+                                    <field name="role_id" options="{'create_edit': True}"/>
+                                    <field name="lower_limit"/>
+                                    <field name="upper_limit"/>
                                 </list>
                             </field>
                             <div class="text-muted mt-2">
-                                Every user listed here must approve a Purchase Order
-                                before it can be confirmed. When "Default" is ticked,
-                                new Purchase Orders pick up this flow automatically.
+                                Each row maps a Purchase Order amount band to an
+                                Approval Role. Tiers cascade: qualifying for a
+                                higher band also requires every lower tier's
+                                sign-off, in sequence order. Leave "Upper Limit"
+                                at 0 for an open-ended top tier. When "Default" is
+                                ticked, new Purchase Orders pick up this flow
+                                automatically.
                             </div>
                         </page>
                     </notebook>

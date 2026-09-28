@@ -4,7 +4,7 @@
         <field name="name">vendor.quote.tree</field>
         <field name="model">vendor.quote</field>
         <field name="arch" type="xml">
-            <list string="Vendor Quotations" decoration-success="state == 'selected'" decoration-danger="state == 'rejected'">
+            <list string="Vendor Quotations" decoration-success="line_result == 'all'" decoration-warning="line_result == 'partial'">
                 <field name="rank"/>
                 <field name="vendor_id"/>
                 <field name="rfq_id" string="RFQ/PO Number"/>
@@ -12,14 +12,8 @@
                 <field name="total_amount"/>
                 <field name="delivery_date"/>
                 <field name="line_notes_summary" string="Vendor Notes"/>
-                <field name="any_quote_selected" column_invisible="True"/>
+                <field name="line_result" widget="badge" decoration-success="line_result == 'all'" decoration-warning="line_result == 'partial'"/>
                 <field name="state" widget="badge" decoration-success="state == 'selected'" decoration-info="state == 'submitted'" decoration-danger="state == 'rejected'"/>
-                <button name="action_select" string="Select Vendor" type="object" 
-                        class="btn-primary" 
-                        invisible="state == 'selected' or any_quote_selected"/>
-                <button name="action_unselect" string="Unselect Vendor" type="object" 
-                        class="btn-danger" 
-                        invisible="state != 'selected'"/>
             </list>
         </field>
     </record>
@@ -55,6 +49,7 @@
                                     <field name="vendor_price"/>
                                     <field name="uom_id"/>
                                     <field name="delivery_date"/>
+                                    <field name="is_winning_line" widget="boolean_toggle" readonly="1"/>
                                 </list>
                             </field>
                         </page>
@@ -65,5 +60,68 @@
                 </sheet>
             </form>
         </field>
+    </record>
+
+    <!-- Dedicated "Compare Quotes" screen (see purchase.order.action_compare_quotes):
+         a standalone, vendor-grouped view over this RFQ's quote lines - expand a
+         vendor's group to see just their product lines and Confirm/Unselect them,
+         instead of scanning the flat cross-vendor grid embedded on the PO form. -->
+    <record id="view_vendor_quote_line_comparison_list" model="ir.ui.view">
+        <field name="name">vendor.quote.line.comparison.list</field>
+        <field name="model">vendor.quote.line</field>
+        <field name="arch" type="xml">
+            <list string="Vendor Comparison" create="false" delete="false"
+                  default_order="vendor_id asc, product_id asc"
+                  decoration-success="is_winning_line">
+                <!-- Shown once per vendor group header (sum= turns on the
+                     aggregation display; the fields' own aggregator='avg'
+                     makes it show the constant value, not a real average). -->
+                <field name="quote_rank" sum="Rank"/>
+                <field name="vendor_id"/>
+                <field name="rfq_id" string="RFQ/PO Number"/>
+                <field name="quote_rating" sum="Vendor Rating"/>
+                <field name="quote_total_amount" sum="Total Amount"/>
+                <!-- Per-product detail rows underneath each vendor's group. -->
+                <field name="product_id"/>
+                <field name="product_qty"/>
+                <field name="vendor_price"/>
+                <field name="price_subtotal"/>
+                <field name="delivery_date"/>
+                <field name="vendor_notes" string="Vendor Notes"/>
+                <field name="quote_state" widget="badge" string="Vendor Status"
+                       decoration-success="quote_state == 'selected'"
+                       decoration-info="quote_state == 'submitted'"
+                       decoration-danger="quote_state == 'rejected'"/>
+                <field name="is_winning_line" column_invisible="True"/>
+                <button name="action_select_line" type="object" string="Confirm"
+                        class="btn-primary" invisible="is_winning_line"
+                        groups="vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
+                <button name="action_unselect_line" type="object" string="Unselect"
+                        class="btn-danger" invisible="not is_winning_line"
+                        groups="vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vendor_quote_line_comparison_search" model="ir.ui.view">
+        <field name="name">vendor.quote.line.comparison.search</field>
+        <field name="model">vendor.quote.line</field>
+        <field name="arch" type="xml">
+            <search string="Vendor Comparison">
+                <field name="vendor_id"/>
+                <field name="product_id"/>
+                <filter name="group_by_vendor" string="Vendor" context="{'group_by': 'vendor_id'}"/>
+                <filter name="group_by_product" string="Product" context="{'group_by': 'product_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_vendor_quote_line_comparison" model="ir.actions.act_window">
+        <field name="name">Vendor Comparison</field>
+        <field name="res_model">vendor.quote.line</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_vendor_quote_line_comparison_list"/>
+        <field name="search_view_id" ref="view_vendor_quote_line_comparison_search"/>
+        <field name="context">{'search_default_group_by_vendor': 1}</field>
     </record>
 </odoo>

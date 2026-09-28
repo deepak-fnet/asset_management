@@ -10,5 +10,6 @@ from . import vendor_performance
 from . import vendor_audit_log
 from . import vendor_quote
 from . import purchase_order
+from . import vendor_bill
 from . import account_move
 from . import res_partner

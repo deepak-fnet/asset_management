@@ -1,6 +1,6 @@
 {
     'name': 'Vendor Management',
-    'version': '19.0.1.2.1',  # theme refresh, session-expiry handling, header title fix
+    'version': '19.0.1.4.14',  # add explicit Submit step: upload -> submit -> approve -> confirm
     'category': 'Services',
     'summary': 'Vendor Management System',
     'author': 'Prasanna',
@@ -16,7 +16,12 @@
         'web',
         'purchase',
         'stock',
+        'purchase_stock',
         'sales_team',
+        # Confirm Order's visibility is gated on approval_status/approver_ids
+        # (see views/purchase_order_views.xml) - a deliberate integration
+        # between the two flows, not an accidental coupling.
+        'purchase_approval',
     ],
 
     'data': [
@@ -43,6 +48,7 @@
         'views/vendor_actions.xml',
         'views/vendor_audit_log_views.xml',
         'views/vendor_quote_views.xml',
+        'views/vendor_bill_views.xml',
         'views/purchase_order_views.xml',
         'views/account_move_views.xml',
         'views/res_config_settings_views.xml',

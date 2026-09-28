@@ -1,5 +1,5 @@
 from odoo import models, fields, api, _
-from odoo.exceptions import ValidationError, UserError
+from odoo.exceptions import UserError
 
 class VendorQuote(models.Model):
     _name = 'vendor.quote'
@@ -39,12 +39,24 @@ class VendorQuote(models.Model):
     
     submitted_revision = fields.Integer(string="Submitted Revision", default=0)
     last_submitted_at = fields.Datetime(string="Last Submitted At")
-    
-    any_quote_selected = fields.Boolean(compute='_compute_any_quote_selected', store=False)
-    
+
+    # Per-line result of the comparison grid: how many of this quote's lines
+    # actually won their product's award, since different products on the
+    # same RFQ can go to different vendors. Replaces any_quote_selected
+    # (a whole-order concept that no longer applies).
+    line_result = fields.Selection([
+        ('none', 'No Lines Won'),
+        ('partial', 'Partially Won'),
+        ('all', 'All Lines Won'),
+    ], compute='_compute_line_result', store=True, string="Result")
+
     line_ids = fields.One2many('vendor.quote.line', 'quote_id', string="Lines")
-    
-    rating = fields.Float(string="Rating", compute="_compute_rating")
+
+    # store=True: needed so quote_rating (below, related to this field) can
+    # be aggregated in the vendor-grouped comparison screen's group header
+    # row - a non-stored field has no DB column for the aggregation query to
+    # read, which fails outright rather than just displaying blank.
+    rating = fields.Float(string="Rating", compute="_compute_rating", store=True)
     rank = fields.Integer(string="Rank", compute="_compute_rank", store=True)
     
     @api.model_create_multi
@@ -58,10 +70,20 @@ class VendorQuote(models.Model):
                 )
         return super().create(vals_list)
 
-    @api.depends('rfq_id.vendor_finalized')
-    def _compute_any_quote_selected(self):
+    @api.depends('line_ids.po_line_id.vendor_id', 'vendor_id')
+    def _compute_line_result(self):
         for rec in self:
-            rec.any_quote_selected = rec.rfq_id.vendor_finalized
+            lines = rec.line_ids.filtered('po_line_id')
+            if not lines:
+                rec.line_result = 'none'
+                continue
+            won = lines.filtered(lambda l: l.po_line_id.vendor_id == rec.vendor_id)
+            if not won:
+                rec.line_result = 'none'
+            elif len(won) == len(lines):
+                rec.line_result = 'all'
+            else:
+                rec.line_result = 'partial'
 
     @api.depends('line_ids.vendor_price', 'line_ids.product_qty')
     def _compute_total_amount(self):
@@ -153,88 +175,33 @@ class VendorQuote(models.Model):
         
         return res
 
-    def action_toggle_vendor(self):
-        """Toggle vendor selection state"""
-        # Block if RFQ expired
-        if self.rfq_id.is_rfq_expired:
-            raise UserError(
-                _("This RFQ has expired. You can no longer submit or modify quotations.")
-            )
-        if self.state == 'selected':
-            return self.action_unselect()
-        else:
-            return self.action_select()
-
-    def action_select(self):
-        """Select this quote as winner and update PO prices. Enforces single selection."""
-        for rec in self:
-            # Block if RFQ expired
-            if rec.rfq_id.is_rfq_expired:
-                raise UserError(
-                    _("This RFQ has expired. You can no longer submit or modify quotations.")
-                )
-            
-            # 1. Reject ALL other quotes of same RFQ First (ensure clean state)
-            others = rec.rfq_id.quote_ids.filtered(lambda q: q.id != rec.id)
-            others.write({'state': 'rejected'})
-            
-            # 2. Set current quote to selected
-            rec.write({'state': 'selected'})
-            
-            # 3. Synchronize Purchase Order
-            rec.rfq_id.write({
-                'partner_id': rec.vendor_id.id,
-                'vendor_ids': [(6, 0, [rec.vendor_id.id])],
-                'vendor_finalized': True
-            })
-
-            # 4. Update PO line prices with vendor quote prices
-            for line in rec.rfq_id.order_line:
-                quote_line = rec.line_ids.filtered(lambda ql: ql.po_line_id == line)
-                if quote_line:
-                    vendor_price = quote_line[0].vendor_price
-                    if not vendor_price:
-                        # Fallback to seller price if not quoted
-                        seller = line.product_id._select_seller(
-                            partner_id=rec.vendor_id,
-                            quantity=line.product_qty,
-                            date=rec.rfq_id.date_order,
-                            uom_id=line.product_uom_id,
-                        )
-                        vendor_price = seller.price if seller else (line.product_id.standard_price or 0.0)
-                    line.write({'price_unit': vendor_price})
-            
-            # 5. Update comparison state
-            if rec.rfq_id.comparison_state == 'sent':
-                rec.rfq_id.comparison_state = 'received'
-                
-        return {'type': 'ir.actions.client', 'tag': 'reload'}
-
-    def action_unselect(self):
-        """Unselect vendor and reset all quotes to neutral state (submitted)"""
-        for rec in self:
-            po = rec.rfq_id
-            # Reset all quotes of this PO to submitted
-            po.quote_ids.filtered(lambda q: q.state in ['selected', 'rejected']).write({'state': 'submitted'})
-            
-            # Restore PO vendor_ids to include all vendors who have quotes
-            all_quote_vendors = po.quote_ids.mapped('vendor_id').ids
-            
-            # Reset Purchase Order (Do NOT clear partner_id as it is required)
-            po.write({
-                'vendor_finalized': False,
-                'vendor_ids': [(6, 0, all_quote_vendors)]
-            })
-            
-        return {'type': 'ir.actions.client', 'tag': 'reload'}
-
 class VendorQuoteLine(models.Model):
     _name = 'vendor.quote.line'
     _description = 'Vendor Quotation Line'
 
     quote_id = fields.Many2one('vendor.quote', string="Quotation", ondelete='cascade')
     po_line_id = fields.Many2one('purchase.order.line', string="Purchase Order Line", ondelete='cascade')
-    
+
+    # Denormalized for the flat cross-vendor comparison grid (domain filtering
+    # by PO, group-by product/vendor) - vendor_id/rfq_id on vendor.quote
+    # itself require an extra join every list simply can't group by.
+    vendor_id = fields.Many2one('res.partner', related='quote_id.vendor_id', store=True, string="Vendor")
+    rfq_id = fields.Many2one('purchase.order', related='quote_id.rfq_id', store=True, string="RFQ")
+
+    # Quote-level info, surfaced on the line so the vendor-grouped comparison
+    # screen (action_compare_quotes) can show it once per vendor group
+    # instead of only on a separate vendor.quote record. aggregator='avg' is
+    # what makes rank/rating/total_amount actually render in a list's group
+    # header row - the value is identical across every line for a given
+    # vendor, so averaging just displays it (not a real average across
+    # different numbers). quote_state has no sensible aggregation (Selection
+    # field), so it only shows on the per-product detail rows, not the group
+    # header - a native Odoo list-view constraint, not a bug.
+    quote_rank = fields.Integer(related='quote_id.rank', string="Rank", aggregator='avg')
+    quote_rating = fields.Float(related='quote_id.rating', string="Vendor Rating", aggregator='avg')
+    quote_total_amount = fields.Float(related='quote_id.total_amount', string="Total Amount", aggregator='avg')
+    quote_state = fields.Selection(related='quote_id.state', string="Vendor Status")
+
     product_id = fields.Many2one('product.product', string="Product", related='po_line_id.product_id', store=True)
     product_qty = fields.Float(string="Quantity", related='po_line_id.product_qty')
     uom_id = fields.Many2one('uom.uom', string="Unit of Measure", related='po_line_id.product_uom_id')
@@ -248,7 +215,62 @@ class VendorQuoteLine(models.Model):
 
     price_subtotal = fields.Float(string="Subtotal", compute="_compute_price_subtotal")
 
+    # Computed, not stored: whether THIS vendor currently holds the award for
+    # this product line. Deliberately non-stored - po_line_id.vendor_id is a
+    # plain Many2one (single winner), so confirming a different vendor for
+    # the same line simply overwrites it; every other quote line's
+    # is_winning_line self-corrects the instant it's read, with no explicit
+    # "unwin" bookkeeping and no stale-state class of bug possible.
+    is_winning_line = fields.Boolean(string="Winning", compute='_compute_is_winning_line')
+
     @api.depends('vendor_price', 'product_qty')
     def _compute_price_subtotal(self):
         for line in self:
             line.price_subtotal = line.vendor_price * line.product_qty
+
+    @api.depends('po_line_id.vendor_id', 'vendor_id')
+    def _compute_is_winning_line(self):
+        for line in self:
+            line.is_winning_line = bool(line.po_line_id) and line.po_line_id.vendor_id == line.vendor_id
+
+    def action_select_line(self):
+        """Award this product line to this quote's vendor at this price."""
+        rfqs = self.env['purchase.order']
+        for line in self:
+            if line.quote_id.rfq_id.is_rfq_expired:
+                raise UserError(
+                    _("This RFQ has expired. You can no longer confirm a vendor for it.")
+                )
+            if not line.po_line_id:
+                continue
+            line.po_line_id.write({
+                'vendor_id': line.vendor_id.id,
+                'price_unit': line.vendor_price,
+                'winning_quote_line_id': line.id,
+            })
+            # Best-effort only: the PO header partner_id has no real meaning
+            # once lines can go to different vendors - keep it pointed at
+            # whichever vendor was most recently confirmed, purely as a
+            # reference default (e.g. for portal/report display), never
+            # relied on for picking/billing logic (that keys off
+            # order_line.vendor_id instead).
+            line.quote_id.rfq_id.partner_id = line.vendor_id
+            if line.quote_id.rfq_id.comparison_state == 'sent':
+                line.quote_id.rfq_id.comparison_state = 'received'
+            rfqs |= line.quote_id.rfq_id
+        rfqs._sync_quote_states()
+        return {'type': 'ir.actions.client', 'tag': 'reload'}
+
+    def action_unselect_line(self):
+        """Withdraw this vendor's award for this product line, if still theirs."""
+        rfqs = self.env['purchase.order']
+        for line in self:
+            po_line = line.po_line_id
+            if not po_line or po_line.vendor_id != line.vendor_id:
+                raise UserError(
+                    _("This line has already been reassigned to a different vendor.")
+                )
+            po_line.write({'vendor_id': False, 'winning_quote_line_id': False})
+            rfqs |= line.quote_id.rfq_id
+        rfqs._sync_quote_states()
+        return {'type': 'ir.actions.client', 'tag': 'reload'}

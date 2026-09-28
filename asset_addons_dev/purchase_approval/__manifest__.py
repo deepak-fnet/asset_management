@@ -1,6 +1,6 @@
 {
     "name": "Purchase Approval",
-    "version": "19.0.1.0.0",
+    "version": "19.0.1.2.3",
     "category": "Inventory/Purchase",
     "summary": "Multi-approver sign-off required before a Purchase Order can be confirmed",
     "description": """
@@ -23,7 +23,9 @@ not assume any other custom purchase module is installed.
     "depends": ["purchase", "mail"],
     "data": [
         "security/ir.model.access.csv",
+        "views/purchase_approval_role_views.xml",
         "views/purchase_approval_config_views.xml",
+        "views/purchase_terms_condition_views.xml",
         "views/purchase_order_views.xml",
     ],
     "installable": True,

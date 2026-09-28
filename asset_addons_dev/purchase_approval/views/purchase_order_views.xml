@@ -20,7 +20,15 @@
                  current user's own pending line (see action_approve_order),
                  so an approver can never action someone else's approval.
                  can_approve is False unless this user has a pending line,
-                 which keeps the buttons hidden for everyone else. -->
+                 which keeps the buttons hidden for everyone else.
+
+                 Submit gates on approval_config_id (set at create() from the
+                 default flow, independent of any submission), NOT
+                 approver_ids: approver_ids is now a pure computed rollup of
+                 approval_line_ids.approver_id, and approval_line_ids only
+                 get created BY submitting - gating Submit's own visibility
+                 on approver_ids made it permanently empty/hidden before the
+                 first submission, so nothing could ever trigger it. -->
             <button name="button_confirm" position="before">
                 <button name="action_approve_order" type="object"
                         string="Approve" class="btn-success"
@@ -30,7 +38,7 @@
                         invisible="not can_approve"/>
                 <button name="action_submit_for_approval" type="object"
                         string="Submit for Approval" class="btn-primary"
-                        invisible="not approver_ids or approval_status not in ('draft', 'rejected')"/>
+                        invisible="not approval_config_id or approval_status not in ('draft', 'rejected')"/>
                 <button name="action_reset_approval" type="object"
                         string="Reset Approval" class="btn-secondary"
                         invisible="1"
@@ -70,6 +78,51 @@
                                    decoration-warning="status == 'pending'"/>
                             <field name="comment"/>
                             <field name="action_date"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="purchase_order_form_inh_terms">
+        <field name="name">purchase.order.form.inh.terms</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <!-- Higher than the default 16: both this view and
+             purchase_requisition's insert "position=after partner_ref" -
+             whichever applies LAST ends up closest to that anchor. Forcing
+             this one to apply last is what actually lands terms_template_id
+             before requisition_id ("Purchase Agreement") rather than after
+             it - verified empirically, not assumed (see the earlier
+             partner_id/purchase_requisition surprise in vendor_management). -->
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+
+            <!-- Header field, positioned right after Vendor Reference -
+                 requisition_id ("Purchase Agreement", from the optional
+                 purchase_requisition module) is itself inserted right after
+                 partner_ref, so anchoring here the same way lands this field
+                 immediately before it when that module is installed,
+                 without requiring it as a hard dependency (partner_ref is
+                 guaranteed present in core's own base view either way).
+                 Labeled "Payment Terms" (see terms_template_id's string in
+                 the model) - picking one prefills the Terms Conditions lines
+                 below with one row per term type in the template. -->
+            <xpath expr="//field[@name='partner_ref']" position="after">
+                <field name="terms_template_id" options="{'no_create': True}"/>
+            </xpath>
+
+            <!-- Terms & Conditions tab: rows prefilled by the header Payment
+                 Terms field above; adjust/add rows one term at a time. -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Terms Conditions" name="terms_conditions">
+                    <field name="terms_condition_line_ids">
+                        <list editable="bottom">
+                            <field name="term_id"/>
+                            <field name="value_id" options="{'create_edit': True}"
+                                   domain="[('term_id', '=', term_id)]"/>
                         </list>
                     </field>
                 </page>

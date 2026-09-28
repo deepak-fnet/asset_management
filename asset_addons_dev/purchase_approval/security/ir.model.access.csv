@@ -5,3 +5,13 @@ access_purchase_approval_config_user,purchase.approval.config.user,model_purchas
 access_purchase_approval_config_mgr,purchase.approval.config.mgr,model_purchase_approval_config,purchase.group_purchase_manager,1,1,1,1
 access_purchase_approval_config_line_user,purchase.approval.config.line.user,model_purchase_approval_config_line,base.group_user,1,0,0,0
 access_purchase_approval_config_line_mgr,purchase.approval.config.line.mgr,model_purchase_approval_config_line,purchase.group_purchase_manager,1,1,1,1
+access_purchase_approval_role_user,purchase.approval.role.user,model_purchase_approval_role,base.group_user,1,0,0,0
+access_purchase_approval_role_mgr,purchase.approval.role.mgr,model_purchase_approval_role,purchase.group_purchase_manager,1,1,1,1
+access_purchase_terms_condition_user,purchase.terms.condition.user,model_purchase_terms_condition,base.group_user,1,0,0,0
+access_purchase_terms_condition_mgr,purchase.terms.condition.mgr,model_purchase_terms_condition,purchase.group_purchase_manager,1,1,1,1
+access_purchase_terms_condition_value_user,purchase.terms.condition.value.user,model_purchase_terms_condition_value,base.group_user,1,0,0,0
+access_purchase_terms_condition_value_mgr,purchase.terms.condition.value.mgr,model_purchase_terms_condition_value,purchase.group_purchase_manager,1,1,1,1
+access_purchase_terms_condition_template_user,purchase.terms.condition.template.user,model_purchase_terms_condition_template,base.group_user,1,0,0,0
+access_purchase_terms_condition_template_mgr,purchase.terms.condition.template.mgr,model_purchase_terms_condition_template,purchase.group_purchase_manager,1,1,1,1
+access_purchase_order_terms_line_user,purchase.order.terms.line.user,model_purchase_order_terms_line,base.group_user,1,1,1,0
+access_purchase_order_terms_line_mgr,purchase.order.terms.line.mgr,model_purchase_order_terms_line,purchase.group_purchase_manager,1,1,1,1
