@@ -5,6 +5,9 @@ access_asset_asset_admin,asset.asset admin,model_asset_asset,group_asset_admin,1
 access_asset_category_user,asset.category user,model_asset_category,group_asset_user,1,0,0,0
 access_asset_category_manager,asset.category manager,model_asset_category,group_asset_manager,1,1,1,1
 access_asset_category_admin,asset.category admin,model_asset_category,group_asset_admin,1,1,1,1
+access_asset_warranty_template_user,asset.warranty.template user,model_asset_warranty_template,group_asset_user,1,0,0,0
+access_asset_warranty_template_manager,asset.warranty.template manager,model_asset_warranty_template,group_asset_manager,1,1,1,1
+access_asset_warranty_template_admin,asset.warranty.template admin,model_asset_warranty_template,group_asset_admin,1,1,1,1
 access_asset_location_user,asset.location user,model_asset_location,group_asset_user,1,0,0,0
 access_asset_location_manager,asset.location manager,model_asset_location,group_asset_manager,1,1,1,1
 access_asset_location_admin,asset.location admin,model_asset_location,group_asset_admin,1,1,1,1

@@ -13,13 +13,13 @@
         <field name="name">Asset QR Code Tag</field>
         <field name="default" eval="False"/>
         <field name="format">custom</field>
-        <field name="page_height">100</field>
-        <field name="page_width">80</field>
+        <field name="page_height">50</field>
+        <field name="page_width">50</field>
         <field name="orientation">Portrait</field>
-        <field name="margin_top">3</field>
-        <field name="margin_bottom">3</field>
-        <field name="margin_left">3</field>
-        <field name="margin_right">3</field>
+        <field name="margin_top">2</field>
+        <field name="margin_bottom">2</field>
+        <field name="margin_left">2</field>
+        <field name="margin_right">2</field>
         <field name="header_line" eval="False"/>
         <field name="header_spacing">0</field>
         <field name="disable_shrinking" eval="True"/>
@@ -44,17 +44,17 @@
          shell) plus a plain, explicitly-sized div per asset. We skip
          web.external_layout/web.basic_layout on purpose: those pull in
          company letterhead/footer styling meant for full A4 documents,
-         which would fight with an 80x100mm tag and add nothing a sticker
+         which would fight with a 50x50mm tag and add nothing a sticker
          needs. -->
     <template id="report_asset_qr_document">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="doc">
-                <div style="width: 74mm; min-height: 94mm; margin: 0 auto; padding: 4mm; box-sizing: border-box; text-align: center; font-family: sans-serif; page-break-after: always;">
-                    <div style="font-size: 14px; font-weight: bold; word-wrap: break-word;" t-esc="doc.asset_name"/>
-                    <div style="font-size: 11px; color: #555555; margin-bottom: 4mm;" t-esc="doc.asset_code"/>
+                <div style="width: 46mm; min-height: 46mm; margin: 0 auto; padding: 2mm; box-sizing: border-box; text-align: center; font-family: sans-serif; page-break-after: always;">
+                    <div style="font-size: 12px; font-weight: bold; word-wrap: break-word;" t-esc="doc.asset_name"/>
+                    <div style="font-size: 9px; color: #555555; margin-bottom: 2mm;" t-esc="doc.asset_code"/>
                     <img t-if="doc.qr_code" t-att-src="image_data_uri(doc.qr_code)"
-                         style="width: 45mm; height: 45mm;" alt="QR Code"/>
-                    <div t-if="not doc.qr_code" style="font-size: 10px; color: #999999; padding: 10mm 0;">
+                         style="width: 28mm; height: 28mm;" alt="QR Code"/>
+                    <div t-if="not doc.qr_code" style="font-size: 8px; color: #999999; padding: 5mm 0;">
                         QR code not available (add a serial number to generate it)
                     </div>
                 </div>

@@ -547,6 +547,10 @@
                                 <field name="qr_code" widget="image"
                                        options="{'size': [80, 80]}"
                                        style="background: #fff; padding: 6px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; display: inline-block;"/>
+                                <button name="%(asset_management.action_report_asset_qr)d" type="action"
+                                        string="Print" class="btn-link" icon="fa-print"
+                                        invisible="not qr_code"
+                                        style="font-size: 10px; padding: 2px 0;"/>
                             </div>
                         </div>
 
@@ -675,10 +679,20 @@
                                             </div>
                                         </div>
 
-                                        <!-- Warranty Period (hidden for virtual assets) -->
+                                        <!-- Warranty Template (hidden for virtual assets) -->
+                                        <div class="spec_item" invisible="is_virtual_asset">
+                                            <span class="o_form_label">Warranty Template</span>
+                                            <field name="warranty_template_id" class="spec_value"
+                                                   options="{'no_create': True}"/>
+                                        </div>
+
+                                        <!-- Warranty Period (hidden for virtual assets). Read-only:
+                                             the template above is the single source of truth for
+                                             the period now, shown here just so the effective value
+                                             is visible without opening the template. -->
                                         <div class="spec_item" invisible="is_virtual_asset">
                                             <span class="o_form_label">Warranty Period (Months)</span>
-                                            <field name="warranty_period_months" class="spec_value" placeholder="e.g. 12, 24, 36"/>
+                                            <field name="warranty_period_months" class="spec_value" readonly="1"/>
                                         </div>
 
                                         <!-- Warranty Start (hidden for virtual assets) -->

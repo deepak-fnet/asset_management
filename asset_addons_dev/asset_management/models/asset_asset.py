@@ -233,12 +233,29 @@ class AssetAsset(models.Model):
     # HR INTEGRATION
     # =====================
 
+    # Not a hard related field on purpose: a plain related=... field with
+    # readonly=False writes THROUGH the relation - setting it directly would
+    # silently change the assigned employee's own HR department, not just
+    # this asset's record. Auto-defaults from the employee whenever they
+    # change (matching the old related behavior for that direction), but
+    # store=True/readonly=False means it stays independently, safely
+    # editable afterward - directly on the asset form, or via Asset
+    # Transfer's "Change Department" flow (see action_done in
+    # general_asset's asset_general_lifecycle.py) - without ever touching
+    # the employee record.
     department_id = fields.Many2one(
-        related="assigned_employee_id.department_id",
+        "hr.department",
+        compute="_compute_department_id",
         string="Department",
         store=True,
-        readonly=True
+        readonly=False,
     )
+
+    @api.depends("assigned_employee_id")
+    def _compute_department_id(self):
+        for asset in self:
+            if asset.assigned_employee_id:
+                asset.department_id = asset.assigned_employee_id.department_id
 
     job_id = fields.Many2one(
         related="assigned_employee_id.job_id",
@@ -269,10 +286,21 @@ class AssetAsset(models.Model):
         tracking=True
     )
 
+    warranty_template_id = fields.Many2one(
+        "asset.warranty.template", string="Warranty Template",
+        help="Pick a standard warranty template to auto-fill the period "
+             "below instead of typing it by hand. The period can still be "
+             "overridden manually after picking one.")
+
     warranty_period_months = fields.Integer(
         string="Warranty Period (Months)",
+        compute="_compute_warranty_period_months",
+        store=True,
+        readonly=False,
         tracking=True,
-        help="Warranty duration in months from purchase date"
+        help="Warranty duration in months from the warranty start date. "
+             "Auto-filled from the Warranty Template, but can be manually "
+             "overridden or set directly with no template at all."
     )
 
     # Computed warranty start: equals purchase_date
@@ -1541,6 +1569,17 @@ class AssetAsset(models.Model):
         """Determine if asset is virtual (no physical warranty applies)"""
         for asset in self:
             asset.is_virtual_asset = asset.acquisition_type in ('virtual', 'cloud')
+
+    @api.depends("warranty_template_id")
+    def _compute_warranty_period_months(self):
+        """Auto-fill the period from the chosen template. Its own, separate
+        compute (not shared with warranty_end_date's) for the same reason
+        warranty_start_date's is separate below - it is store=True,
+        readonly=False so a manual edit persists normally without being
+        silently skipped alongside a co-computed sibling."""
+        for asset in self:
+            if asset.warranty_template_id:
+                asset.warranty_period_months = asset.warranty_template_id.period_months
 
     @api.depends("purchase_date")
     def _compute_warranty_start_date(self):

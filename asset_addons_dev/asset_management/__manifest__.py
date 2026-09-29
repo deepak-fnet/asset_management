@@ -1,6 +1,6 @@
 {
     "name": "Asset Management Pro",
-    "version": "19.0.1.1.0",
+    "version": "19.0.1.2.2",  # fix warranty end-date recompute bug from prior fix; add Warranty Templates; QR print button next to the QR image; department_id no longer a hard related-to-employee field so Asset Transfer/direct edit can set it safely; resize QR print tag from 80x100mm to 50x50mm
     "summary": "Enterprise Asset Management with AI-Powered Agent Monitoring",
     "description": """
 Professional Enterprise Asset Management System
@@ -121,6 +121,7 @@ Professional Enterprise Asset Management System
         "views/asset_asset_form_remote.xml",
         "views/asset_camera_views.xml",
         "views/asset_category_views.xml",
+        "views/asset_warranty_template_views.xml",
         "views/asset_peripheral_views.xml",
         "views/asset_extra_views.xml",
         "views/hr_employee_views.xml",

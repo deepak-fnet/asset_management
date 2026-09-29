@@ -111,14 +111,19 @@
                  the model) - picking one prefills the Terms Conditions lines
                  below with one row per term type in the template. -->
             <xpath expr="//field[@name='partner_ref']" position="after">
-                <field name="terms_template_id" options="{'no_create': True}"/>
+                <field name="terms_template_id" options="{'no_create': True}"
+                       readonly="approval_status not in (False, 'draft', 'rejected')"/>
             </xpath>
 
             <!-- Terms & Conditions tab: rows prefilled by the header Payment
-                 Terms field above; adjust/add rows one term at a time. -->
+                 Terms field above; adjust/add rows one term at a time.
+                 Locked once submitted for approval, same as the line items -
+                 changing terms after sign-off would silently invalidate
+                 what was approved. -->
             <xpath expr="//notebook" position="inside">
                 <page string="Terms Conditions" name="terms_conditions">
-                    <field name="terms_condition_line_ids">
+                    <field name="terms_condition_line_ids"
+                           readonly="approval_status not in (False, 'draft', 'rejected')">
                         <list editable="bottom">
                             <field name="term_id"/>
                             <field name="value_id" options="{'create_edit': True}"

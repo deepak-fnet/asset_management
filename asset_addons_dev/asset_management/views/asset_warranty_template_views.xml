@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_asset_warranty_template_list" model="ir.ui.view">
+        <field name="name">asset.warranty.template.list</field>
+        <field name="model">asset.warranty.template</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="period_months"/>
+                <field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_warranty_template_form" model="ir.ui.view">
+        <field name="name">asset.warranty.template.form</field>
+        <field name="model">asset.warranty.template</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Standard 12 Month"/></h1>
+                    </div>
+                    <group>
+                        <field name="period_months"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                    </group>
+                    <field name="note" placeholder="Optional notes about this warranty template..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_asset_warranty_template" model="ir.actions.act_window">
+        <field name="name">Warranty Templates</field>
+        <field name="res_model">asset.warranty.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a warranty template
+            </p>
+            <p>
+                Warranty templates let a user pick a standard warranty period
+                (e.g. "Standard 12 Month") on an asset instead of typing the
+                number of months by hand every time.
+            </p>
+        </field>
+    </record>
+
+</odoo>

@@ -251,8 +251,13 @@
                         </button>
 
                     </div>
-                    <field name="qr_code" widget="image" class="oe_avatar" readonly="1"
-                           options="{'size': [90, 90]}"/>
+                    <div class="oe_avatar">
+                        <field name="qr_code" widget="image" readonly="1"
+                               options="{'size': [90, 90]}"/>
+                        <button name="%(asset_management.action_report_asset_qr)d" type="action"
+                                string="Print QR" class="btn-link" icon="fa-print"
+                                invisible="not qr_code"/>
+                    </div>
                     <field name="image_1920" widget="image" class="oe_avatar" readonly="is_submit and not is_dynamic_form"/>
                     <div class="oe_title">
                         <label for="asset_name" string="Asset"/>
@@ -300,7 +305,7 @@
                             <field name="is_rfid_device" readonly="is_submit and not is_dynamic_form"/>
                             <field name="plant_id" readonly="is_submit and not is_dynamic_form"/>
                             <field name="location_id" readonly="is_submit and not is_dynamic_form"/>
-                            <field name="department_id" readonly="(1) or (is_submit and not is_dynamic_form)"/>
+                            <field name="department_id" options="{'no_create': True}" readonly="is_submit and not is_dynamic_form"/>
                             <field name="asset_list_id" readonly="(1) or (is_submit and not is_dynamic_form)"/>
                             <field name="serial_number_1" string="Serial Number 2" readonly="is_submit and not is_dynamic_form"/>
                             <field name="serial_number_2" string="Serial Number 3" readonly="is_submit and not is_dynamic_form"/>
@@ -350,6 +355,13 @@
                         <page string="Warranty" name="warranty">
                             <group>
                                 <group>
+                                    <field name="warranty_template_id" options="{'no_create': True}"
+                                           readonly="is_submit and not is_dynamic_form"/>
+                                    <!-- Read-only: the template is the single source of truth for
+                                         the period now, shown here just so the effective value is
+                                         visible without opening the template. Pick a different
+                                         template (or add a new one) to change it. -->
+                                    <field name="warranty_period_months" readonly="1"/>
                                     <field name="warranty_start_date" readonly="is_submit and not is_dynamic_form"/>
                                     <field name="warranty_end_date" readonly="is_submit and not is_dynamic_form"/>
                                     <field name="warranty_status" readonly="(1) or (is_submit and not is_dynamic_form)"/>

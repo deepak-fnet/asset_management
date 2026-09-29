@@ -1,6 +1,6 @@
 {
     'name': 'Vendor Management',
-    'version': '19.0.1.4.14',  # add explicit Submit step: upload -> submit -> approve -> confirm
+    'version': '19.0.1.4.15',  # stop hard-reloading the page on vendor Confirm/Unselect; lock vendor comparison once submitted for approval
     'category': 'Services',
     'summary': 'Vendor Management System',
     'author': 'Prasanna',

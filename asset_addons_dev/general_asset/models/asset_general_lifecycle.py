@@ -7,6 +7,8 @@ rather than asset.addition, so they apply to IT and general assets alike -
 there was no reason to have two parallel sets of movement records.
 """
 
+import re
+
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
 
@@ -448,6 +450,36 @@ class PhysicalVerification(models.Model):
 
     def action_cancel(self):
         return self.write({"state": "cancelled"})
+
+    def action_scan_found(self, code):
+        """Called from the mobile "Scan Asset" widget with the raw text
+        decoded from the asset's printed QR label - see
+        asset.asset._compute_qr_code, which encodes
+        "Asset: <asset_code>\\nSerial: <serial_number>". Marks the matching
+        line on THIS verification as found and returns a plain dict (not an
+        exception) so the widget can show a toast either way instead of a
+        blocking error dialog for the common case of a mis-scan.
+        """
+        self.ensure_one()
+        match = re.search(r"Asset:\s*(\S+)", code or "")
+        asset_code = match.group(1) if match else (code or "").strip()
+        if not asset_code:
+            return {"success": False,
+                    "message": _("Could not read an asset code from that scan.")}
+
+        line = self.line_ids.filtered(lambda l: l.asset_code == asset_code)
+        if not line:
+            return {"success": False,
+                    "message": _("%s is not on this verification's asset list.", asset_code)}
+        line = line[0]
+
+        if line.status == "found":
+            return {"success": True, "already": True,
+                    "message": _("%s was already marked Found.", asset_code)}
+
+        line.action_mark_found()
+        return {"success": True, "already": False,
+                "message": _("%s marked Found.", asset_code)}
 
 
 class PhysicalVerificationLine(models.Model):

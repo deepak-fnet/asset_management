@@ -4,6 +4,7 @@ from . import asset_agent_log
 from . import asset_asset
 from . import asset_camera
 from . import asset_category
+from . import asset_warranty_template
 from . import asset_dashboard
 from . import asset_extra
 from . import asset_file_access

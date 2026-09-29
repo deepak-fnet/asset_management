@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "General Asset",
-    "version": "19.0.1.0.0",
+    "version": "19.0.1.1.4",  # add Warranty Templates to the Configuration menu; add Print QR button and Warranty Template/Period fields on the General Asset form; unlock Department field; add mobile "Scan Asset" QR-camera button on Physical Verification, marking the matching line Found
     "category": "Administration",
     "summary": "Non-IT assets: plant, machinery, furniture - with transfer, scrap and verification",
     "description": """
@@ -47,6 +47,8 @@ asset.asset records created through it remain, since they are ordinary assets.
         "web.assets_backend": [
             "general_asset/static/src/js/asset_dynamic_category_fields.js",
             "general_asset/static/src/xml/asset_dynamic_category_fields.xml",
+            "general_asset/static/src/js/physical_verification_scanner.js",
+            "general_asset/static/src/xml/physical_verification_scanner.xml",
         ],
     },
     "installable": True,

@@ -313,6 +313,9 @@
                     <div class="oe_title">
                         <h1><field name="name" readonly="1"/></h1>
                     </div>
+                    <div class="mb-3" invisible="state != 'in_progress'">
+                        <widget name="physical_verification_scanner"/>
+                    </div>
                     <group>
                         <group string="Scope">
                             <field name="verification_date"/>

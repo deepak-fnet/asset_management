@@ -148,10 +148,12 @@
                             <field name="delivery_date"/>
                             <field name="is_winning_line" column_invisible="True"/>
                             <button name="action_select_line" type="object" string="Confirm"
-                                    class="btn-primary" invisible="is_winning_line"
+                                    class="btn-primary"
+                                    invisible="is_winning_line or (parent.approval_status and parent.approval_status not in ('draft', 'rejected'))"
                                     groups="vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
                             <button name="action_unselect_line" type="object" string="Unselect"
-                                    class="btn-danger" invisible="not is_winning_line"
+                                    class="btn-danger"
+                                    invisible="not is_winning_line or (parent.approval_status and parent.approval_status not in ('draft', 'rejected'))"
                                     groups="vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
                         </list>
                     </field>

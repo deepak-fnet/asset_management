@@ -74,4 +74,10 @@
               action="action_asset_rfid_comparison"
               sequence="60"/>
 
+    <menuitem id="menu_config_asset_warranty_template"
+              name="Warranty Templates"
+              parent="menu_asset_configuration"
+              action="asset_management.action_asset_warranty_template"
+              sequence="70"/>
+
 </odoo>

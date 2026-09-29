@@ -1,6 +1,6 @@
 {
     "name": "Purchase Approval",
-    "version": "19.0.1.2.3",
+    "version": "19.0.1.3.0",  # lock terms/line-item fields once submitted for approval (view readonly + write guard)
     "category": "Inventory/Purchase",
     "summary": "Multi-approver sign-off required before a Purchase Order can be confirmed",
     "description": """

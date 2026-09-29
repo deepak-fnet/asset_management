@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="general_asset.PhysicalVerificationScanner">
+        <button type="button" class="btn btn-secondary" t-if="isSupported"
+                t-on-click="onScanClick">
+            <i class="fa fa-qrcode me-1"/>Scan Asset
+        </button>
+    </t>
+
+</templates>
