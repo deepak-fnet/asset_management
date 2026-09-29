@@ -120,6 +120,8 @@
                 <field name="is_cctv_asset"/>
                 <field name="is_dynamic_form" invisible="not is_general"/>
                 <field name="depreciation_method"/>
+                <field name="useful_life_years" invisible="depreciation_method != 'slm'"/>
+                <field name="depreciation_rate" invisible="depreciation_method != 'dlm'"/>
                 <field name="salvage_value_percent"/>
             </group>
             <xpath expr="//sheet" position="inside">

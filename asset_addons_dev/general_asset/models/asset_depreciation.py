@@ -50,7 +50,11 @@ class AssetAssetDepreciation(models.Model):
     # touching every one of those calculations) is the minimal change.
     salvage_value = fields.Float(
         string="Salvage Value", compute="_compute_salvage_value", store=True)
-    useful_life_years = fields.Integer()
+    useful_life_years = fields.Integer(
+        compute="_compute_useful_life_years_from_category",
+        store=True, readonly=False,
+        help="Used only for the Straight Line Method. Defaults from the "
+             "asset's category, but can be overridden per asset.")
     depreciation_method = fields.Selection(
         [("slm", "Straight Line Method"),
          ("dlm", "Declining Method")],
@@ -61,7 +65,10 @@ class AssetAssetDepreciation(models.Model):
              "per asset.")
     depreciation_rate = fields.Float(
         string="Declining Rate (%)",
-        help="Used only for the Declining Method.")
+        compute="_compute_depreciation_rate_from_category",
+        store=True, readonly=False,
+        help="Used only for the Declining Method. Defaults from the "
+             "asset's category, but can be overridden per asset.")
 
     current_value = fields.Float(readonly=True)
     accumulated_depreciation = fields.Float(readonly=True)
@@ -97,6 +104,16 @@ class AssetAssetDepreciation(models.Model):
     def _compute_salvage_value_percent_from_category(self):
         for rec in self:
             rec.salvage_value_percent = rec.category_id.salvage_value_percent or 0.5
+
+    @api.depends("category_id")
+    def _compute_useful_life_years_from_category(self):
+        for rec in self:
+            rec.useful_life_years = rec.category_id.useful_life_years
+
+    @api.depends("category_id")
+    def _compute_depreciation_rate_from_category(self):
+        for rec in self:
+            rec.depreciation_rate = rec.category_id.depreciation_rate
 
     def _compute_fully_depreciated(self):
         for rec in self:
@@ -319,6 +336,12 @@ class AssetCategoryDepreciation(models.Model):
         [("slm", "Straight Line Method"),
          ("dlm", "Declining Method")],
         default="slm", string="Depreciation Method")
+    useful_life_years = fields.Integer(
+        string="Useful Life Years",
+        help="Used only for the Straight Line Method.")
+    depreciation_rate = fields.Float(
+        string="Declining Rate (%)",
+        help="Used only for the Declining Method.")
     salvage_value_percent = fields.Float(
         string="Salvage Value (%)", default=0.5,
         help="Percentage of purchase cost, e.g. 0.5 for 0.5%.")

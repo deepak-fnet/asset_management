@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "General Asset",
-    "version": "19.0.1.2.1",  # add Warranty Templates to the Configuration menu; add Print QR button and Warranty Template/Period fields on the General Asset form; unlock Department field; add mobile "Scan Asset" QR-camera button on Physical Verification; turn Salvage Value into a Salvage Value (%) input (migration backfills existing amounts); category-level Depreciation Method/Salvage Value (%) defaults, applied on category select and auto-run on Submit
+    "version": "19.0.1.2.2",  # add Warranty Templates to the Configuration menu; add Print QR button and Warranty Template/Period fields on the General Asset form; unlock Department field; add mobile "Scan Asset" QR-camera button on Physical Verification; turn Salvage Value into a Salvage Value (%) input (migration backfills existing amounts); category-level full depreciation defaults (Method, Useful Life Years, Declining Rate (%), Salvage Value (%)), applied on category select and auto-run on Submit
     "category": "Administration",
     "summary": "Non-IT assets: plant, machinery, furniture - with transfer, scrap and verification",
     "description": """

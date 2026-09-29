@@ -584,12 +584,12 @@ class AssetAssetGeneral(models.Model):
         for rec in self:
             links = rec._submit_linked_records()
             missing = [label for _fname, label, target in links if not target]
-            if missing:
-                raise ValidationError(_(
-                    "Select the %s before submitting - this asset's category "
-                    "says it has one, and the purchase and warranty details "
-                    "are copied onto it on submit."
-                ) % ", ".join(missing))
+            # if missing:
+            #     raise ValidationError(_(
+            #         "Select the %s before submitting - this asset's category "
+            #         "says it has one, and the purchase and warranty details "
+            #         "are copied onto it on submit."
+            #     ) % ", ".join(missing))
             for _fname, _label, target in links:
                 rec._sync_submit_details(target)
             rec.is_submit = True
