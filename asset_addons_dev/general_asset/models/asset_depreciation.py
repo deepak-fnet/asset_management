@@ -34,17 +34,31 @@ class AssetDepreciationLine(models.Model):
 class AssetAssetDepreciation(models.Model):
     _inherit = "asset.asset"
 
+    salvage_value_percent = fields.Float(
+        string="Salvage Value (%)",
+        compute="_compute_salvage_value_percent_from_category",
+        store=True, readonly=False,
+        help="Estimated value once fully depreciated, as a percentage of "
+             "purchase cost (e.g. 0.5 for 0.5%) - defaults from the "
+             "asset's category (falling back to the original 0.5% "
+             "spreadsheet convention if the category has none set), but "
+             "can be overridden per asset. Same plain-number convention "
+             "as Declining Rate (%): stored as 5 for 5%, not 0.05.")
+    # Absolute amount, derived from the percentage above - every
+    # depreciation calculation below already correctly treats this as a
+    # currency amount, so keeping it as a stored compute (rather than
+    # touching every one of those calculations) is the minimal change.
     salvage_value = fields.Float(
-        default=0.0,
-        help="Estimated value once fully depreciated. Defaulted to 0.5% "
-             "of purchase cost when the cost is entered, same as the "
-             "original spreadsheet convention - override freely.")
+        string="Salvage Value", compute="_compute_salvage_value", store=True)
     useful_life_years = fields.Integer()
     depreciation_method = fields.Selection(
         [("slm", "Straight Line Method"),
          ("dlm", "Declining Method")],
-        default="slm",
-        help="DLM (Declining Method) also needs Declining Rate (%).")
+        compute="_compute_depreciation_method_from_category",
+        store=True, readonly=False,
+        help="DLM (Declining Method) also needs Declining Rate (%). "
+             "Defaults from the asset's category, but can be overridden "
+             "per asset.")
     depreciation_rate = fields.Float(
         string="Declining Rate (%)",
         help="Used only for the Declining Method.")
@@ -60,10 +74,29 @@ class AssetAssetDepreciation(models.Model):
         string="Depreciation %", compute="_compute_depreciation_percentage")
     remaining_value = fields.Float(compute="_compute_remaining_value")
 
-    @api.onchange("purchase_cost")
-    def _onchange_purchase_cost_salvage(self):
-        if self.purchase_cost:
-            self.salvage_value = self.purchase_cost * 0.005
+    @api.depends("purchase_cost", "salvage_value_percent")
+    def _compute_salvage_value(self):
+        for rec in self:
+            rec.salvage_value = (rec.purchase_cost or 0.0) * rec.salvage_value_percent / 100
+
+    # Two separate compute methods, not one shared by both fields: a
+    # store=True/readonly=False field that shares a compute call with a
+    # sibling output gets treated by the ORM as "already resolved" the
+    # moment either one is written directly, which can silently skip
+    # recomputing the other on a later, unrelated trigger - the exact bug
+    # already hit and fixed for warranty_start_date/warranty_end_date
+    # elsewhere in this codebase (see asset_management's asset_asset.py).
+    # Splitting these means editing one manually never risks the other
+    # going stale.
+    @api.depends("category_id")
+    def _compute_depreciation_method_from_category(self):
+        for rec in self:
+            rec.depreciation_method = rec.category_id.depreciation_method or "slm"
+
+    @api.depends("category_id")
+    def _compute_salvage_value_percent_from_category(self):
+        for rec in self:
+            rec.salvage_value_percent = rec.category_id.salvage_value_percent or 0.5
 
     def _compute_fully_depreciated(self):
         for rec in self:
@@ -106,8 +139,8 @@ class AssetAssetDepreciation(models.Model):
             raise UserError(_("Please enter Purchase Date."))
         if not self.purchase_cost:
             raise UserError(_("Please enter Purchase Cost."))
-        if not self.salvage_value:
-            raise UserError(_("Please enter Salvage Value."))
+        if not self.salvage_value_percent:
+            raise UserError(_("Please enter Salvage Value (%)."))
         if not self.useful_life_years:
             raise UserError(_("Please enter Useful Life (Years)."))
 
@@ -167,8 +200,8 @@ class AssetAssetDepreciation(models.Model):
             raise UserError(_("Please enter Purchase Cost."))
         if not self.purchase_date:
             raise UserError(_("Please enter Purchase Date."))
-        if not self.salvage_value:
-            raise UserError(_("Please enter Salvage Value."))
+        if not self.salvage_value_percent:
+            raise UserError(_("Please enter Salvage Value (%)."))
         if not self.depreciation_rate:
             raise UserError(_("Please enter Declining Rate (%)."))
 
@@ -272,3 +305,20 @@ class AssetAssetDepreciation(models.Model):
             start = fy_end + timedelta(days=1)
 
         self.current_value = current_value
+
+
+class AssetCategoryDepreciation(models.Model):
+    """Per-category depreciation defaults, pushed onto an asset when its
+    category is set/changed (see AssetAssetDepreciation._compute_
+    depreciation_method_from_category / _compute_salvage_value_percent_
+    from_category above) - so a "Laptop" category can standardise on e.g.
+    Declining Method + 5% salvage without every asset re-entering it."""
+    _inherit = "asset.category"
+
+    depreciation_method = fields.Selection(
+        [("slm", "Straight Line Method"),
+         ("dlm", "Declining Method")],
+        default="slm", string="Depreciation Method")
+    salvage_value_percent = fields.Float(
+        string="Salvage Value (%)", default=0.5,
+        help="Percentage of purchase cost, e.g. 0.5 for 0.5%.")

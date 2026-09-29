@@ -119,6 +119,8 @@
                 <field name="is_network_asset"/>
                 <field name="is_cctv_asset"/>
                 <field name="is_dynamic_form" invisible="not is_general"/>
+                <field name="depreciation_method"/>
+                <field name="salvage_value_percent"/>
             </group>
             <xpath expr="//sheet" position="inside">
                 <notebook invisible="not is_general">
@@ -315,7 +317,8 @@
                                  would silently strip the only way to link an
                                  IT/network/CCTV asset or fill its RFID tag. -->
                             <field name="tag_number" invisible="not is_rfid_device" required="is_rfid_device" readonly="is_submit and not is_dynamic_form"/>
-                            <field name="it_asset_id" domain="[('monitoring_protocol','=','agent')]" invisible="not is_it_asset" required="is_it_asset" readonly="(is_submit) or (is_submit and not is_dynamic_form)"/>
+                            <!-- required="is_it_asset" -->
+                            <field name="it_asset_id" domain="[('monitoring_protocol','=','agent')]" invisible="not is_it_asset"  readonly="(is_submit) or (is_submit and not is_dynamic_form)"/>
                             <field name="network_asset_id" invisible="not is_network_asset" required="is_network_asset" readonly="(is_submit) or (is_submit and not is_dynamic_form)"/>
                             <field name="cctv_asset_id" invisible="not is_cctv_asset" required="is_cctv_asset" readonly="(is_submit) or (is_submit and not is_dynamic_form)"/>
                         </group>
@@ -444,7 +447,8 @@
                                     <field name="depreciation_method" readonly="is_submit and not is_dynamic_form"/>
                                     <field name="depreciation_rate" invisible="depreciation_method != 'dlm'" required="depreciation_method == 'dlm'" readonly="is_submit and not is_dynamic_form"/>
                                     <field name="useful_life_years" invisible="depreciation_method != 'slm'" required="depreciation_method == 'slm'" readonly="is_submit and not is_dynamic_form"/>
-                                    <field name="salvage_value" readonly="is_submit and not is_dynamic_form"/>
+                                    <field name="salvage_value_percent" readonly="is_submit and not is_dynamic_form"/>
+                                    <field name="salvage_value" readonly="1"/>
                                 </group>
                                 <group string="Depreciation Result">
                                     <field name="current_value" readonly="(1) or (is_submit and not is_dynamic_form)"/>

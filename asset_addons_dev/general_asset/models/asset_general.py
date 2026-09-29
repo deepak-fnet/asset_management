@@ -22,7 +22,7 @@ Key decisions:
 """
 
 from odoo import models, fields, api, _
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 
 class Plant(models.Model):
@@ -599,7 +599,26 @@ class AssetAssetGeneral(models.Model):
             # not a re-submission of an in-use asset.
             if rec.state == 'draft':
                 rec.state = 'submit'
+            rec._try_calculate_depreciation_on_submit()
         return True
+
+    def _try_calculate_depreciation_on_submit(self):
+        """Best-effort: run Calculate Depreciation as part of Submit, so a
+        category with a depreciation method + salvage % configured (see
+        asset_depreciation.py) does not also need a separate manual click.
+
+        Silently skipped, not blocking Submit, when the required inputs for
+        the chosen method - purchase cost/date, and useful life (SLM) or
+        declining rate (DLM) - are not filled in yet; those are asset-
+        specific and have no category default, so an asset without them
+        yet just keeps the manual Calculate Depreciation button available
+        for later.
+        """
+        self.ensure_one()
+        try:
+            self.action_calculate_depreciation()
+        except UserError:
+            pass
 
     def action_reset(self):
         """Undo Submit - unlocks the form again on a fixed-layout category.
