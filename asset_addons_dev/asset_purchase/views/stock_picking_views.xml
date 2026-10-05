@@ -7,6 +7,15 @@
         <field name="inherit_id" ref="stock.view_picking_form"/>
         <field name="arch" type="xml">
 
+            <!-- Retry for a validated receipt whose automatic asset creation
+                 failed (reason is posted in the chatter). -->
+            <xpath expr="//header" position="inside">
+                <field name="has_missing_assets" invisible="1"/>
+                <button name="action_create_fixed_assets" type="object"
+                        string="Create Assets" class="btn-primary"
+                        invisible="not has_missing_assets"/>
+            </xpath>
+
             <div name="button_box" position="inside">
                 <button name="action_view_assets" type="object"
                         class="oe_stat_button" icon="fa-cubes"

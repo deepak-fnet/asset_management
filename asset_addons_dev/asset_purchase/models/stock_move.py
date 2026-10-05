@@ -59,7 +59,12 @@ class StockMove(models.Model):
 
     def _action_done(self, cancel_backorder=False):
         moves_todo = super()._action_done(cancel_backorder=cancel_backorder)
-        moves_todo._create_fixed_assets()
+        # sudo: whoever validates the receipt (Purchase User / Stores) has no
+        # Asset Management or Maintenance rights, and needs none - creating
+        # the assets is an automatic consequence of receiving, not something
+        # they are doing to the asset register by hand. sudo() keeps the same
+        # uid, so chatter notes are still authored by the validating user.
+        moves_todo.sudo()._create_fixed_assets()
         return moves_todo
 
     def _resolve_asset_category(self, mapping):

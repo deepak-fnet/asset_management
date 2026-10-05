@@ -267,7 +267,7 @@
             <div class="tab-pane fade" id="vp-rfqs" role="tabpanel">
               <div class="vp-card">
                 <div class="vp-card-head">
-                  <h5><i class="fa fa-gavel me-2"/>Your RFQs &amp; Purchase Orders</h5>
+                  <h5><i class="fa fa-gavel me-2"/>Your RFQs</h5>
                 </div>
                 <t t-if="rfqs">
                   <div class="table-responsive">
@@ -308,7 +308,41 @@
                     </table>
                   </div>
                 </t>
-                <div t-else="" class="vp-empty"><i class="fa fa-inbox"/><p>No RFQs or orders yet.</p></div>
+                <div t-else="" class="vp-empty"><i class="fa fa-inbox"/><p>No RFQs yet.</p></div>
+              </div>
+
+              <!-- Orders actually placed with this vendor: one per vendor,
+                   created when the buyer confirms an RFQ. -->
+              <div class="vp-card mt-3">
+                <div class="vp-card-head">
+                  <h5><i class="fa fa-shopping-cart me-2"/>Your Purchase Orders</h5>
+                </div>
+                <t t-if="purchase_orders">
+                  <div class="table-responsive">
+                    <table class="table vp-table mb-0">
+                      <thead>
+                        <tr><th>Order</th><th>RFQ</th><th>Date</th><th>Delivery</th><th class="text-end">Total</th><th></th></tr>
+                      </thead>
+                      <tbody>
+                        <t t-foreach="purchase_orders" t-as="po">
+                          <tr t-att-onclick="'window.location=\'%s\'' % po.get_portal_url()">
+                            <td class="fw-bold"><t t-esc="po.name"/></td>
+                            <td><t t-esc="po.rfq_id.name or '—'"/></td>
+                            <td><t t-esc="po.date_approve or po.date_order" t-options='{"widget": "date"}'/></td>
+                            <td>
+                              <span t-attf-class="vp-pill sm #{'ds-approved' if po.receipt_status == 'full' else 'ds-submitted'}">
+                                <t t-esc="dict(po._fields['receipt_status'].selection).get(po.receipt_status) or 'Pending'"/>
+                              </span>
+                            </td>
+                            <td class="text-end fw-bold"><t t-esc="po.amount_total" t-options='{"widget": "monetary", "display_currency": po.currency_id}'/></td>
+                            <td class="text-end"><i class="fa fa-chevron-right vp-muted"/></td>
+                          </tr>
+                        </t>
+                      </tbody>
+                    </table>
+                  </div>
+                </t>
+                <div t-else="" class="vp-empty"><i class="fa fa-inbox"/><p>No purchase orders yet.</p></div>
               </div>
             </div>
 

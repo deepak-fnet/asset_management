@@ -111,7 +111,7 @@
                  the model) - picking one prefills the Terms Conditions lines
                  below with one row per term type in the template. -->
             <xpath expr="//field[@name='partner_ref']" position="after">
-                <field name="terms_template_id" options="{'no_create': True}"
+                <field name="terms_template_id" options="{'no_create': True}" string="Terms &amp; conditions"
                        readonly="approval_status not in (False, 'draft', 'rejected')"/>
             </xpath>
 

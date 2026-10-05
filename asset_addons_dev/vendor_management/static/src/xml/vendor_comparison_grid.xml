@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vendor_management.VendorComparisonGrid">
+        <div class="o_vendor_comparison_grid">
+            <div class="o_vcg_inner">
+                <!-- Header: back arrow, title, quotation + state -->
+                <div class="o_vcg_header">
+                    <button type="button" class="o_vcg_back" t-on-click="goBack" title="Back">
+                        <i class="fa fa-arrow-left"/>
+                    </button>
+                    <div>
+                        <h1 class="o_vcg_title">Vendor Comparison</h1>
+                        <div class="o_vcg_subtitle">
+                            <span>Quotation: <t t-esc="state.poName"/></span>
+                            <span t-if="state.poState" class="o_vcg_badge" t-esc="state.poState"/>
+                        </div>
+                    </div>
+                </div>
+
+                <div t-if="state.loading" class="text-muted">Loading...</div>
+
+                <t t-else="">
+                    <div t-if="!state.vendors.length" class="o_vcg_card o_vcg_empty">
+                        No vendor bids yet for this RFQ.
+                    </div>
+
+                    <t t-else="">
+                        <div t-if="state.locked" class="o_vcg_card o_vcg_locked_note">
+                            <i class="fa fa-lock"/>
+                            <span>Purchase orders have been created from this RFQ - the selection below is final.</span>
+                        </div>
+                        <!-- Vendors who bid on this RFQ - names only -->
+                        <div class="o_vcg_card o_vcg_select_vendors">
+                            <div class="o_vcg_select_label">Vendors</div>
+                            <div class="o_vcg_select_list">
+                                <t t-foreach="state.vendors" t-as="vendor" t-key="vendor.id">
+                                    <span class="o_vcg_vendor_chip">
+                                        <span class="o_vcg_vendor_name" t-esc="vendor.name"/>
+                                    </span>
+                                </t>
+                            </div>
+                        </div>
+
+                        <!-- Product x vendor grid -->
+                        <div class="o_vcg_card o_vcg_table_wrap">
+                            <table class="o_vcg_table">
+                                <colgroup>
+                                    <col class="o_vcg_col_product"/>
+                                    <col class="o_vcg_col_qty"/>
+                                    <t t-foreach="state.vendors" t-as="vendor" t-key="vendor.id">
+                                        <col class="o_vcg_col_vendor"/>
+                                    </t>
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Qty</th>
+                                        <t t-foreach="state.vendors" t-as="vendor" t-key="vendor.id">
+                                            <th>
+                                                <label class="o_vcg_vendor_option"
+                                                       title="Award this vendor every product they quoted">
+                                                    <input type="checkbox" class="form-check-input"
+                                                           t-att-disabled="state.locked"
+                                                           t-att-checked="isVendorAwardedAll(vendor.id)"
+                                                           t-on-change="() => this.toggleVendorAll(vendor.id)"/>
+                                                    <span class="o_vcg_vendor_text">
+                                                        <span class="o_vcg_vendor_name" t-esc="vendor.name"/>
+                                                        <span t-if="vendor.subtitle" class="o_vcg_vendor_sub" t-esc="vendor.subtitle"/>
+                                                    </span>
+                                                </label>
+                                            </th>
+                                        </t>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="state.products" t-as="product" t-key="product.line_id">
+                                        <tr>
+                                            <td>
+                                                <div class="o_vcg_product">
+                                                    <img class="o_vcg_product_img"
+                                                         t-att-src="productImageUrl(product)"
+                                                         t-att-alt="product.product_name"/>
+                                                    <span class="o_vcg_product_name" t-esc="product.product_name"/>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="o_vcg_qty" t-esc="product.qty"/>
+                                                <div class="o_vcg_uom">(<t t-esc="product.uom"/>)</div>
+                                            </td>
+                                            <t t-foreach="state.vendors" t-as="vendor" t-key="vendor.id">
+                                                <td>
+                                                    <t t-set="cell" t-value="product.cellsByVendor[vendor.id]"/>
+                                                    <label t-if="cell" class="o_vcg_cell"
+                                                           t-att-class="cell.is_winning ? 'o_vcg_cell_winning' : ''">
+                                                        <input type="checkbox" class="form-check-input"
+                                                           t-att-disabled="state.locked"
+                                                               t-att-checked="cell.is_winning"
+                                                               t-on-change="() => this.toggleCell(cell)"/>
+                                                        <span class="o_vcg_price" t-esc="formatAmount(cell.price)"/>
+                                                        <span t-if="isLowestPrice(product, cell)" class="o_vcg_tag_lowest">Lowest</span>
+                                                    </label>
+                                                    <span t-else="" class="o_vcg_not_quoted">Not quoted</span>
+                                                </td>
+                                            </t>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="2" class="o_vcg_total_label">Total</td>
+                                        <t t-foreach="state.vendors" t-as="vendor" t-key="vendor.id">
+                                            <td>
+                                                <div class="o_vcg_total"
+                                                     t-att-class="isLowestTotal(vendor.id) ? 'o_vcg_total_lowest' : ''">
+                                                    <span t-esc="formatAmount(vendorTotal(vendor.id))"/>
+                                                    <span t-if="isLowestTotal(vendor.id)" class="o_vcg_tag_lowest">Lowest</span>
+                                                </div>
+                                            </td>
+                                        </t>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <!-- What the order costs with the current selection -->
+                        <div class="o_vcg_card o_vcg_summary">
+                            <div class="o_vcg_summary_text">
+                                <i class="fa fa-info-circle"/>
+                                <span>Compare prices from multiple vendors and select the best option for each product.</span>
+                            </div>
+                            <div class="o_vcg_summary_total">
+                                <span class="o_vcg_summary_label">
+                                    Selected total
+                                    <span class="o_vcg_summary_count">
+                                        (<t t-esc="selectedCount"/> of <t t-esc="state.products.length"/> products)
+                                    </span>
+                                </span>
+                                <span class="o_vcg_summary_amount" t-esc="formatAmount(selectedTotal)"/>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+            </div>
+        </div>
+    </t>
+
+</templates>

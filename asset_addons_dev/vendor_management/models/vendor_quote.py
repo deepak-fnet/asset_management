@@ -70,6 +70,35 @@ class VendorQuote(models.Model):
                 )
         return super().create(vals_list)
 
+    def action_submit_bid(self):
+        """Buyer enters a bid on a vendor's behalf (vendor cannot use the
+        portal, sends prices by phone/email instead) and submits it - same
+        end state as the vendor submitting it themselves on the portal."""
+        for quote in self:
+            if quote.state != 'draft':
+                raise UserError(_("This bid has already been submitted."))
+            if quote.rfq_id.comparison_state != 'sent':
+                raise UserError(_("Bidding is closed for this RFQ."))
+            if not any(line.vendor_price > 0 for line in quote.line_ids):
+                raise UserError(_("Enter the vendor's price for at least one product."))
+            # write() stamps submitted_revision/last_submitted_at itself
+            quote.write({'state': 'submitted'})
+            quote.rfq_id.message_post(body=_(
+                "Bid for %(vendor)s entered manually by %(user)s.",
+                vendor=quote.vendor_id.name, user=self.env.user.name))
+
+    def action_open_bid(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Bid - %s', self.vendor_id.name),
+            'res_model': 'vendor.quote',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'views': [(self.env.ref('vendor_management.view_vendor_quote_form').id, 'form')],
+            'target': 'current',
+        }
+
     @api.depends('line_ids.po_line_id.vendor_id', 'vendor_id')
     def _compute_line_result(self):
         for rec in self:
@@ -166,13 +195,14 @@ class VendorQuote(models.Model):
                 vals['last_submitted_at'] = fields.Datetime.now()
 
         res = super().write(vals)
-        
-        # Business logic only: Update PO comparison state when quote state changes
-        if 'state' in vals:
-            for rec in self:
-                if rec.rfq_id and rec.state == 'submitted':
-                    rec.rfq_id.comparison_state = 'received'
-        
+
+        # Bids received only once EVERY invited vendor has submitted - not on
+        # the first one (that is what this used to do, which closed bidding
+        # on everyone else as soon as one vendor answered). The buyer can
+        # still close early with the PO's "Bid Received" button.
+        if vals.get('state') == 'submitted':
+            self.rfq_id._check_all_bids_received()
+
         return res
 
 class VendorQuoteLine(models.Model):
@@ -241,6 +271,12 @@ class VendorQuoteLine(models.Model):
                 raise UserError(
                     _("This RFQ has expired. You can no longer confirm a vendor for it.")
                 )
+            if line.quote_id.rfq_id.comparison_state in ('draft', 'sent'):
+                raise UserError(_("Mark bids as received before selecting vendors."))
+            if line.quote_id.rfq_id.state not in ('draft', 'sent'):
+                raise UserError(_("Purchase orders have already been created from this RFQ."))
+            if line.quote_id.state == 'draft':
+                raise UserError(_("%s has not submitted a bid.", line.vendor_id.name))
             if not line.po_line_id:
                 continue
             line.po_line_id.write({
@@ -255,8 +291,6 @@ class VendorQuoteLine(models.Model):
             # relied on for picking/billing logic (that keys off
             # order_line.vendor_id instead).
             line.quote_id.rfq_id.partner_id = line.vendor_id
-            if line.quote_id.rfq_id.comparison_state == 'sent':
-                line.quote_id.rfq_id.comparison_state = 'received'
             rfqs |= line.quote_id.rfq_id
         rfqs._sync_quote_states()
         # No explicit action returned: the web client already re-reads every
@@ -271,6 +305,8 @@ class VendorQuoteLine(models.Model):
         """Withdraw this vendor's award for this product line, if still theirs."""
         rfqs = self.env['purchase.order']
         for line in self:
+            if line.quote_id.rfq_id.state not in ('draft', 'sent'):
+                raise UserError(_("Purchase orders have already been created from this RFQ."))
             po_line = line.po_line_id
             if not po_line or po_line.vendor_id != line.vendor_id:
                 raise UserError(

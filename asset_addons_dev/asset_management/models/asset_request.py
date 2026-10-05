@@ -143,8 +143,13 @@ class AssetRequest(models.Model):
     def _compute_asset_list_count(self):
         for rec in self:
             rec.asset_list_count = len(rec.asset_list_ids)
+            # 'ordered' = an RFQ that was split into one purchase order per
+            # vendor (vendor_management); its lines live on in those orders,
+            # so counting it too would double the expected units.
             rec.asset_list_total = int(sum(
-                pol.product_qty for po in rec.purchase_order_ids for pol in po.order_line
+                pol.product_qty for po in rec.purchase_order_ids
+                if po.state != "ordered"
+                for pol in po.order_line
             ))
             rec.asset_list_filled = len(rec.asset_list_ids.filtered(lambda a: a.serial_no))
 

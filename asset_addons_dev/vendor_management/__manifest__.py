@@ -1,6 +1,6 @@
 {
     'name': 'Vendor Management',
-    'version': '19.0.1.4.15',  # stop hard-reloading the page on vendor Confirm/Unselect; lock vendor comparison once submitted for approval
+    'version': '19.0.1.5.1',  # Price Comparison dashboard (overview, vendor cards with trend, on-time + rating charts, price history); RFQ split: Confirm Order creates one purchase order per awarded vendor (RFQ -> 'Ordered'); child orders single-vendor with Upload Bill; bill approval Stores Approve -> Finance Confirm on the bill itself (vendor.bill + multi-vendor picking split removed); no duplicates in portal/Price Comparison/report; comparison: per-vendor Total row, Selected total, Lowest tags, order currency, refined layout; comparison top bar lists vendor names only (no checkboxes); bid stage: Vendor Bids tab + manual Enter/Submit Bid, Bid Received (manual, or automatic once every vendor bids), approval only after bids received + all products awarded; Purchase role ACLs on vendor.quote
     'category': 'Services',
     'summary': 'Vendor Management System',
     'author': 'Prasanna',
@@ -48,7 +48,6 @@
         'views/vendor_actions.xml',
         'views/vendor_audit_log_views.xml',
         'views/vendor_quote_views.xml',
-        'views/vendor_bill_views.xml',
         'views/purchase_order_views.xml',
         'views/account_move_views.xml',
         'views/res_config_settings_views.xml',
@@ -89,6 +88,11 @@
             'vendor_management/static/src/css/vendor_management.scss',
             'vendor_management/static/src/js/vendor_dashboard.js',
             'vendor_management/static/src/xml/vendor_dashboard.xml',
+            'vendor_management/static/src/js/vendor_comparison_grid.js',
+            'vendor_management/static/src/xml/vendor_comparison_grid.xml',
+            'vendor_management/static/src/scss/price_comparison_dashboard.scss',
+            'vendor_management/static/src/js/price_comparison_dashboard.js',
+            'vendor_management/static/src/xml/price_comparison_dashboard.xml',
         ],
         'web.assets_frontend': [
             'vendor_management/static/src/scss/vendor_portal.scss',

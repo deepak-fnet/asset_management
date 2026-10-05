@@ -1,6 +1,4 @@
-from collections import defaultdict
-
-from odoo import models, fields, api, _, SUPERUSER_ID
+from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, UserError
 from .vendor_compat_utils import group_members, group_member_emails
 
@@ -75,11 +73,52 @@ class PurchaseOrder(models.Model):
                 if vendor.vendor_state == 'blocked':
                     raise ValidationError(_("Vendor %s is blocked and cannot be used.", vendor.name))
 
-    def button_confirm(self):
-        # Enforce that every order line has a confirmed winning vendor before
-        # the PO can be confirmed. vendor_finalized (computed, see below) is
-        # true iff every non-display line already has order_line.vendor_id set.
+    # ------------------------------------------------------------------
+    # RFQ -> one purchase order per vendor
+    #
+    # Same model for both: the RFQ is the purchase.order the user created
+    # (bids, comparison, approval all live on it) and is never confirmed
+    # itself. "Confirm Order" on it creates one child purchase.order per
+    # awarded vendor - single vendor, standard Odoo from there on (receipt,
+    # bill) - and moves the RFQ to 'ordered'.
+    # ------------------------------------------------------------------
+    state = fields.Selection(
+        selection_add=[('ordered', 'Ordered')],
+        ondelete={'ordered': 'set default'},
+    )
+    rfq_id = fields.Many2one(
+        'purchase.order', string="Source RFQ", readonly=True, copy=False, index=True,
+        help="The RFQ this purchase order was created from on Confirm Order.")
+    child_po_ids = fields.One2many('purchase.order', 'rfq_id', string="Purchase Orders")
+    child_po_count = fields.Integer(compute='_compute_child_po_count')
+    bill_ready = fields.Boolean(
+        compute='_compute_bill_ready',
+        help="Something has been received that is not billed yet.")
+
+    @api.depends('child_po_ids')
+    def _compute_child_po_count(self):
         for rec in self:
+            rec.child_po_count = len(rec.child_po_ids)
+
+    @api.depends('order_line.qty_received', 'order_line.qty_invoiced', 'state')
+    def _compute_bill_ready(self):
+        for rec in self:
+            rec.bill_ready = rec.state == 'purchase' and any(
+                line.qty_received > line.qty_invoiced
+                for line in rec.order_line.filtered(lambda l: not l.display_type))
+
+    def button_confirm(self):
+        rfqs = self.filtered(lambda po: not po.rfq_id and po.state in ('draft', 'sent'))
+        orders = self - rfqs
+        if rfqs:
+            rfqs._split_into_vendor_orders()
+        if not orders:
+            return True
+
+        # Child (or legacy) single-vendor orders: standard confirm. The
+        # vendor_finalized check still applies to any order confirmed this
+        # way - a child always has its vendor set on every line.
+        for rec in orders:
             if not rec.vendor_finalized:
                 unresolved = rec.order_line.filtered(lambda l: not l.display_type and not l.vendor_id)
                 raise ValidationError(
@@ -87,12 +126,83 @@ class PurchaseOrder(models.Model):
                       "Missing a vendor for: %s", ', '.join(unresolved.mapped('product_id.display_name')) or _('(all lines)'))
                 )
 
-        res = super().button_confirm()
-        for rec in self:
+        res = super(PurchaseOrder, orders).button_confirm()
+        for rec in orders:
             threshold = float(self.env['ir.config_parameter'].sudo().get_param('vendor_management.transaction_review_threshold', 1000.0))
             if rec.amount_total > threshold:
                 rec._trigger_transaction_review()
         return res
+
+    def _split_into_vendor_orders(self):
+        """Confirm Order on an RFQ: one confirmed purchase order per awarded
+        vendor, carrying only that vendor's lines at the awarded price."""
+        for rfq in self:
+            if rfq.comparison_state in ('draft', 'sent'):
+                raise UserError(_("Bids must be received and vendors selected before confirming."))
+            if not rfq.vendor_finalized:
+                unresolved = rfq.order_line.filtered(lambda l: not l.display_type and not l.vendor_id)
+                raise ValidationError(_(
+                    "Select a vendor for every product before confirming. Missing a vendor for: %s",
+                    ', '.join(unresolved.mapped('product_id.display_name')) or _('(all lines)')))
+            rfq._check_approval_before_confirm()
+
+            lines_by_vendor = {}
+            for line in rfq.order_line.filtered(lambda l: not l.display_type):
+                lines_by_vendor.setdefault(line.vendor_id, self.env['purchase.order.line'])
+                lines_by_vendor[line.vendor_id] |= line
+
+            children = self.env['purchase.order']
+            for vendor, lines in lines_by_vendor.items():
+                children |= rfq._create_vendor_order(vendor, lines)
+
+            rfq.write({'state': 'ordered', 'comparison_state': 'po_created'})
+            # Confirm after the RFQ has left draft/sent: children are
+            # ordinary orders from here on (picking, PO numbering, review).
+            children.button_confirm()
+            rfq.message_post(body=_(
+                "Purchase orders created: %s",
+                ", ".join("%s (%s)" % (c.name, c.partner_id.name) for c in children)))
+
+    def _create_vendor_order(self, vendor, lines):
+        self.ensure_one()
+        order_vals = {
+            'name': self.env['ir.sequence'].sudo().next_by_code('vendor_management.purchase.po') or _('New'),
+            'rfq_id': self.id,
+            'partner_id': vendor.id,
+            'origin': self.name,
+            'partner_ref': self.partner_ref,
+            'company_id': self.company_id.id,
+            'currency_id': self.currency_id.id,
+            'user_id': self.user_id.id,
+            'picking_type_id': self.picking_type_id.id,
+            'dest_address_id': self.dest_address_id.id,
+            'payment_term_id': self.payment_term_id.id,
+            'incoterm_id': self.incoterm_id.id,
+            'note': self.note,
+            'comparison_state': 'po_created',
+            'order_line': [],
+        }
+        if 'asset_request_id' in self._fields:
+            order_vals['asset_request_id'] = self.asset_request_id.id
+        if 'terms_template_id' in self._fields:
+            order_vals['terms_template_id'] = self.terms_template_id.id
+            order_vals['terms_condition_line_ids'] = [
+                (0, 0, {'term_id': t.term_id.id, 'value_id': t.value_id.id})
+                for t in self.terms_condition_line_ids]
+        for line in lines:
+            # copy_data: carries every copyable line field, including ones
+            # other modules add (fixed-asset flags, GST option, analytics)
+            # without this module having to know about them.
+            line_vals = line.copy_data({
+                'order_id': False,
+                'vendor_id': vendor.id,
+                'winning_quote_line_id': line.winning_quote_line_id.id,
+                'price_unit': line.price_unit,
+                'product_qty': line.product_qty,
+            })[0]
+            line_vals.pop('order_id', None)
+            order_vals['order_line'].append((0, 0, line_vals))
+        return self.with_context(purchase_approval_skip_default=True).create(order_vals)
 
     def button_approve(self, force=False):
         # RFQ/PO numbering: this is the single place native Odoo actually
@@ -100,13 +210,193 @@ class PurchaseOrder(models.Model):
         # direct button_confirm() (amount under the approval threshold) or
         # later, manually, on an order left at 'to approve'. Hooking here
         # (rather than in button_confirm) covers both paths without
-        # duplicating the rename.
+        # duplicating the rename. Orders split from an RFQ were already
+        # given their PO number at creation.
         res = super().button_approve(force=force)
         for rec in self:
-            if rec.state == 'purchase':
+            if rec.state == 'purchase' and not rec.rfq_id:
                 rec.name = self.env['ir.sequence'].sudo().next_by_code(
                     'vendor_management.purchase.po') or rec.name
         return res
+
+    def action_view_child_pos(self):
+        self.ensure_one()
+        action = self.env['ir.actions.act_window']._for_xml_id('purchase.purchase_form_action')
+        action.update({
+            'name': _('Purchase Orders - %s', self.name),
+            'domain': [('rfq_id', '=', self.id)],
+            'context': {'create': False},
+        })
+        if self.child_po_count == 1:
+            action.update({'view_mode': 'form', 'views': [(False, 'form')], 'res_id': self.child_po_ids.id})
+        return action
+
+    def action_open_source_rfq(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'purchase.order',
+            'res_id': self.rfq_id.id,
+            'view_mode': 'form',
+            'views': [(False, 'form')],
+        }
+
+    def action_upload_bill(self):
+        """Child order's Upload Bill: Odoo's own bill creation (bills what
+        has been received and not yet billed), opening the draft bill so the
+        document can be attached. The bill then waits for Stores Approve ->
+        Finance Confirm (see account_move.py)."""
+        self.ensure_one()
+        if not self.bill_ready:
+            raise UserError(_("Nothing has been received that is not already billed."))
+        return self.action_create_invoice()
+
+    # ------------------------------------------------------------------
+    # Price Comparison dashboard (replaces core's plain purchase-history
+    # list): per product, every vendor's confirmed purchases and submitted
+    # bids, price trend, on-time delivery and rating.
+    # ------------------------------------------------------------------
+    @api.depends('order_line', 'order_line.product_id')
+    def _compute_show_comparison(self):
+        super()._compute_show_comparison()
+        # Core only shows the button when other confirmed orders exist; bids
+        # on this or earlier RFQs are just as much a price comparison.
+        QuoteLine = self.env['vendor.quote.line']
+        for rec in self.filtered(lambda r: not r.show_comparison):
+            rec.show_comparison = bool(QuoteLine.search_count([
+                ('product_id', 'in', rec.order_line.product_id.ids),
+                ('quote_id.state', '!=', 'draft'),
+                ('vendor_price', '>', 0),
+            ], limit=1))
+
+    def action_purchase_comparison(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'vendor_management.price_comparison_dashboard',
+            'name': _('Price Comparison - %s', self.name),
+            'context': {'active_id': self.id},
+        }
+
+    def get_price_comparison_data(self):
+        self.ensure_one()
+        products = self.order_line.filtered(lambda l: not l.display_type and l.product_id).product_id
+        # Confirmed purchases only - drafts are not prices anyone paid, and
+        # a split RFQ ('ordered') would duplicate its own child orders.
+        # A zero unit price is not a price anyone was quoted (free sample,
+        # price never filled in) - it would always "win" lowest price.
+        order_lines = self.env['purchase.order.line'].sudo().search([
+            ('product_id', 'in', products.ids),
+            ('display_type', '=', False),
+            ('order_id.state', 'in', ('purchase', 'done')),
+            ('price_unit', '>', 0),
+        ])
+        bid_lines = self.env['vendor.quote.line'].sudo().search([
+            ('product_id', 'in', products.ids),
+            ('quote_id.state', '!=', 'draft'),
+            ('vendor_price', '>', 0),
+        ])
+
+        vendors = (order_lines.order_id.partner_id | bid_lines.vendor_id).sorted('id')
+        # Identity colour follows the vendor, never its price rank (fixed
+        # order by id); past 8 a vendor gets the neutral accent, not a new hue.
+        color_slot = {v.id: i if i < 8 else -1 for i, v in enumerate(vendors)}
+        performance = {v.id: self._vendor_delivery_and_rating(v) for v in vendors}
+
+        result = []
+        for product in products:
+            entries = []
+            for line in order_lines.filtered(lambda l: l.product_id == product):
+                entries.append({
+                    'vendor_id': line.order_id.partner_id.id,
+                    'date': fields.Date.to_string((line.order_id.date_approve or line.order_id.date_order).date()),
+                    'ref': line.order_id.name,
+                    'kind': 'order',
+                    'qty': line.product_qty,
+                    'price': line.price_unit,
+                })
+            for bid in bid_lines.filtered(lambda b: b.product_id == product):
+                quote = bid.quote_id
+                when = quote.last_submitted_at.date() if quote.last_submitted_at else quote.quote_date
+                entries.append({
+                    'vendor_id': bid.vendor_id.id,
+                    'date': fields.Date.to_string(when) if when else '',
+                    'ref': quote.rfq_id.name,
+                    'kind': 'bid',
+                    'qty': bid.product_qty,
+                    'price': bid.vendor_price,
+                })
+            entries.sort(key=lambda e: e['date'] or '')
+
+            orders = [e for e in entries if e['kind'] == 'order']
+            ordered_qty = sum(e['qty'] for e in orders)
+            if ordered_qty:
+                average = sum(e['price'] * e['qty'] for e in orders) / ordered_qty
+            else:
+                prices = [e['price'] for e in entries]
+                average = sum(prices) / len(prices) if prices else 0.0
+
+            vendor_rows = []
+            for vendor in vendors:
+                mine = [e for e in entries if e['vendor_id'] == vendor.id]
+                if not mine:
+                    continue
+                prices = [e['price'] for e in mine]
+                vendor_rows.append({
+                    'id': vendor.id,
+                    'name': vendor.name,
+                    'color_slot': color_slot[vendor.id],
+                    'min': min(prices),
+                    'max': max(prices),
+                    'last': mine[-1]['price'],
+                    'order_count': len({e['ref'] for e in mine if e['kind'] == 'order'}),
+                    'bid_count': len([e for e in mine if e['kind'] == 'bid']),
+                    'history': list(reversed(mine)),  # newest first for the table
+                    **performance[vendor.id],
+                })
+            best = min((v['min'] for v in vendor_rows), default=None)
+            for row in vendor_rows:
+                row['best'] = len(vendor_rows) > 1 and row['min'] == best
+            vendor_rows.sort(key=lambda v: v['min'])
+
+            this_line = self.order_line.filtered(lambda l: l.product_id == product)[:1]
+            result.append({
+                'product_id': product.id,
+                'name': product.display_name,
+                'has_image': bool(product.image_128),
+                'uom': this_line.product_uom_id.name or product.uom_id.name,
+                'qty_requested': sum(self.order_line.filtered(lambda l: l.product_id == product).mapped('product_qty')),
+                'lowest': min((e['price'] for e in entries), default=0.0),
+                'average': average,
+                'total_qty': ordered_qty,
+                'order_count': len({e['ref'] for e in orders}),
+                'vendors': vendor_rows,
+            })
+        return {
+            'po_name': self.name,
+            'currency_symbol': self.currency_id.symbol or '',
+            'currency_position': self.currency_id.position or 'before',
+            'products': result,
+        }
+
+    def _vendor_delivery_and_rating(self, vendor):
+        """On-time % from this vendor's actual completed receipts (done on
+        or before the scheduled date), and the vendor's performance score
+        (0-100) from its ratings. None when there is nothing to measure yet."""
+        receipts = self.env['stock.picking'].sudo().search([
+            ('partner_id', '=', vendor.id),
+            ('picking_type_code', '=', 'incoming'),
+            ('state', '=', 'done'),
+            ('date_done', '!=', False),
+        ])
+        on_time = len(receipts.filtered(
+            lambda p: not p.scheduled_date or p.date_done.date() <= p.scheduled_date.date()))
+        rating = vendor.sudo().performance_overview_score
+        return {
+            'on_time_pct': round(on_time * 100.0 / len(receipts)) if receipts else None,
+            'receipt_count': len(receipts),
+            'rating': round(rating) if rating else None,
+        }
 
     def _trigger_transaction_review(self):
         self.ensure_one()
@@ -204,7 +494,6 @@ class PurchaseOrder(models.Model):
     rfq_revision = fields.Integer(string="RFQ Revision", default=0, tracking=True)
     rfq_last_update = fields.Datetime(string="RFQ Last Update")
 
-    vendor_bill_ids = fields.One2many('vendor.bill', 'order_id', string="Vendor Bills")
 
     @api.depends('order_line.vendor_id', 'order_line.display_type')
     def _compute_vendor_finalized(self):
@@ -234,10 +523,68 @@ class PurchaseOrder(models.Model):
                 if decided:
                     decided.write({'state': 'submitted'})
 
-    @api.depends('quote_ids.line_ids.vendor_price', 'quote_ids.line_ids.po_line_id.vendor_id')
+    @api.depends('quote_ids.line_ids.vendor_price', 'quote_ids.line_ids.po_line_id.vendor_id',
+                 'quote_ids.state')
     def _compute_comparison_line_ids(self):
+        # Only bids a vendor actually submitted (via portal or entered on
+        # their behalf) - a 'draft' quote is just the placeholder created
+        # when the RFQ was sent, still holding default prices, and must not
+        # be comparable/awardable as if it were a real bid.
         for rec in self:
-            rec.comparison_line_ids = rec.quote_ids.line_ids
+            rec.comparison_line_ids = rec.quote_ids.filtered(
+                lambda q: q.state != 'draft').line_ids
+
+    bid_progress = fields.Char(string="Bids", compute='_compute_bid_progress')
+
+    @api.depends('quote_ids.state')
+    def _compute_bid_progress(self):
+        for rec in self:
+            total = len(rec.quote_ids)
+            done = len(rec.quote_ids.filtered(lambda q: q.state != 'draft'))
+            rec.bid_progress = _("%(done)s / %(total)s received", done=done, total=total) if total else ""
+
+    def action_mark_bid_received(self):
+        """Close bidding manually - e.g. when a vendor has not responded and
+        the buyer decides to proceed with the bids already in. At least one
+        bid must exist, otherwise there is nothing to compare or award."""
+        for rec in self:
+            if rec.comparison_state != 'sent':
+                raise UserError(_("Bids can only be marked received while the RFQ is out to vendors."))
+            submitted = rec.quote_ids.filtered(lambda q: q.state != 'draft')
+            if not submitted:
+                raise UserError(_(
+                    "No vendor has submitted a bid yet. Enter a bid on a vendor's "
+                    "behalf from the Vendor Bids tab, or wait for one to submit."))
+            pending = rec.quote_ids - submitted
+            rec.comparison_state = 'received'
+            if pending:
+                rec.message_post(body=_(
+                    "Bids marked received manually. No bid from: %s.",
+                    ", ".join(pending.vendor_id.mapped('name'))))
+            else:
+                rec.message_post(body=_("Bids marked received manually."))
+
+    def _check_all_bids_received(self):
+        """Auto-close bidding once every invited vendor has submitted."""
+        for rec in self:
+            if (rec.comparison_state == 'sent' and rec.quote_ids
+                    and all(q.state != 'draft' for q in rec.quote_ids)):
+                rec.comparison_state = 'received'
+                rec.message_post(body=_("All vendors have submitted their bids - bids received."))
+
+    def action_submit_for_approval(self):
+        """Approval only after bidding is closed and every product has been
+        awarded: the approval amount is the awarded total, and once an order
+        is submitted its line prices/vendors are locked (purchase_approval's
+        write guard), so awarding afterwards would be impossible anyway."""
+        for rec in self:
+            if rec.comparison_state in ('draft', 'sent'):
+                raise UserError(_("Bids must be received before submitting for approval."))
+            if not rec.vendor_finalized:
+                raise UserError(_(
+                    "Select a vendor for every product in Vendor Comparison "
+                    "before submitting for approval."))
+        return super().action_submit_for_approval()
 
     @api.depends('expiry_date')
     def _compute_is_rfq_expired(self):
@@ -294,18 +641,78 @@ class PurchaseOrder(models.Model):
             rec.comparison_state = 'sent'
 
     def action_compare_quotes(self):
-        """Open a dedicated, vendor-grouped comparison screen for this RFQ:
-        expand a vendor's group to see just their product lines and
-        Confirm/Unselect them (same action_select_line/action_unselect_line
-        as the flat grid embedded on the PO form's own Vendor Comparison
-        tab - this is just a focused, grouped way into the same data)."""
+        """Open the Vendor Comparison grid: products as rows, invited
+        vendors as columns, each cell a checkbox (award this vendor this
+        product) plus an editable price - one screen to either award one
+        vendor everything (the column header checkbox) or mix per product
+        (the cell checkbox), instead of scrolling a flat vendor-grouped
+        list. A client action, not a window action: no standard Odoo view
+        renders an editable product x vendor matrix, so this is a custom
+        Owl component (see static/src/js/vendor_comparison_grid.js)."""
         self.ensure_one()
         self._compute_quote_ranks()
-        action = self.env['ir.actions.act_window']._for_xml_id(
-            'vendor_management.action_vendor_quote_line_comparison')
-        action['name'] = _('Vendor Comparison - %s', self.name)
-        action['domain'] = [('rfq_id', '=', self.id)]
-        return action
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'vendor_management.vendor_comparison_grid',
+            'name': _('Vendor Comparison - %s', self.name),
+            'context': {'active_id': self.id},
+        }
+
+    def get_comparison_grid_data(self):
+        """Everything the Vendor Comparison grid needs, in one RPC - every
+        invited vendor as a column, every real (non-section/note) order
+        line as a row, and that row's quote-line cell per vendor (price +
+        whether it currently holds the award), if that vendor actually
+        quoted this product."""
+        self.ensure_one()
+        vendors = self.quote_ids.filtered(lambda q: q.state != 'draft').vendor_id
+        lines = self.order_line.filtered(lambda l: not l.display_type)
+        state_label = dict(self._fields['state']._description_selection(self.env)).get(self.state, '')
+        return {
+            'po_name': self.name,
+            'po_state': state_label,
+            # Read-only once purchase orders were created from this RFQ.
+            'locked': self.state not in ('draft', 'sent'),
+            'currency_symbol': self.currency_id.symbol or '',
+            'currency_position': self.currency_id.position or 'before',
+            'vendors': [{
+                'id': v.id,
+                'name': v.name,
+                'subtitle': v.parent_id.name or v.email or '',
+            } for v in vendors],
+            'products': [{
+                'line_id': line.id,
+                'product_id': line.product_id.id,
+                'product_name': line.product_id.display_name,
+                'qty': line.product_qty,
+                'uom': line.product_uom_id.name,
+                'cells': [{
+                    'quote_line_id': ql.id,
+                    'vendor_id': ql.vendor_id.id,
+                    'price': ql.vendor_price,
+                    'is_winning': ql.is_winning_line,
+                } for ql in self.comparison_line_ids.filtered(lambda q: q.po_line_id == line)],
+            } for line in lines],
+        }
+
+    def action_award_all_to_vendor(self, vendor_id):
+        """Column-header checkbox: award every product on this RFQ that
+        this vendor actually quoted to them in one go, instead of ticking
+        each row - "select one vendor for all" in the comparison grid.
+        Products this vendor never quoted are left untouched (there is no
+        price to award), so a partial vendor list still works correctly."""
+        self.ensure_one()
+        lines = self.comparison_line_ids.filtered(lambda ql: ql.vendor_id.id == vendor_id)
+        lines.action_select_line()
+
+    def action_unaward_all_from_vendor(self, vendor_id):
+        """Column-header checkbox unticked: withdraw every award this vendor
+        currently holds on this RFQ. Lines already reassigned to someone
+        else are skipped rather than raising."""
+        self.ensure_one()
+        lines = self.comparison_line_ids.filtered(
+            lambda ql: ql.vendor_id.id == vendor_id and ql.is_winning_line)
+        lines.action_unselect_line()
 
     def _compute_quote_ranks(self):
         for rec in self:
@@ -331,80 +738,6 @@ class PurchaseOrder(models.Model):
             }
         }
 
-    # ------------------------------------------------------------------
-    # Per-vendor receiving: core purchase_stock builds exactly one picking
-    # per order, keyed off order.partner_id. Once a PO has more than one
-    # distinct order_line.vendor_id, that no longer makes sense - split into
-    # one picking per vendor instead. Single-vendor orders (including every
-    # pre-existing one) fall straight through to super() unchanged.
-    # ------------------------------------------------------------------
-
-    def _get_vendor_line_groups(self):
-        self.ensure_one()
-        groups = defaultdict(lambda: self.env['purchase.order.line'])
-        for line in self.order_line.filtered(lambda l: not l.display_type):
-            groups[line.vendor_id] += line
-        return groups
-
-    def _create_picking(self):
-        multi_vendor_orders = self.filtered(
-            lambda po: po.state == 'purchase' and len(
-                set(po.order_line.filtered(lambda l: not l.display_type).mapped('vendor_id').ids) - {False}
-            ) > 1
-        )
-        single_vendor_orders = self - multi_vendor_orders
-        result = super(PurchaseOrder, single_vendor_orders)._create_picking()
-
-        # single_vendor_orders (the common case - every line went to the
-        # same vendor) fell straight through to core's own picking logic
-        # above, which knows nothing about vendor.bill. Without this, a
-        # single-vendor order never gets one at all - Upload Bill would
-        # never have anything to open. Multi-vendor orders get theirs
-        # inside the loop below instead, per vendor group.
-        for order in single_vendor_orders.filtered(lambda po: po.state == 'purchase'):
-            for vendor, lines in order._get_vendor_line_groups().items():
-                if vendor and any(p.type == 'consu' for p in lines.product_id):
-                    order._get_or_create_vendor_bill(vendor)
-
-        StockPicking = self.env['stock.picking']
-        for order in multi_vendor_orders:
-            order = order.with_company(order.company_id)
-            for vendor, lines in order._get_vendor_line_groups().items():
-                if not vendor or not any(p.type == 'consu' for p in lines.product_id):
-                    continue
-                picking = order.picking_ids.filtered(
-                    lambda x: x.partner_id == vendor and x.state not in ('done', 'cancel'))[:1]
-                if not picking:
-                    if not vendor.property_stock_supplier:
-                        raise UserError(_("You must set a Vendor Location for %s", vendor.name))
-                    vals = order._prepare_picking()
-                    vals.update({'partner_id': vendor.id, 'location_id': vendor.property_stock_supplier.id})
-                    picking = StockPicking.with_user(SUPERUSER_ID).create(vals)
-
-                moves = lines._create_stock_moves(picking)
-                moves = moves.filtered(lambda x: x.state not in ('done', 'cancel'))._action_confirm()
-                seq = 0
-                for move in sorted(moves, key=lambda m: m.date):
-                    seq += 5
-                    move.sequence = seq
-                moves._action_assign()
-                forward_pickings = self.env['stock.picking']._get_impacted_pickings(moves)
-                (picking | forward_pickings).action_confirm()
-                picking.message_post_with_source(
-                    'mail.message_origin_link',
-                    render_values={'self': picking, 'origin': order},
-                    subtype_xmlid='mail.mt_note',
-                )
-                order._get_or_create_vendor_bill(vendor)
-        return result
-
-    def _get_or_create_vendor_bill(self, vendor):
-        self.ensure_one()
-        bill = self.vendor_bill_ids.filtered(lambda b: b.vendor_id == vendor)
-        if not bill:
-            bill = self.env['vendor.bill'].create({'order_id': self.id, 'vendor_id': vendor.id})
-        return bill
-
 class PurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'
 
@@ -415,62 +748,3 @@ class PurchaseOrderLine(models.Model):
     winning_quote_line_id = fields.Many2one(
         'vendor.quote.line', string="Winning Quote Line", copy=False,
         help="Audit trail: which vendor quote line this line's price/vendor came from.")
-
-    # ------------------------------------------------------------------
-    # Mirrors PurchaseOrder._create_picking above, but for the second entry
-    # point core uses: a line added, or its qty changed, on an
-    # already-confirmed order (see purchase_order_views.xml, which keeps
-    # product_id editable post-confirm). Only lines whose order is genuinely
-    # multi-vendor take the new path; everything else behaves exactly as
-    # core does today.
-    # ------------------------------------------------------------------
-    def _create_or_update_picking(self):
-        multi_vendor_lines = self.filtered(
-            lambda l: l.vendor_id and len(
-                set((l.order_id.order_line.filtered(lambda x: not x.display_type)).mapped('vendor_id').ids) - {False}
-            ) > 1
-        )
-        single_vendor_lines = self - multi_vendor_lines
-        super(PurchaseOrderLine, single_vendor_lines)._create_or_update_picking()
-
-        # Same reasoning as PurchaseOrder._create_picking: a line added (or
-        # re-quantified) post-confirm on what's still a single-vendor order
-        # falls through to core's own logic above, which won't create a
-        # vendor.bill. _get_or_create_vendor_bill is idempotent (a no-op if
-        # one already exists for that vendor), so this is safe to call even
-        # when nothing actually changed vendor-wise.
-        for line in single_vendor_lines.filtered(lambda l: l.order_id.state == 'purchase' and l.vendor_id
-                                                   and l.product_id.type == 'consu'):
-            line.order_id._get_or_create_vendor_bill(line.vendor_id)
-
-        for line in multi_vendor_lines:
-            if not (line.product_id and line.product_id.type == 'consu'):
-                continue
-
-            vendor = line.vendor_id
-            moves_to_assign = line.order_id.picking_ids.filtered(lambda p: p.partner_id == vendor).move_ids.filtered(
-                lambda m: not m.purchase_line_id and line.product_id == m.product_id)
-            moves_to_assign.purchase_line_id = line.id
-
-            line_pickings = line.move_ids.picking_id.filtered(
-                lambda p: p.partner_id == vendor and p.state not in ('done', 'cancel')
-                and p.location_dest_id.usage in ('internal', 'transit', 'customer'))
-            if line_pickings:
-                picking = line_pickings[0]
-            else:
-                pickings = line.order_id.picking_ids.filtered(
-                    lambda x: x.partner_id == vendor and x.state not in ('done', 'cancel')
-                    and x.location_dest_id.usage in ('internal', 'transit', 'customer'))
-                picking = pickings[:1]
-                if not picking:
-                    if not line.product_qty > line.qty_received:
-                        continue
-                    if not vendor.property_stock_supplier:
-                        raise UserError(_("You must set a Vendor Location for %s", vendor.name))
-                    vals = line.order_id._prepare_picking()
-                    vals.update({'partner_id': vendor.id, 'location_id': vendor.property_stock_supplier.id})
-                    picking = self.env['stock.picking'].create(vals)
-
-            moves = line._create_stock_moves(picking)
-            moves._action_confirm()._action_assign()
-            line.order_id._get_or_create_vendor_bill(vendor)

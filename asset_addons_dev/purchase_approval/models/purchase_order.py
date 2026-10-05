@@ -108,6 +108,11 @@ class PurchaseOrder(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         Config = self.env["purchase.approval.config"]
+        # Orders created from an already-approved RFQ (vendor_management's
+        # per-vendor split) must not pick up a fresh approval flow - the
+        # RFQ's approval already covers them.
+        if self.env.context.get("purchase_approval_skip_default"):
+            return super().create(vals_list)
         for vals in vals_list:
             # Respect anything explicitly passed in (imports, other modules,
             # duplicating an order) — only fall back to the default flow.
@@ -224,17 +229,18 @@ class PurchaseOrder(models.Model):
     # merges the attribute), so visibility is left to whichever module owns
     # that button and correctness is guaranteed here instead.
     # ------------------------------------------------------------------
-    def button_confirm(self):
+    def _check_approval_before_confirm(self):
+        """Raise unless every order with an approval flow is fully approved.
+
+        Gated on approval_config_id, NOT approver_ids: approver_ids is only
+        populated by action_submit_for_approval() (it rolls up
+        approval_line_ids.approver_id, and those lines only exist once
+        submitted). Gating on it meant an order nobody had submitted yet had
+        an empty approver_ids and sailed straight through. approval_config_id
+        is set at create() time, before any submission. Separate method so
+        other modules that replace the confirm step (vendor_management's RFQ
+        split) can enforce the same rule without calling super()."""
         for order in self:
-            # Gated on approval_config_id, NOT approver_ids: approver_ids is
-            # only populated by action_submit_for_approval() (it rolls up
-            # approval_line_ids.approver_id, and those lines only exist once
-            # submitted). Gating on it meant an order nobody had submitted
-            # yet had an empty approver_ids and sailed straight through -
-            # skipping "Submit for Approval" skipped approval entirely.
-            # approval_config_id is set at create() time, before any
-            # submission, so this actually blocks confirm until the order
-            # has been submitted AND fully approved.
             if order.approval_config_id and order.approval_status != "approved":
                 raise UserError(
                     "This Purchase Order requires approval before it can be "
@@ -242,6 +248,9 @@ class PurchaseOrder(models.Model):
                     "Approval status: %s"
                     % (order.approval_progress or "Not submitted")
                 )
+
+    def button_confirm(self):
+        self._check_approval_before_confirm()
         return super().button_confirm()
 
     # ------------------------------------------------------------------

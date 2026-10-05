@@ -67,11 +67,18 @@ class VendorPortal(http.Controller):
             ('vendor_id', '=', partner.id)
         ])
 
-        # Get own Purchase Orders (RFQs and Orders)
+        # RFQs this vendor was invited to bid on. Not partner_id: that also
+        # matches the purchase orders created FROM an RFQ for this vendor,
+        # which would show the same purchase twice (once as RFQ, once as PO).
         rfqs = request.env['purchase.order'].sudo().search([
-            '|',
-            ('partner_id', '=', partner.id),
             ('vendor_ids', 'in', [partner.id]),
+            ('rfq_id', '=', False),
+        ])
+        # Purchase orders actually placed with this vendor (one per vendor,
+        # created when the buyer confirms the RFQ).
+        purchase_orders = request.env['purchase.order'].sudo().search([
+            ('partner_id', '=', partner.id),
+            ('state', 'in', ['purchase', 'done']),
         ])
 
         # Get Bills (Part 4) - Strict Ledger Alignment
@@ -132,6 +139,7 @@ class VendorPortal(http.Controller):
             'vendor': partner,
             'documents': documents,
             'rfqs': rfqs,
+            'purchase_orders': purchase_orders,
             'bills': invoices,
             'total_purchase_count': total_purchase_count,
             'total_invoice_count': total_invoice_count,
@@ -212,7 +220,14 @@ class VendorPortal(http.Controller):
     def portal_vendor_rfq_details(self, rfq_id, **post):
         partner = request.env.user.partner_id
         order = request.env['purchase.order'].sudo().browse(rfq_id)
-        
+
+        # A purchase order created from an RFQ is not something to bid on -
+        # show it on Odoo's own purchase-order portal page instead.
+        if order.exists() and order.rfq_id:
+            if order.partner_id != partner:
+                return request.redirect('/my/vendor')
+            return request.redirect(order.get_portal_url())
+
         # Security: check if vendor is in the selected list
         if partner not in order.vendor_ids and order.partner_id != partner:
              return request.redirect('/my/vendor')
@@ -238,7 +253,12 @@ class VendorPortal(http.Controller):
                      'uom_id': line.product_uom_id.id,
                  })
 
-        can_edit_quote = not order.is_rfq_expired and order.state in ['draft', 'sent'] and (quote.state == 'draft' or quote.submitted_revision < order.rfq_revision)
+        # comparison_state 'sent' = bidding still open; once bids are marked
+        # received (manually or because everyone submitted) the buyer is
+        # comparing/awarding, so late or revised bids are no longer accepted.
+        can_edit_quote = (not order.is_rfq_expired and order.state in ['draft', 'sent']
+                          and order.comparison_state == 'sent'
+                          and (quote.state == 'draft' or quote.submitted_revision < order.rfq_revision))
 
         if request.httprequest.method == 'POST' and can_edit_quote:
             # Update Quote Lines
@@ -272,11 +292,9 @@ class VendorPortal(http.Controller):
                 'state': 'submitted'
             })
             
-            # Notify PO
+            # Notify PO (bids-received is handled by vendor.quote.write)
             order.sudo().message_post(body="Vendor %s has submitted a quotation." % partner.name)
-            
-            # If all vendors submitted, move PO comparison state? (Optional)
-            
+
             return request.redirect('/my/vendor/rfq/%s?success=1' % rfq_id)
 
         return request.render('vendor_management.portal_vendor_rfq_edit', {

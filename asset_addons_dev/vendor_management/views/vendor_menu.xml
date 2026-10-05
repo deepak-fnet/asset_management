@@ -75,12 +75,6 @@
               action="vendor_management.action_vendor_contract"
               sequence="80"/>
 
-    <!-- Vendor Bills (per-vendor Upload -> Stores approve -> Finance confirm) -->
-    <menuitem id="menu_vendor_bill"
-              name="Vendor Bills"
-              parent="menu_vendor_root"
-              action="vendor_management.action_vendor_bill"
-              sequence="90"/>
     <!-- Configuration -->
     <menuitem id="menu_vendor_config_root"
               name="Configuration"

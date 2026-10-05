@@ -5,102 +5,79 @@ from .vendor_compat_utils import group_member_emails
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
-    # Reverse of vendor.bill.move_id - effectively single-record in practice
-    # (one workflow bill per move), but kept as a proper One2many rather
-    # than assuming that in code.
-    vendor_bill_ids = fields.One2many('vendor.bill', 'move_id', string="Vendor Bill Workflow")
-    vendor_bill_stores_approved = fields.Boolean(
-        string="Vendor Bill Stores Approved", compute='_compute_vendor_bill_stores_approved', store=True,
-        help="True once every linked vendor.bill workflow record has been "
-             "approved by Purchase Stores (or further). A move with no "
-             "linked vendor.bill at all (an ordinary bill created outside "
-             "this workflow) is unaffected - only moves created via Upload "
-             "Bill are gated.")
+    # ------------------------------------------------------------------
+    # Purchase bill approval: Upload Bill (purchase order) -> Stores
+    # Approve -> Finance Confirm. Applies to vendor bills created from a
+    # purchase order; any other move posts exactly as standard Odoo.
+    # "Finance Confirm" is Odoo's own Confirm (action_post) button - there
+    # is no separate custom confirm step.
+    # ------------------------------------------------------------------
+    STORES_GROUPS = (
+        'vendor_management.group_purchase_role_stores',
+        'vendor_management.group_vendor_manager',
+        'vendor_management.group_vendor_md',
+    )
+    FINANCE_GROUPS = (
+        'vendor_management.group_purchase_role_finance',
+        'vendor_management.group_vendor_manager',
+        'vendor_management.group_vendor_md',
+    )
 
-    @api.depends('vendor_bill_ids.state')
-    def _compute_vendor_bill_stores_approved(self):
+    purchase_bill_approval = fields.Boolean(
+        string="Needs Purchase Approval", compute='_compute_purchase_bill_approval', store=True,
+        help="Vendor bill created from a purchase order: Stores must approve "
+             "it before Finance can confirm (post) it.")
+    bill_approval_state = fields.Selection([
+        ('to_approve', 'Waiting Stores Approval'),
+        ('stores_approved', 'Stores Approved'),
+    ], string="Bill Approval", default='to_approve', copy=False, tracking=True)
+
+    @api.depends('move_type', 'invoice_line_ids.purchase_line_id')
+    def _compute_purchase_bill_approval(self):
         for move in self:
-            move.vendor_bill_stores_approved = bool(move.vendor_bill_ids) and all(
-                b.state in ('stores_approved', 'finance_confirmed') for b in move.vendor_bill_ids
-            )
-
-    vendor_bill_awaiting_submit = fields.Boolean(
-        string="Vendor Bill Awaiting Submit", compute='_compute_vendor_bill_state_flags',
-        help="True while any linked vendor.bill has been uploaded but not "
-             "yet submitted by the Purchase User - drives the Submit button "
-             "on this form.")
-    vendor_bill_awaiting_stores = fields.Boolean(
-        string="Vendor Bill Awaiting Stores Approval", compute='_compute_vendor_bill_state_flags',
-        help="True while any linked vendor.bill has been submitted but not "
-             "yet approved by Purchase Stores - drives the Stores Approve "
-             "button on this form.")
-
-    @api.depends('vendor_bill_ids.state')
-    def _compute_vendor_bill_state_flags(self):
-        for move in self:
-            move.vendor_bill_awaiting_submit = any(b.state == 'uploaded' for b in move.vendor_bill_ids)
-            move.vendor_bill_awaiting_stores = any(b.state == 'submitted' for b in move.vendor_bill_ids)
-
-    def action_vendor_bill_submit(self):
-        """Thin forward to vendor.bill.action_submit_bill() - lets the
-        Purchase User submit directly from the standard bill form too, not
-        only from the PO's own Vendor Bills tab."""
-        self.vendor_bill_ids.action_submit_bill()
-
-    def action_vendor_bill_stores_approve(self):
-        """Thin forward to vendor.bill.action_stores_approve() - lets
-        Purchase Stores approve directly from the standard bill form too,
-        not only from the PO's own Vendor Bills tab. Permission/state
-        checks live on vendor.bill itself; this just relays to it."""
-        self.vendor_bill_ids.action_stores_approve()
+            move.purchase_bill_approval = (
+                move.move_type in ('in_invoice', 'in_refund')
+                and bool(move.invoice_line_ids.purchase_line_id))
 
     # groups= on a button is static and would restrict posting for every
-    # bill (including ordinary ones with no vendor.bill link at all) to
-    # just these groups - can't be used here. This computed field lets the
-    # view hide the Confirm button from non-Finance users on a workflow
-    # bill specifically, without touching the button's own groups=. The
-    # real enforcement is still the has_group() check in action_post below;
-    # this is purely a "don't show a button that would just error" nicety.
-    can_finance_post = fields.Boolean(compute='_compute_can_finance_post')
+    # move, so these drive visibility per user instead. The real enforcement
+    # is the has_group() checks in the actions below.
+    can_stores_approve = fields.Boolean(compute='_compute_bill_approval_rights')
+    can_finance_post = fields.Boolean(compute='_compute_bill_approval_rights')
 
-    def _compute_can_finance_post(self):
-        finance_groups = (
-            'vendor_management.group_purchase_role_finance',
-            'vendor_management.group_vendor_manager',
-            'vendor_management.group_vendor_md',
-        )
-        can_post = any(self.env.user.has_group(g) for g in finance_groups)
+    def _compute_bill_approval_rights(self):
+        user = self.env.user
+        can_approve = any(user.has_group(g) for g in self.STORES_GROUPS)
+        can_post = any(user.has_group(g) for g in self.FINANCE_GROUPS)
         for move in self:
+            move.can_stores_approve = can_approve
             move.can_finance_post = can_post
 
-    # ------------------------------------------------------------------
-    # Hard gate, not just a hidden/restricted button: a move created via
-    # Upload Bill must not be postable until Purchase Stores has approved
-    # it, and only Purchase Finance may be the one to post it - clicking
-    # this native "Confirm" button IS "Purchase Finance confirms the bill"
-    # in this workflow; there is no separate custom confirm step. Once
-    # posting actually succeeds, sync the linked vendor.bill(s) to
-    # 'finance_confirmed' - that state means "posted", not "someone clicked
-    # a different button".
-    # ------------------------------------------------------------------
-    def action_post(self):
-        finance_groups = (
-            'vendor_management.group_purchase_role_finance',
-            'vendor_management.group_vendor_manager',
-            'vendor_management.group_vendor_md',
-        )
+    def action_stores_approve(self):
+        if not any(self.env.user.has_group(g) for g in self.STORES_GROUPS):
+            raise AccessError(_("Only Purchase Stores can approve this bill."))
         for move in self:
-            if move.vendor_bill_ids:
-                if not move.vendor_bill_stores_approved:
-                    raise UserError(_(
-                        "This vendor bill is part of a Purchase Order's approval "
-                        "workflow and cannot be posted until Purchase Stores has "
-                        "approved it."
-                    ))
-                if not any(self.env.user.has_group(g) for g in finance_groups):
-                    raise AccessError(_("Only Purchase Finance can confirm (post) this vendor bill."))
-        res = super().action_post()
-        self.vendor_bill_ids.filtered(lambda b: b.state == 'stores_approved').write({'state': 'finance_confirmed'})
+            if not move.purchase_bill_approval or move.state != 'draft':
+                raise UserError(_("Only a draft purchase bill can be approved by Stores."))
+            if move.bill_approval_state == 'stores_approved':
+                continue
+            move.bill_approval_state = 'stores_approved'
+            move.message_post(body=_("Approved by Stores (%s).", self.env.user.name))
+
+    def action_post(self):
+        for move in self.filtered('purchase_bill_approval'):
+            if move.bill_approval_state != 'stores_approved':
+                raise UserError(_(
+                    "%s must be approved by Purchase Stores before it can be confirmed.",
+                    move.name or _("This bill")))
+            if not any(self.env.user.has_group(g) for g in self.FINANCE_GROUPS):
+                raise AccessError(_("Only Purchase Finance can confirm (post) this bill."))
+        return super().action_post()
+
+    def button_draft(self):
+        # Reset to draft = changed after approval: needs Stores again.
+        res = super().button_draft()
+        self.filtered('purchase_bill_approval').write({'bill_approval_state': 'to_approve'})
         return res
 
     def write(self, vals):

@@ -24,14 +24,23 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <field name="state" widget="statusbar"/>
+                    <button name="action_submit_bid" type="object" string="Submit Bid"
+                            class="btn-primary"
+                            invisible="state != 'draft'"
+                            confirm="Submit this bid on the vendor's behalf? Prices can't be changed afterwards."
+                            groups="vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,selected"/>
                 </header>
                 <sheet>
+                    <div class="alert alert-info" role="alert" invisible="state != 'draft'">
+                        Enter the prices this vendor quoted (by phone, email, etc.), then click
+                        <strong>Submit Bid</strong>.
+                    </div>
                     <group>
                         <group>
-                            <field name="vendor_id" options="{'no_create': True}"/>
-                            <field name="rfq_id"/>
-                            <field name="quote_date"/>
+                            <field name="vendor_id" options="{'no_create': True}" readonly="1"/>
+                            <field name="rfq_id" readonly="1"/>
+                            <field name="quote_date" readonly="state != 'draft'"/>
                         </group>
                         <group>
                             <field name="delivery_date"/>
@@ -42,19 +51,20 @@
                     </group>
                     <notebook>
                         <page string="Lines">
-                            <field name="line_ids">
-                                <list editable="bottom">
-                                    <field name="product_id"/>
-                                    <field name="product_qty"/>
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <list editable="bottom" create="false" delete="false">
+                                    <field name="product_id" readonly="1"/>
+                                    <field name="product_qty" readonly="1"/>
                                     <field name="vendor_price"/>
-                                    <field name="uom_id"/>
+                                    <field name="uom_id" readonly="1"/>
                                     <field name="delivery_date"/>
+                                    <field name="vendor_notes" optional="show"/>
                                     <field name="is_winning_line" widget="boolean_toggle" readonly="1"/>
                                 </list>
                             </field>
                         </page>
                         <page string="Notes">
-                            <field name="note"/>
+                            <field name="note" readonly="state != 'draft'"/>
                         </page>
                     </notebook>
                 </sheet>

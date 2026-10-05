@@ -35,6 +35,9 @@ access_vendor_quote_user,Vendor Quote User,vendor_management.model_vendor_quote,
 access_vendor_quote_manager,Vendor Quote Manager,vendor_management.model_vendor_quote,vendor_management.group_vendor_manager,1,1,1,1
 access_vendor_quote_md,Vendor Quote MD,vendor_management.model_vendor_quote,vendor_management.group_vendor_md,1,1,1,1
 access_vendor_quote_portal,Vendor Quote Portal,vendor_management.model_vendor_quote,base.group_portal,1,1,1,0
+access_vendor_quote_purchase_user,Vendor Quote Purchase User,vendor_management.model_vendor_quote,vendor_management.group_purchase_role_user,1,1,1,0
+access_vendor_quote_purchase_stores,Vendor Quote Purchase Stores,vendor_management.model_vendor_quote,vendor_management.group_purchase_role_stores,1,0,0,0
+access_vendor_quote_purchase_finance,Vendor Quote Purchase Finance,vendor_management.model_vendor_quote,vendor_management.group_purchase_role_finance,1,0,0,0
 access_vendor_quote_line,Vendor Quote Line,vendor_management.model_vendor_quote_line,base.group_user,1,1,1,1
 access_vendor_quote_line_portal,Vendor Quote Line Portal,vendor_management.model_vendor_quote_line,base.group_portal,1,1,1,1
 
@@ -56,7 +59,3 @@ access_vendor_performance_review_wizard_manager,Vendor Performance Review Wizard
 access_vendor_performance_review_wizard_md,Vendor Performance Review Wizard MD,vendor_management.model_vendor_performance_review_wizard,vendor_management.group_vendor_md,1,1,1,1
 access_purchase_order_line_portal,Purchase Order Line Portal,purchase.model_purchase_order_line,base.group_portal,1,1,0,0
 
-access_vendor_bill_user,Vendor Bill User,vendor_management.model_vendor_bill,vendor_management.group_purchase_role_user,1,1,1,0
-access_vendor_bill_stores,Vendor Bill Stores,vendor_management.model_vendor_bill,vendor_management.group_purchase_role_stores,1,1,0,0
-access_vendor_bill_finance,Vendor Bill Finance,vendor_management.model_vendor_bill,vendor_management.group_purchase_role_finance,1,1,0,0
-access_vendor_bill_manager,Vendor Bill Manager,vendor_management.model_vendor_bill,vendor_management.group_vendor_manager,1,1,1,1

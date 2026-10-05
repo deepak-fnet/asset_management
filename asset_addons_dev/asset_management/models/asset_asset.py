@@ -1960,8 +1960,13 @@ class AssetAsset(models.Model):
         }
 
     def _handle_maintenance_equipment(self, vals):
-        """Automatically link or create maintenance.equipment based on serial_no or name."""
-        Equipment = self.env['maintenance.equipment']
+        """Automatically link or create maintenance.equipment based on serial_no or name.
+
+        sudo: this mirror record is an automatic side effect of creating an
+        asset, so it must not require the creator to also be a Maintenance
+        Equipment Manager - none of the asset/purchase roles imply that, so
+        without it every non-admin asset creation failed here."""
+        Equipment = self.env['maintenance.equipment'].sudo()
         for asset in self:
             name = vals.get('asset_name') or asset.asset_name
             serial = vals.get('serial_number') or asset.serial_number

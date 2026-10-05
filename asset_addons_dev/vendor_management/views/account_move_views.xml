@@ -5,34 +5,41 @@
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
+            <!-- Purchase bill approval: Upload Bill (on the purchase order)
+                 -> Stores Approve -> Finance Confirm. -->
             <xpath expr="//header" position="inside">
-                <button name="action_vendor_bill_submit" type="object" string="Submit"
-                        invisible="not vendor_bill_awaiting_submit" class="btn-primary"
-                        groups="vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
-                <button name="action_vendor_bill_stores_approve" type="object" string="Stores Approve"
-                        invisible="not vendor_bill_awaiting_stores" class="btn-primary"
-                        groups="vendor_management.group_purchase_role_stores,vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
+                <button name="action_stores_approve" type="object" string="Stores Approve"
+                        class="btn-primary"
+                        invisible="not purchase_bill_approval or state != 'draft' or bill_approval_state != 'to_approve' or not can_stores_approve"/>
                 <button name="action_open_rating_wizard" type="object" string="Rate Vendor"
                         invisible="move_type != 'in_invoice' or state != 'posted' or is_rated" class="btn-info"/>
             </xpath>
+            <xpath expr="//header" position="after">
+                <div class="alert alert-warning mb-0" role="status"
+                     invisible="not purchase_bill_approval or state != 'draft' or bill_approval_state != 'to_approve'">
+                    Waiting for <strong>Stores approval</strong> before Finance can confirm this bill.
+                </div>
+                <div class="alert alert-info mb-0" role="status"
+                     invisible="not purchase_bill_approval or state != 'draft' or bill_approval_state != 'stores_approved'">
+                    Approved by Stores - waiting for <strong>Finance</strong> to confirm.
+                </div>
+            </xpath>
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="is_rated" invisible="1"/>
-                <field name="vendor_bill_ids" invisible="1"/>
-                <field name="vendor_bill_stores_approved" invisible="1"/>
-                <field name="vendor_bill_awaiting_submit" invisible="1"/>
-                <field name="vendor_bill_awaiting_stores" invisible="1"/>
+                <field name="purchase_bill_approval" invisible="1"/>
+                <field name="bill_approval_state" invisible="1"/>
+                <field name="can_stores_approve" invisible="1"/>
                 <field name="can_finance_post" invisible="1"/>
             </xpath>
             <!-- "Confirm" (index 2 - index 1 is "Post", for move_type='entry'
-                 journal entries, irrelevant here) is core's own post button;
-                 fully clickable the instant a draft exists otherwise, well
-                 before Stores/Finance have done anything, and by anyone with
-                 generic accounting rights, not just Purchase Finance. This
-                 button IS "Purchase Finance confirms the bill" in this
-                 workflow - no separate custom step. "string" isn't an
-                 allowed inheritance selector (Odoo 19), hence positional. -->
+                 journal entries) is core's own post button, and IS "Finance
+                 confirms the bill" here - no separate custom step. Hidden on
+                 a purchase bill until Stores approved it, and from anyone
+                 who is not Finance. "string" isn't an allowed inheritance
+                 selector (Odoo 19), hence positional. Server-side check is
+                 action_post. -->
             <xpath expr="(//button[@name='action_post'])[2]" position="attributes">
-                <attribute name="invisible">hide_post_button or move_type == 'entry' or display_inactive_currency_warning or (vendor_bill_ids and (not vendor_bill_stores_approved or not can_finance_post))</attribute>
+                <attribute name="invisible">hide_post_button or move_type == 'entry' or display_inactive_currency_warning or (purchase_bill_approval and (bill_approval_state != 'stores_approved' or not can_finance_post))</attribute>
             </xpath>
         </field>
     </record>
@@ -43,6 +50,14 @@
         <field name="arch" type="xml">
             <xpath expr="//list//field[@name='amount_total_in_currency_signed']" position="attributes">
                 <attribute name="sum"></attribute>
+            </xpath>
+            <xpath expr="//list//field[@name='amount_total_in_currency_signed']" position="before">
+                <field name="purchase_bill_approval" column_invisible="1"/>
+                <field name="bill_approval_state" string="Bill Approval" optional="show"
+                       widget="badge"
+                       invisible="not purchase_bill_approval or state != 'draft'"
+                       decoration-warning="bill_approval_state == 'to_approve'"
+                       decoration-info="bill_approval_state == 'stores_approved'"/>
             </xpath>
         </field>
     </record>

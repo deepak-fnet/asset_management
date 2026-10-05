@@ -1,6 +1,6 @@
 {
     'name': 'Asset Purchase Integration',
-    'version': '19.0.2.2.0',  # show the invoice copy itself (not just a link) on the asset's Purchase Source tab
+    'version': '19.0.2.3.0',  # create assets on receipt regardless of the validator's asset rights + Create Assets retry button; show the invoice copy itself (not just a link) on the asset's Purchase Source tab
     'summary': 'Create fixed asset records automatically when a purchase receipt is validated',
     'description': """
 Asset Purchase Integration

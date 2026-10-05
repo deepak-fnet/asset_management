@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="vendor_management.PriceComparisonDashboard">
+        <div class="o_price_comparison_dashboard">
+            <div class="o_pcd_inner">
+                <!-- Header -->
+                <div class="o_pcd_header">
+                    <button type="button" class="o_pcd_back" t-on-click="goBack" title="Back">
+                        <i class="fa fa-arrow-left"/>
+                    </button>
+                    <div>
+                        <div class="o_pcd_eyebrow">Purchase · <t t-esc="state.poName"/></div>
+                        <h1 class="o_pcd_title">Price Comparison</h1>
+                    </div>
+                </div>
+
+                <div t-if="state.loading" class="o_pcd_muted">Loading...</div>
+                <div t-elif="!state.products.length" class="o_pcd_glass o_pcd_empty">
+                    No products on this order.
+                </div>
+
+                <t t-else="">
+                    <!-- Product switcher -->
+                    <div t-if="state.products.length > 1" class="o_pcd_tabs" role="tablist">
+                        <t t-foreach="state.products" t-as="p" t-key="p.product_id">
+                            <button type="button" role="tab"
+                                    t-att-aria-selected="p_index === state.productIndex ? 'true' : 'false'"
+                                    t-att-class="'o_pcd_tab' + (p_index === state.productIndex ? ' active' : '')"
+                                    t-on-click="() => this.selectProduct(p_index)"
+                                    t-esc="p.name"/>
+                        </t>
+                    </div>
+
+                    <!-- Product overview hub -->
+                    <div class="o_pcd_glass o_pcd_hub">
+                        <div class="o_pcd_hub_media">
+                            <img t-if="product.has_image" t-att-src="productImageUrl(product)" t-att-alt="product.name"/>
+                            <i t-else="" class="fa fa-cube o_pcd_hub_icon" role="img" t-att-aria-label="product.name"/>
+                        </div>
+                        <div class="o_pcd_hub_body">
+                            <div class="o_pcd_label">Product Overview</div>
+                            <h2 class="o_pcd_hub_name" t-esc="product.name"/>
+                            <div class="o_pcd_hub_stats">
+                                <div class="o_pcd_stat">
+                                    <span class="o_pcd_stat_label">Lowest price</span>
+                                    <span class="o_pcd_stat_value o_pcd_good" t-esc="formatAmount(product.lowest)"/>
+                                </div>
+                                <div class="o_pcd_stat">
+                                    <span class="o_pcd_stat_label">Average price</span>
+                                    <span class="o_pcd_stat_value" t-esc="formatAmount(product.average)"/>
+                                </div>
+                                <div class="o_pcd_stat">
+                                    <span class="o_pcd_stat_label">Total qty bought</span>
+                                    <span class="o_pcd_stat_value"><t t-esc="formatQty(product.total_qty)"/> <small t-esc="product.uom"/></span>
+                                </div>
+                                <div class="o_pcd_stat">
+                                    <span class="o_pcd_stat_label">On this order</span>
+                                    <span class="o_pcd_stat_value"><t t-esc="formatQty(product.qty_requested)"/> <small t-esc="product.uom"/></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="o_pcd_hub_hero">
+                            <span class="o_pcd_hero_number" t-esc="product.order_count"/>
+                            <span class="o_pcd_hero_label">past orders</span>
+                        </div>
+                    </div>
+
+                    <div t-if="!product.vendors.length" class="o_pcd_glass o_pcd_empty">
+                        No purchases or vendor bids for this product yet.
+                    </div>
+
+                    <t t-else="">
+                        <!-- Vendor cards -->
+                        <div class="o_pcd_section_title">Vendors <span class="o_pcd_muted">· click a vendor for its price history</span></div>
+                        <div class="o_pcd_vendor_grid">
+                            <t t-foreach="product.vendors" t-as="vendor" t-key="vendor.id">
+                                <div role="button" tabindex="0"
+                                     t-att-aria-pressed="vendor.id === state.selectedVendorId ? 'true' : 'false'"
+                                     t-att-class="'o_pcd_glass o_pcd_vendor ' + colorClass(vendor) + (vendor.id === state.selectedVendorId ? ' selected' : '')"
+                                     t-on-click="() => this.selectVendor(vendor.id)"
+                                     t-on-keydown="(ev) => this.onVendorKeydown(ev, vendor.id)">
+                                    <div class="o_pcd_vendor_head">
+                                        <span class="o_pcd_swatch"/>
+                                        <span class="o_pcd_vendor_name" t-esc="vendor.name"/>
+                                        <span t-if="vendor.best" class="o_pcd_badge_best"><i class="fa fa-trophy"/> Best price</span>
+                                    </div>
+                                    <div class="o_pcd_vendor_range">
+                                        <t t-if="vendor.min === vendor.max">
+                                            <t t-esc="formatAmount(vendor.min)"/>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="formatAmount(vendor.min)"/> – <t t-esc="formatAmount(vendor.max)"/>
+                                        </t>
+                                    </div>
+                                    <div class="o_pcd_vendor_meta">
+                                        Last <strong t-esc="formatAmount(vendor.last)"/>
+                                        · <t t-esc="vendor.order_count"/> order<t t-if="vendor.order_count !== 1">s</t>
+                                        · <t t-esc="vendor.bid_count"/> bid<t t-if="vendor.bid_count !== 1">s</t>
+                                    </div>
+                                    <!-- Line stretches with the card; markers are separate
+                                         round elements so they never squash into ovals. -->
+                                    <div class="o_pcd_spark" role="img" t-att-aria-label="'Price trend for ' + vendor.name">
+                                        <svg t-att-viewBox="sparkViewBox" preserveAspectRatio="none" aria-hidden="true">
+                                            <polyline t-if="vendor.history.length > 1" class="o_pcd_spark_line"
+                                                      t-att-points="sparkPath(vendor)"/>
+                                        </svg>
+                                        <t t-foreach="sparkPoints(vendor)" t-as="pt" t-key="pt.key">
+                                            <span class="o_pcd_spark_pt" t-att-title="pt.tip" t-att-style="pt.style">
+                                                <span class="o_pcd_spark_dot"/>
+                                            </span>
+                                        </t>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+
+                        <!-- Performance: one chart per measure (never two scales in one) -->
+                        <div class="o_pcd_perf_row">
+                            <t t-foreach="[['on_time_pct', 'On-time delivery', 'Share of receipts completed on or before the scheduled date'], ['rating', 'Vendor rating', 'Overall performance score from vendor ratings']]"
+                               t-as="metric" t-key="metric[0]">
+                                <div class="o_pcd_glass o_pcd_perf">
+                                    <div class="o_pcd_label" t-esc="metric[1]"/>
+                                    <div class="o_pcd_perf_hint" t-esc="metric[2]"/>
+                                    <t t-set="rows" t-value="metricVendors(metric[0])"/>
+                                    <div t-if="!rows.length" class="o_pcd_muted o_pcd_perf_empty">Not enough data yet.</div>
+                                    <div t-else="" class="o_pcd_bars">
+                                        <t t-foreach="rows" t-as="vendor" t-key="vendor.id">
+                                            <div t-att-class="'o_pcd_bar_col ' + colorClass(vendor)"
+                                                 t-att-title="vendor.name + ': ' + vendor[metric[0]] + '%'">
+                                                <span class="o_pcd_bar_value"><t t-esc="vendor[metric[0]]"/>%</span>
+                                                <div class="o_pcd_bar_track">
+                                                    <div class="o_pcd_bar" t-att-style="barStyle(vendor, metric[0])"/>
+                                                </div>
+                                                <span class="o_pcd_bar_label" t-esc="vendor.name"/>
+                                            </div>
+                                        </t>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+
+                        <!-- Price history of the clicked vendor -->
+                        <div t-if="selectedVendor" t-att-class="'o_pcd_glass o_pcd_history ' + colorClass(selectedVendor)">
+                            <div class="o_pcd_history_head">
+                                <span class="o_pcd_swatch"/>
+                                <span class="o_pcd_label">Price history</span>
+                                <span class="o_pcd_vendor_name" t-esc="selectedVendor.name"/>
+                                <span class="o_pcd_muted">· <t t-esc="product.name"/></span>
+                            </div>
+                            <div class="o_pcd_table_wrap">
+                            <table class="o_pcd_table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Reference</th>
+                                        <th>Type</th>
+                                        <th class="text-end">Qty</th>
+                                        <th class="text-end">Unit price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="selectedVendor.history" t-as="row" t-key="row.ref + '_' + row_index">
+                                        <tr>
+                                            <td t-esc="row.date or '—'"/>
+                                            <td t-esc="row.ref"/>
+                                            <td>
+                                                <span t-att-class="'o_pcd_kind ' + (row.kind === 'bid' ? 'bid' : 'order')"
+                                                      t-esc="row.kind === 'bid' ? 'Bid' : 'Order'"/>
+                                            </td>
+                                            <td class="text-end"><t t-esc="formatQty(row.qty)"/> <small class="o_pcd_muted" t-esc="product.uom"/></td>
+                                            <td class="text-end o_pcd_num">
+                                                <t t-esc="formatAmount(row.price)"/>
+                                                <span t-if="row.price === product.lowest" class="o_pcd_tag_low">Lowest</span>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+            </div>
+        </div>
+    </t>
+
+</templates>
