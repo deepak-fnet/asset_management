@@ -1,5 +1,6 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, UserError
+from odoo.tools.misc import formatLang
 from .vendor_compat_utils import group_members, group_member_emails
 
 class PurchaseOrder(models.Model):
@@ -218,6 +219,52 @@ class PurchaseOrder(models.Model):
                 rec.name = self.env['ir.sequence'].sudo().next_by_code(
                     'vendor_management.purchase.po') or rec.name
         return res
+
+    # ------------------------------------------------------------------
+    # Purchase order PDF (ACCOM format) helpers
+    # ------------------------------------------------------------------
+    def _accom_report_vat_details(self):
+        """One row per tax actually applied: code, rate, net, VAT amount."""
+        self.ensure_one()
+        rows = {}
+        for line in self.order_line.filtered(lambda l: not l.display_type and l.tax_ids):
+            res = line.tax_ids.compute_all(
+                line.price_unit * (1 - (line.discount or 0.0) / 100.0),
+                currency=self.currency_id, quantity=line.product_qty,
+                product=line.product_id, partner=self.partner_id)
+            for tax_res in res['taxes']:
+                tax = self.env['account.tax'].browse(tax_res['id'])
+                row = rows.setdefault(tax.id, {
+                    'code': tax.name,
+                    'rate': tax.amount if tax.amount_type == 'percent' else None,
+                    'net': 0.0,
+                    'vat': 0.0,
+                })
+                row['net'] += tax_res['base']
+                row['vat'] += tax_res['amount']
+        return list(rows.values())
+
+    def _accom_report_amount_in_words(self):
+        self.ensure_one()
+        currency = self.currency_id
+        words = currency.amount_to_text(self.amount_total) or ''
+        if not words:
+            return ''
+        label = currency.full_name or currency.name
+        return '%s %s%s' % (label, words, '' if words.lower().endswith('only') else ' Only')
+
+    def _accom_report_vendor(self):
+        """(vendor company, contact person) - a PO placed with a contact of a
+        company prints the company as vendor and the person as contact."""
+        self.ensure_one()
+        partner = self.partner_id
+        if partner.parent_id and not partner.is_company:
+            return partner.commercial_partner_id, partner
+        return partner, self.env['res.partner']
+
+    def _accom_report_ship_to(self):
+        self.ensure_one()
+        return self.dest_address_id or self.picking_type_id.warehouse_id.partner_id or self.company_id.partner_id
 
     def action_view_child_pos(self):
         self.ensure_one()
@@ -584,7 +631,53 @@ class PurchaseOrder(models.Model):
                 raise UserError(_(
                     "Select a vendor for every product in Vendor Comparison "
                     "before submitting for approval."))
+            if not rec.comparison_confirmed:
+                raise UserError(_(
+                    "Confirm the vendor selection in Vendor Comparison "
+                    "before submitting for approval."))
         return super().action_submit_for_approval()
+
+    comparison_confirmed = fields.Boolean(
+        string="Vendor Selection Confirmed", copy=False, tracking=True,
+        help="Set by Confirm on the Vendor Comparison screen; cleared again "
+             "whenever a vendor selection changes, so Submit for Approval "
+             "always follows a confirmed selection.")
+
+    def action_confirm_comparison(self):
+        """Vendor Comparison > Confirm: lock in the selection so the order
+        can be submitted for approval."""
+        self.ensure_one()
+        if self.state not in ('draft', 'sent') or self.comparison_state in ('draft', 'sent'):
+            raise UserError(_("Vendor selection can only be confirmed after bids are received."))
+        if not self.vendor_finalized:
+            unresolved = self.order_line.filtered(lambda l: not l.display_type and not l.vendor_id)
+            raise UserError(_(
+                "Select a vendor for every product first. Missing: %s",
+                ', '.join(unresolved.mapped('product_id.display_name'))))
+        if not self.comparison_confirmed:
+            self.comparison_confirmed = True
+            self.message_post(body=_("Vendor selection confirmed: %s", ", ".join(
+                "%s → %s" % (l.product_id.display_name, l.vendor_id.name)
+                for l in self.order_line.filtered(lambda l: not l.display_type))))
+        return True
+
+    def _approval_snapshot(self):
+        # Also track what the purchase user can change after a rejection on
+        # the bidding side: each vendor's bid price and who got each product.
+        snap = super()._approval_snapshot()
+
+        def money(value):
+            return formatLang(self.env, value or 0.0, currency_obj=self.currency_id)
+
+        for line in self.order_line.filtered(lambda l: not l.display_type):
+            snap['award:%s' % line.id] = [
+                '%s - Selected Vendor' % (line.product_id.display_name or line.name),
+                line.vendor_id.display_name or '']
+        for bid in self.comparison_line_ids:
+            snap['bid:%s' % bid.id] = [
+                'Bid %s - %s' % (bid.vendor_id.display_name, bid.product_id.display_name),
+                money(bid.vendor_price)]
+        return snap
 
     @api.depends('expiry_date')
     def _compute_is_rfq_expired(self):
@@ -672,7 +765,18 @@ class PurchaseOrder(models.Model):
             'po_name': self.name,
             'po_state': state_label,
             # Read-only once purchase orders were created from this RFQ.
-            'locked': self.state not in ('draft', 'sent'),
+            # Selection is frozen while approval is pending/given, and once
+            # purchase orders were created from this RFQ.
+            'locked': self.state not in ('draft', 'sent')
+                      or self.approval_status in ('submitted', 'approved'),
+            'locked_reason': (
+                _("Purchase orders have been created from this RFQ - the selection below is final.")
+                if self.state not in ('draft', 'sent') else
+                _("This RFQ is waiting for or has approval - the selection can't be changed now.")),
+            'confirmed': self.comparison_confirmed,
+            'can_confirm': self.state in ('draft', 'sent')
+                           and self.comparison_state not in ('draft', 'sent')
+                           and self.approval_status not in ('submitted', 'approved'),
             'currency_symbol': self.currency_id.symbol or '',
             'currency_position': self.currency_id.position or 'before',
             'vendors': [{

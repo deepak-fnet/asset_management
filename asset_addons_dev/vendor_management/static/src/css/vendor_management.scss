@@ -1424,6 +1424,20 @@
         margin-bottom: 24px;
     }
 
+    .o_vcg_confirm {
+        margin-left: auto;
+        padding: 8px 22px;
+        border-radius: 8px;
+        font-weight: 600;
+        background: $vcg-accent;
+        border-color: $vcg-accent;
+    }
+
+    .o_vcg_badge_ok {
+        background: rgba(31, 157, 85, 0.12);
+        color: $vcg-success;
+    }
+
     .o_vcg_back {
         width: 40px;
         height: 40px;

@@ -1,6 +1,6 @@
 {
     'name': 'Vendor Management',
-    'version': '19.0.1.5.1',  # Price Comparison dashboard (overview, vendor cards with trend, on-time + rating charts, price history); RFQ split: Confirm Order creates one purchase order per awarded vendor (RFQ -> 'Ordered'); child orders single-vendor with Upload Bill; bill approval Stores Approve -> Finance Confirm on the bill itself (vendor.bill + multi-vendor picking split removed); no duplicates in portal/Price Comparison/report; comparison: per-vendor Total row, Selected total, Lowest tags, order currency, refined layout; comparison top bar lists vendor names only (no checkboxes); bid stage: Vendor Bids tab + manual Enter/Submit Bid, Bid Received (manual, or automatic once every vendor bids), approval only after bids received + all products awarded; Purchase role ACLs on vendor.quote
+    'version': '19.0.1.7.0',  # advance payment: Advance % on payment terms, Request Advance (Purchase User, Finance emailed) -> Finance Confirm/Reject, auto-adjusted on the bill; bill approval Submit -> Dept Head -> Stores -> Finance with reject + emails; comparison Confirm gates approval; bids editable after rejection; T&C on purchase orders only; ACCOM purchase order PDF; Price Comparison dashboard (overview, vendor cards with trend, on-time + rating charts, price history); RFQ split: Confirm Order creates one purchase order per awarded vendor (RFQ -> 'Ordered'); child orders single-vendor with Upload Bill; bill approval Stores Approve -> Finance Confirm on the bill itself (vendor.bill + multi-vendor picking split removed); no duplicates in portal/Price Comparison/report; comparison: per-vendor Total row, Selected total, Lowest tags, order currency, refined layout; comparison top bar lists vendor names only (no checkboxes); bid stage: Vendor Bids tab + manual Enter/Submit Bid, Bid Received (manual, or automatic once every vendor bids), approval only after bids received + all products awarded; Purchase role ACLs on vendor.quote
     'category': 'Services',
     'summary': 'Vendor Management System',
     'author': 'Prasanna',
@@ -22,6 +22,7 @@
         # (see views/purchase_order_views.xml) - a deliberate integration
         # between the two flows, not an accidental coupling.
         'purchase_approval',
+        'hr',
     ],
 
     'data': [
@@ -48,6 +49,7 @@
         'views/vendor_actions.xml',
         'views/vendor_audit_log_views.xml',
         'views/vendor_quote_views.xml',
+        'report/purchase_order_accom_report.xml',
         'views/purchase_order_views.xml',
         'views/account_move_views.xml',
         'views/res_config_settings_views.xml',
@@ -55,6 +57,8 @@
         'views/res_partner_review_alert_views.xml',
         'views/vendor_performance_action.xml',
         'wizard/vendor_rating_wizard_view.xml',
+        'wizard/purchase_bill_reject_wizard_view.xml',
+        'views/purchase_advance_views.xml',
         'wizard/vendor_performance_review_wizard_view.xml',
 
         # ================= PORTAL =================

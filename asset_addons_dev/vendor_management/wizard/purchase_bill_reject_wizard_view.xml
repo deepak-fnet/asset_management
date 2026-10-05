@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_purchase_bill_reject_wizard_form" model="ir.ui.view">
+        <field name="name">purchase.bill.reject.wizard.form</field>
+        <field name="model">purchase.bill.reject.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reject Bill">
+                <field name="move_id" invisible="1"/>
+                <p class="text-muted">
+                    The bill goes back to the Purchase User, who is emailed this reason.
+                </p>
+                <field name="reason" placeholder="What is wrong with this bill?"/>
+                <footer>
+                    <button name="action_confirm_reject" type="object" string="Reject" class="btn-danger"/>
+                    <button special="cancel" string="Cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

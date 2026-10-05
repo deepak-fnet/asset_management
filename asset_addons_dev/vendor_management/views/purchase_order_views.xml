@@ -30,8 +30,12 @@
                         groups="vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
                 <button name="action_open_rating_wizard" type="object" string="Rate Vendor"
                         invisible="state not in ('purchase', 'done') or is_rated" class="btn-info"/>
+                <!-- New ACCOM-format purchase order PDF -->
+                <button name="%(vendor_management.action_report_purchase_order_accom)d" type="action"
+                        string="Print PO" class="btn-secondary" invisible="state != 'purchase'"/>
                 <field name="rfq_id" invisible="1"/>
                 <field name="bill_ready" invisible="1"/>
+                <field name="comparison_confirmed" invisible="1"/>
             </xpath>
             <!-- Same screen as the "Compare Quotes" header button above
                  (action_compare_quotes, the vendor-grouped comparison
@@ -162,7 +166,7 @@
                  it does not merge) plus the two bidding conditions; the
                  server-side check is action_submit_for_approval. -->
             <xpath expr="//button[@name='action_submit_for_approval']" position="attributes">
-                <attribute name="invisible">not approval_config_id or approval_status not in ('draft', 'rejected') or comparison_state in ('draft', 'sent') or not vendor_finalized</attribute>
+                <attribute name="invisible">not approval_config_id or approval_status not in ('draft', 'rejected') or comparison_state in ('draft', 'sent') or not vendor_finalized or not comparison_confirmed</attribute>
             </xpath>
             <xpath expr="//notebook" position="inside">
                 <!-- One row per invited vendor: who has bid, who hasn't. A vendor
@@ -188,9 +192,13 @@
                                     icon="fa-pencil" class="btn-primary"
                                     invisible="state != 'draft' or parent.comparison_state != 'sent'"
                                     groups="vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
+                            <button name="action_open_bid" type="object" string="Edit Bid"
+                                    icon="fa-pencil" class="btn-warning"
+                                    invisible="state == 'draft' or parent.approval_status != 'rejected'"
+                                    groups="vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
                             <button name="action_open_bid" type="object" string="View"
                                     icon="fa-eye"
-                                    invisible="state == 'draft' and parent.comparison_state == 'sent'"/>
+                                    invisible="(state == 'draft' and parent.comparison_state == 'sent') or (state != 'draft' and parent.approval_status == 'rejected')"/>
                         </list>
                     </field>
                 </page>
@@ -222,6 +230,25 @@
             </xpath>
         </field>
     </record>
+    <!-- Terms & Conditions belong to the purchase order sent to the vendor,
+         not to the RFQ: hidden on the RFQ, shown on each purchase order
+         created from it. Separate view with priority above purchase_approval's
+         own terms view (99), so these fields exist when this applies. -->
+    <record id="purchase_order_form_vendor_mgmt_terms_po_only" model="ir.ui.view">
+        <field name="name">purchase.order.form.vendor.mgmt.terms.po.only</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="priority">120</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='terms_template_id']" position="attributes">
+                <attribute name="invisible">not rfq_id</attribute>
+            </xpath>
+            <xpath expr="//page[@name='terms_conditions']" position="attributes">
+                <attribute name="invisible">not rfq_id</attribute>
+            </xpath>
+        </field>
+    </record>
+
     <!-- Requests for Quotation menu: RFQs only. Purchase orders created
          from an RFQ (one per vendor) live under Orders > Purchase Orders. -->
     <record id="purchase.purchase_rfq" model="ir.actions.act_window">

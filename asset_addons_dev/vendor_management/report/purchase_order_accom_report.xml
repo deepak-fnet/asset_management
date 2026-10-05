@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Purchase Order PDF in the ACCOM company format: company header with
+         PO number / date / page count repeated on every page, vendor and
+         ship/bill blocks, line table, VAT details, amount in words and the
+         order's Terms & Conditions. -->
+    <record id="paperformat_purchase_order_accom" model="report.paperformat">
+        <field name="name">Purchase Order (A4, company header)</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">64</field>
+        <field name="margin_bottom">14</field>
+        <field name="margin_left">8</field>
+        <field name="margin_right">8</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">30</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="action_report_purchase_order_accom" model="ir.actions.report">
+        <field name="name">Purchase Order</field>
+        <field name="model">purchase.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">vendor_management.report_purchase_order_accom</field>
+        <field name="report_file">vendor_management.report_purchase_order_accom</field>
+        <field name="print_report_name">'Purchase Order - %s - %s' % (object.name, object.partner_id.name or '')</field>
+        <field name="paperformat_id" ref="paperformat_purchase_order_accom"/>
+        <field name="binding_model_id" ref="purchase.model_purchase_order"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Shared styles: needed in both the header (rendered separately by
+         wkhtmltopdf on every page) and the body. -->
+    <template id="accom_report_styles">
+        <style>
+            .accom { font-family: 'DejaVu Sans', Arial, sans-serif; font-size: 11px; color: #111; }
+            .accom table { width: 100%; border-collapse: collapse; }
+            .accom td, .accom th { vertical-align: top; }
+            .accom .rule { border-bottom: 1px solid #3a8fd6; }
+            .accom .rule-top { border-top: 1px solid #3a8fd6; }
+            .accom .muted { color: #333; }
+            .accom .lbl { font-size: 10.5px; color: #222; }
+            .accom .bar { border-left: 6px solid #f2a900; padding-left: 8px; font-weight: bold; }
+            .accom .h-title { font-size: 15px; font-weight: bold; letter-spacing: .3px; }
+            .accom .co-name { font-size: 19px; font-weight: bold; }
+            .accom .lines th { background: #eef3f8; font-weight: bold; padding: 8px 6px; border-top: 1px solid #3a8fd6; }
+            .accom .lines td { padding: 6px; }
+            .accom .lines tbody tr.prod td { border-bottom: 0; }
+            .accom .lines tfoot td { border-top: 1px solid #3a8fd6; }
+            .accom .right { text-align: right; }
+            .accom .center { text-align: center; }
+            .accom .b { font-weight: bold; }
+            .accom .small { font-size: 10px; }
+            .accom .tot td { padding: 3px 6px; border-bottom: 1px solid #3a8fd6; }
+            .accom .tot .grand td { font-weight: bold; }
+            .accom .tot .grand .lab { border-left: 6px solid #f2a900; }
+            .accom .vat th { text-align: left; border-bottom: 1px solid #3a8fd6; padding: 3px 4px; }
+            .accom .vat td { padding: 3px 4px; border-bottom: 1px solid #3a8fd6; }
+            .accom .vat th.right { text-align: right; }
+            .accom .terms td { padding: 3px 0; }
+            .accom .uline { border-bottom: 2px solid #3a8fd6; display: inline-block; padding-bottom: 2px; }
+        </style>
+    </template>
+
+    <template id="report_purchase_order_accom_document">
+        <t t-set="company" t-value="o.company_id"/>
+        <t t-set="vendor_and_contact" t-value="o._accom_report_vendor()"/>
+        <t t-set="vendor" t-value="vendor_and_contact[0]"/>
+        <t t-set="contact" t-value="vendor_and_contact[1]"/>
+        <t t-set="ship_to" t-value="o._accom_report_ship_to()"/>
+        <t t-set="doc_date" t-value="o.date_approve or o.date_order"/>
+        <t t-set="cur" t-value="o.currency_id.name"/>
+
+        <!-- ===== Repeated page header ===== -->
+        <div class="header">
+            <t t-call="vendor_management.accom_report_styles"/>
+            <div class="accom" style="font-size: 14px;">
+                <table>
+                    <tr>
+                        <td style="width: 70%;">
+                            <div class="co-name" t-esc="company.name"/>
+                            <div t-if="company.street" t-esc="', '.join(p for p in [company.street, company.street2] if p) + ','"/>
+                            <div t-esc="', '.join(p for p in [company.city, company.state_id.name, company.country_id.name] if p)"/>
+                            <div t-if="company.phone">Phone: <t t-esc="company.phone"/></div>
+                            <div t-if="company.email">Email: <t t-esc="company.email"/></div>
+                        </td>
+                        <td class="right" style="width: 30%;">
+                            <img t-if="company.logo" t-att-src="image_data_uri(company.logo)"
+                                 style="max-height: 75px; max-width: 170px;" alt="Logo"/>
+                        </td>
+                    </tr>
+                </table>
+                <table class="rule-top" style="margin-top: 4px;">
+                    <tr style="font-size: 14px;">
+                        <td style="width: 34%; padding-top: 3px;">PO Number</td>
+                        <td class="center" style="width: 33%; padding-top: 3px;">Document Date</td>
+                        <td class="right" style="width: 33%; padding-top: 3px;">Pages</td>
+                    </tr>
+                    <tr class="b" style="font-size: 15px;">
+                        <td t-esc="o.name"/>
+                        <td class="center" t-esc="doc_date and doc_date.strftime('%d/%m/%Y')"/>
+                        <td class="right"><span class="page"/> / <span class="topage"/></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===== Body ===== -->
+        <div class="article" t-att-data-oe-model="o._name" t-att-data-oe-id="o.id"
+             t-att-data-oe-lang="o.env.context.get('lang')">
+            <t t-call="vendor_management.accom_report_styles"/>
+            <div class="accom">
+                <table class="rule" style="margin-bottom: 2px;">
+                    <tr>
+                        <td><span class="bar h-title">PURCHASE ORDER</span></td>
+                        <td class="right b" t-if="company.vat">TRN NO:<t t-esc="company.vat"/></td>
+                    </tr>
+                </table>
+
+                <!-- Vendor | order references -->
+                <table>
+                    <tr>
+                        <td style="width: 50%; padding: 4px 0;">
+                            <div class="lbl">Vendor:</div>
+                            <div class="b" t-esc="vendor.name"/>
+                            <div t-esc="', '.join(p for p in [vendor.street, vendor.street2, vendor.city, vendor.state_id.name, vendor.country_id.name] if p)"/>
+                            <div>Phone: <t t-esc="vendor.phone or ''"/></div>
+                            <div>Fax:</div>
+                            <div class="b" t-if="vendor.vat">Vendor TRN NO: <t t-esc="vendor.vat"/></div>
+                        </td>
+                        <td style="width: 50%; padding: 4px 0 4px 10px;">
+                            <table>
+                                <tr class="lbl"><td>PO Number</td><td>PO Date</td></tr>
+                                <tr class="b rule">
+                                    <td t-esc="o.name"/>
+                                    <td t-esc="doc_date and doc_date.strftime('%d/%m/%Y')"/>
+                                </tr>
+                                <tr><td colspan="2" class="lbl" style="padding-top: 3px;">Project/Vendor Reference</td></tr>
+                                <tr><td colspan="2" style="height: 38px;" t-esc="o.partner_ref or ''"/></tr>
+                                <!-- <tr class="rule-top"><td colspan="2" class="lbl" style="padding-top: 3px;">Contact Person: <t t-esc="contact.name or ''"/></td></tr> -->
+                            </table>
+                        </td>
+                    </tr>
+                    <!-- <tr class="rule-top">
+                        <td style="padding: 4px 0; height: 48px;">
+                            <div class="lbl">Ship To</div>
+                            <div class="b" t-esc="ship_to.name"/>
+                            <div t-esc="', '.join(p for p in [ship_to.street, ship_to.street2, ship_to.city, ship_to.country_id.name] if p)"/>
+                        </td>
+                        <td style="padding: 4px 0 4px 10px;">
+                            <div class="lbl">Ship To Contact</div>
+                            <div t-esc="o.user_id.name or ''"/>
+                        </td>
+                    </tr>
+                    <tr class="rule-top">
+                        <td style="padding: 4px 0; height: 48px;">
+                            <div class="lbl">Bill To</div>
+                            <div class="b" t-esc="company.name"/>
+                            <div t-esc="', '.join(p for p in [company.street, company.street2, company.city, company.country_id.name] if p)"/>
+                        </td>
+                        <td style="padding: 4px 0 4px 10px;">
+                            <div class="lbl">Bill to Contact</div>
+                            <div t-esc="o.user_id.name or ''"/>
+                        </td>
+                    </tr> -->
+                </table>
+
+                <!-- Lines -->
+                <table class="lines" style="margin-top: 22px;">
+                    <thead>
+                        <tr>
+                            <th class="center" style="width: 4%;">#</th>
+                            <th style="width: 34%; text-align: left;">Description</th>
+                            <th class="center" style="width: 13%;">Delivery Date(Estimate)</th>
+                            <th class="center" style="width: 9%;">Quantity</th>
+                            <th class="center" style="width: 8%;">UOM</th>
+                            <th class="right" style="width: 15%;">Unit Price in <t t-esc="cur"/></th>
+                            <th class="right" style="width: 17%;">Total Amount in <t t-esc="cur"/></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-set="n" t-value="0"/>
+                        <t t-foreach="o.order_line" t-as="line">
+                            <tr t-if="line.display_type == 'line_section'">
+                                <td colspan="7" class="b" style="background: #f7f9fc;" t-esc="line.name"/>
+                            </tr>
+                            <tr t-elif="line.display_type == 'line_note'">
+                                <td colspan="7" style="font-style: italic;" t-esc="line.name"/>
+                            </tr>
+                            <tr t-elif="not line.display_type" class="prod">
+                                <t t-set="n" t-value="n + 1"/>
+                                <t t-set="desc" t-value="(line.name or line.product_id.display_name or '').split('\n')"/>
+                                <td class="center" t-esc="n"/>
+                                <td>
+                                    <div class="b" t-esc="desc[0]"/>
+                                    <t t-foreach="desc[1:]" t-as="extra">
+                                        <div class="b small" t-esc="extra"/>
+                                    </t>
+                                </td>
+                                <td class="center" t-esc="line.date_planned and line.date_planned.strftime('%d/%m/%Y')"/>
+                                <td class="center"><span t-esc="line.product_qty" t-options="{'widget': 'float', 'decimal_precision': 'Product Unit'}"/></td>
+                                <td class="center" t-esc="line.product_uom_id.name"/>
+                                <td class="right"><span t-esc="line.price_unit" t-options="{'widget': 'float', 'precision': 2}"/></td>
+                                <td class="right"><span t-esc="line.price_subtotal" t-options="{'widget': 'float', 'precision': 2}"/></td>
+                            </tr>
+                        </t>
+                    </tbody>
+                    <tfoot><tr><td colspan="7"/></tr></tfoot>
+                </table>
+
+                <!-- VAT details | totals -->
+                <table style="margin-top: 6px;">
+                    <tr>
+                        <td style="width: 54%; padding-right: 14px;">
+                            <div class="bar" style="font-size: 12px; margin-bottom: 4px;">VAT Details:</div>
+                            <table class="vat">
+                                <thead>
+                                    <tr>
+                                        <th>VAT Code</th>
+                                        <th>Vat%</th>
+                                        <th class="right">Net Amount</th>
+                                        <th class="right">VAT Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="o._accom_report_vat_details()" t-as="vat">
+                                        <tr>
+                                            <td class="b" t-esc="vat['code']"/>
+                                            <td class="b"><t t-if="vat['rate'] is not None"><span t-esc="vat['rate']" t-options="{'widget': 'float', 'precision': 1}"/>%</t></td>
+                                            <td class="right b"><t t-esc="cur"/> <span t-esc="vat['net']" t-options="{'widget': 'float', 'precision': 2}"/></td>
+                                            <td class="right b"><t t-esc="cur"/> <span t-esc="vat['vat']" t-options="{'widget': 'float', 'precision': 2}"/></td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </td>
+                        <td style="width: 46%;">
+                            <table class="tot">
+                                <tr>
+                                    <td>Subtotal:</td>
+                                    <td class="right b"><t t-esc="cur"/> <span t-esc="o.amount_untaxed" t-options="{'widget': 'float', 'precision': 2}"/></td>
+                                </tr>
+                                <tr>
+                                    <td>VAT Amount:</td>
+                                    <td class="right b"><t t-esc="cur"/> <span t-esc="o.amount_tax" t-options="{'widget': 'float', 'precision': 2}"/></td>
+                                </tr>
+                                <tr class="grand">
+                                    <td class="lab">Total Amount:</td>
+                                    <td class="right"><t t-esc="cur"/> <span t-esc="o.amount_total" t-options="{'widget': 'float', 'precision': 2}"/></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Amount in words -->
+                <div style="margin-top: 22px;">
+                    <span class="bar uline" style="font-size: 12px;">Amount in Words:</span>
+                </div>
+                <div class="b" style="margin-top: 6px;" t-esc="o._accom_report_amount_in_words()"/>
+
+                <!-- Terms & Conditions of this purchase order -->
+                <t t-if="o.terms_condition_line_ids">
+                    <div style="margin-top: 6px;">
+                        <span class="bar uline" style="font-size: 15px;">Terms &amp; Conditions:</span>
+                    </div>
+                    <table class="terms" style="margin-top: 10px; width: 75%;">
+                        <t t-foreach="o.terms_condition_line_ids" t-as="term">
+                            <tr>
+                                <td class="b" style="width: 34%;" t-esc="term.term_id.name"/>
+                                <td style="width: 4%;">:</td>
+                                <td t-esc="term.value_id.value or ''"/>
+                            </tr>
+                        </t>
+                    </table>
+                </t>
+                <div t-if="o.note and o.note != '&lt;p&gt;&lt;br&gt;&lt;/p&gt;'" style="margin-top: 12px;">
+                    <t t-out="o.note"/>
+                </div>
+            </div>
+        </div>
+        <div class="footer"/>
+    </template>
+
+    <template id="report_purchase_order_accom">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="vendor_management.report_purchase_order_accom_document" t-lang="o.partner_id.lang"/>
+            </t>
+        </t>
+    </template>
+</odoo>

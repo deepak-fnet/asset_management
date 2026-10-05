@@ -51,6 +51,9 @@ class VendorQuote(models.Model):
     ], compute='_compute_line_result', store=True, string="Result")
 
     line_ids = fields.One2many('vendor.quote.line', 'quote_id', string="Lines")
+    # After a rejection the purchase user may renegotiate with a vendor and
+    # correct their bid - the form allows editing a submitted bid then.
+    rfq_approval_status = fields.Selection(related='rfq_id.approval_status', string="RFQ Approval Status")
 
     # store=True: needed so quote_rating (below, related to this field) can
     # be aggregated in the vendor-grouped comparison screen's group header
@@ -263,6 +266,23 @@ class VendorQuoteLine(models.Model):
         for line in self:
             line.is_winning_line = bool(line.po_line_id) and line.po_line_id.vendor_id == line.vendor_id
 
+    def write(self, vals):
+        if 'vendor_price' in vals:
+            for line in self:
+                rfq = line.quote_id.rfq_id
+                if line.quote_id.state != 'draft' and (
+                        rfq.state not in ('draft', 'sent')
+                        or rfq.approval_status in ('submitted', 'approved')):
+                    raise UserError(_(
+                        "Bid prices can't be changed while %s is waiting for or has approval.",
+                        rfq.name))
+        res = super().write(vals)
+        if 'vendor_price' in vals:
+            for line in self.filtered('is_winning_line'):
+                if line.po_line_id.price_unit != line.vendor_price:
+                    line.po_line_id.price_unit = line.vendor_price
+        return res
+
     def action_select_line(self):
         """Award this product line to this quote's vendor at this price."""
         rfqs = self.env['purchase.order']
@@ -293,6 +313,7 @@ class VendorQuoteLine(models.Model):
             line.quote_id.rfq_id.partner_id = line.vendor_id
             rfqs |= line.quote_id.rfq_id
         rfqs._sync_quote_states()
+        rfqs.filtered('comparison_confirmed').write({'comparison_confirmed': False})
         # No explicit action returned: the web client already re-reads every
         # field on the current record after any button call, which is
         # enough to refresh comparison_line_ids/is_winning_line/
@@ -315,3 +336,4 @@ class VendorQuoteLine(models.Model):
             po_line.write({'vendor_id': False, 'winning_quote_line_id': False})
             rfqs |= line.quote_id.rfq_id
         rfqs._sync_quote_states()
+        rfqs.filtered('comparison_confirmed').write({'comparison_confirmed': False})

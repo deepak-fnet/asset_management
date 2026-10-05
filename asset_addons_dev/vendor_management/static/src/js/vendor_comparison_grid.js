@@ -33,6 +33,9 @@ export class VendorComparisonGrid extends Component {
             poName: "",
             poState: "",
             locked: false,
+            lockedReason: "",
+            confirmed: false,
+            canConfirm: false,
             currencySymbol: "",
             currencyPosition: "before",
             vendors: [],          // [{id, name, subtitle}]
@@ -48,6 +51,9 @@ export class VendorComparisonGrid extends Component {
         this.state.poName = data.po_name;
         this.state.poState = data.po_state;
         this.state.locked = data.locked;
+        this.state.lockedReason = data.locked_reason;
+        this.state.confirmed = data.confirmed;
+        this.state.canConfirm = data.can_confirm;
         this.state.currencySymbol = data.currency_symbol;
         this.state.currencyPosition = data.currency_position;
         this.state.vendors = data.vendors;
@@ -143,6 +149,21 @@ export class VendorComparisonGrid extends Component {
             ? "action_unaward_all_from_vendor"
             : "action_award_all_to_vendor";
         await this._call("purchase.order", method, [[this.poId], vendorId]);
+    }
+
+    /** Confirm the selection (server checks every product has a vendor), then
+     * go back to the RFQ form, where Submit for Approval is now available. */
+    async confirmSelection() {
+        try {
+            await this.orm.call("purchase.order", "action_confirm_comparison", [[this.poId]]);
+        } catch (error) {
+            this.notification.add(error.data?.message || error.message, { type: "danger" });
+            return;
+        }
+        this.notification.add("Vendor selection confirmed. You can now submit it for approval.", {
+            type: "success",
+        });
+        await this.goBack();
     }
 
     async goBack() {

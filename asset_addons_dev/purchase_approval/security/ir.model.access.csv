@@ -15,3 +15,6 @@ access_purchase_terms_condition_template_user,purchase.terms.condition.template.
 access_purchase_terms_condition_template_mgr,purchase.terms.condition.template.mgr,model_purchase_terms_condition_template,purchase.group_purchase_manager,1,1,1,1
 access_purchase_order_terms_line_user,purchase.order.terms.line.user,model_purchase_order_terms_line,base.group_user,1,1,1,0
 access_purchase_order_terms_line_mgr,purchase.order.terms.line.mgr,model_purchase_order_terms_line,purchase.group_purchase_manager,1,1,1,1
+access_purchase_approval_rejection_user,purchase.approval.rejection.user,model_purchase_approval_rejection,base.group_user,1,1,1,0
+access_purchase_approval_rejection_mgr,purchase.approval.rejection.mgr,model_purchase_approval_rejection,purchase.group_purchase_manager,1,1,1,1
+access_purchase_approval_reject_wizard_user,purchase.approval.reject.wizard.user,model_purchase_approval_reject_wizard,base.group_user,1,1,1,1

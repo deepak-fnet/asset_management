@@ -14,8 +14,15 @@
                         <div class="o_vcg_subtitle">
                             <span>Quotation: <t t-esc="state.poName"/></span>
                             <span t-if="state.poState" class="o_vcg_badge" t-esc="state.poState"/>
+                            <span t-if="state.confirmed" class="o_vcg_badge o_vcg_badge_ok">
+                                <i class="fa fa-check"/> Selection confirmed
+                            </span>
                         </div>
                     </div>
+                    <button t-if="state.canConfirm and state.vendors.length" type="button"
+                            class="btn btn-primary o_vcg_confirm" t-on-click="confirmSelection">
+                        <i class="fa fa-check me-1"/> Confirm
+                    </button>
                 </div>
 
                 <div t-if="state.loading" class="text-muted">Loading...</div>
@@ -28,7 +35,7 @@
                     <t t-else="">
                         <div t-if="state.locked" class="o_vcg_card o_vcg_locked_note">
                             <i class="fa fa-lock"/>
-                            <span>Purchase orders have been created from this RFQ - the selection below is final.</span>
+                            <span t-esc="state.lockedReason"/>
                         </div>
                         <!-- Vendors who bid on this RFQ - names only -->
                         <div class="o_vcg_card o_vcg_select_vendors">

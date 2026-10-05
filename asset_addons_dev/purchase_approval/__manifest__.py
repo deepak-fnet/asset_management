@@ -1,6 +1,6 @@
 {
     "name": "Purchase Approval",
-    "version": "19.0.1.3.1",  # approval check reusable by the RFQ split; split orders skip the default approval flow; lock terms/line-item fields once submitted for approval (view readonly + write guard)
+    "version": "19.0.1.4.0",  # reject reason wizard + rejection history (count smart button, changes captured on resubmit) + approval emails per tier; approval check reusable by the RFQ split; split orders skip the default approval flow; lock terms/line-item fields once submitted for approval (view readonly + write guard)
     "category": "Inventory/Purchase",
     "summary": "Multi-approver sign-off required before a Purchase Order can be confirmed",
     "description": """
@@ -27,6 +27,7 @@ not assume any other custom purchase module is installed.
         "views/purchase_approval_config_views.xml",
         "views/purchase_terms_condition_views.xml",
         "views/purchase_order_views.xml",
+        "views/purchase_approval_rejection_views.xml",
     ],
     "installable": True,
     "application": False,

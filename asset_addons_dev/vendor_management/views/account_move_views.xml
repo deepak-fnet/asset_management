@@ -6,18 +6,38 @@
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
             <!-- Purchase bill approval: Upload Bill (on the purchase order)
-                 -> Stores Approve -> Finance Confirm. -->
+                 -> Submit (Purchase User) -> Department Head -> Stores ->
+                 Finance Confirm. Reject at any approval step sends it back. -->
             <xpath expr="//header" position="inside">
+                <button name="action_bill_submit" type="object" string="Submit"
+                        class="btn-primary"
+                        invisible="not purchase_bill_approval or state != 'draft' or bill_approval_state != 'draft' or not can_bill_submit"/>
+                <button name="action_dept_approve" type="object" string="Dept. Head Approve"
+                        class="btn-primary"
+                        invisible="not purchase_bill_approval or state != 'draft' or bill_approval_state != 'to_dept' or not can_dept_approve"/>
                 <button name="action_stores_approve" type="object" string="Stores Approve"
                         class="btn-primary"
-                        invisible="not purchase_bill_approval or state != 'draft' or bill_approval_state != 'to_approve' or not can_stores_approve"/>
+                        invisible="not purchase_bill_approval or state != 'draft' or bill_approval_state != 'to_stores' or not can_stores_approve"/>
+                <button name="action_bill_reject" type="object" string="Reject"
+                        class="btn-danger"
+                        invisible="not purchase_bill_approval or state != 'draft' or not can_bill_reject"/>
                 <button name="action_open_rating_wizard" type="object" string="Rate Vendor"
                         invisible="move_type != 'in_invoice' or state != 'posted' or is_rated" class="btn-info"/>
             </xpath>
             <xpath expr="//header" position="after">
+                <div class="alert alert-secondary mb-0" role="status"
+                     invisible="not purchase_bill_approval or state != 'draft' or bill_approval_state != 'draft'">
+                    Fill in the bill (Bill Date, Bill Reference, attach the vendor's bill), then click
+                    <strong>Submit</strong> to send it for approval.
+                </div>
                 <div class="alert alert-warning mb-0" role="status"
-                     invisible="not purchase_bill_approval or state != 'draft' or bill_approval_state != 'to_approve'">
-                    Waiting for <strong>Stores approval</strong> before Finance can confirm this bill.
+                     invisible="not purchase_bill_approval or state != 'draft' or bill_approval_state != 'to_dept'">
+                    Waiting for <strong>Department Head</strong> approval
+                    (<field name="bill_dept_approver_id" readonly="1" class="d-inline"/>).
+                </div>
+                <div class="alert alert-warning mb-0" role="status"
+                     invisible="not purchase_bill_approval or state != 'draft' or bill_approval_state != 'to_stores'">
+                    Approved by the Department Head - waiting for <strong>Stores</strong> approval.
                 </div>
                 <div class="alert alert-info mb-0" role="status"
                      invisible="not purchase_bill_approval or state != 'draft' or bill_approval_state != 'stores_approved'">
@@ -28,8 +48,11 @@
                 <field name="is_rated" invisible="1"/>
                 <field name="purchase_bill_approval" invisible="1"/>
                 <field name="bill_approval_state" invisible="1"/>
+                <field name="can_bill_submit" invisible="1"/>
+                <field name="can_dept_approve" invisible="1"/>
                 <field name="can_stores_approve" invisible="1"/>
                 <field name="can_finance_post" invisible="1"/>
+                <field name="can_bill_reject" invisible="1"/>
             </xpath>
             <!-- "Confirm" (index 2 - index 1 is "Post", for move_type='entry'
                  journal entries) is core's own post button, and IS "Finance
@@ -56,7 +79,8 @@
                 <field name="bill_approval_state" string="Bill Approval" optional="show"
                        widget="badge"
                        invisible="not purchase_bill_approval or state != 'draft'"
-                       decoration-warning="bill_approval_state == 'to_approve'"
+                       decoration-muted="bill_approval_state == 'draft'"
+                       decoration-warning="bill_approval_state in ('to_dept', 'to_stores')"
                        decoration-info="bill_approval_state == 'stores_approved'"/>
             </xpath>
         </field>

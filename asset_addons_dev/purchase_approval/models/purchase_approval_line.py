@@ -63,6 +63,7 @@ class PurchaseApprovalLine(models.Model):
                 body="%s approved this Purchase Order." % line.approver_id.display_name
             )
             line._close_own_activity()
+            line.order_id._approval_after_line_approved(line)
         return True
 
     def action_reject(self):

@@ -1,5 +1,10 @@
+import json
+
+from markupsafe import Markup
+
 from odoo import models, fields, api
 from odoo.exceptions import UserError, ValidationError
+from odoo.tools.misc import formatLang
 
 
 class PurchaseOrder(models.Model):
@@ -92,15 +97,186 @@ class PurchaseOrder(models.Model):
         return True
 
     def action_reject_order(self):
-        """Header button — rejects only the current user's own line."""
+        """Header button — asks for a reason, then rejects only the current
+        user's own line (see _reject_with_reason)."""
+        self.ensure_one()
+        if not self._own_pending_line():
+            raise UserError(
+                "You do not have a pending approval on this Purchase Order."
+            )
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Reject Purchase Order",
+            "res_model": "purchase.approval.reject.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {"default_order_id": self.id},
+        }
+
+    # ------------------------------------------------------------------
+    # Rejection history: reason every time, and what changed afterwards
+    # ------------------------------------------------------------------
+    approval_submitted_by = fields.Many2one(
+        "res.users", string="Submitted for Approval By", copy=False, readonly=True)
+    rejection_ids = fields.One2many(
+        "purchase.approval.rejection", "order_id", string="Rejections", copy=False)
+    rejection_count = fields.Integer(compute="_compute_rejection_count")
+
+    @api.depends("rejection_ids")
+    def _compute_rejection_count(self):
         for order in self:
-            line = order._own_pending_line()
-            if not line:
-                raise UserError(
-                    "You do not have a pending approval on this Purchase Order."
-                )
-            line.action_reject()
-        return True
+            order.rejection_count = len(order.rejection_ids)
+
+    def _reject_with_reason(self, reason):
+        self.ensure_one()
+        line = self._own_pending_line()
+        if not line:
+            raise UserError(
+                "You do not have a pending approval on this Purchase Order."
+            )
+        line.comment = reason
+        line.action_reject()
+        rejection = self.env["purchase.approval.rejection"].create({
+            "order_id": self.id,
+            "cycle": len(self.rejection_ids) + 1,
+            "rejected_by": self.env.user.id,
+            "rejected_on": fields.Datetime.now(),
+            "reason": reason,
+            "snapshot": json.dumps(self._approval_snapshot()),
+        })
+        # Nobody else needs to act on this round any more.
+        self._close_approval_activities()
+        self._approval_notify(
+            self._approval_requesters(),
+            "Rejected: %s" % self.name,
+            Markup(
+                "<p><b>%s</b> was <b>rejected</b> by %s (rejection #%s).</p>"
+                "<p><b>Reason:</b> %s</p>"
+                "<p>Please make the required changes and submit it for approval again.</p>"
+            ) % (self.name, self.env.user.name, rejection.cycle, reason),
+        )
+        return rejection
+
+    def action_view_rejections(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Rejections - %s" % self.name,
+            "res_model": "purchase.approval.rejection",
+            "view_mode": "list,form",
+            "domain": [("order_id", "=", self.id)],
+            "context": {"create": False, "delete": False},
+        }
+
+    def _approval_snapshot(self):
+        """Reviewable values of the order, flat: {key: [label, value]}.
+
+        Compared at resubmission against the snapshot taken at rejection.
+        Other modules extend it (vendor_management adds vendor bids and
+        awarded vendors) by calling super() and adding keys."""
+        self.ensure_one()
+        snap = {}
+
+        def money(value):
+            return formatLang(self.env, value or 0.0, currency_obj=self.currency_id)
+
+        snap["hdr:payment_term"] = ["Payment Terms (Other Information)",
+                                    self.payment_term_id.display_name or ""]
+        if "terms_template_id" in self._fields:
+            snap["hdr:terms_template"] = ["Payment Terms",
+                                          self.terms_template_id.display_name or ""]
+            for term in self.terms_condition_line_ids:
+                snap["term:%s" % term.term_id.id] = [
+                    "Terms - %s" % term.term_id.display_name,
+                    term.value_id.display_name or ""]
+        for line in self.order_line.filtered(lambda l: not l.display_type):
+            name = line.product_id.display_name or line.name
+            snap["line:%s:qty" % line.id] = ["%s - Quantity" % name,
+                                             "%g %s" % (line.product_qty, line.product_uom_id.name or "")]
+            snap["line:%s:price" % line.id] = ["%s - Unit Price" % name, money(line.price_unit)]
+            if line.discount:
+                snap["line:%s:discount" % line.id] = ["%s - Discount" % name, "%g%%" % line.discount]
+            snap["line:%s:taxes" % line.id] = ["%s - Taxes" % name,
+                                               ", ".join(line.tax_ids.mapped("name"))]
+        snap["hdr:total"] = ["Order Total", money(self.amount_total)]
+        return snap
+
+    @staticmethod
+    def _approval_diff(before, after):
+        """Human-readable list of what changed between two snapshots."""
+        changes = []
+        for key, (label, value) in after.items():
+            old = before.get(key)
+            if old is None:
+                changes.append("%s: added (%s)" % (label, value or "-"))
+            elif old[1] != value:
+                changes.append("%s: %s → %s" % (label, old[1] or "-", value or "-"))
+        for key, (label, value) in before.items():
+            if key not in after:
+                changes.append("%s: removed (was %s)" % (label, value or "-"))
+        return changes
+
+    # ------------------------------------------------------------------
+    # Mail communication
+    # ------------------------------------------------------------------
+    def _approval_requesters(self):
+        """Who to tell about the outcome: whoever submitted it, and the buyer."""
+        self.ensure_one()
+        return (self.approval_submitted_by | self.user_id).filtered("partner_id")
+
+    def _approval_notify(self, users, subject, body):
+        """Email + chatter message to the given users (skips the current user)."""
+        self.ensure_one()
+        partners = (users - self.env.user).partner_id
+        if partners:
+            self.message_post(
+                body=body, subject=subject, partner_ids=partners.ids,
+                message_type="comment", subtype_xmlid="mail.mt_comment")
+
+    def _approval_request_tier(self, lines):
+        """Ask the approvers on these lines to act: activity + email."""
+        self.ensure_one()
+        users = lines.approver_id
+        for user in users:
+            self.activity_schedule(
+                "mail.mail_activity_data_todo",
+                user_id=user.id,
+                summary="Approval requested for %s" % self.name,
+                note="Please review and approve or reject this Purchase Order.",
+            )
+        self._approval_notify(
+            users,
+            "Approval required: %s" % self.name,
+            Markup("<p><b>%s</b> (%s) is waiting for your approval.</p>") % (
+                self.name, formatLang(self.env, self.amount_total, currency_obj=self.currency_id)),
+        )
+
+    def _close_approval_activities(self):
+        self.ensure_one()
+        self.env["mail.activity"].search([
+            ("res_model", "=", "purchase.order"),
+            ("res_id", "=", self.id),
+            ("summary", "=", "Approval requested for %s" % self.name),
+        ]).action_feedback(feedback="Closed by the approval flow.")
+
+    def _approval_after_line_approved(self, line):
+        """A line was approved: move to the next tier, or report the result."""
+        self.ensure_one()
+        lines = self.approval_line_ids
+        if lines and all(l.status == "approved" for l in lines):
+            self._approval_notify(
+                self._approval_requesters(),
+                "Approved: %s" % self.name,
+                Markup("<p><b>%s</b> is fully approved and can now be confirmed.</p>") % self.name,
+            )
+            return
+        # Only when this approver's whole tier is done does the next one start.
+        if any(l.status == "pending" and l.sequence <= line.sequence for l in lines):
+            return
+        pending = lines.filtered(lambda l: l.status == "pending")
+        if pending:
+            next_seq = min(pending.mapped("sequence"))
+            self._approval_request_tier(pending.filtered(lambda l: l.sequence == next_seq))
 
     # ------------------------------------------------------------------
     # Configuration mapping
@@ -202,18 +378,26 @@ class PurchaseOrder(models.Model):
                     "sequence": required_sequence[user],
                 })
 
-            for user in required_users:
-                order.activity_schedule(
-                    "mail.mail_activity_data_todo",
-                    user_id=user.id,
-                    summary="Approval requested for %s" % order.name,
-                    note="Please review and approve or reject this Purchase Order.",
-                )
+            # A resubmission after rejection: record what was changed.
+            reopened = order.rejection_ids.filtered(lambda r: r.state == "open")
+            if reopened:
+                reopened._record_resubmission()
+                for rejection in reopened:
+                    order.message_post(body=Markup(
+                        "<p>Resubmitted after rejection #%s. Changes made:</p><pre>%s</pre>"
+                    ) % (rejection.cycle, rejection.change_summary))
 
+            order.approval_submitted_by = self.env.user
+            order._close_approval_activities()
             order.message_post(
                 body="Submitted for approval to: %s"
                      % ", ".join(required_users.mapped("display_name"))
             )
+            # Sequential tiers: only the first tier is asked now; each next
+            # tier is asked once the previous one has fully approved.
+            first_seq = min(order.approval_line_ids.mapped("sequence"))
+            order._approval_request_tier(
+                order.approval_line_ids.filtered(lambda l: l.sequence == first_seq))
         return True
 
     def action_reset_approval(self):

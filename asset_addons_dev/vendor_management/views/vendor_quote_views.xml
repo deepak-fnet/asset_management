@@ -32,6 +32,12 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,submitted,selected"/>
                 </header>
                 <sheet>
+                    <div class="alert alert-warning" role="alert"
+                         invisible="state == 'draft' or rfq_approval_status != 'rejected'">
+                        The RFQ was <strong>rejected</strong> - you can correct this vendor's prices
+                        (e.g. after renegotiating). Changes are recorded and shown to the approver
+                        when the RFQ is submitted again.
+                    </div>
                     <div class="alert alert-info" role="alert" invisible="state != 'draft'">
                         Enter the prices this vendor quoted (by phone, email, etc.), then click
                         <strong>Submit Bid</strong>.
@@ -51,7 +57,8 @@
                     </group>
                     <notebook>
                         <page string="Lines">
-                            <field name="line_ids" readonly="state != 'draft'">
+                            <field name="rfq_approval_status" invisible="1"/>
+                            <field name="line_ids" readonly="state != 'draft' and rfq_approval_status != 'rejected'">
                                 <list editable="bottom" create="false" delete="false">
                                     <field name="product_id" readonly="1"/>
                                     <field name="product_qty" readonly="1"/>
