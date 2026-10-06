@@ -166,6 +166,11 @@ class PurchaseOrder(models.Model):
 
     def _create_vendor_order(self, vendor, lines):
         self.ensure_one()
+        # Vendor-specific terms (Sales & Purchase tab of the vendor) win over
+        # what was typed on the RFQ; the RFQ's values are the fallback.
+        vendor_cmp = vendor.with_company(self.company_id)
+        fiscal_position = self.env['account.fiscal.position'].with_company(
+            self.company_id)._get_fiscal_position(vendor)
         order_vals = {
             'name': self.env['ir.sequence'].sudo().next_by_code('vendor_management.purchase.po') or _('New'),
             'rfq_id': self.id,
@@ -174,10 +179,13 @@ class PurchaseOrder(models.Model):
             'partner_ref': self.partner_ref,
             'company_id': self.company_id.id,
             'currency_id': self.currency_id.id,
-            'user_id': self.user_id.id,
+            'user_id': vendor_cmp.buyer_id.id or self.user_id.id,
             'picking_type_id': self.picking_type_id.id,
             'dest_address_id': self.dest_address_id.id,
-            'payment_term_id': self.payment_term_id.id,
+            'payment_term_id': (vendor_cmp.property_supplier_payment_term_id or self.payment_term_id).id,
+            'fiscal_position_id': fiscal_position.id or self.fiscal_position_id.id,
+            'receipt_reminder_email': vendor_cmp.receipt_reminder_email,
+            'reminder_date_before_receipt': vendor_cmp.reminder_date_before_receipt,
             'incoterm_id': self.incoterm_id.id,
             'note': self.note,
             'comparison_state': 'po_created',

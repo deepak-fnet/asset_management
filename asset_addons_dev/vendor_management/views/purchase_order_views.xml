@@ -255,6 +255,13 @@
         <field name="domain">[('rfq_id', '=', False)]</field>
     </record>
 
+    <!-- Purchase Orders menu: orders only come from an RFQ (Confirm Order),
+         so there is no "New" here - a blank order created from this menu
+         would be a different, RFQ-style form. -->
+    <record id="purchase.purchase_form_action" model="ir.actions.act_window">
+        <field name="context">{'create': False}</field>
+    </record>
+
     <record id="purchase_order_view_tree_inherit_vendor_mgmt" model="ir.ui.view">
         <field name="name">purchase.order.view.tree.inherit.vendor.mgmt</field>
         <field name="model">purchase.order</field>

@@ -70,7 +70,7 @@
         <t t-set="contact" t-value="vendor_and_contact[1]"/>
         <t t-set="ship_to" t-value="o._accom_report_ship_to()"/>
         <t t-set="doc_date" t-value="o.date_approve or o.date_order"/>
-        <t t-set="cur" t-value="o.currency_id.name"/>
+        <t t-set="cur" t-value="o.currency_id.symbol"/>
 
         <!-- ===== Repeated page header ===== -->
         <div class="header">
