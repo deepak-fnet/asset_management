@@ -35,7 +35,6 @@ LEGACY_MENUS_TO_HIDE = [
     'asset_management.menu_repair_management',
     'asset_management.menu_lifecycle_root',
     'asset_management.menu_asset_request_root',
-    'asset_management.menu_asset_list_root',
     'asset_helpdesk.menu_asset_helpdesk_main',
     'asset_telemetry.menu_telemetry_snapshots',
     'asset_telemetry_alert.menu_telemetry_alerts_root',

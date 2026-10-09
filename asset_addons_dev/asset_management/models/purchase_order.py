@@ -13,21 +13,6 @@ class PurchaseOrder(models.Model):
         index=True,
         help="The Asset Request that originated this Purchase Order.",
     )
-    asset_list_ids = fields.One2many(
-        "asset.list",
-        "po_id",
-        string="Asset Inventory Rows",
-    )
-    asset_list_count = fields.Integer(
-        string="Asset Rows",
-        compute="_compute_asset_list_count",
-    )
-
-    @api.depends("asset_list_ids")
-    def _compute_asset_list_count(self):
-        for rec in self:
-            rec.asset_list_count = len(rec.asset_list_ids)
-
     # ----------------------------------------------------------------
     # Constraint: total ordered quantity across all (non-cancelled) POs
     # of the same Asset Request must not exceed the requested quantity.
@@ -147,7 +132,7 @@ class PurchaseOrder(models.Model):
                     lambda r: r.state in ("approved", "rfq"))
                 if confirmed_requests:
                     confirmed_requests.write({"state": "po_created"})
-                requests._check_and_advance_to_po_done()
+                requests._check_and_advance_to_done()
         return res
 
     # ----------------------------------------------------------------
@@ -169,7 +154,7 @@ class PurchaseOrder(models.Model):
 class StockPickingAssetRequest(models.Model):
     """Advance the asset request when goods physically arrive.
 
-    _check_and_advance_to_po_done() was only ever called from
+    _check_and_advance_to_done() was only ever called from
     purchase_order.write() when the PO's own state changed. But validating a
     receipt changes the stock.picking state, NOT the purchase.order state -
     so the check never ran at the one moment that actually matters, and
@@ -209,4 +194,4 @@ class StockPickingAssetRequest(models.Model):
             if po and po.asset_request_id:
                 requests |= po.asset_request_id
         if requests:
-            requests._check_and_advance_to_po_done()
+            requests._check_and_advance_to_done()

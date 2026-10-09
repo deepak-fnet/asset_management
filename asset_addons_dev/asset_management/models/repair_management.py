@@ -252,8 +252,8 @@ class RepairManagement(models.Model):
 
     def _find_asset_lot(self):
         """The stock.lot matching this asset's serial number, if any - same
-        lookup asset.list._onchange_asset_id() already uses, reused here so
-        a repair transfer picks the same physical unit consistently.
+        lookup by serial number, so a repair transfer picks the same physical
+        unit consistently.
         """
         self.ensure_one()
         if not self.asset_id.product_id or not self.asset_id.serial_number:

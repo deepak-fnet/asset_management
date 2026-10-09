@@ -15,7 +15,7 @@ Design
 ------
 General assets are asset.asset records whose category is flagged
 is_general. There is deliberately NO separate asset.addition model: keeping
-one asset table means transfers, scrap, warranty, licences and the asset.list
+one asset table means transfers, scrap, warranty, licences and the
 procurement chain all work on general assets without a parallel
 implementation of each.
 

@@ -47,7 +47,8 @@ class JoiningAvailabilityWizard(models.TransientModel):
         """
         domain = [
             ("category_id", "=", category.id),
-            ("state", "in", ("draft", "submit")),
+            # Only submitted assets are ready to hand out.
+            ("state", "=", "submit"),
             # Only FIXED assets are assignable - agent-created records exist
             # for telemetry visibility and are never assigned themselves; the
             # fixed asset they are mapped to is what gets assigned.
@@ -66,11 +67,6 @@ class JoiningAvailabilityWizard(models.TransientModel):
             # (see general_asset's own inherited view) - this base domain
             # only needs to be correct on its own, not maximally strict.
             ("monitoring_protocol", "!=", "agent"),
-            # Only units that came through the Asset List / receiving
-            # process (i.e. actually purchased and serial-tracked) count as
-            # "assignable" - a manually-created draft asset that never went
-            # through that flow is not offered here.
-            ("asset_list_id", "!=", False),
         ]
         return domain
 

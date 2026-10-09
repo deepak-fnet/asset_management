@@ -62,7 +62,7 @@
                         <group>
                             <field name="category_id"/>
                             <field name="asset_id"
-                                   domain="[('is_general_asset', '=', True), ('state', 'in', ['draft', 'submit', 'assigned']), ('asset_list_id', '!=', False)]"/>
+                                   domain="[('is_general_asset', '=', True), ('state', 'in', ['draft', 'submit', 'assigned']), ('in_repair', '=', False)]"/>
                         </group>
 
                         <group>

@@ -310,7 +310,6 @@
                             <field name="plant_id" readonly="is_submit and not is_dynamic_form"/>
                             <field name="location_id" readonly="is_submit and not is_dynamic_form"/>
                             <field name="department_id" options="{'no_create': True}" readonly="is_submit and not is_dynamic_form"/>
-                            <field name="asset_list_id" readonly="(1) or (is_submit and not is_dynamic_form)"/>
                             <field name="serial_number_1" string="Serial Number 2" readonly="is_submit and not is_dynamic_form"/>
                             <field name="serial_number_2" string="Serial Number 3" readonly="is_submit and not is_dynamic_form"/>
                             <field name="serial_number_3" string="Serial Number 4" readonly="is_submit and not is_dynamic_form"/>

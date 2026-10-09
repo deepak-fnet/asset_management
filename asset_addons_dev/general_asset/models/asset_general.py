@@ -9,7 +9,7 @@ Key decisions:
 * asset.addition is NOT recreated. General assets are asset.asset records
   whose category is flagged is_general - the same pattern already used for
   peripherals. That keeps one asset table, so transfers, scrap, warranty,
-  licences and the asset.list procurement chain all work on general assets
+  licences and the procurement chain all work on general assets
   for free instead of needing a parallel implementation.
 
 * asset.category is NOT redefined here. asset_management already owns it;

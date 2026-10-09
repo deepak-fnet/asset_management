@@ -3,15 +3,14 @@
 
 Why these stay in asset.asset rather than a separate model
 ------------------------------------------------------------
-asset.list.asset_id points at asset.asset, and the whole
-asset.request -> PO -> asset.list pipeline is built around that link.
-A separate "asset.peripheral" model would need its own parallel
-request/PO/list wiring duplicated from scratch for no benefit - the
+The whole asset.request -> PO -> receipt pipeline creates asset.asset
+records. A separate "asset.peripheral" model would need its own parallel
+request/PO/receipt wiring duplicated from scratch for no benefit - the
 category is what differs (a mouse has no OS, no agent, no hardware specs),
 not the fact that it's "an asset with a code and an owner". So peripherals
 get their own is_peripheral flag on asset.category, a lightweight dedicated
 form, and a separate per-category coding scheme - but the same table, the
-same audit trail, and the same asset.list linkage as laptops.
+same audit trail, and the same procurement chain as laptops.
 
 Per-category coding scheme
 ---------------------------

@@ -193,12 +193,6 @@
         <!--              action="asset_management.action_asset_purchase_order"-->
         <!--              sequence="20"/>-->
 
-        <menuitem id="menu_ws_request_assetlist"
-                  name="Asset List"
-                  parent="menu_ws_request"
-                  action="asset_management.action_asset_list"
-                  sequence="30"/>
-
         <!-- ── 5b. Purchase app: "Asset Requests" child menu ──────────────
              Only APPROVED asset.request records belong on the buyer's radar
              here - draft/submitted ones are still being worked out by the

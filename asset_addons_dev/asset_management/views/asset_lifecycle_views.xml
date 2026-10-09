@@ -104,7 +104,7 @@
                                         <field name="asset_ids"
                                                widget="many2many_tags"
                                                readonly="parent.state not in ('approved', 'validate')"
-                                               domain="[('category_id', '=', category_id), ('state', '=', 'draft'), ('monitoring_protocol', '!=', 'agent'), ('asset_list_id', '!=', False)]"
+                                               domain="[('category_id', '=', category_id), ('state', '=', 'submit'), ('monitoring_protocol', '!=', 'agent')]"
                                                options="{'no_create': True}"/>
                                         <field name="selected_count" string="Picked" optional="hide"/>
                                         <field name="assets_match" string="OK" widget="boolean_toggle" optional="hide"

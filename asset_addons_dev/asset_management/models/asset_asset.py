@@ -419,9 +419,21 @@ class AssetAsset(models.Model):
         string="Repair Count", compute="_compute_repair_count",
     )
 
+    in_repair = fields.Boolean(
+        string="Under Repair", compute="_compute_in_repair", store=True,
+        help="Has a repair request that is still open (New or In Progress). "
+             "A New repair does not move the asset to Maintenance yet, so "
+             "the asset state alone does not show it.")
+
     def _compute_repair_count(self):
         for asset in self:
             asset.repair_count = len(asset.repair_management_ids)
+
+    @api.depends('repair_management_ids.state')
+    def _compute_in_repair(self):
+        for asset in self:
+            asset.in_repair = any(
+                r.state in ('new', 'in_progress') for r in asset.repair_management_ids)
 
     def action_view_repairs(self):
         self.ensure_one()

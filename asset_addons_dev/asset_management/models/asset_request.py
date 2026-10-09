@@ -38,16 +38,13 @@ class AssetRequest(models.Model):
     # ----------------------------------------------------------------
     # Workflow
     # ----------------------------------------------------------------
-    # NEW STATE FLOW:
-    #   draft → submitted → approved → po_created → po_done → done
+    # STATE FLOW:
+    #   draft → submitted → approved → rfq → po_created → done
     #
-    # po_created → po_done is AUTOMATIC: triggered when every non-cancelled
-    #   PO linked to this request reaches state 'done' (Locked). At that
-    #   moment asset.list rows are auto-generated, one per ordered unit.
-    #
-    # po_done → done is MANUAL: user fills serial numbers on the visible
-    #   "Asset List" notebook page, then clicks "Done". Validation requires
-    #   every row to have a non-empty serial_no.
+    # po_created → done is AUTOMATIC: once every committed PO of the request
+    #   has been fully received. The receipt itself already created one
+    #   asset.asset per unit (asset_purchase), carrying its serial number,
+    #   so there is nothing left for anyone to fill in.
     state = fields.Selection(
         [
             ("draft", "Draft"),
@@ -55,7 +52,6 @@ class AssetRequest(models.Model):
             ("approved", "Approved"),
             ("rfq", "RFQ Sent"),
             ("po_created", "PO Created"),
-            ("po_done", "PO Done"),
             ("done", "Done"),
             ("cancel", "Cancelled"),
         ],
@@ -79,12 +75,6 @@ class AssetRequest(models.Model):
         "purchase.order",
         "asset_request_id",
         string="Purchase Orders",
-        copy=False,
-    )
-    asset_list_ids = fields.One2many(
-        "asset.list",
-        "request_id",
-        string="Asset Inventory",
         copy=False,
     )
     rfq_ids = fields.One2many(
@@ -112,19 +102,15 @@ class AssetRequest(models.Model):
         string="POs",
         compute="_compute_po_count",
     )
-    asset_list_count = fields.Integer(
-        string="Asset List Count",
-        compute="_compute_asset_list_count",
+    asset_ids = fields.One2many(
+        "asset.asset",
+        compute="_compute_asset_ids",
+        string="Received Assets",
+        help="Assets created on receipt of this request's purchase orders.",
     )
-    asset_list_total = fields.Integer(
-        string="Asset List Expected",
-        compute="_compute_asset_list_count",
-        help="Total units expected across all POs (sum of PO line qty).",
-    )
-    asset_list_filled = fields.Integer(
-        string="Asset List Filled",
-        compute="_compute_asset_list_count",
-        help="How many asset.list rows already have a serial number.",
+    asset_count = fields.Integer(
+        string="Assets",
+        compute="_compute_asset_ids",
     )
     all_pos_done = fields.Boolean(
         string="All POs Done",
@@ -138,20 +124,16 @@ class AssetRequest(models.Model):
         for rec in self:
             rec.po_count = len(rec.purchase_order_ids)
 
-    @api.depends("asset_list_ids", "asset_list_ids.serial_no",
-                 "purchase_order_ids.order_line.product_qty")
-    def _compute_asset_list_count(self):
+    @api.depends("purchase_order_ids")
+    def _compute_asset_ids(self):
+        Asset = self.env["asset.asset"]
+        has_link = "purchase_order_id" in Asset._fields
         for rec in self:
-            rec.asset_list_count = len(rec.asset_list_ids)
-            # 'ordered' = an RFQ that was split into one purchase order per
-            # vendor (vendor_management); its lines live on in those orders,
-            # so counting it too would double the expected units.
-            rec.asset_list_total = int(sum(
-                pol.product_qty for po in rec.purchase_order_ids
-                if po.state != "ordered"
-                for pol in po.order_line
-            ))
-            rec.asset_list_filled = len(rec.asset_list_ids.filtered(lambda a: a.serial_no))
+            assets = Asset.search([
+                ("purchase_order_id", "in", rec.purchase_order_ids.ids),
+            ]) if has_link and rec.purchase_order_ids else Asset
+            rec.asset_ids = assets
+            rec.asset_count = len(assets)
 
     @api.depends("purchase_order_ids.state")
     def _compute_all_pos_done(self):
@@ -333,74 +315,23 @@ class AssetRequest(models.Model):
             action["views"] = [(form_view.id, "form")]
         return action
 
-    def action_done(self):
-        """Manual transition from 'po_done' to 'done'.
-
-        Validates every asset.list row has a non-empty serial_no.
-        If any are blank → block with a clear error.
-        """
-        for rec in self:
-            if rec.state != "po_done":
-                raise UserError(_(
-                    "The request must be in 'PO Done' state before it can be marked as Done. "
-                    "Current state: %s"
-                ) % dict(rec._fields["state"].selection).get(rec.state, rec.state))
-
-            if not rec.asset_list_ids:
-                raise UserError(_(
-                    "No asset inventory rows exist. This shouldn't normally happen — "
-                    "please contact your administrator."
-                ))
-
-            missing = rec.asset_list_ids.filtered(lambda a: not a.serial_no or not a.serial_no.strip())
-            if missing:
-                raise UserError(_(
-                    "Cannot mark Done — %d of %d asset inventory rows are missing a Serial Number. "
-                    "Please fill in all serial numbers on the Asset List page first."
-                ) % (len(missing), len(rec.asset_list_ids)))
-
-            rec.state = "done"
-            rec.message_post(body=_(
-                "All %d serial numbers filled. Request marked as Done."
-            ) % len(rec.asset_list_ids))
-            for line in rec.asset_list_ids:
-                line.action_confirm()
-                # rec. was missing here - a bare `asset_list_ids` is an
-                # undefined name, so this raised NameError every time Done was
-                # pressed. The request state had already been written by then,
-                # so the failure surfaced later as "Cursor already closed"
-                # rather than as the NameError itself.
-                if line.product_id:
-                    line.product_id.sudo().is_asset = True
-                # lot_id points at stock.quant, whose write() is restricted -
-                # Odoo only allows it in inventory mode. Without that context
-                # this raises, and an empty lot_id would silently write to an
-                # empty recordset anyway.
-                if line.lot_id:
-                    line.lot_id.sudo().with_context(
-                        inventory_mode=True).is_asset = True
     # ----------------------------------------------------------------
-    # Automatic transition: po_created -> po_done
+    # Automatic transition: po_created -> done
     # ----------------------------------------------------------------
-    def _check_and_advance_to_po_done(self):
-        """Called by purchase.order.write() when a PO changes state.
+    def _check_and_advance_to_done(self):
+        """Called by purchase.order.write() / receipt validation.
 
-        Advances 'po_created' -> 'po_done' once the goods have actually
-        arrived, and generates the blank asset.list rows.
+        Closes the request once the goods have actually arrived: every
+        committed PO (confirmed or locked) has all its incoming receipts
+        done. The receipt already created the asset records (with their
+        serial numbers) in asset_purchase, so the request is complete.
 
         Two things this deliberately does NOT do:
 
-        1. It does not require PO state == 'done'. That state means "Locked",
-           a manual action many teams never perform - so keying off it left
-           requests stuck in po_created forever even after everything was
-           received. Receipt is judged from the incoming pickings instead,
-           which is what "we have the goods" actually means and matches what
-           the all_pos_done compute field already reports.
-
-        2. It does not wait for draft/sent RFQs. An RFQ that never turned
-           into an order - because a different vendor won, or it was simply
-           abandoned - would otherwise block the request forever. Only
-           committed POs (confirmed or locked) are considered.
+        1. It does not require PO state == 'done' ("Locked"), a manual
+           action many teams never perform.
+        2. It does not wait for draft/sent RFQs - an RFQ that never turned
+           into an order would otherwise block the request forever.
         """
         for rec in self:
             if rec.state != "po_created":
@@ -424,79 +355,66 @@ class AssetRequest(models.Model):
             if not all_received:
                 continue
 
-            # Move state and generate rows in one shot
-            rec.state = "po_done"
-            rec._generate_asset_list_rows()
+            rec.state = "done"
+            rec._finalize_received_assets()
             rec.message_post(body=_(
-                "All Purchase Orders are now Done. "
-                "%d asset inventory row(s) auto-created. "
-                "Please open the Asset List page, fill in the serial numbers, "
-                "and then click 'Done' to close this request."
-            ) % len(rec.asset_list_ids))
+                "All Purchase Orders are received. %d asset(s) created from "
+                "the receipts. Request marked as Done."
+            ) % rec.asset_count)
 
-    def _generate_asset_list_rows(self):
-        """Create asset.list rows based on request_line.qty.
+    def _finalize_received_assets(self):
+        """What closing the request settles for the received units:
 
-        Total rows == sum(request_line.quantity).
+        * the purchased products (and their on-hand quants) are flagged as
+          IT assets;
+        * a unit bought for a joining-process shortfall is pre-picked onto
+          that requirement line, so a person only has to press Assign Asset.
         """
-        AssetList = self.env["asset.list"].sudo()
-
-        for request in self:
-            if request.asset_list_ids:
-                # Don't regenerate if rows already exist
+        for rec in self:
+            assets = rec.asset_ids
+            if not assets:
                 continue
+            assets.product_id.product_tmpl_id.sudo().is_asset = True
+            lots = assets.lot_id if "lot_id" in assets._fields else self.env["stock.lot"]
+            if lots:
+                quants = self.env["stock.quant"].sudo().search([
+                    ("lot_id", "in", lots.ids),
+                    ("location_id.usage", "=", "internal"),
+                ])
+                # stock.quant.write() is only allowed in inventory mode.
+                quants.with_context(inventory_mode=True).write({"is_asset": True})
+            rec._route_to_joining_requirements(assets)
 
-            new_rows = []
-
-            # Build PO unit slots
-            po_slots = []
-
-            for po in request.purchase_order_ids.filtered(
-                    lambda p: p.state in ("purchase", "done")
-            ):
-                for line in po.order_line.filtered(
-                        lambda l: not l.display_type
-                ):
-                    qty = int(line.product_qty or 0)
-
-                    for _i in range(qty):
-                        po_slots.append({
-                            "po_id": po.id,
-                            "po_line_id": line.id,
-                            "product_id": line.product_id.id
-                            if line.product_id else False,
-                        })
-
-            slot_index = 0
-
-            # Create rows based on request line quantity
-            for rl in request.line_ids:
-
-                quantity = int(rl.quantity or 0)
-
-                for _i in range(quantity):
-                    slot = (
-                        po_slots[slot_index]
-                        if slot_index < len(po_slots)
-                        else {}
-                    )
-
-                    new_rows.append({
-                        "request_id": request.id,
-                        "po_id": slot.get("po_id"),
-                        "po_line_id": slot.get("po_line_id"),
-                        "product_id": slot.get("product_id"),
-                        "category_id": rl.asset_category_id.id
-                        if rl.asset_category_id else False,
-                        "joining_requirement_id": rl.joining_requirement_id.id
-                        if rl.joining_requirement_id else False,
-                        "serial_no": False,
-                    })
-
-                    slot_index += 1
-
-            if new_rows:
-                AssetList.create(new_rows)
+    def _route_to_joining_requirements(self, assets):
+        """Pre-pick received units onto the joining requirement line that
+        was short of them. Deliberately does not assign them - a person
+        still presses Assign Asset on the joining process."""
+        self.ensure_one()
+        # Same bar as the joining form's picker: submitted assets only.
+        free = assets.filtered(lambda a: a.state == "submit")
+        for line in self.line_ids.filtered("joining_requirement_id"):
+            requirement = line.joining_requirement_id
+            missing = requirement.quantity - requirement.selected_count
+            if missing <= 0:
+                continue
+            candidates = free.filtered(
+                lambda a: a.category_id == requirement.category_id
+                and (not line.product_id or a.product_id == line.product_id)
+                and a not in requirement.asset_ids)[:min(missing, line.quantity)]
+            if not candidates:
+                continue
+            requirement.asset_ids = [(4, a.id) for a in candidates]
+            free -= candidates
+            joining = requirement.joining_id
+            joining.message_post(body=_(
+                "%(assets)s received and pre-picked for the %(category)s "
+                "requirement for %(employee)s. Open the joining process and "
+                "press Assign Asset to complete it."
+            ) % {
+                "assets": ", ".join(candidates.mapped("display_name")),
+                "category": requirement.category_id.name,
+                "employee": joining.employee_id.name,
+            })
 
     # ----------------------------------------------------------------
     # Smart-button targets
@@ -530,15 +448,15 @@ class AssetRequest(models.Model):
         if views:
             action["views"] = views
         return action
-    def action_open_asset_list(self):
+    def action_open_assets(self):
         self.ensure_one()
         return {
             "type": "ir.actions.act_window",
-            "name": _("Asset Inventory"),
-            "res_model": "asset.list",
+            "name": _("Received Assets"),
+            "res_model": "asset.asset",
             "view_mode": "list,form",
-            "domain": [("request_id", "=", self.id)],
-            "context": {"default_request_id": self.id},
+            "domain": [("id", "in", self.asset_ids.ids)],
+            "context": {"create": False},
         }
 
 
@@ -574,8 +492,8 @@ class AssetRequestLine(models.Model):
         readonly=True,
         help="The joining-process requirement line this request line was "
              "raised for, if any. Once a unit bought against this line is "
-             "confirmed on the Asset List, it is routed back to this "
-             "requirement's employee automatically.",
+             "received, it is pre-picked on that requirement for its "
+             "employee automatically.",
     )
 
     @api.constrains("quantity")
@@ -613,10 +531,7 @@ class AssetRequestLine(models.Model):
 class AssetAssetWindowsUpdate(models.Model):
     _inherit = 'asset.asset'
 
-    asset_list_id = fields.Many2one('asset.list')
-
-    @api.depends('device_name', 'asset_name', 'asset_code',
-                 'asset_list_id.serial_no')
+    @api.depends('device_name', 'asset_name', 'asset_code', 'serial_number')
     def _compute_display_name(self):
         """Label an asset for dropdowns.
 
@@ -630,5 +545,9 @@ class AssetAssetWindowsUpdate(models.Model):
         """
         for rec in self:
             label = rec.device_name or rec.asset_name or rec.asset_code or _("New Asset")
-            serial = rec.asset_list_id.serial_no if rec.asset_list_id else False
+            serial = rec.serial_number
+            # "NOSN-..." is the placeholder general_asset stores for a unit
+            # received without a serial - not worth showing.
+            if serial and serial.startswith("NOSN-"):
+                serial = False
             rec.display_name = f"{label} - {serial}" if serial else label

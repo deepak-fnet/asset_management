@@ -133,7 +133,6 @@ access_asset_location_history,asset_location_history,model_asset_location_histor
 
 access_asset_request_user,asset.request.user,model_asset_request,base.group_user,1,1,1,1
 access_asset_request_line_user,asset.request.line.user,model_asset_request_line,base.group_user,1,1,1,1
-access_asset_list_user,asset.list.user,model_asset_list,base.group_user,1,1,1,1
 access_repair_spare_part,repair_spare_part,model_repair_spare_part,,1,1,1,1
 
 

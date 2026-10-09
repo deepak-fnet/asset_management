@@ -312,7 +312,6 @@ class StockMove(models.Model):
                 ) % {"reason": error})
             return Asset
 
-        self._link_to_asset_list(assets)
         self._notify_requesters(assets)
         self._post_asset_creation_note(assets, notes)
         return assets
@@ -320,9 +319,8 @@ class StockMove(models.Model):
     def _notify_requesters(self, assets):
         """Tell whoever raised the asset request that the goods have landed.
 
-        Without this the requester has no signal at all: the request sits in
-        po_done and the only way to find out the assets exist is to keep
-        checking. The message is posted on the REQUEST (not emailed directly)
+        Without this the requester has no signal at all: the only way to find
+        out the assets exist is to keep checking. The message is posted on the REQUEST (not emailed directly)
         so it reaches them through whatever notification setting they already
         use, and stays on the record as history.
         """
@@ -339,8 +337,7 @@ class StockMove(models.Model):
                 continue
             body = _(
                 "<p>Goods received - <b>%(count)s asset(s)</b> have been "
-                "created for request %(req)s and are ready to be mapped to "
-                "the Asset List.</p><ul>%(rows)s</ul>"
+                "created for request %(req)s.</p><ul>%(rows)s</ul>"
             ) % {
                 "count": len(request_assets),
                 "req": request.name,
@@ -355,55 +352,6 @@ class StockMove(models.Model):
                 message_type="notification",
                 subtype_xmlid="mail.mt_comment",
             )
-
-    def _link_to_asset_list(self, assets):
-        """Fill the request's blank asset.list rows with the created assets.
-
-        asset.request generates one empty asset.list row per ordered unit when
-        its POs complete, expecting someone to type each serial by hand. But
-        the receipt has just created the real asset records - so the rows can
-        be filled in automatically, matched by PO line so the right asset
-        lands on the right row.
-
-        Without this the two halves never meet: assets exist under General
-        Assets, the request still shows empty rows, and it cannot be closed
-        because action_done() requires every row to have a serial.
-
-        Only blank rows are touched. A row someone has already filled in by
-        hand is left exactly as it is.
-        """
-        if 'asset.list' not in self.env:
-            return
-        AssetList = self.env['asset.list'].sudo()
-
-        for asset in assets:
-            po_line = asset.stock_move_id.purchase_line_id
-            if not po_line:
-                continue
-            # Already linked (re-run, or someone did it manually)?
-            if AssetList.search_count([('asset_id', '=', asset.id)]):
-                continue
-            row = AssetList.search([
-                ('po_line_id', '=', po_line.id),
-                ('asset_id', '=', False),
-                '|', ('serial_no', '=', False), ('serial_no', '=', ''),
-            ], limit=1)
-            if not row:
-                continue
-            try:
-                with self.env.cr.savepoint():
-                    row.write({
-                        'asset_id': asset.id,
-                        'serial_no': asset.serial_number,
-                        'product_id': asset.product_id.id,
-                    })
-            except Exception:
-                # asset.list enforces unique serial_no and unique asset_id.
-                # A clash here should not undo an otherwise good receipt -
-                # the row can still be filled in by hand.
-                _logger.warning(
-                    "Could not link asset %s to its asset.list row",
-                    asset.asset_code, exc_info=True)
 
     def _post_asset_creation_note(self, assets, notes):
         """Log the created assets in the chatter of each receipt."""

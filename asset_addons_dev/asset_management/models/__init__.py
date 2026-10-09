@@ -56,7 +56,7 @@ from . import asset_software_deployment
 #ASSET REQUEST
 from . import asset_request
 from . import purchase_order
-from . import asset_list
+from . import product_asset_flag
 from . import spare_parts
 
 # Remote Assistance for assets

@@ -34,10 +34,8 @@ class HelpdeskPortalForm(http.Controller):
 
         Matched against both tag_number (the physical tag, from
         general_asset - guarded since that module is not a hard dependency
-        here) and asset_code (this module's own generated code), and only
-        against assets that came through the Asset List / receiving flow
-        (asset_list_id set) - the same "is this a real, tracked unit"
-        bar used elsewhere for this asset family.
+        here) and asset_code (this module's own generated code), among
+        general assets.
         """
         code = (code or '').strip()
         if not code:
@@ -48,7 +46,10 @@ class HelpdeskPortalForm(http.Controller):
             code_domain = ['|'] + code_domain + [('tag_number', '=ilike', code)]
         return Asset.search([
             ('is_general_asset', '=', True),
-            ('asset_list_id', '!=', False),
+            # Same bar as the backend ticket form: not scrapped, not in
+            # maintenance, no repair already open.
+            ('state', 'in', ['draft', 'submit', 'assigned']),
+            ('in_repair', '=', False),
         ] + code_domain, limit=1)
 
     def _form_values(self, post=None, error=None):

@@ -22,7 +22,7 @@
                        decoration-info="state == 'draft'"
                        decoration-warning="state == 'submitted'"
                        decoration-primary="state in ('approved', 'rfq', 'po_created')"
-                       decoration-success="state in ('po_done', 'done')"
+                       decoration-success="state == 'done'"
                        decoration-muted="state == 'cancel'"/>
             </list>
         </field>
@@ -71,19 +71,9 @@
                             string="Create PO Directly"
                             class="btn-secondary"
                             invisible="state not in ('approved', 'rfq', 'po_created')"/>
-                    <!--
-                         The "Mark Done" button is gone. po_created → po_done is
-                         AUTOMATIC (happens when every non-cancelled PO is Locked).
-
-                         In po_done, the user goes to the Asset List page,
-                         fills serial numbers, then clicks Done below.
-                    -->
-                    <button name="action_done"
-                            type="object"
-                            string="Done"
-                            class="btn-primary"
-                            invisible="state != 'po_done'"
-                            confirm="All serial numbers are filled — close this request?"/>
+                    <!-- No Done button: po_created -> done is automatic once
+                         every committed PO is received (the receipt creates
+                         the assets with their serial numbers). -->
                     <button name="action_cancel"
                             type="object"
                             string="Cancel"
@@ -94,7 +84,7 @@
                             invisible="state != 'cancel'"/>
                     <field name="state"
                            widget="statusbar"
-                           statusbar_visible="draft,submitted,approved,rfq,po_created,po_done,done"/>
+                           statusbar_visible="draft,submitted,approved,rfq,po_created,done"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
@@ -112,17 +102,12 @@
                                 invisible="po_count == 0">
                             <field name="po_count" widget="statinfo" string="Purchase Orders"/>
                         </button>
-                        <button name="action_open_asset_list"
+                        <button name="action_open_assets"
                                 type="object"
                                 class="oe_stat_button"
-                                icon="fa-list"
-                                invisible="asset_list_count == 0">
-                            <div class="o_stat_info">
-                                <span class="o_stat_value">
-                                    <field name="asset_list_filled"/> / <field name="asset_list_count"/>
-                                </span>
-                                <span class="o_stat_text">Serial Nos</span>
-                            </div>
+                                icon="fa-cubes"
+                                invisible="asset_count == 0">
+                            <field name="asset_count" widget="statinfo" string="Assets"/>
                         </button>
                     </div>
 
@@ -141,7 +126,7 @@
                         </group>
                         <group>
                             <field name="all_pos_done"
-                                   invisible="state not in ('po_created', 'po_done', 'done')"/>
+                                   invisible="state not in ('po_created', 'done')"/>
                         </group>
                     </group>
 
@@ -155,34 +140,6 @@
                                     <field name="description"/>
                                     <field name="quantity"/>
                                     <field name="joining_requirement_id" readonly="1" optional="hide"/>
-                                </list>
-                            </field>
-                        </page>
-
-                        <!--
-                             Asset List page is visible ONLY in po_done and done states.
-                             In po_done: editable (serial_no must be filled).
-                             In done: readonly (audit trail — no more changes).
-                        -->
-                        <page string="Asset List"
-                              name="asset_list"
-                              invisible="state not in ('po_done', 'done')">
-                            <div class="alert alert-info" role="alert"
-                                 invisible="state != 'po_done'">
-                                <strong>Action required:</strong>
-                                Fill in the <strong>Serial No</strong> for every row below,
-                                then click <strong>Done</strong> at the top to close this request.
-                            </div>
-                            <field name="asset_list_ids"
-                                   readonly="state != 'po_done'">
-                                <list editable="bottom">
-                                    <field name="product_id" readonly="1" optional="hide"/>
-                                    <field name="po_id" readonly="1" optional="hide"/>
-                                    <field name="category_id" readonly="1" optional="hide"/>
-                                    <field name="po_line_id" readonly="1" optional="hide"/>
-                                    <field name="serial_no" required="parent.state == 'po_done'"/>
-                                    <field name="asset_id" optional="show" domain="[('category_id','=',category_id),('state','=','draft'),('is_general_asset','!=',False),('asset_list_id','=',False)]"/>
-                                    <field name="lot_id" optional="show"/>
                                 </list>
                             </field>
                         </page>
@@ -215,7 +172,6 @@
                 <filter string="Submitted" name="filter_submitted" domain="[('state', '=', 'submitted')]"/>
                 <filter string="Approved" name="filter_approved" domain="[('state', '=', 'approved')]"/>
                 <filter string="PO Created" name="filter_po_created" domain="[('state', '=', 'po_created')]"/>
-                <filter string="PO Done" name="filter_po_done" domain="[('state', '=', 'po_done')]"/>
                 <filter string="Done" name="filter_done" domain="[('state', '=', 'done')]"/>
                 <filter string="Cancelled" name="filter_cancel" domain="[('state', '=', 'cancel')]"/>
 <!--                <group expand="0" string="Group By">-->

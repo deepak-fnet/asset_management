@@ -163,7 +163,7 @@ class AssetJoiningProcess(models.Model):
         is a normal flow rather than an error. Lines still short of their
         quantity are simply skipped; the process stays open (not 'done')
         until every line is picked and assigned. Re-running this method
-        (including the automatic call from asset.list on arrival) is safe -
+        (including the automatic pre-pick when a unit is received) is safe -
         already-assigned assets are no longer 'draft' and won't be re-picked.
         """
         for rec in self:

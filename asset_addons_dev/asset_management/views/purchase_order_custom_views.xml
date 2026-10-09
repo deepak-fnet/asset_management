@@ -187,7 +187,6 @@
                             <!-- our links -->
                             <field name="asset_request_id" readonly="1"
                                    invisible="not asset_request_id"/>
-                            <field name="asset_list_count" invisible="1"/>
                         </group>
                         <group>
                             <field name="date_order"
@@ -379,16 +378,6 @@
                             </group>
                         </page>
 
-                        <page string="Asset Inventory" name="asset_inventory"
-                              invisible="asset_list_count == 0">
-                            <field name="asset_list_ids" readonly="1">
-                                <list>
-                                    <field name="serial_no"/>
-                                    <field name="product_id"/>
-                                    <field name="asset_id"/>
-                                </list>
-                            </field>
-                        </page>
                     </notebook>
                 </sheet>
                 <chatter/>
