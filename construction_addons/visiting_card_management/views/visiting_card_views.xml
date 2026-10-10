@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_visiting_card_form" model="ir.ui.view">
+        <field name="name">visiting.card.form</field>
+        <field name="model">visiting.card</field>
+        <field name="arch" type="xml">
+            <form string="Visiting Card" class="o_vc_form">
+                <header>
+                    <button name="action_create_master" type="object" string="Create Contact"
+                            class="btn-primary" icon="fa-user-plus" invisible="state != 'draft'"/>
+                    <button name="action_create_lead" type="object" string="Create CRM Lead"
+                            class="btn-primary" icon="fa-bullseye" invisible="state != 'master'"/>
+                    <button name="action_create_lead" type="object" string="Create CRM Lead"
+                            class="btn-secondary" icon="fa-bullseye" invisible="state != 'draft'"/>
+                    <button name="action_extract_data" type="object" string="Re-Scan"
+                            class="btn-secondary" icon="fa-refresh" invisible="state != 'draft'"
+                            confirm="Re-scanning replaces the extracted details with a fresh reading. Continue?"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state in ('converted', 'cancelled')"/>
+                    <button name="action_reset_to_draft" type="object" string="Reset to Draft"
+                            invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,master,converted"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_partner" type="object" class="oe_stat_button" icon="fa-address-card"
+                                invisible="not partner_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Contact</span>
+                            </div>
+                        </button>
+                        <button name="action_view_lead" type="object" class="oe_stat_button" icon="fa-bullseye"
+                                invisible="not lead_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">CRM Lead</span>
+                            </div>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Contact Created" bg_color="text-bg-info" invisible="state != 'master'"/>
+                    <widget name="web_ribbon" title="Lead Created" bg_color="text-bg-success" invisible="state != 'converted'"/>
+                    <widget name="web_ribbon" title="Cancelled" bg_color="text-bg-danger" invisible="state != 'cancelled'"/>
+
+                    <div class="oe_title mb-2">
+                        <span class="badge rounded-pill text-bg-light border mb-2"><field name="name" readonly="1"/></span>
+                        <h1><field name="contact_name" placeholder="Contact Name"/></h1>
+                        <div class="d-flex flex-wrap align-items-baseline gap-2 fs-5 text-muted">
+                            <field name="job_position" placeholder="Designation" class="w-auto"/>
+                            <span>at</span>
+                            <field name="company_name" placeholder="Company" class="w-auto fw-bold"/>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 my-2">
+                        <div class="col-12 col-md-6">
+                            <div class="o_vc_label">Front Side</div>
+                            <div class="o_vc_card_slot">
+                                <field name="image_front" widget="image" nolabel="1" options="{'size': [0, 200]}"/>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="o_vc_label">Back Side</div>
+                            <div class="o_vc_card_slot">
+                                <field name="image_back" widget="image" nolabel="1" options="{'size': [0, 200]}"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Contact Details">
+                            <field name="email" widget="email" placeholder="name@company.com"/>
+                            <field name="mobile" widget="phone" placeholder="+91 98765 43210"/>
+                            <field name="phone" widget="phone" placeholder="Office / landline"/>
+                            <field name="website" widget="url" placeholder="www.company.com"/>
+                        </group>
+                        <group string="Address">
+                            <label for="street" string="Address"/>
+                            <div class="o_address_format">
+                                <field name="street" placeholder="Street..." class="o_address_street"/>
+                                <field name="street2" placeholder="Street 2..." class="o_address_street"/>
+                                <field name="city" placeholder="City" class="o_address_city"/>
+                                <field name="state_id" placeholder="State" class="o_address_state"
+                                       options="{'no_open': True, 'no_quick_create': True}"/>
+                                <field name="zip" placeholder="ZIP" class="o_address_zip"/>
+                                <field name="country_id" placeholder="Country" class="o_address_country"
+                                       options="{'no_open': True, 'no_create': True}"/>
+                            </div>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Meeting" name="meeting">
+                            <group>
+                                <group>
+                                    <field name="meeting_date"/>
+                                    <field name="scanned_by" widget="many2one_avatar_user"/>
+                                </group>
+                                <group>
+                                    <field name="scan_date"/>
+                                    <field name="company_id" groups="base.group_multi_company"/>
+                                </group>
+                            </group>
+                            <field name="notes" placeholder="Notes from the meeting with the customer..."/>
+                        </page>
+                        <page string="Scanned Text" name="raw_text">
+                            <p class="text-muted small">Text read from the card images, used to fill the fields above.</p>
+                            <field name="raw_ocr_text" readonly="1" class="o_vc_raw_text"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_visiting_card_list" model="ir.ui.view">
+        <field name="name">visiting.card.list</field>
+        <field name="model">visiting.card</field>
+        <field name="arch" type="xml">
+            <list string="Visiting Cards" decoration-muted="state == 'cancelled'">
+                <field name="name"/>
+                <field name="contact_name"/>
+                <field name="company_name"/>
+                <field name="mobile"/>
+                <field name="email"/>
+                <field name="scanned_by"/>
+                <field name="meeting_date"/>
+                <field name="state" widget="badge" decoration-success="state == 'converted'"
+                       decoration-info="state == 'master'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_visiting_card_kanban" model="ir.ui.view">
+        <field name="name">visiting.card.kanban</field>
+        <field name="model">visiting.card</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click">
+                            <div class="o_kanban_image">
+                                <img t-att-src="kanban_image('visiting.card', 'image_front', record.id.raw_value)" alt="Card"/>
+                            </div>
+                            <div class="oe_kanban_details">
+                                <strong><field name="contact_name"/></strong>
+                                <div><field name="company_name"/></div>
+                                <div><field name="mobile"/></div>
+                                <field name="state" widget="label_selection"
+                                       options="{'classes': {'draft': 'default', 'master': 'info', 'converted': 'success', 'cancelled': 'danger'}}"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_visiting_card_search" model="ir.ui.view">
+        <field name="name">visiting.card.search</field>
+        <field name="model">visiting.card</field>
+        <field name="arch" type="xml">
+            <search string="Visiting Cards">
+                <field name="name"/>
+                <field name="contact_name"/>
+                <field name="company_name"/>
+                <field name="mobile"/>
+                <field name="email"/>
+                <field name="scanned_by"/>
+                <filter string="My Cards" name="my_cards" domain="[('scanned_by', '=', uid)]"/>
+                <filter string="New / Scanned" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Master Created" name="master" domain="[('state', '=', 'master')]"/>
+                <filter string="Converted to Lead" name="converted" domain="[('state', '=', 'converted')]"/>
+                <group>
+                    <filter string="Salesperson" name="group_scanned_by" context="{'group_by': 'scanned_by'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Meeting Date" name="group_meeting_date" context="{'group_by': 'meeting_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_visiting_card" model="ir.actions.act_window">
+        <field name="name">Visiting Cards</field>
+        <field name="res_model">visiting.card</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="context">{'search_default_my_cards': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Scan your first visiting card
+            </p>
+            <p>
+                Capture a customer's visiting card, create the contact master, and turn it into a CRM lead in one flow.
+            </p>
+        </field>
+    </record>
+
+</odoo>

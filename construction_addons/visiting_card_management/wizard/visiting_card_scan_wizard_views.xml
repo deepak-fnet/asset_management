@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_visiting_card_scan_wizard_form" model="ir.ui.view">
+        <field name="name">visiting.card.scan.wizard.form</field>
+        <field name="model">visiting.card.scan.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Scan Visiting Card">
+                <p class="text-muted mb-3">
+                    Take a photo or upload the card. The details are read automatically;
+                    you review them before a contact is created.
+                </p>
+                <div class="row g-3 mb-3">
+                    <div class="col-12 col-md-6">
+                        <div class="fw-bold mb-1">Front Side <span class="text-danger">*</span></div>
+                        <div class="o_vc_card_slot">
+                            <field name="image_front" widget="image" nolabel="1"
+                                   options="{'size': [0, 180]}"/>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="fw-bold mb-1">Back Side <span class="text-muted fw-normal">(optional)</span></div>
+                        <div class="o_vc_card_slot">
+                            <field name="image_back" widget="image" nolabel="1"
+                                   options="{'size': [0, 180]}"/>
+                        </div>
+                    </div>
+                </div>
+                <group>
+                    <field name="meeting_date"/>
+                    <field name="notes" placeholder="What did you discuss?"/>
+                </group>
+                <footer>
+                    <button name="action_scan" type="object" string="Scan Card" class="btn-primary" icon="fa-camera"/>
+                    <button special="cancel" string="Discard" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_visiting_card_scan_wizard" model="ir.actions.act_window">
+        <field name="name">Scan Visiting Card</field>
+        <field name="res_model">visiting.card.scan.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_visiting_card_salesman,visiting.card.salesman,model_visiting_card,sales_team.group_sale_salesman,1,1,1,1
+access_visiting_card_manager,visiting.card.manager,model_visiting_card,sales_team.group_sale_manager,1,1,1,1
+access_visiting_card_user,visiting.card.user,model_visiting_card,base.group_user,1,0,0,0
+access_visiting_card_scan_wizard,visiting.card.scan.wizard,model_visiting_card_scan_wizard,base.group_user,1,1,1,1
