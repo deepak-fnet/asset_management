@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ================= List ================= -->
+    <record id="view_fnet_menu_hide_list" model="ir.ui.view">
+        <field name="name">fnet.menu.hide.list</field>
+        <field name="model">fnet.menu.hide</field>
+        <field name="arch" type="xml">
+            <list string="Hidden Menus" decoration-muted="state == 'applied'">
+                <field name="menu_id"/>
+                <field name="menu_complete_name" string="Full Path"/>
+                <field name="entire_menu" widget="boolean_toggle"/>
+                <field name="hidden_count" string="Menus Hidden"/>
+                <field name="note" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'applied'"
+                       decoration-warning="state == 'draft'"/>
+                <button name="action_apply" type="object" string="Apply"
+                        icon="fa-eye-slash" invisible="state == 'applied'"/>
+                <button name="action_restore" type="object" string="Restore"
+                        icon="fa-eye" invisible="state != 'applied'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ================= Form ================= -->
+    <record id="view_fnet_menu_hide_form" model="ir.ui.view">
+        <field name="name">fnet.menu.hide.form</field>
+        <field name="model">fnet.menu.hide</field>
+        <field name="arch" type="xml">
+            <form string="Hide Menu">
+                <header>
+                    <button name="action_apply" type="object"
+                            string="Apply (Hide)" class="btn-primary"
+                            invisible="state == 'applied'"/>
+                    <button name="action_restore" type="object"
+                            string="Restore (Show)" class="btn-secondary"
+                            invisible="state != 'applied'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,applied"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_hidden_menus" type="object"
+                                class="oe_stat_button" icon="fa-list">
+                            <field name="hidden_count" widget="statinfo"
+                                   string="Hidden"/>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="menu_id"
+                                   options="{'no_create': True}"/>
+                            <field name="menu_complete_name"/>
+                        </group>
+                        <group>
+                            <field name="entire_menu"/>
+                            <field name="note"
+                                   placeholder="Why is this hidden?"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-info" role="alert">
+                        <b>Entire Menu</b> ticked hides this menu and every
+                        sub menu under it, at any depth. Unticked hides only
+                        this one item. Restore puts back exactly what was
+                        hidden by this rule.
+                    </div>
+                    <notebook>
+                        <page string="Menus Actually Hidden">
+                            <field name="hidden_menu_ids" readonly="1"
+                                   context="{'active_test': False}">
+                                <list create="false" delete="false">
+                                    <field name="complete_name"
+                                           string="Menu Path"/>
+                                    <field name="active" string="Visible"
+                                           widget="boolean_toggle"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ================= Search ================= -->
+    <record id="view_fnet_menu_hide_search" model="ir.ui.view">
+        <field name="name">fnet.menu.hide.search</field>
+        <field name="model">fnet.menu.hide</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="menu_id"/>
+                <field name="menu_complete_name"/>
+                <filter name="applied" string="Currently Hidden"
+                        domain="[('state','=','applied')]"/>
+                <filter name="draft" string="Not Applied"
+                        domain="[('state','=','draft')]"/>
+                <filter name="entire" string="Entire Menu"
+                        domain="[('entire_menu','=',True)]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ================= Action + Menu ================= -->
+    <record id="action_fnet_menu_hide" model="ir.actions.act_window">
+        <field name="name">Hide Menus</field>
+        <field name="res_model">fnet.menu.hide</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_fnet_menu_hide_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Hide an Odoo menu</p>
+            <p>
+                Pick a menu (for example <b>Employees</b>) and tick
+                <b>Entire Menu</b> to hide it together with its
+                Configuration menu and everything below it.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_fnet_menu_hide_root"
+              name="Menu Visibility"
+              web_icon="fnet_menu_hide,static/description/icon.png"
+              sequence="90"/>
+
+    <menuitem id="menu_fnet_menu_hide_rules"
+              name="Hide Menus"
+              parent="menu_fnet_menu_hide_root"
+              action="action_fnet_menu_hide"
+              groups="base.group_system"
+              sequence="1"/>
+
+    <!-- ================= Shortcut from Menu Items list ================= -->
+    <record id="action_srv_hide_entire_menu" model="ir.actions.server">
+        <field name="name">Hide menu (entire tree)</field>
+        <field name="model_id" ref="base.model_ir_ui_menu"/>
+        <field name="binding_model_id" ref="base.model_ir_ui_menu"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">env['fnet.menu.hide'].hide_menus(records.ids, True)</field>
+    </record>
+
+    <record id="action_srv_hide_single_menu" model="ir.actions.server">
+        <field name="name">Hide menu (this item only)</field>
+        <field name="model_id" ref="base.model_ir_ui_menu"/>
+        <field name="binding_model_id" ref="base.model_ir_ui_menu"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">env['fnet.menu.hide'].hide_menus(records.ids, False)</field>
+    </record>
+
+</odoo>

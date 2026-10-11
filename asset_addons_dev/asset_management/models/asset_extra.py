@@ -167,10 +167,12 @@ class AssetAssignmentHistory(models.Model):
         is allowed to have no employee.
         """
         for rec in self:
-            if rec.action in ('assign', 'unassign') and not rec.employee_id:
+            # A common asset is assigned to a location / department, not a
+            # person - then the description says where.
+            if rec.action in ('assign', 'unassign') and not (rec.employee_id or rec.description):
                 raise ValidationError(_(
-                    "An employee is required when the action is "
-                    "Assigned or Unassigned."))
+                    "An employee (or a description of where it went) is required "
+                    "when the action is Assigned or Unassigned."))
 
 
 class AssetAuditLog(models.Model):

@@ -13,9 +13,22 @@
 
         <!-- ── 1. All Asset Dashboard (single entry point) ────────────────── -->
         <menuitem id="asset_management.menu_asset_root"
-                  name="Asset Management"
+                  name="Fixed Asset"
                   web_icon="asset_management,static/description/icon.png"
                   sequence="10"/>
+
+        <!-- Second app: everything IT (agents, requests, spares, warranty,
+             security, telemetry). Its sections are moved under it by
+             hooks.py (MENU_LAYOUT) since several come from other modules. -->
+        <menuitem id="menu_ws_it_root"
+                  name="IT Asset"
+                  web_icon="asset_management,static/description/icon.png"
+                  sequence="10"/>
+        <menuitem id="menu_ws_it_config"
+                  name="Configuration"
+                  parent="menu_ws_it_root"
+                  sequence="90"
+                  groups="asset_management.group_asset_manager"/>
 
         <menuitem id="menu_ws_all_asset_dashboard"
                   name="All Asset Dashboard"
@@ -45,7 +58,7 @@
                   sequence="11"/>
 
         <menuitem id="menu_ws_lifecycle_join"
-                  name="Joining Process"
+                  name="Asset Assign Process"
                   parent="menu_ws_lifecycle"
                   action="asset_management.action_asset_joining_process"
                   sequence="10"/>
@@ -54,6 +67,7 @@
                   name="Assign / Replace Process"
                   parent="menu_ws_lifecycle"
                   action="asset_management.action_asset_assign_process"
+                  active="False"
                   sequence="20"/>
 
         <menuitem id="menu_ws_lifecycle_exit"

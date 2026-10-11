@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Asset Assign Process: Request Details. The employee only writes a
+         Description; quantity, product, category and Map Assets appear once
+         the manager has approved. -->
+    <record id="view_asset_joining_process_form_request_details" model="ir.ui.view">
+        <field name="name">asset.joining.process.form.request.details</field>
+        <field name="model">asset.joining.process</field>
+        <field name="inherit_id" ref="asset_management.view_asset_joining_process_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_raise_purchase_request" type="object"
+                        string="Raise Purchase Request" class="btn-secondary"
+                        groups="asset_management.group_asset_user_it"
+                        invisible="not has_shortfall or state not in ('approved', 'partial')"
+                        confirm="Create an Asset Request (purchase) for every line not fully assigned?"/>
+                <field name="has_shortfall" invisible="1"/>
+            </xpath>
+            <!-- The old category-requirement buttons only apply to requests
+                 still using Asset Requirements lines. -->
+            <xpath expr="//header/button[@name='action_validate']" position="attributes">
+                <attribute name="invisible">state != 'approved' or request_line_ids</attribute>
+            </xpath>
+            <xpath expr="//header/button[@name='action_assign_assets']" position="attributes">
+                <attribute name="invisible">state not in ('approved', 'validate') or request_line_ids</attribute>
+            </xpath>
+            <xpath expr="//header/button[@name='action_raise_asset_request']" position="attributes">
+                <attribute name="invisible">state not in ('approved', 'validate') or asset_request_id or request_line_ids</attribute>
+            </xpath>
+            <xpath expr="//page[@name='requirements']" position="attributes">
+                <attribute name="invisible">not requirement_ids</attribute>
+            </xpath>
+            <xpath expr="//page[@name='requirements']" position="before">
+                <page string="Request Details" name="request_details">
+                    <field name="request_line_ids" readonly="state in ('done', 'cancelled')">
+                        <list editable="bottom" decoration-success="assign_status == 'assigned'"
+                              decoration-warning="assign_status == 'partial'">
+                            <field name="sequence" widget="handle" column_invisible="parent.state != 'draft'"/>
+                            <field name="description" readonly="parent.state != 'draft'"
+                                   placeholder="e.g. AC for my room, an office chair, a bluetooth mouse"/>
+                            <field name="quantity" column_invisible="parent.state in ('draft', 'confirmed')"
+                                   readonly="assigned_qty"/>
+                            <field name="product_id" column_invisible="parent.state in ('draft', 'confirmed')"
+                                   readonly="assigned_qty" options="{'no_create': True}"/>
+                            <field name="category_id" column_invisible="parent.state in ('draft', 'confirmed')"
+                                   readonly="assigned_qty" options="{'no_create': True}"/>
+                            <field name="assigned_qty" column_invisible="parent.state in ('draft', 'confirmed')"/>
+                            <field name="pending_qty" column_invisible="parent.state in ('draft', 'confirmed')"/>
+                            <field name="assign_status" widget="badge"
+                                   column_invisible="parent.state in ('draft', 'confirmed')"
+                                   decoration-success="assign_status == 'assigned'"
+                                   decoration-warning="assign_status == 'partial'"/>
+                            <field name="asset_request_line_id" optional="hide"
+                                   column_invisible="parent.state in ('draft', 'confirmed')"/>
+                            <button name="action_open_map_wizard" type="object" string="Map Assets"
+                                    icon="fa-plus" class="btn-link"
+                                    groups="asset_management.group_asset_user_it"
+                                    column_invisible="parent.state not in ('approved', 'partial')"
+                                    invisible="not pending_qty"/>
+                        </list>
+                    </field>
+                </page>
+                <page string="Assigned Assets" name="allocations" invisible="not allocation_ids">
+                    <field name="allocation_ids" readonly="1">
+                        <list>
+                            <field name="request_line_id" string="Request"/>
+                            <field name="assign_type"/>
+                            <field name="asset_ids" widget="many2many_tags"/>
+                            <field name="quantity"/>
+                            <field name="location_id"/>
+                            <field name="employee_id"/>
+                            <field name="department_id"/>
+                            <field name="assigned_date"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_asset_map_wizard_form" model="ir.ui.view">
+        <field name="name">asset.map.wizard.form</field>
+        <field name="model">asset.map.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Map Assets">
+                <group>
+                    <group>
+                        <field name="request_line_id" readonly="1" string="Request"/>
+                        <field name="product_id" readonly="1"/>
+                        <field name="category_id" readonly="1"/>
+                    </group>
+                    <group>
+                        <field name="pending_qty" readonly="1"/>
+                        <field name="joining_id" invisible="1"/>
+                        <field name="assign_type" widget="radio" options="{'horizontal': true}"/>
+                    </group>
+                </group>
+                <div class="text-muted mb-2">
+                    Employee: location, employee and department are all required.
+                    Common: no employee, at least a location or a department.
+                    Assign fewer than requested to leave the rest pending (partial).
+                </div>
+                <field name="line_ids">
+                    <list editable="bottom" create="0" delete="0">
+                        <field name="assign_type"/>
+                        <field name="category_id" column_invisible="1"/>
+                        <field name="product_id" column_invisible="1"/>
+                        <field name="asset_id" options="{'no_create': True}"
+                               domain="[('category_id', '=', category_id), ('product_id', '=', product_id), ('state', '=', 'submit'), ('in_repair', '=', False)]"/>
+                        <field name="location_id" required="assign_type == 'employee'" options="{'no_create': True}"/>
+                        <field name="employee_id" required="assign_type == 'employee'" readonly="assign_type == 'common'" options="{'no_create': True}"/>
+                        <field name="department_id" required="assign_type == 'employee'" readonly="assign_type == 'employee'" force_save="1" options="{'no_create': True}"/>
+                    </list>
+                </field>
+                <footer>
+                    <button name="action_confirm" type="object" string="Assign" class="btn-primary"/>
+                    <button special="cancel" string="Cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

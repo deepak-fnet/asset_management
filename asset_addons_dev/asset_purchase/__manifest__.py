@@ -1,6 +1,6 @@
 {
     'name': 'Asset Purchase Integration',
-    'version': '19.0.2.3.0',  # create assets on receipt regardless of the validator's asset rights + Create Assets retry button; show the invoice copy itself (not just a link) on the asset's Purchase Source tab
+    'version': '19.0.2.4.0',  # Asset Assign Process: Request Details lines, Map Assets popup (employee/common), partial assign, purchase request for shortfall; create assets on receipt regardless of the validator's asset rights + Create Assets retry button; show the invoice copy itself (not just a link) on the asset's Purchase Source tab
     'summary': 'Create fixed asset records automatically when a purchase receipt is validated',
     'description': """
 Asset Purchase Integration
@@ -46,6 +46,7 @@ Bridges the purchase/receipt flow with the asset register:
         'views/asset_addition_views.xml',
         'views/stock_picking_views.xml',
         'views/purchase_order_views.xml',
+        'views/asset_assign_request_views.xml',
         'views/menu.xml',
     ],
     'installable': True,

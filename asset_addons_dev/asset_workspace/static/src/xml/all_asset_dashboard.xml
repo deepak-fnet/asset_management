@@ -20,30 +20,39 @@
         <div class="oaad-filters">
             <div class="oaad-filter">
                 <label>Department</label>
-                <select t-on-change="(ev) => this.onFilterChange('department_id', ev)">
-                    <option value="">All</option>
-                    <t t-foreach="state.filterOptions.departments" t-as="d" t-key="d.id">
-                        <option t-att-value="d.id" t-esc="d.name"/>
-                    </t>
-                </select>
+                <div class="oaad-m2o">
+                    <input type="text" class="o_input" t-att-list="'oaad_dl_department_id'" placeholder="Search…"
+                           t-att-value="state.filterText.department_id"
+                           t-on-change="(ev) => this.onFilterText('department_id', ev)"/>
+                    <i t-if="state.filterText.department_id" class="fa fa-times oaad-m2o-clear" t-on-click="() => this.clearFilterText('department_id')"/>
+                    <datalist t-att-id="'oaad_dl_department_id'">
+                        <t t-foreach="state.filterOptions.departments" t-as="opt" t-key="opt.id"><option t-att-value="opt.name"/></t>
+                    </datalist>
+                </div>
             </div>
             <div class="oaad-filter" t-if="state.filterOptions.plants.length">
                 <label>Plant</label>
-                <select t-on-change="(ev) => this.onFilterChange('plant_id', ev)">
-                    <option value="">All</option>
-                    <t t-foreach="state.filterOptions.plants" t-as="p" t-key="p.id">
-                        <option t-att-value="p.id" t-esc="p.name"/>
-                    </t>
-                </select>
+                <div class="oaad-m2o">
+                    <input type="text" class="o_input" t-att-list="'oaad_dl_plant_id'" placeholder="Search…"
+                           t-att-value="state.filterText.plant_id"
+                           t-on-change="(ev) => this.onFilterText('plant_id', ev)"/>
+                    <i t-if="state.filterText.plant_id" class="fa fa-times oaad-m2o-clear" t-on-click="() => this.clearFilterText('plant_id')"/>
+                    <datalist t-att-id="'oaad_dl_plant_id'">
+                        <t t-foreach="state.filterOptions.plants" t-as="opt" t-key="opt.id"><option t-att-value="opt.name"/></t>
+                    </datalist>
+                </div>
             </div>
             <div class="oaad-filter">
                 <label>Location</label>
-                <select t-on-change="(ev) => this.onFilterChange('location_id', ev)">
-                    <option value="">All</option>
-                    <t t-foreach="state.filterOptions.locations" t-as="l" t-key="l.id">
-                        <option t-att-value="l.id" t-esc="l.name"/>
-                    </t>
-                </select>
+                <div class="oaad-m2o">
+                    <input type="text" class="o_input" t-att-list="'oaad_dl_location_id'" placeholder="Search…"
+                           t-att-value="state.filterText.location_id"
+                           t-on-change="(ev) => this.onFilterText('location_id', ev)"/>
+                    <i t-if="state.filterText.location_id" class="fa fa-times oaad-m2o-clear" t-on-click="() => this.clearFilterText('location_id')"/>
+                    <datalist t-att-id="'oaad_dl_location_id'">
+                        <t t-foreach="state.filterOptions.locations" t-as="opt" t-key="opt.id"><option t-att-value="opt.name"/></t>
+                    </datalist>
+                </div>
             </div>
             <div class="oaad-filter">
                 <label>Status</label>
@@ -55,11 +64,11 @@
                 </select>
             </div>
             <div class="oaad-filter">
-                <label>Acquired From</label>
+                <label title="Purchase / acquisition date from">Acquired From</label>
                 <input type="date" t-on-change="(ev) => this.onFilterChange('date_from', ev)"/>
             </div>
             <div class="oaad-filter">
-                <label>Acquired To</label>
+                <label title="Purchase / acquisition date to">Acquired To</label>
                 <input type="date" t-on-change="(ev) => this.onFilterChange('date_to', ev)"/>
             </div>
             <div class="oaad-filter-actions">
@@ -88,9 +97,15 @@
                     <div class="oaad-kpi-num" t-esc="state.kpis.pending_approval"/>
                     <div class="oaad-kpi-label">Pending Approval</div>
                 </div>
-                <div class="oaad-kpi">
-                    <div class="oaad-kpi-num" t-esc="state.kpis.assigned"/>
-                    <div class="oaad-kpi-label">Assigned To Staff</div>
+                <div class="oaad-kpi oaad-clickable" t-on-click="openEmployeeAssets"
+                     title="Assigned to an employee">
+                    <div class="oaad-kpi-num" t-esc="state.kpis.employee_assets"/>
+                    <div class="oaad-kpi-label"><i class="fa fa-user me-1"/>Employee Assets</div>
+                </div>
+                <div class="oaad-kpi oaad-clickable" t-on-click="openCommonAssets"
+                     title="Assigned to a location / department, no employee">
+                    <div class="oaad-kpi-num" t-esc="state.kpis.common_assets"/>
+                    <div class="oaad-kpi-label"><i class="fa fa-building-o me-1"/>Common Assets</div>
                 </div>
                 <div class="oaad-kpi">
                     <div class="oaad-kpi-num" t-esc="state.kpis.unassigned"/>
@@ -134,11 +149,28 @@
                     </div>
                 </div>
                 <div class="oaad-card">
-                    <h3>Assets by category</h3>
-                    <div class="oaad-chart-box" t-att-class="hasData('by_category') ? '' : 'oaad-empty'">
-                        <canvas t-ref="categoryChart"/>
-                        <div t-if="!hasData('by_category')" class="oaad-empty-msg">No data for this filter</div>
+                    <div class="oaad-card-headrow">
+                        <h3>Employee-wise assets</h3>
+                        <a href="#" class="oaad-viewall" t-on-click.prevent="openAllEmployees">View all
+                            <t t-if="state.employees.total_employees">(<t t-esc="state.employees.total_employees"/>)</t></a>
                     </div>
+                    <ul class="oaad-emp-list">
+                        <li t-foreach="state.employees.rows" t-as="emp" t-key="emp.id"
+                            class="oaad-clickable" t-on-click="() => this.openEmployeeRow(emp.id)">
+                            <span class="oaad-emp-avatar" t-esc="emp.name.slice(0, 1).toUpperCase()"/>
+                            <span class="oaad-emp-name" t-esc="emp.name"/>
+                            <span class="oaad-emp-count"><t t-esc="emp.count"/> asset<t t-if="emp.count != 1">s</t></span>
+                        </li>
+                        <li t-if="state.employees.common" class="oaad-clickable oaad-emp-common"
+                            t-on-click="() => this.openEmployeeRow('common')">
+                            <span class="oaad-emp-avatar"><i class="fa fa-building-o"/></span>
+                            <span class="oaad-emp-name">Common assets</span>
+                            <span class="oaad-emp-count"><t t-esc="state.employees.common"/> asset<t t-if="state.employees.common != 1">s</t></span>
+                        </li>
+                        <li t-if="!state.employees.rows.length and !state.employees.common" class="oaad-empty-msg">
+                            No assigned assets for this filter
+                        </li>
+                    </ul>
                 </div>
                 <div class="oaad-card" t-if="state.charts.by_location">
                     <h3>Assets by location</h3>

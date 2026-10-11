@@ -1,0 +1,33 @@
+.o_vd_icon_menu {
+    width: 300px;
+}
+.o_vd_icon_grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    max-height: 240px;
+    overflow-y: auto;
+    .o_vd_icon_cell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 36px;
+        padding: 0 !important;
+        border-radius: 8px;
+        &:hover {
+            background: rgba(79, 70, 229, 0.12);
+            color: #4f46e5;
+        }
+        &.active {
+            background: #4f46e5;
+            color: #fff;
+        }
+    }
+}
+.o_vd_icon_toggle {
+    display: inline-flex;
+    align-items: center;
+}
+.o_vd_icon_preview {
+    color: #4f46e5;
+}

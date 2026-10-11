@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="visitor_desk.Desk">
+        <div class="o_action o_vd_root">
+        <div class="o_vd_desk">
+            <!-- Hero: greeting, clock, pass scanner -->
+            <header class="o_vd_hero">
+                <div>
+                    <div class="o_vd_hello" t-esc="greeting"/>
+                    <div class="o_vd_clock">
+                        <span t-esc="state.now.toFormat('hh:mm')"/>
+                        <small t-esc="state.now.toFormat(' a · cccc, dd LLL')"/>
+                    </div>
+                </div>
+                <div class="o_vd_scan">
+                    <i class="fa fa-qrcode"/>
+                    <input t-ref="scanInput" class="o_vd_scan_input" placeholder="Scan or type pass code / Visitor ID"
+                           t-model="state.scanCode" t-on-keydown="onScanKey" autofocus=""/>
+                    <button t-if="canScanCamera" class="btn btn-light" t-on-click="openCameraScanner" title="Scan with camera">
+                        <i class="fa fa-camera"/>
+                    </button>
+                    <button class="btn btn-warning fw-bold" t-on-click="() => this.runScan(state.scanCode)">Go</button>
+                </div>
+            </header>
+
+            <!-- KPI strip -->
+            <section class="o_vd_kpis">
+                <div class="o_vd_kpi o_vd_kpi_live" t-on-click="() => state.tab = 'inside'">
+                    <span class="o_vd_live_dot"/>
+                    <b t-esc="state.data.kpi.inside or 0"/><span>Inside now</span>
+                </div>
+                <div class="o_vd_kpi" t-on-click="() => state.tab = 'waiting'">
+                    <b t-esc="state.data.kpi.waiting or 0"/><span>Waiting</span>
+                </div>
+                <div class="o_vd_kpi" t-on-click="() => this.openList('today')">
+                    <b t-esc="state.data.kpi.today or 0"/><span>Today</span>
+                </div>
+                <div class="o_vd_kpi">
+                    <b t-esc="state.data.kpi.checked_out or 0"/><span>Checked out</span>
+                </div>
+                <div class="o_vd_kpi">
+                    <b><t t-esc="state.data.kpi.avg_stay or 0"/><small>h</small></b><span>Avg stay</span>
+                </div>
+                <div class="o_vd_kpi" t-att-class="{'o_vd_kpi_alert': state.data.kpi.overstay}">
+                    <b t-esc="state.data.kpi.overstay or 0"/><span>Overstay</span>
+                </div>
+                <div class="o_vd_kpi">
+                    <b t-esc="state.data.kpi.returning or 0"/><span>Returning</span>
+                </div>
+            </section>
+
+            <div class="o_vd_main" t-att-class="{'o_vd_main_full': !canRegister}">
+                <!-- Live board -->
+                <section class="o_vd_board">
+                    <nav class="o_vd_tabs">
+                        <button t-att-class="{'active': state.tab === 'inside'}" t-on-click="() => state.tab = 'inside'">
+                            Inside <span class="badge" t-esc="state.data.inside.length"/>
+                        </button>
+                        <button t-att-class="{'active': state.tab === 'waiting'}" t-on-click="() => state.tab = 'waiting'">
+                            Waiting <span class="badge" t-esc="state.data.waiting.length"/>
+                        </button>
+                        <button t-att-class="{'active': state.tab === 'recent'}" t-on-click="() => state.tab = 'recent'">
+                            Activity
+                        </button>
+                    </nav>
+
+                    <div t-if="state.loading" class="o_vd_empty"><i class="fa fa-circle-o-notch fa-spin fa-2x"/></div>
+                    <div t-elif="!boardList.length" class="o_vd_empty">
+                        <div class="o_vd_empty_icon">
+                            <i t-att-class="state.tab === 'inside' ? 'fa fa-coffee' : 'fa fa-check-circle'"/>
+                        </div>
+                        <div t-if="state.tab === 'inside'">All quiet. Nobody inside right now.</div>
+                        <div t-elif="state.tab === 'waiting'">No one waiting at the gate.</div>
+                        <div t-else="">No activity yet today.</div>
+                    </div>
+
+                    <div t-else="" class="o_vd_cards">
+                        <t t-foreach="boardList" t-as="card" t-key="card.id">
+                            <article class="o_vd_card" t-att-class="{
+                                    'o_vd_card_new': state.pulse[card.id] === 'new',
+                                    'o_vd_card_leaving': state.pulse[card.id] === 'leaving',
+                                    'o_vd_card_blocked': card.blocked,
+                                }">
+                                <div class="o_vd_avatar" t-on-click="() => this.openVisit(card)">
+                                    <img t-att-src="photoUrl(card)" alt="" onerror="this.style.display='none'"/>
+                                    <span t-esc="initials(card.visitor_name)"/>
+                                </div>
+                                <div class="o_vd_card_body" t-on-click="() => this.openVisit(card)">
+                                    <div class="o_vd_card_name">
+                                        <t t-esc="card.visitor_name"/>
+                                        <i t-if="card.blocked" class="fa fa-ban text-danger ms-1" title="Blocked"/>
+                                    </div>
+                                    <div class="o_vd_card_sub">
+                                        <t t-esc="card.company_name or card.mobile"/>
+                                    </div>
+                                    <div class="o_vd_card_meta">
+                                        <span class="o_vd_chip" t-att-style="'--vd-chip:' + card.purpose_color"><i t-att-class="'fa me-1 ' + card.purpose_icon"/><t t-esc="card.purpose"/></span>
+                                        <span t-if="card.host"><i class="fa fa-user-o me-1"/><t t-esc="card.host"/></span>
+                                    </div>
+                                </div>
+                                <div class="o_vd_card_side">
+                                    <t t-if="card.state === 'checked_in'">
+                                        <div class="o_vd_timer" t-att-class="stayClass(card)">
+                                            <i class="fa fa-clock-o me-1"/><t t-esc="elapsed(card)"/>
+                                        </div>
+                                        <div class="o_vd_stay"><div t-att-class="stayClass(card)" t-att-style="'width:' + Math.min(stayRatio(card), 100) + '%'"/></div>
+                                        <button class="btn btn-dark btn-sm mt-2" t-on-click="() => this.checkOut(card)">
+                                            <i class="fa fa-sign-out me-1"/>Check Out
+                                        </button>
+                                    </t>
+                                    <t t-elif="card.state === 'registered'">
+                                        <div t-if="card.expired" class="o_vd_timer o_vd_over"><i class="fa fa-hourglass-end me-1"/>expired</div>
+                                        <div t-else="" class="o_vd_timer">waiting <t t-esc="elapsed(card)"/></div>
+                                        <button class="btn btn-success btn-sm mt-2" t-att-disabled="card.blocked or card.expired"
+                                                t-on-click="() => this.checkIn(card)">
+                                            <i class="fa fa-sign-in me-1"/>Check In
+                                        </button>
+                                    </t>
+                                    <t t-else="">
+                                        <div class="o_vd_timer">
+                                            <t t-if="card.state === 'checked_out'"><i class="fa fa-sign-out me-1"/>out <t t-esc="timeOf(card.check_out)"/></t>
+                                            <t t-else=""><i class="fa fa-sign-in me-1"/>in <t t-esc="timeOf(card.check_in)"/></t>
+                                        </div>
+                                    </t>
+                                    <button class="btn btn-link btn-sm p-0 mt-1" t-on-click="() => this.printPass(card)">
+                                        <i class="fa fa-id-badge me-1"/>Pass
+                                    </button>
+                                </div>
+                            </article>
+                        </t>
+                    </div>
+                </section>
+
+                <!-- Registration panel -->
+                <aside t-if="canRegister" class="o_vd_register">
+                    <t t-if="state.success">
+                        <div class="o_vd_success">
+                            <div class="o_vd_success_check"><i class="fa fa-check"/></div>
+                            <div class="o_vd_success_photo" t-if="state.success.photoSrc">
+                                <img t-att-src="state.success.photoSrc" alt=""/>
+                            </div>
+                            <h3 t-esc="state.success.visitor_name"/>
+                            <div class="o_vd_success_id" t-esc="state.success.name"/>
+                            <div class="o_vd_success_token">Pass code <b t-esc="state.success.pass_token"/></div>
+                            <p class="text-muted" t-if="state.success.state === 'checked_in'">Checked in. The host has been notified.</p>
+                            <p class="text-muted" t-else="">Registered. Security will check them in at the gate.</p>
+                            <p class="o_vd_streak" t-if="state.success.returning">
+                                <i class="fa fa-star me-1"/>Visit #<t t-esc="state.success.returning.visit_count + 1"/>: a regular!
+                            </p>
+                            <div class="d-grid gap-2 mt-3">
+                                <button class="btn btn-primary btn-lg" t-on-click="() => this.printPass(state.success)">
+                                    <i class="fa fa-print me-2"/>Print Visitor Pass
+                                </button>
+                                <button class="btn btn-outline-secondary" t-on-click="resetForm">
+                                    <i class="fa fa-plus me-2"/>Next Visitor
+                                </button>
+                            </div>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <h2 class="o_vd_register_title"><i class="fa fa-user-plus me-2"/>New Visitor</h2>
+
+                        <div class="o_vd_face_pick" t-on-click="capturePhoto" t-att-class="{'o_vd_has_face': formPhotoSrc}">
+                            <img t-if="formPhotoSrc" t-att-src="formPhotoSrc" alt=""/>
+                            <div t-else="" class="o_vd_face_placeholder">
+                                <i class="fa fa-camera"/>
+                                <span>Capture Face</span>
+                            </div>
+                            <span t-if="formPhotoSrc" class="o_vd_face_retake"><i class="fa fa-refresh"/></span>
+                        </div>
+
+                        <label class="o_vd_label">Mobile number</label>
+                        <input class="form-control form-control-lg o_vd_mobile" type="tel" inputmode="numeric"
+                               placeholder="98765 43210" t-att-value="state.form.mobile" t-on-input="onMobileInput"/>
+
+                        <div t-if="state.returning and state.returning.active_visit" class="o_vd_active">
+                            <div class="o_vd_active_head">
+                                <i class="fa fa-exclamation-triangle"/>
+                                <span t-esc="state.returning.active_message"/>
+                            </div>
+                            <div class="o_vd_active_actions">
+                                <t t-if="state.returning.active_visit.state === 'checked_in'">
+                                    <button class="btn btn-dark btn-sm" t-on-click="() => this.resolveActive('checkout')">
+                                        <i class="fa fa-sign-out me-1"/>Check Out now
+                                    </button>
+                                </t>
+                                <t t-else="">
+                                    <button class="btn btn-success btn-sm" t-if="!state.returning.active_visit.expired"
+                                            t-on-click="() => this.resolveActive('checkin')">
+                                        <i class="fa fa-sign-in me-1"/>Check In
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm" t-on-click="() => this.resolveActive('cancel')">
+                                        <i class="fa fa-times me-1"/>Cancel old pass
+                                    </button>
+                                </t>
+                                <button class="btn btn-link btn-sm" t-on-click="() => this.openVisit(state.returning.active_visit)">
+                                    Open <t t-esc="state.returning.active_visit.name"/>
+                                </button>
+                            </div>
+                        </div>
+                        <div t-elif="state.returning" class="o_vd_returning" t-att-class="{'o_vd_returning_blocked': state.returning.is_blocked}">
+                            <t t-if="state.returning.is_blocked">
+                                <i class="fa fa-ban me-2"/>Blocked visitor: <t t-esc="state.returning.block_reason or 'contact admin'"/>
+                            </t>
+                            <t t-else="">
+                                <i class="fa fa-smile-o me-2"/>Welcome back, <b t-esc="state.returning.name"/>!
+                                Visit #<t t-esc="state.returning.visit_count + 1"/>. Details filled in.
+                            </t>
+                        </div>
+
+                        <div class="row g-2 mt-1">
+                            <div class="col-12">
+                                <label class="o_vd_label">Visitor name</label>
+                                <input class="form-control" placeholder="Kumar" t-model="state.form.visitor_name"/>
+                            </div>
+                            <div class="col-7">
+                                <label class="o_vd_label">Company</label>
+                                <input class="form-control" placeholder="ABC Technologies" t-model="state.form.company_name"/>
+                            </div>
+                            <div class="col-5">
+                                <label class="o_vd_label">Stay (hours)</label>
+                                <input class="form-control" type="number" min="0.5" step="0.5" t-model="state.form.expected_hours"/>
+                            </div>
+                        </div>
+
+                        <label class="o_vd_label mt-2">Purpose of visit</label>
+                        <div class="o_vd_purposes">
+                            <t t-foreach="state.purposes" t-as="p" t-key="p.id">
+                                <button type="button" t-att-class="{'active': state.form.purpose_id === p.id}"
+                                        t-att-style="purposeStyle(p)" t-on-click="() => this.choosePurpose(p.id)">
+                                    <i t-att-class="'fa ' + p.icon"/><t t-esc="p.name"/>
+                                </button>
+                            </t>
+                        </div>
+                        <input class="form-control mt-2" placeholder="Details (optional)" t-model="state.form.purpose_note"/>
+
+                        <label class="o_vd_label mt-2">Person to meet <small class="text-muted">(optional)</small></label>
+                        <div class="o_vd_host">
+                            <i class="fa fa-search"/>
+                            <RecordSelector resModel="'res.users'" resId="state.form.host_id"
+                                            domain="[['share', '=', false]]"
+                                            placeholder="'Type to search employee…'"
+                                            update.bind="setHost"/>
+                        </div>
+
+                        <label class="form-check mt-3 o_vd_consent" t-if="state.form.photo">
+                            <input type="checkbox" class="form-check-input" t-model="state.form.photo_consent"/>
+                            <span class="form-check-label">Visitor was told why the photo is taken and agreed.</span>
+                        </label>
+
+                        <div class="o_vd_register_actions">
+                            <button class="btn btn-primary btn-lg" t-att-disabled="!formReady or state.saving"
+                                    t-on-click="() => this.register(true)">
+                                <i class="fa fa-sign-in me-2"/>Register &amp; Check In
+                            </button>
+                            <button class="btn btn-outline-primary" t-att-disabled="!formReady or state.saving"
+                                    t-on-click="() => this.register(false)">
+                                Register only
+                            </button>
+                        </div>
+                    </t>
+                </aside>
+            </div>
+        </div>
+        </div>
+    </t>
+</templates>

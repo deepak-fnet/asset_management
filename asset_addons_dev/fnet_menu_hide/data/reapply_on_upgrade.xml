@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!--
+        Upgrading the module that owns a menu can reset that menu's `active`
+        flag back to True. This re-applies every hide rule on each upgrade so
+        hidden menus stay hidden.
+    -->
+    <function model="fnet.menu.hide" name="reapply_all"/>
+</odoo>

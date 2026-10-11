@@ -31,7 +31,7 @@
                     <div class="d-flex gap-2 mb-3">
                         <button name="action_create_joining_process"
                                 type="object"
-                                string="New Joining Process"
+                                string="New Asset Assign Process"
                                 class="btn btn-sm btn-primary"/>
                         <button name="action_create_exit_process"
                                 type="object"

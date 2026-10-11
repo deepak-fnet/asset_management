@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_visitor_visit" model="ir.sequence">
+        <field name="name">Visitor ID</field>
+        <field name="code">visitor.visit</field>
+        <field name="prefix">VIS/%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="param_photo_retention_days" model="ir.config_parameter" forcecreate="False">
+        <field name="key">visitor_desk.photo_retention_days</field>
+        <field name="value">90</field>
+    </record>
+
+    <record id="ir_cron_purge_visitor_photos" model="ir.cron">
+        <field name="name">Visitor Desk: purge old visitor photos</field>
+        <field name="model_id" ref="model_visitor_visit"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_purge_photos()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+    </record>
+
+    <record id="ir_cron_expire_visitor_passes" model="ir.cron">
+        <field name="name">Visitor Desk: cancel unused passes from previous days</field>
+        <field name="model_id" ref="model_visitor_visit"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_expire_passes()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+    </record>
+</odoo>

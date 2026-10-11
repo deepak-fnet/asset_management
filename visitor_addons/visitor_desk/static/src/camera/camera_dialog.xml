@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="visitor_desk.CameraDialog">
+        <Dialog title="props.title or 'Capture Visitor Face'" size="'md'" contentClass="'o_vd_camera_dialog'">
+            <input t-ref="file" type="file" accept="image/*" capture="user" class="d-none" t-on-change="onFile"/>
+            <div class="o_vd_camera">
+                <div class="o_vd_camera_stage" t-att-class="{'o_vd_flash': state.flash}">
+                    <video t-ref="video" playsinline="" muted=""
+                           t-att-class="{'d-none': state.phase === 'preview' or state.phase === 'error'}"/>
+                    <img t-if="state.phase === 'preview'" t-att-src="state.preview" alt="Captured face"/>
+                    <div t-if="state.phase === 'live' or state.phase === 'countdown'" class="o_vd_face_guide"/>
+                    <div t-if="state.phase === 'countdown'" class="o_vd_countdown" t-key="state.count" t-esc="state.count"/>
+                    <div t-if="state.phase === 'starting'" class="o_vd_camera_msg">
+                        <i class="fa fa-circle-o-notch fa-spin fa-2x"/>
+                        <div class="mt-2">Starting camera…</div>
+                    </div>
+                    <div t-if="state.phase === 'error'" class="o_vd_camera_msg">
+                        <div class="o_vd_camera_err_icon"><i class="fa fa-video-camera"/></div>
+                        <div class="fw-bold mt-2" t-esc="state.error"/>
+                        <t t-if="insecure">
+                            <div class="o_vd_camera_hint">
+                                Live webcam needs <b>https://</b> (or <b>localhost</b>).
+                                Ask your admin to enable HTTPS for Odoo.
+                            </div>
+                        </t>
+                        <button class="btn btn-light btn-lg mt-3" t-on-click="pickFile">
+                            <i class="fa fa-mobile me-2"/>Use device camera / photo
+                        </button>
+                        <div class="o_vd_camera_hint mt-2">On a phone or tablet this opens the front camera.</div>
+                    </div>
+                </div>
+                <p class="text-center text-muted small mt-2 mb-0" t-if="state.phase === 'live'">
+                    Ask the visitor to look at the camera and keep their face inside the circle.
+                </p>
+            </div>
+            <t t-set-slot="footer">
+                <t t-if="state.phase === 'live'">
+                    <button class="btn btn-primary btn-lg px-4" t-on-click="startCountdown">
+                        <i class="fa fa-camera me-2"/>Capture Photo
+                    </button>
+                    <button class="btn btn-secondary btn-lg" t-on-click="snap">Instant</button>
+                </t>
+                <t t-elif="state.phase === 'preview'">
+                    <button class="btn btn-success btn-lg px-4" t-on-click="usePhoto">
+                        <i class="fa fa-check me-2"/>Use Photo
+                    </button>
+                    <button class="btn btn-secondary btn-lg" t-on-click="retake">
+                        <i class="fa fa-refresh me-2"/>Retake
+                    </button>
+                </t>
+                <t t-elif="state.phase === 'error' and !insecure">
+                    <button class="btn btn-primary" t-on-click="start">Try again</button>
+                </t>
+                <button class="btn btn-link" t-on-click="props.close">Close</button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

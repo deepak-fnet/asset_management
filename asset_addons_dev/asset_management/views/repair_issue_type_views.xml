@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_repair_issue_type_list" model="ir.ui.view">
+        <field name="name">repair.issue.type.list</field>
+        <field name="model">repair.issue.type</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="behaviour"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_repair_issue_type" model="ir.actions.act_window">
+        <field name="name">Repair Issue Types</field>
+        <field name="res_model">repair.issue.type</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+    </record>
+</odoo>

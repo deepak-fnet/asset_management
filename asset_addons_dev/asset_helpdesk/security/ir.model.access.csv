@@ -4,3 +4,11 @@ access_asset_helpdesk_team_user,asset.helpdesk.team.user,model_asset_helpdesk_te
 access_asset_helpdesk_type_user,asset.helpdesk.type.user,model_asset_helpdesk_type,base.group_user,1,1,1,1
 access_asset_helpdesk_category_user,asset.helpdesk.category.user,model_asset_helpdesk_category,base.group_user,1,1,1,1
 access_asset_helpdesk_history,asset_helpdesk_history,model_asset_helpdesk_history,base.group_user,1,1,1,1
+access_asset_helpdesk_replace_wizard_user,asset.helpdesk.replace.wizard user,model_asset_helpdesk_replace_wizard,base.group_user,1,1,1,1
+access_asset_helpdesk_mail_user,asset.helpdesk.mail user,model_asset_helpdesk_mail,base.group_user,1,1,1,0
+access_asset_helpdesk_mail_it,asset.helpdesk.mail it,model_asset_helpdesk_mail,asset_management.group_asset_user_it,1,1,1,1
+access_asset_helpdesk_mail_map_wizard,asset.helpdesk.mail.map.wizard,model_asset_helpdesk_mail_map_wizard,base.group_user,1,1,1,1
+access_repair_assign_wizard,repair.assign.wizard,model_repair_assign_wizard,base.group_user,1,1,1,1
+access_asset_helpdesk_mail_line_user,asset.helpdesk.mail.line user,model_asset_helpdesk_mail_line,base.group_user,1,0,0,0
+access_asset_helpdesk_mail_line_it,asset.helpdesk.mail.line it,model_asset_helpdesk_mail_line,asset_management.group_asset_user_it,1,1,1,1
+access_asset_helpdesk_send_mail_wizard,asset.helpdesk.send.mail.wizard,model_asset_helpdesk_send_mail_wizard,base.group_user,1,1,1,1

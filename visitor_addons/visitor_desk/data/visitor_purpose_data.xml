@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="purpose_meeting" model="visitor.purpose">
+        <field name="name">Business Meeting</field>
+        <field name="icon">fa-handshake-o</field>
+        <field name="color">#4f46e5</field>
+        <field name="sequence">1</field>
+        <field name="default_hours">2</field>
+    </record>
+    <record id="purpose_interview" model="visitor.purpose">
+        <field name="name">Interview</field>
+        <field name="icon">fa-user-circle</field>
+        <field name="color">#0d9488</field>
+        <field name="sequence">2</field>
+        <field name="default_hours">2</field>
+    </record>
+    <record id="purpose_delivery" model="visitor.purpose">
+        <field name="name">Delivery</field>
+        <field name="icon">fa-truck</field>
+        <field name="color">#ea580c</field>
+        <field name="sequence">3</field>
+        <field name="default_hours">0.5</field>
+    </record>
+    <record id="purpose_vendor" model="visitor.purpose">
+        <field name="name">Vendor / Supplier</field>
+        <field name="icon">fa-briefcase</field>
+        <field name="color">#2563eb</field>
+        <field name="sequence">4</field>
+        <field name="default_hours">1.5</field>
+    </record>
+    <record id="purpose_service" model="visitor.purpose">
+        <field name="name">Service / Maintenance</field>
+        <field name="icon">fa-wrench</field>
+        <field name="color">#ca8a04</field>
+        <field name="sequence">5</field>
+        <field name="default_hours">4</field>
+    </record>
+    <record id="purpose_personal" model="visitor.purpose">
+        <field name="name">Personal</field>
+        <field name="icon">fa-heart</field>
+        <field name="color">#db2777</field>
+        <field name="sequence">6</field>
+        <field name="default_hours">1</field>
+    </record>
+    <record id="purpose_other" model="visitor.purpose">
+        <field name="name">Other</field>
+        <field name="icon">fa-ellipsis-h</field>
+        <field name="color">#475569</field>
+        <field name="sequence">7</field>
+        <field name="default_hours">2</field>
+    </record>
+</odoo>

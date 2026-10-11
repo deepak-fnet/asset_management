@@ -19,7 +19,6 @@ class AssetHelpdesk(models.Model):
     ticket_type_id = fields.Many2one(
         'asset.helpdesk.type',
         string='Ticket Type',
-        required=True,
         tracking=True,
     )
     category_id = fields.Many2one(
@@ -42,10 +41,11 @@ class AssetHelpdesk(models.Model):
         default='medium',
         tracking=True,
     )
+    # Not required at creation: a ticket raised by an employee has no team
+    # yet - the ticket incharge picks it when assigning (action_assign).
     team_id = fields.Many2one(
         'asset.helpdesk.team',
         string='Team',
-        required=True,
         tracking=True,
     )
     # Not stored: exists only so the view can build a domain on
@@ -61,9 +61,11 @@ class AssetHelpdesk(models.Model):
     )
     state = fields.Selection(
         selection=[
-            ('open', 'Open'),
-            ('in_progress', 'In Progress'),
-            ('solved', 'Solved'),
+            ('open', 'New'),
+            ('created', 'Created'),
+            ('replace_pending', 'Awaiting Replace Decision'),
+            ('solved', 'Closed'),
+            ('replaced', 'Replaced'),
             ('cancelled', 'Cancelled'),
         ],
         string='Status',
@@ -79,7 +81,8 @@ class AssetHelpdesk(models.Model):
     notes = fields.Text()
 
     # ── Requester / contact details ──────────────────────────────────────
-    customer_id = fields.Many2one('res.users', string='Customer', tracking=True)
+    customer_id = fields.Many2one('res.users', string='Customer', tracking=True,
+                                  default=lambda self: self.env.user)
     email = fields.Char(string='Email')
     phone = fields.Char(string='Phone')
     department_id = fields.Many2one('hr.department', string='Department', tracking=True)
@@ -147,7 +150,7 @@ class AssetHelpdesk(models.Model):
                         'team_id': rec.team_id.id,
                     })
                 rec.repair_id = repair_record.id
-                rec.state = 'in_progress'
+                rec.state = 'created'
             return {
                 'type': 'ir.actions.act_window',
                 'name': ('Repair Management'),
@@ -195,7 +198,8 @@ class AssetHelpdesk(models.Model):
         return super().create(vals_list)
 
     def action_start_progress(self):
-        self.write({'state': 'in_progress'})
+        # No separate in-progress step any more: New -> Created -> Closed.
+        self.filtered(lambda t: t.state == 'open').write({'state': 'created'})
 
     def action_mark_solved(self):
         for rec in self:
@@ -222,9 +226,11 @@ class AssetHelpdesk(models.Model):
 # asset_helpdesk_history.py
 
 STATE_SELECTION = [
-    ('open', 'Open'),
-    ('in_progress', 'In Progress'),
-    ('solved', 'Solved'),
+    ('open', 'New'),
+    ('created', 'Created'),
+    ('replace_pending', 'Awaiting Replace Decision'),
+    ('solved', 'Closed'),
+    ('replaced', 'Replaced'),
     ('cancelled', 'Cancelled'),
 ]
 
@@ -290,22 +296,4 @@ class RepairManagement(models.Model):
                     "someone from that team, or change the team first."
                 ) % {'engineer': rec.engineer_id.name, 'team': rec.team_id.name})
 
-    def action_done(self):
-        res = super().action_done()
-
-        records = self.env['asset.helpdesk'].search([
-            ('repair_id', '=', self.id)
-        ])
-        records.write({'state': 'solved'})
-
-        return res
-
-    def action_not_repairable(self):
-        res = super().action_not_repairable()
-
-        records = self.env['asset.helpdesk'].search([
-            ('repair_id', '=', self.id)
-        ])
-        records.write({'state': 'solved'})
-
-        return res
+    # Done / Not Repairable -> ticket: see helpdesk_flow.py

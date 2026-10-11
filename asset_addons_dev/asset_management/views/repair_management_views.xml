@@ -64,8 +64,10 @@
                                        invisible="state not in ('done', 'not_repairable')"/>
                             </group>
                             <group string="Issue Details">
-                                <field name="issue_type"
+                                <field name="issue_type_id" required="1"
+                                       options="{'no_create': True}"
                                        readonly="state != 'new'"/>
+                                <field name="issue_type" invisible="1"/>
                                 <field name="support_mode"
                                        invisible="not issue_type"
                                        readonly="state != 'new'"
@@ -162,7 +164,7 @@
                     <field name="name"/>
                     <field name="asset_id"/>
                     <field name="asset_name"/>
-                    <field name="issue_type"/>
+                    <field name="issue_type_id"/>
                     <field name="support_mode"/>
                     <field name="handover_mode" optional="hide"/>
                     <field name="engineer_id"/>

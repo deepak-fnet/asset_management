@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Employees see the requests they raised; the IT / asset team sees
+         every mail (All Mails). -->
+    <record id="rule_helpdesk_mail_own" model="ir.rule">
+        <field name="name">Helpdesk mail: own requests</field>
+        <field name="model_id" ref="model_asset_helpdesk_mail"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="rule_helpdesk_mail_all" model="ir.rule">
+        <field name="name">Helpdesk mail: asset team sees all</field>
+        <field name="model_id" ref="model_asset_helpdesk_mail"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('asset_management.group_asset_user_it')), (4, ref('asset_management.group_asset_manager'))]"/>
+    </record>
+    <record id="rule_helpdesk_mail_line_own" model="ir.rule">
+        <field name="name">Helpdesk mail entries: own requests</field>
+        <field name="model_id" ref="model_asset_helpdesk_mail_line"/>
+        <field name="domain_force">[('mail_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="rule_helpdesk_mail_line_all" model="ir.rule">
+        <field name="name">Helpdesk mail entries: asset team sees all</field>
+        <field name="model_id" ref="model_asset_helpdesk_mail_line"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('asset_management.group_asset_user_it')), (4, ref('asset_management.group_asset_manager'))]"/>
+    </record>
+</odoo>

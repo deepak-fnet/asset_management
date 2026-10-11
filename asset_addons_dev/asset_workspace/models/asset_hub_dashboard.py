@@ -474,6 +474,41 @@ class AssetHubDashboard(models.AbstractModel):
         return summary
 
     @api.model
+    def _general_asset_action(self, name, domain):
+        """Open assets in the General Asset list / form - as the real
+        'All Assets' action (with its id), so a browser refresh reloads that
+        action and keeps the general views instead of falling back to
+        asset.asset's default form."""
+        if self.env.ref('general_asset.action_asset_general', raise_if_not_found=False):
+            action = self.env['ir.actions.act_window']._for_xml_id('general_asset.action_asset_general')
+            action.update({'name': name, 'domain': domain, 'context': {}})
+            return action
+        return {
+            'type': 'ir.actions.act_window', 'name': name, 'res_model': 'asset.asset',
+            'view_mode': 'list,form', 'views': [(False, 'list'), (False, 'form')], 'domain': domain,
+        }
+
+    # Assigned without an employee: a common asset (meeting-room AC, a
+    # department's fan) placed at a location and/or department.
+    COMMON_ASSET_DOMAIN = [('state', '=', 'assigned'), ('assigned_employee_id', '=', False),
+                           '|', ('department_id', '!=', False), ('location_id', '!=', False)]
+    EMPLOYEE_ASSET_DOMAIN = [('state', '=', 'assigned'), ('assigned_employee_id', '!=', False)]
+
+    @api.model
+    def open_common_assets(self, filters=None):
+        return self._general_asset_action(
+            _('Common Assets'), self._analytics_domain(filters or {}) + self.COMMON_ASSET_DOMAIN)
+
+    @api.model
+    def open_employee_assets(self, filters=None):
+        return self._general_asset_action(
+            _('Employee Assets'), self._analytics_domain(filters or {}) + self.EMPLOYEE_ASSET_DOMAIN)
+
+    @api.model
+    def open_all_assets(self):
+        return self._general_asset_action(_('All Assets'), [])
+
+    @api.model
     def open_action_by_xmlid(self, xml_id):
         """Generic click-through for the All Asset Dashboard's KPI cards.
 
@@ -495,25 +530,11 @@ class AssetHubDashboard(models.AbstractModel):
         since 'assets flagged is_iot_device' isn't its own menu/action
         anywhere else in the suite.
         """
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _('IoT Devices'),
-            'res_model': 'asset.asset',
-            'view_mode': 'list,form',
-            'views': [(False, 'list'), (False, 'form')],
-            'domain': [('is_iot_device', '=', True)],
-        }
+        return self._general_asset_action(_('IoT Devices'), [('is_iot_device', '=', True)])
 
     @api.model
     def open_category_assets(self, category_id):
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _('Assets'),
-            'res_model': 'asset.asset',
-            'view_mode': 'list,form',
-            'views': [(False, 'list'), (False, 'form')],
-            'domain': [('category_id', '=', category_id)],
-        }
+        return self._general_asset_action(_('Assets'), [('category_id', '=', category_id)])
 
     # ══════════════════════════════════════════════════════════════════════
     # Asset Analytics - filters + KPI cards + charts + age profile, same
@@ -525,6 +546,7 @@ class AssetHubDashboard(models.AbstractModel):
     # ══════════════════════════════════════════════════════════════════════
     ASSET_STATES = [
         ('draft', 'Draft'),
+        ('submit', 'Submitted'),
         ('assigned', 'Assigned'),
         ('maintenance', 'Maintenance'),
         ('scrapped', 'Scrapped'),
@@ -617,7 +639,41 @@ class AssetHubDashboard(models.AbstractModel):
             'charts': self._analytics_charts(filters),
             'age_profile': self._analytics_age_profile(filters),
             'risk': self._analytics_risk(filters),
+            'employees': self._analytics_employees(filters),
         }
+
+    def _analytics_employees(self, filters, limit=10):
+        """Who holds the assets: top employees by assigned-asset count, plus
+        the common (no-employee) assets, under the current filters."""
+        Asset = self.env['asset.asset'].sudo()
+        domain = self._analytics_domain(filters)
+        grouped = Asset._read_group(domain + self.EMPLOYEE_ASSET_DOMAIN, ['assigned_employee_id'],
+                                    ['__count'], order='__count desc')
+        rows = [{'id': emp.id, 'name': emp.display_name, 'count': cnt} for emp, cnt in grouped]
+        return {
+            'rows': rows[:limit],
+            'total_employees': len(rows),
+            'common': Asset.search_count(domain + self.COMMON_ASSET_DOMAIN),
+        }
+
+    @api.model
+    def open_employee_assets_of(self, filters, employee_id):
+        """Employee-wise list: one employee's assets (or 'common')."""
+        domain = self._analytics_domain(filters or {})
+        if employee_id == 'common':
+            return self._general_asset_action(_('Common Assets'), domain + self.COMMON_ASSET_DOMAIN)
+        employee = self.env['hr.employee'].browse(int(employee_id))
+        return self._general_asset_action(
+            _('Assets of %s', employee.display_name),
+            domain + self.EMPLOYEE_ASSET_DOMAIN + [('assigned_employee_id', '=', employee.id)])
+
+    @api.model
+    def open_all_employee_assets(self, filters=None):
+        """View all: every employee's assets, grouped by employee."""
+        action = self._general_asset_action(
+            _('Assets by Employee'), self._analytics_domain(filters or {}) + self.EMPLOYEE_ASSET_DOMAIN)
+        action['context'] = {'group_by': ['assigned_employee_id']}
+        return action
 
     # ── Data Quality & Risk ─────────────────────────────────────────────
     # Register hygiene (missing tag/serial/location/category - can't be
@@ -699,14 +755,7 @@ class AssetHubDashboard(models.AbstractModel):
         elif key == 'old_assets':
             domain += [('purchase_date', '<=', self._years_ago(today, 15))]
 
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _('Assets'),
-            'res_model': 'asset.asset',
-            'view_mode': 'list,form',
-            'views': [(False, 'list'), (False, 'form')],
-            'domain': domain,
-        }
+        return self._general_asset_action(_('Assets'), domain)
 
     def _analytics_kpis(self, filters):
         Asset = self.env['asset.asset'].sudo()
@@ -748,6 +797,8 @@ class AssetHubDashboard(models.AbstractModel):
             'verification_due': verification_due,
             'removals_open': removals_open,
             'removed': count([('state', '=', 'scrapped')]),
+            'common_assets': count(self.COMMON_ASSET_DOMAIN),
+            'employee_assets': count(self.EMPLOYEE_ASSET_DOMAIN),
         }
 
     def _analytics_charts(self, filters):
@@ -839,14 +890,7 @@ class AssetHubDashboard(models.AbstractModel):
             domain.append(('purchase_date', '<=', self._years_ago(today, low)))
         if high is not None:
             domain.append(('purchase_date', '>', self._years_ago(today, high)))
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _('Assets'),
-            'res_model': 'asset.asset',
-            'view_mode': 'list,form',
-            'views': [(False, 'list'), (False, 'form')],
-            'domain': domain,
-        }
+        return self._general_asset_action(_('Assets'), domain)
 
     # ══════════════════════════════════════════════════════════════════════
     # Routing

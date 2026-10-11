@@ -17,9 +17,46 @@
                        readonly="state in ('done', 'not_repairable')"/>
                 <field name="team_member_ids" invisible="1"/>
             </field>
+            <field name="engineer_id" position="after">
+                <field name="standby_needed" widget="radio" options="{'horizontal': true}"
+                       readonly="state in ('done', 'not_repairable')"/>
+            </field>
+            <xpath expr="//header" position="inside">
+                <button name="action_assign_task" type="object" string="Assign"
+                        class="btn-primary" invisible="engineer_id or state != 'new'"/>
+                <button name="action_mail_reply" type="object" string="Send Mail"
+                        invisible="not helpdesk_mail_id"/>
+                <field name="helpdesk_mail_id" invisible="1"/>
+                <field name="helpdesk_ticket_ids" invisible="1"/>
+                <button name="action_give_standby" type="object" string="Give Temporary Asset"
+                        class="btn-secondary"
+                        invisible="standby_needed != 'yes' or state in ('done', 'not_repairable')"/>
+            </xpath>
             <field name="engineer_id" position="attributes">
                 <attribute name="domain">[('user_id', 'in', team_member_ids)] if team_id else []</attribute>
             </field>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_mails" type="object" class="oe_stat_button"
+                        icon="fa-envelope" invisible="not helpdesk_mail_id">
+                    <field name="mail_count" widget="statinfo" string="Mails"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Webmail-style list of a ticket's mails (task > Mails). -->
+    <record id="view_helpdesk_mail_message_list" model="ir.ui.view">
+        <field name="name">mail.message.list.helpdesk</field>
+        <field name="model">mail.message</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <list string="Mails" create="0" delete="0" default_order="date desc">
+                <field name="author_id" string="From"/>
+                <field name="email_from" optional="hide"/>
+                <field name="subject"/>
+                <field name="preview" string="Message"/>
+                <field name="date"/>
+            </list>
         </field>
     </record>
 </odoo>

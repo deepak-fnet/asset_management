@@ -16,16 +16,18 @@ class AssetReplaceLaptopWizard(models.TransientModel):
         required=True, readonly=True,
     )
     employee_id = fields.Many2one(
-        'hr.employee', string='Employee',
-        required=True, readonly=True,
+        'hr.employee', string='Employee', readonly=True,
     )
+    asset_id = fields.Many2one(related='assign_process_id.asset_id', string='Asset Under Repair')
+    category_id = fields.Many2one(related='assign_process_id.asset_id.category_id', string='Category')
+    department_id = fields.Many2one(related='assign_process_id.department_id')
+    location_id = fields.Many2one(related='assign_process_id.location_id')
     replacement_asset_id = fields.Many2one(
         'asset.asset', string='Select Replacement Asset',
         required=True,
-        # General assets only - this table is shared with the repair flow,
-        # and a fixed/IT asset under agent monitoring has no business being
-        # handed out as a stand-in here.
-        domain="[('state', 'in', ['draft', 'submit']), ('is_general_asset', '=', True)]",
+        # Same category as the asset under repair, ready to hand out.
+        domain="[('category_id', '=', category_id), ('state', '=', 'submit'), "
+               "('in_repair', '=', False), ('id', '!=', asset_id)]",
     )
     assignment_date = fields.Date(
         string='Temporary Assignment Date',
@@ -36,14 +38,18 @@ class AssetReplaceLaptopWizard(models.TransientModel):
 
     def action_replace(self):
         self.ensure_one()
-        if self.replacement_asset_id.state not in ('draft', 'submit'):
+        new = self.replacement_asset_id
+        if new.state != 'submit' or new.in_repair or new.category_id != self.category_id:
             raise UserError(_(
-                "The selected asset is no longer available. Please choose another."
-            ))
+                "Pick a Submitted %s asset that is not under repair.", self.category_id.name or ''))
 
-        # Assign replacement asset temporarily to the same employee
-        self.replacement_asset_id.write({
-            'assigned_employee_id': self.employee_id.id,
+        # The standby takes over the asset's assignment: an employee, or for
+        # a common asset just its department / location.
+        process = self.assign_process_id
+        new.write({
+            'assigned_employee_id': process.employee_id.id,
+            'department_id': process.department_id.id,
+            'location_id': process.location_id.id,
             'assignment_date': self.assignment_date,
             'state': 'assigned',
         })
@@ -58,11 +64,12 @@ class AssetReplaceLaptopWizard(models.TransientModel):
             body=_(
                 "Replacement asset <b>%s</b> temporarily assigned to <b>%s</b>.<br/>"
                 "Original asset <b>%s</b> remains under repair. "
-                "It will be auto-returned to this employee once repaired."
+                "It will be auto-returned once repaired."
             ) % (
-                self.replacement_asset_id.asset_name,
-                self.employee_id.name,
-                self.assign_process_id.asset_id.asset_name,
+                new.asset_name,
+                ", ".join(n for n in [process.employee_id.name, process.department_id.name,
+                                      process.location_id.complete_name] if n) or _("its location"),
+                process.asset_id.asset_name,
             )
         )
 

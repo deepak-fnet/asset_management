@@ -70,6 +70,9 @@ End-to-end construction project flow on top of CRM, Project and Purchase:
         'views/menus.xml',
         'views/cm_dashboard_action.xml',
     ],
+    'demo': [
+        'demo/cm_demo_data.xml',
+    ],
     'assets': {
         'web.assets_backend': [
             'construction_management/static/src/dashboard/*',
@@ -78,4 +81,5 @@ End-to-end construction project flow on top of CRM, Project and Purchase:
     },
     'application': True,
     'installable': True,
+    'post_init_hook': 'post_init_hook',
 }

@@ -1,11 +1,11 @@
 /** @odoo-module **/
 
-import { Component, useState, useRef, onWillStart, onMounted, onWillUnmount } from "@odoo/owl";
+import { Component, useState, useRef, onWillStart, onMounted, onPatched, onWillUnmount } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { loadJS } from "@web/core/assets";
 
-const CHART_REFS = ["stateChart", "deptChart", "categoryChart", "locationChart", "trendChart", "ageChart"];
+const CHART_REFS = ["stateChart", "deptChart", "locationChart", "trendChart", "ageChart"];
 
 /**
  * All Asset Dashboard - filters, KPI cards, distribution charts, and an
@@ -41,6 +41,9 @@ class AllAssetDashboard extends Component {
             charts: {},
             age_profile: [],
             risk: [],
+            employees: { rows: [], total_employees: 0, common: 0 },
+            // What is typed in the searchable Department / Plant / Location boxes.
+            filterText: { department_id: "", plant_id: "", location_id: "" },
         });
 
         onWillStart(async () => {
@@ -49,6 +52,15 @@ class AllAssetDashboard extends Component {
         });
 
         onMounted(() => this.renderCharts());
+        // Draw the charts only once the new canvases are actually in the
+        // DOM: after Apply the dashboard re-renders, and drawing earlier
+        // (setTimeout) found no canvas and left every chart empty.
+        onPatched(() => {
+            if (this.chartsDirty) {
+                this.chartsDirty = false;
+                this.renderCharts();
+            }
+        });
         onWillUnmount(() => this.destroyCharts());
     }
 
@@ -90,6 +102,7 @@ class AllAssetDashboard extends Component {
             this.state.charts = data.charts || {};
             this.state.age_profile = data.age_profile || [];
             this.state.risk = data.risk || [];
+            this.state.employees = data.employees || { rows: [], total_employees: 0, common: 0 };
             this.chartsDirty = true;
         } catch (err) {
             this.notification.add("Could not load the All Asset Dashboard.",
@@ -97,17 +110,29 @@ class AllAssetDashboard extends Component {
             console.error(err);
         } finally {
             this.state.loading = false;
-            if (this.chartsDirty) {
-                this.chartsDirty = false;
-                // Wait a tick for the (now non-loading) DOM to mount the
-                // canvases before Chart.js looks for them.
-                setTimeout(() => this.renderCharts());
-            }
         }
     }
 
     onFilterChange(key, ev) {
         this.state.filters[key] = ev.target.value;
+    }
+
+    // Searchable Many2one-like filter: type to search, pick a suggestion.
+    optionsFor(key) {
+        const o = this.state.filterOptions;
+        return { department_id: o.departments, plant_id: o.plants, location_id: o.locations }[key] || [];
+    }
+
+    onFilterText(key, ev) {
+        const text = ev.target.value.trim();
+        this.state.filterText[key] = ev.target.value;
+        const match = this.optionsFor(key).find((opt) => opt.name.toLowerCase() === text.toLowerCase());
+        this.state.filters[key] = match ? String(match.id) : "";
+    }
+
+    clearFilterText(key) {
+        this.state.filterText[key] = "";
+        this.state.filters[key] = "";
     }
 
     async onApply() {
@@ -119,6 +144,7 @@ class AllAssetDashboard extends Component {
             department_id: "", plant_id: "", location_id: "", state: "",
             date_from: "", date_to: "",
         };
+        this.state.filterText = { department_id: "", plant_id: "", location_id: "" };
         this.load();
     }
 
@@ -256,15 +282,23 @@ class AllAssetDashboard extends Component {
         }
     }
 
-    async openAllAssets() {
-        this.action.doAction({
-            type: "ir.actions.act_window",
-            name: "All Assets",
-            res_model: "asset.asset",
-            views: [[false, "list"], [false, "form"]],
-            domain: [],
-        });
+    async _open(method, args = []) {
+        try {
+            const action = await this.orm.call("asset.hub.dashboard", method, args);
+            this.action.doAction(action);
+        } catch (err) {
+            this.notification.add("Could not open those assets.", { type: "danger" });
+            console.error(err);
+        }
     }
+
+    openAllAssets() { return this._open("open_all_assets"); }
+    openEmployeeRow(employeeId) {
+        return this._open("open_employee_assets_of", [this.state.filters, employeeId]);
+    }
+    openAllEmployees() { return this._open("open_all_employee_assets", [this.state.filters]); }
+    openCommonAssets() { return this._open("open_common_assets", [this.state.filters]); }
+    openEmployeeAssets() { return this._open("open_employee_assets", [this.state.filters]); }
 
     async openRisk(key) {
         try {

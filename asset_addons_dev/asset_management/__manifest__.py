@@ -1,6 +1,6 @@
 {
     "name": "Asset Management Pro",
-    "version": "19.0.1.3.1",  # joining picks Submit-state assets only; asset in_repair flag (open repair) for helpdesk; asset.list removed: asset request closes automatically once its POs are received (no Asset List / serial step); asset request ignores split RFQs when totalling expected units; auto-created Maintenance Equipment no longer needs Maintenance Manager rights; fix warranty end-date recompute bug from prior fix; add Warranty Templates; QR print button next to the QR image; department_id no longer a hard related-to-employee field so Asset Transfer/direct edit can set it safely; resize QR print tag from 80x100mm to 50x50mm
+    "version": "19.0.1.3.7",  # Repair & maintenance summary on the asset; assignment history also for common (no employee) assets; Assign / Replace Process menu hidden; Spare Issue (store issues requested spares with price + qty, stock reduced, cost on repair); temporary asset returned before Done; repair cost optional; repair Issue Type is configurable (repair.issue.type); not-repairable scrap waits for the helpdesk replace decision; standby returns to Submit; spare cost from product cost; Asset Assign Process numbered AAP/, Create Date and Requested User Details; Joining Process renamed Asset Assign Process, approved by the employee's manager, Partially Assigned state; joining picks Submit-state assets only; asset in_repair flag (open repair) for helpdesk; asset.list removed: asset request closes automatically once its POs are received (no Asset List / serial step); asset request ignores split RFQs when totalling expected units; auto-created Maintenance Equipment no longer needs Maintenance Manager rights; fix warranty end-date recompute bug from prior fix; add Warranty Templates; QR print button next to the QR image; department_id no longer a hard related-to-employee field so Asset Transfer/direct edit can set it safely; resize QR print tag from 80x100mm to 50x50mm
     "summary": "Enterprise Asset Management with AI-Powered Agent Monitoring",
     "description": """
 Professional Enterprise Asset Management System
@@ -79,6 +79,8 @@ Professional Enterprise Asset Management System
 
     # DATA FILES - Core + Advanced Features
     "data": [
+        "data/repair_issue_type_data.xml",
+        "views/repair_issue_type_views.xml",
         # ==========================================
         # SECURITY (MUST BE FIRST)
         # ==========================================

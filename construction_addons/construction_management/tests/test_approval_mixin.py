@@ -80,6 +80,13 @@ class TestApprovalMixin(ConstructionTestCommon):
     def test_full_admin_has_system_group_admin_can_self_verify(self):
         admin = self.env.ref('base.user_admin')
         self.assertTrue(admin.has_group('base.group_system'))
+        # base.group_system alone doesn't imply this module's own group_cm_manager, so a
+        # genuinely fresh admin (unlike one that's been manually granted access via the UI
+        # in a long-lived dev database) still needs it to create/act on a cm.dpr at all -
+        # the segregation-of-duty bypass under test is a separate, later check.
+        group_manager = self.env.ref('construction_management.group_cm_manager')
+        if group_manager not in admin.group_ids:
+            admin.group_ids = [(4, group_manager.id)]
         dpr = self.env['cm.dpr'].with_user(admin).create({
             'project_id': self.project.id, 'narrative': 'Admin bypass test.',
         })

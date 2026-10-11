@@ -9,3 +9,4 @@ from . import stock_move
 from . import stock_picking
 from . import product_asset
 from . import account_move
+from . import asset_assign_request

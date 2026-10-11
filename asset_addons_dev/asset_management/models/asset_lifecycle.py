@@ -8,7 +8,7 @@ from markupsafe import Markup
 # ─────────────────────────────────────────────────────────────────────────────
 class AssetJoiningProcess(models.Model):
     _name = 'asset.joining.process'
-    _description = 'Asset Joining Process'
+    _description = 'Asset Assign Process'
     _inherit = ['mail.thread', 'mail.activity.mixin', 'asset.button.access.mixin']
     _order = 'id desc'
     _rec_name = 'name'
@@ -20,6 +20,7 @@ class AssetJoiningProcess(models.Model):
     employee_id = fields.Many2one(
         'hr.employee', string='Employee', required=True,
         tracking=True,
+        default=lambda self: self.env.user.employee_id,
         readonly=False,
         # NOTE: 'states' field arg removed in Odoo 17. Use readonly="..." in view if needed.
     )
@@ -28,10 +29,15 @@ class AssetJoiningProcess(models.Model):
         store=True, readonly=True,
     )
     joining_date = fields.Date(
-        string='Joining Date', default=fields.Date.context_today,
-        tracking=True,
+        string='Create Date', default=fields.Date.context_today,
+        readonly=True, copy=False,
+    )
+    requested_by_id = fields.Many2one(
+        'res.users', string='Requested By', default=lambda self: self.env.user,
+        readonly=True, copy=False, tracking=True,
     )
     notes = fields.Text(string='Notes / Requirements')
+    description = fields.Text(string='Description')
 
     # Requirement lines
     requirement_ids = fields.One2many(
@@ -44,6 +50,7 @@ class AssetJoiningProcess(models.Model):
         ('confirmed', 'Confirmed / Pending Approval'),
         ('validate', 'Validated'),
         ('approved', 'Approved'),
+        ('partial', 'Partially Assigned'),
         ('done', 'Done'),
         ('cancelled', 'Cancelled'),
     ], default='draft', tracking=True, string='Status')
@@ -62,16 +69,31 @@ class AssetJoiningProcess(models.Model):
     can_show_action_approve = fields.Boolean(
         compute='_compute_can_show_action_approve')
 
+    @api.depends_context('uid')
     def _compute_can_show_action_approve(self):
-        # Original restriction, before this button was wired to
-        # asset.button.access: groups="asset_management.group_asset_manager".
-        # Passed as the fallback here so deleting the access-control rule
-        # restores THAT, instead of opening the button to everyone.
+        # The employee's manager approves. Asset managers (or whoever an
+        # asset.button.access rule grants) can stand in.
         for rec in self:
-            rec.can_show_action_approve = rec._is_button_visible(
+            rec.can_show_action_approve = rec._is_employee_manager() or rec._is_button_visible(
                 'action_approve',
                 default=rec.env.user.has_group(
                     'asset_management.group_asset_manager'))
+
+    def _employee_manager_user(self):
+        self.ensure_one()
+        return self.employee_id.parent_id.user_id
+
+    def _is_employee_manager(self):
+        self.ensure_one()
+        manager = self._employee_manager_user()
+        return bool(manager) and manager == self.env.user
+
+    def _check_can_submit(self):
+        """What a request needs before it can be submitted. Extended by
+        asset_purchase, whose Request Details lines also count."""
+        self.ensure_one()
+        if not self.requirement_ids:
+            raise UserError(_("Please add at least one asset requirement."))
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -92,9 +114,17 @@ class AssetJoiningProcess(models.Model):
         for rec in self:
             if not rec.employee_id:
                 raise UserError(_("Please select an employee."))
-            if not rec.requirement_ids:
-                raise UserError(_("Please add at least one asset requirement."))
+            rec._check_can_submit()
             rec.state = 'confirmed'
+            manager = rec._employee_manager_user()
+            if manager:
+                rec.message_post(
+                    body=_("%(user)s submitted this asset request for %(employee)s. "
+                           "Waiting for your approval as their manager.",
+                           user=self.env.user.name, employee=rec.employee_id.name),
+                    subject=_("Asset request to approve: %s", rec.name),
+                    partner_ids=manager.partner_id.ids,
+                    message_type='comment', subtype_xmlid='mail.mt_comment')
         self._run_button_access_action('action_confirm')
 
     def action_validate(self):
@@ -141,7 +171,15 @@ class AssetJoiningProcess(models.Model):
             if rec.state not in ('confirmed', 'draft'):
                 raise UserError(_(
                     "Only a submitted request can be approved."))
-            rec.state = 'approved'
+            if not rec.can_show_action_approve:
+                raise UserError(_(
+                    "Only %s (the employee's manager) can approve this request.",
+                    rec._employee_manager_user().name or _("the employee's manager")))
+            # Authorised just above; the employee's manager is usually a
+            # plain employee with no write access to this model. sudo()
+            # keeps the uid, so the chatter still shows who approved.
+            rec.sudo().state = 'approved'
+            rec.sudo().message_post(body=_("Approved by %s.", self.env.user.name))
         self._run_button_access_action('action_approve')
 
     def action_cancel(self):
@@ -380,6 +418,12 @@ class AssetAssignProcess(models.Model):
         'hr.employee', string='Original Employee',
         tracking=True, readonly=True,
     )
+    # Where the asset under repair was assigned. A common asset (meeting-room
+    # AC, a department's fan) has no employee - only a location and/or a
+    # department - and the standby takes over exactly that.
+    department_id = fields.Many2one('hr.department', string='Department', readonly=True, tracking=True)
+    location_id = fields.Many2one('asset.location', string='Location', readonly=True, tracking=True)
+    category_id = fields.Many2one(related='asset_id.category_id', string='Category')
 
     # Replacement asset selected via wizard
     replacement_asset_id = fields.Many2one(
@@ -413,12 +457,20 @@ class AssetAssignProcess(models.Model):
             ticket = self.repair_ticket_id
             self.asset_id = ticket.asset_id
             self.employee_id = ticket.asset_id.assigned_employee_id
+            self.department_id = ticket.asset_id.department_id
+            self.location_id = ticket.asset_id.location_id
 
     def action_open_replace_wizard(self):
         """Opens wizard to pick a replacement asset."""
         self.ensure_one()
         if not self.repair_ticket_id:
             raise UserError(_("Please select a repair ticket first."))
+        asset = self.asset_id
+        # Snapshot where the asset was assigned, if not done yet.
+        if not (self.employee_id or self.department_id or self.location_id):
+            self.write({'employee_id': asset.assigned_employee_id.id,
+                        'department_id': asset.department_id.id,
+                        'location_id': asset.location_id.id})
         return {
             'name': _('Assign Replacement Asset'),
             'type': 'ir.actions.act_window',
@@ -440,20 +492,23 @@ class AssetAssignProcess(models.Model):
         for rec in self:
             if rec.state != 'replaced':
                 raise UserError(_("Nothing to return – no replacement assigned."))
-            if not rec.employee_id:
-                raise UserError(_("Original employee is not set."))
 
-            # Return replacement asset to available state
+            # Return the standby asset to stock: Submit is the "ready to
+            # hand out" state the assign flows pick from.
             if rec.replacement_asset_id:
                 rec.replacement_asset_id.write({
                     'assigned_employee_id': False,
+                    'department_id': False,
+                    'location_id': False,
                     'assignment_date': False,
-                    'state': 'draft',
+                    'state': 'submit',
                 })
             # Re-assign repaired asset back to original employee
             if rec.asset_id:
                 rec.asset_id.write({
                     'assigned_employee_id': rec.employee_id.id,
+                    'department_id': rec.department_id.id,
+                    'location_id': rec.location_id.id,
                     'assignment_date': fields.Date.today(),
                     'state': 'assigned',
                 })

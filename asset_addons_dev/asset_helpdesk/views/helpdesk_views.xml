@@ -8,24 +8,41 @@
         <field name="arch" type="xml">
             <form string="Helpdesk Ticket">
                 <header>
-                    <button name="action_start_progress" string="Start Progress" type="object" class="oe_highlight"
-                            invisible="state != 'open' or is_repair_flow or is_general"/>
-                    <button name="action_mark_solved" string="Mark Solved" type="object" class="oe_highlight"
-                            invisible="state != 'in_progress' or is_repair_flow or is_general"/>
+                    <button name="action_create_repair_management" type="object" string="Create Task"
+                            class="btn-primary" invisible="repair_id or state != 'open'"/>
+                    <button name="action_mail_reply" type="object" string="Reply"
+                            invisible="not mail_id or state in ('solved', 'replaced', 'cancelled')"/>
+                    <field name="mail_id" invisible="1"/>
+                    <button name="action_replace_yes" string="Replace" type="object" class="btn-primary"
+                            invisible="state != 'replace_pending' or not can_decide_replace"/>
+                    <button name="action_keep_standby" string="Keep Standby Asset" type="object" class="btn-primary"
+                            invisible="state != 'replace_pending' or not can_decide_replace or not standby_process_id"
+                            confirm="Keep the standby asset permanently? The broken asset will be scrapped."/>
+                    <button name="action_replace_no" string="No Replacement" type="object"
+                            invisible="state != 'replace_pending' or not can_decide_replace"
+                            confirm="The broken asset will be scrapped and the ticket closed. Continue?"/>
+                    <field name="can_decide_replace" invisible="1"/>
+                    <field name="standby_process_id" invisible="1"/>
+                    <!-- A query answered by mail needs no task: close it directly. -->
+                    <button name="action_mark_solved" string="Close" type="object"
+                            invisible="repair_id or state not in ('open', 'created')"
+                            confirm="Close this ticket without a task?"/>
                     <button name="action_cancel" string="Cancel" type="object"
-                            invisible="state in ('solved', 'cancelled')"/>
+                            invisible="state in ('solved', 'replaced', 'cancelled')"/>
                     <button name="action_reset_to_open" string="Reset to Open" type="object"
                             invisible="state != 'cancelled'"/>
 
-                    <button name="action_create_repair_management" type="object" string="Create Repair"
-                            invisible="repair_id or not (is_repair_flow or is_general)"/>
-                    <field name="state" widget="statusbar" statusbar_visible="open,in_progress,solved,cancelled"/>
+                    <field name="state" widget="statusbar" statusbar_visible="open,created,solved"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button type="object" name="action_create_repair_management" class="oe_stat_button"
                                 invisible="not repair_id" icon="fa-tasks">
-                            <span class="o_stat_text">Repair</span>
+                            <span class="o_stat_text">Task</span>
+                        </button>
+                        <button type="object" name="action_view_mail_lines" class="oe_stat_button"
+                                invisible="not mail_id" icon="fa-envelope">
+                            <span class="o_stat_text">Mails</span>
                         </button>
                     </div>
 
@@ -49,14 +66,8 @@
                             <field name="ticket_type_id"/>
                         </group>
 
-                        <!-- Row 3: Team is picked FIRST, directly above Assigned To -
-                             its choices are limited to that team's members. -->
-                        <group>
-                            <field name="team_id"/>
-                            <field name="assigned_to_id"
-                                   domain="[('id', 'in', team_member_ids)]"/>
-                            <field name="team_member_ids" invisible="1"/>
-                        </group>
+                        <!-- No team / person on the ticket: the task (repair)
+                             is where the work is assigned. -->
 
                         <!-- Row 4 -->
                         <group>
@@ -75,30 +86,45 @@
                     <group string="Requester / Contact Details">
                         <group>
                             <field name="customer_id"/>
+                            <field name="requester_employee_id"/>
                             <field name="department_id"/>
                         </group>
                         <group>
                             <field name="email"/>
                             <field name="phone"/>
+                            <field name="location_id" options="{'no_create': True}"/>
                             <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                     </group>
+                    <group string="Asset History" invisible="not asset_id">
+                        <group>
+                            <field name="asset_repair_count"/>
+                            <field name="asset_ticket_count"/>
+                        </group>
+                        <group>
+                            <field name="asset_last_maintenance"/>
+                            <field name="replacement_asset_id" invisible="not replacement_asset_id"/>
+                        </group>
+                    </group>
                     <notebook>
+                        <page string="Conversation" name="conversation" invisible="not mail_id">
+                            <field name="mail_thread_html" readonly="1" nolabel="1" class="o_hd_thread"/>
+                        </page>
+                        <page string="Problem" name="problem">
+                            <field name="problem_html" placeholder="What is the problem?"/>
+                        </page>
                         <page string="History" name="history">
                             <field name="history_ids" readonly="1">
                                 <list string="History" decoration-muted="new_state in ('solved', 'cancelled')">
                                     <field name="change_date"/>
                                     <field name="old_state" widget="badge"/>
                                     <field name="new_state" widget="badge" decoration-info="new_state == 'open'"
-                                           decoration-warning="new_state == 'in_progress'"
+                                           decoration-warning="new_state == 'created'"
                                            decoration-success="new_state == 'solved'"
                                            decoration-danger="new_state == 'cancelled'"/>
                                     <field name="changed_by"/>
                                 </list>
                             </field>
-                        </page>
-                        <page string="Notes" name="notes">
-                            <field name="notes"/>
                         </page>
                     </notebook>
                 </sheet>
@@ -122,11 +148,10 @@
                        decoration-primary="priority == 'medium'"
                        decoration-warning="priority == 'high'"
                        decoration-danger="priority == 'critical'"/>
-                <field name="team_id"/>
-                <field name="assigned_to_id"/>
+                <field name="repair_id" string="Task" optional="show"/>
                 <field name="state" widget="badge"
                        decoration-info="state == 'open'"
-                       decoration-warning="state == 'in_progress'"
+                       decoration-warning="state == 'created'"
                        decoration-success="state == 'solved'"
                        decoration-danger="state == 'cancelled'"/>
             </list>
@@ -139,7 +164,7 @@
         <field name="name">asset.helpdesk.kanban</field>
         <field name="model">asset.helpdesk</field>
         <field name="arch" type="xml">
-            <kanban class="o_kanban_small_column" default_group_by="assigned_to_id"
+            <kanban class="o_kanban_small_column" default_group_by="state"
                     records_draggable="true" quick_create="false" group_create="true">
                 <field name="ticket_number"/>
                 <field name="subject"/>
@@ -150,7 +175,7 @@
                 <field name="assigned_to_id"/>
                 <field name="create_date"/>
                 <progressbar field="state"
-                             colors='{"open": "info", "in_progress": "warning", "solved": "success", "cancelled": "danger"}'/>
+                             colors='{"open": "info", "created": "warning", "solved": "success", "cancelled": "danger"}'/>
                 <templates>
                     <t t-name="kanban-box">
                         <div t-attf-class="oe_kanban_global_click o_kanban_record oh_ticket_card oh_ticket_#{record.state.raw_value}">
@@ -218,7 +243,7 @@
                 <field name="team_id"/>
                 <field name="assigned_to_id"/>
                 <filter string="Open" name="filter_open" domain="[('state', '=', 'open')]"/>
-                <filter string="In Progress" name="filter_in_progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter string="Created" name="filter_created" domain="[('state', '=', 'created')]"/>
                 <filter string="Solved" name="filter_solved" domain="[('state', '=', 'solved')]"/>
                 <filter string="Cancelled" name="filter_cancelled" domain="[('state', '=', 'cancelled')]"/>
                 <separator/>

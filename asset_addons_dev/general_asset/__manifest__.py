@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     "name": "General Asset",
-    "version": "19.0.1.2.2",  # add Warranty Templates to the Configuration menu; add Print QR button and Warranty Template/Period fields on the General Asset form; unlock Department field; add mobile "Scan Asset" QR-camera button on Physical Verification; turn Salvage Value into a Salvage Value (%) input (migration backfills existing amounts); category-level full depreciation defaults (Method, Useful Life Years, Declining Rate (%), Salvage Value (%)), applied on category select and auto-run on Submit
+    "version": "19.0.1.2.4",  # Physical Verification: Plant removed, Location / Department filters (one or both); Assign button (Draft only) on the General Asset form - employee or common; add Warranty Templates to the Configuration menu; add Print QR button and Warranty Template/Period fields on the General Asset form; unlock Department field; add mobile "Scan Asset" QR-camera button on Physical Verification; turn Salvage Value into a Salvage Value (%) input (migration backfills existing amounts); category-level full depreciation defaults (Method, Useful Life Years, Declining Rate (%), Salvage Value (%)), applied on category select and auto-run on Submit
     "category": "Administration",
     "summary": "Non-IT assets: plant, machinery, furniture - with transfer, scrap and verification",
     "description": """
@@ -42,6 +42,7 @@ asset.asset records created through it remain, since they are ordinary assets.
         "views/asset_general_lifecycle_views.xml",
         "views/asset_general_menus.xml",
         "views/asset_joining_domain_inherit.xml",
+        "views/asset_direct_assign_views.xml",
     ],
     "assets": {
         "web.assets_backend": [

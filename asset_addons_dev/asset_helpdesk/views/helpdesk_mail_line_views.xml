@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Mailbox list: one row per mail, newest first, unread in bold. -->
+    <record id="view_helpdesk_mail_line_list" model="ir.ui.view">
+        <field name="name">asset.helpdesk.mail.line.list</field>
+        <field name="model">asset.helpdesk.mail.line</field>
+        <field name="arch" type="xml">
+            <list string="Mails" create="0" delete="0" class="o_hd_mailbox"
+                  decoration-bf="not is_read" decoration-muted="direction == 'out'"
+                  action="action_open" type="object">
+                <field name="is_read" column_invisible="1"/>
+                <field name="direction" string="" widget="badge" width="90px"
+                       decoration-info="direction == 'in'" decoration-success="direction == 'out'"/>
+                <field name="email_from" string="From"/>
+                <field name="subject"/>
+                <field name="preview" string="Message"/>
+                <field name="attachment_count" string="📎" width="40px" invisible="not attachment_count"/>
+                <field name="date" widget="datetime"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- A single mail, laid out like an email client. -->
+    <record id="view_helpdesk_mail_line_form" model="ir.ui.view">
+        <field name="name">asset.helpdesk.mail.line.form</field>
+        <field name="model">asset.helpdesk.mail.line</field>
+        <field name="arch" type="xml">
+            <form string="Mail" create="0" edit="0" delete="0" class="o_hd_mail_form">
+                <header>
+                    <button name="action_reply" type="object" string="Reply" icon="fa-reply" class="btn-primary"/>
+                    <button name="action_forward" type="object" string="Forward" icon="fa-share"/>
+                    <button name="action_open_thread" type="object" string="Full Conversation" icon="fa-comments-o"/>
+                </header>
+                <sheet>
+                    <div class="o_hd_mail_card">
+                        <div class="o_hd_mail_subject">
+                            <field name="subject" readonly="1"/>
+                            <span class="o_hd_mail_ticket">Ticket# <field name="ticket_ref" readonly="1"/></span>
+                        </div>
+                        <div class="o_hd_mail_head">
+                            <div class="o_hd_mail_avatar">
+                                <i class="fa fa-user-circle"/>
+                            </div>
+                            <div class="o_hd_mail_meta">
+                                <div class="o_hd_mail_row">
+                                    <span class="o_hd_mail_label">From</span>
+                                    <field name="email_from" readonly="1" class="o_hd_mail_from"/>
+                                </div>
+                                <div class="o_hd_mail_row">
+                                    <span class="o_hd_mail_label">To</span>
+                                    <field name="email_to" readonly="1"/>
+                                </div>
+                                <div class="o_hd_mail_row" invisible="not email_cc">
+                                    <span class="o_hd_mail_label">Cc</span>
+                                    <field name="email_cc" readonly="1"/>
+                                </div>
+                            </div>
+                            <div class="o_hd_mail_date">
+                                <field name="direction" widget="badge" readonly="1"
+                                       decoration-info="direction == 'in'" decoration-success="direction == 'out'"/>
+                                <field name="date" readonly="1"/>
+                            </div>
+                        </div>
+                        <div class="o_hd_mail_body">
+                            <field name="body" readonly="1" nolabel="1"/>
+                        </div>
+                        <div class="o_hd_mail_attachments" invisible="not attachment_ids">
+                            <field name="attachment_ids" widget="many2many_binary" readonly="1" nolabel="1"/>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_helpdesk_mail_line_search" model="ir.ui.view">
+        <field name="name">asset.helpdesk.mail.line.search</field>
+        <field name="model">asset.helpdesk.mail.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="subject"/>
+                <field name="email_from"/>
+                <field name="ticket_ref"/>
+                <filter name="f_in" string="Received" domain="[('direction', '=', 'in')]"/>
+                <filter name="f_out" string="Sent" domain="[('direction', '=', 'out')]"/>
+                <filter name="f_unread" string="Unread" domain="[('is_read', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- The whole ticket conversation on one page, newest mail open. -->
+    <record id="view_helpdesk_mail_thread_form" model="ir.ui.view">
+        <field name="name">asset.helpdesk.mail.thread.form</field>
+        <field name="model">asset.helpdesk.mail</field>
+        <field name="priority">60</field>
+        <field name="arch" type="xml">
+            <form string="Conversation" create="0" edit="0" delete="0" class="o_hd_thread_form">
+                <header>
+                    <button name="action_mail_reply" type="object" string="Reply" icon="fa-reply" class="btn-primary"/>
+                    <field name="state" widget="statusbar" statusbar_visible="new,created,closed"/>
+                </header>
+                <sheet>
+                    <div class="o_hd_thread_head">
+                        <div class="o_hd_thread_title"><field name="subject" readonly="1"/></div>
+                        <div class="o_hd_thread_sub">
+                            <span class="o_hd_chip"><i class="fa fa-ticket"/> <field name="ticket_ref" readonly="1"/></span>
+                            <span class="o_hd_chip"><i class="fa fa-envelope-o"/> <field name="line_count" readonly="1"/> mails</span>
+                            <span class="o_hd_thread_people"><i class="fa fa-users"/> <field name="thread_participants" readonly="1"/></span>
+                        </div>
+                    </div>
+                    <field name="thread_html" readonly="1" nolabel="1" class="o_hd_thread"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Reply: To / Cc as chips (Cc pre-filled from the thread), subject
+         fixed to the ticket, earlier mails quoted below automatically. -->
+    <record id="view_helpdesk_send_mail_wizard_form" model="ir.ui.view">
+        <field name="name">asset.helpdesk.send.mail.wizard.form</field>
+        <field name="model">asset.helpdesk.send.mail.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Send Mail" class="o_hd_compose">
+                <field name="mail_id" invisible="1"/>
+                <div class="o_hd_compose_head">
+                    <div class="o_hd_compose_row"><span>From</span><field name="email_from" readonly="1"/></div>
+                    <div class="o_hd_compose_row"><span>To</span>
+                        <field name="partner_to_ids" widget="many2many_tags_email" placeholder="Add recipients…"
+                               options="{'no_quick_create': False}"/></div>
+                    <div class="o_hd_compose_row"><span>Cc</span>
+                        <field name="partner_cc_ids" widget="many2many_tags_email" placeholder="Add Cc…"/></div>
+                    <div class="o_hd_compose_row o_hd_compose_subject"><span>Subject</span><field name="subject" readonly="1"/></div>
+                </div>
+                <field name="body" class="o_hd_compose_body" options="{'height': 260}"/>
+                <div class="o_hd_compose_foot">
+                    <field name="attachment_ids" widget="many2many_binary" nolabel="1"/>
+                    <div class="o_hd_compose_tail"><field name="include_tail" nolabel="1"/>
+                        <label for="include_tail" class="ms-1"/></div>
+                </div>
+                <footer>
+                    <button name="action_send" type="object" string="Send" icon="fa-paper-plane" class="btn-primary"/>
+                    <button special="cancel" string="Discard" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_helpdesk_mail_lines" model="ir.actions.act_window">
+        <field name="name">Mailbox</field>
+        <field name="res_model">asset.helpdesk.mail.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_helpdesk_mail_line_list"/>
+        <field name="context">{'create': False}</field>
+    </record>
+</odoo>

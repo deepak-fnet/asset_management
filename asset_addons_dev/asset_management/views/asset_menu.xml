@@ -217,15 +217,18 @@
                   sequence="11"/>
 
         <menuitem id="menu_joining_process"
-                  name="Joining Process"
+                  name="Asset Assign Process"
                   parent="menu_lifecycle_root"
                   action="action_asset_joining_process"
                   sequence="1"/>
 
+        <!-- Hidden: standby / replace is done from the repair task and the
+             helpdesk ticket now. The records stay reachable from the task. -->
         <menuitem id="menu_assign_process"
                   name="Assign / Replace Process"
                   parent="menu_lifecycle_root"
                   action="action_asset_assign_process"
+                  active="False"
                   sequence="2"/>
 
         <menuitem id="menu_exit_process"

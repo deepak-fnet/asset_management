@@ -91,6 +91,28 @@ LEGACY_MENUS_TO_HIDE = [
 # installed.
 OPTIONAL_MENUS = [
     (
+        # First item of the Helpdesk app: employees raise their own ticket.
+        'menu_ws_helpdesk_raise',
+        ['asset_helpdesk.action_asset_helpdesk_raise'],
+        'Raise Ticket', 'asset_workspace.menu_ws_helpdesk', 1,
+    ),
+    (
+        'menu_ws_helpdesk_all_mails',
+        ['asset_helpdesk.action_asset_helpdesk_all_mails'],
+        'All Mails', 'asset_workspace.menu_ws_helpdesk', 2,
+    ),
+    (
+        # Stand-in for the incoming mailbox until IMAP is configured.
+        'menu_ws_helpdesk_send_mail',
+        ['asset_helpdesk.action_asset_helpdesk_send_mail'],
+        'Send Mail (Test)', 'asset_workspace.menu_ws_helpdesk', 3,
+    ),
+    (
+        'menu_ws_helpdesk_spare_issue',
+        ['asset_management.action_spare_issue'],
+        'Spare Issue', 'asset_workspace.menu_ws_helpdesk', 25,
+    ),
+    (
         # Named "Helpdesk" (not "Tickets") to match the app menu it sits
         # under - Helpdesk > Helpdesk, Repair Management.
         'menu_ws_helpdesk_tickets',
@@ -100,6 +122,11 @@ OPTIONAL_MENUS = [
         'Helpdesk', 'asset_workspace.menu_ws_helpdesk', 10,
     ),
     # ── Helpdesk's own Configuration ──────────────────────────────────────
+    (
+        'menu_ws_helpdesk_config_issue_type',
+        ['asset_management.action_repair_issue_type'],
+        'Repair Issue Types', 'asset_workspace.menu_ws_helpdesk_config', 40,
+    ),
     # Team/Categories/Ticket Types are helpdesk setup, not general asset
     # config - they sit under Helpdesk > Configuration, not the main
     # Asset Management > Configuration menu.
@@ -303,6 +330,7 @@ def post_init_hook(env):
     _logger.info('[Workspace] Reorganising menus…')
     _hide_legacy_menus(env)
     created, unresolved = _wire_optional_menus(env)
+    _apply_menu_layout(env)
 
     if unresolved:
         _logger.warning(
@@ -310,6 +338,50 @@ def post_init_hook(env):
             'is installed and working; those items simply do not appear. See '
             'the warnings above for which actions were not found.',
             len(unresolved))
+
+
+# App layout, applied on every rewire: (menu xml_id, parent xml_id, sequence).
+# Fixed Asset = general assets; IT Asset = everything IT. Menus from other
+# modules are re-parented here because their own XML puts them under the
+# old single app - an upgrade of those modules puts them back, and the next
+# rewire moves them again.
+MENU_LAYOUT = [
+    # Fixed Asset
+    ('asset_workspace.menu_ws_all_asset_dashboard', 'asset_management.menu_asset_root', 1),
+    ('asset_workspace.menu_ws_all_asset_general', 'asset_management.menu_asset_root', 2),
+    ('asset_workspace.menu_ws_all_asset_physical_verification', 'asset_management.menu_asset_root', 3),
+    ('asset_workspace.menu_ws_config', 'asset_management.menu_asset_root', 90),
+    # IT Asset
+    ('asset_workspace.menu_ws_assets', 'asset_workspace.menu_ws_it_root', 10),
+    ('asset_workspace.menu_ws_iot', 'asset_workspace.menu_ws_it_root', 15),
+    ('asset_workspace.menu_ws_request', 'asset_workspace.menu_ws_it_root', 20),
+    ('asset_management.menu_spare_root', 'asset_workspace.menu_ws_it_root', 30),
+    ('asset_warranty_license.menu_warranty_license_root', 'asset_workspace.menu_ws_it_root', 40),
+    ('asset_patch_vuln.menu_security_root', 'asset_workspace.menu_ws_it_root', 50),
+    ('asset_workspace.menu_ws_telemetry', 'asset_workspace.menu_ws_it_root', 60),
+    ('asset_workspace.menu_ws_config_remote', 'asset_workspace.menu_ws_it_config', 10),
+]
+# Not wanted in the new layout (hidden, not deleted).
+MENUS_HIDDEN_IN_LAYOUT = [
+    'asset_workspace.menu_ws_all_asset',          # its two children are top-level now
+    'asset_workspace.menu_asset_button_access',
+]
+
+
+def _apply_menu_layout(env):
+    moved = []
+    for xml_id, parent_xml_id, sequence in MENU_LAYOUT:
+        menu = env.ref(xml_id, raise_if_not_found=False)
+        parent = env.ref(parent_xml_id, raise_if_not_found=False)
+        if menu and parent:
+            menu.sudo().write({'parent_id': parent.id, 'sequence': sequence, 'active': True})
+            moved.append(xml_id)
+    for xml_id in MENUS_HIDDEN_IN_LAYOUT:
+        menu = env.ref(xml_id, raise_if_not_found=False)
+        if menu:
+            menu.sudo().active = False
+    _logger.info('[Workspace] Menu layout applied to %s menu(s).', len(moved))
+    return moved
 
 
 def rewire_menus(env):
@@ -332,6 +404,7 @@ def rewire_menus(env):
     _logger.info('[Workspace] Re-wiring menus on demand…')
     _hide_legacy_menus(env)
     created, unresolved = _wire_optional_menus(env)
+    _apply_menu_layout(env)
     _logger.info('[Workspace] Re-wire complete. Created: %s. Unresolved: %s.',
                  len(created), len(unresolved))
     return created, unresolved

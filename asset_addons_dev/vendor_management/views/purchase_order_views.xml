@@ -13,7 +13,7 @@
         <field name="arch" type="xml">
             <xpath expr="//header" position="inside">
                 <button name="action_send_to_vendors" type="object" string="Send to Multiple Vendors"
-                        invisible="state != 'draft' or comparison_state != 'draft'" class="btn-primary"
+                        invisible="state != 'draft' or comparison_state != 'draft' or direct_order" class="btn-primary"
                         groups="vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
                 <button name="action_mark_bid_received" type="object" string="Bid Received"
                         invisible="comparison_state != 'sent'" class="btn-primary"
@@ -83,11 +83,11 @@
                  Restricted to Purchase User (+ the vendor_manager/md
                  super-roles every other action button here already allows). -->
             <xpath expr="//button[@id='draft_confirm']" position="attributes">
-                <attribute name="invisible">state != 'draft' or rfq_id or not vendor_finalized or (approval_config_id and approval_status != 'approved')</attribute>
+                <attribute name="invisible">state != 'draft' or rfq_id or (not direct_order and not vendor_finalized) or (approval_config_id and approval_status != 'approved')</attribute>
                 <attribute name="groups">vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md</attribute>
             </xpath>
             <xpath expr="//button[@id='bid_confirm']" position="attributes">
-                <attribute name="invisible">state != 'sent' or rfq_id or not vendor_finalized or (approval_config_id and approval_status != 'approved')</attribute>
+                <attribute name="invisible">state != 'sent' or rfq_id or (not direct_order and not vendor_finalized) or (approval_config_id and approval_status != 'approved')</attribute>
                 <attribute name="groups">vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md</attribute>
             </xpath>
             <!-- Trim the button bar down to what this workflow actually uses:
@@ -99,6 +99,14 @@
                  (state == 'purchase', "Send PO") in core's fixed button order. -->
             <xpath expr="(//button[@name='action_rfq_send'])[3]" position="attributes">
                 <attribute name="invisible">1</attribute>
+            </xpath>
+            <!-- An RFQ goes out with Send to Multiple Vendors only; Send RFQ /
+                 Re-Send by email stays for direct (single-vendor) orders. -->
+            <xpath expr="(//button[@name='action_rfq_send'])[1]" position="attributes">
+                <attribute name="invisible">state != 'draft' or not direct_order</attribute>
+            </xpath>
+            <xpath expr="(//button[@name='action_rfq_send'])[2]" position="attributes">
+                <attribute name="invisible">state != 'sent' or not direct_order</attribute>
             </xpath>
             <xpath expr="//button[@name='action_acknowledge']" position="attributes">
                 <attribute name="invisible">1</attribute>
@@ -128,17 +136,21 @@
                  giving this view priority 99 so it applies last - wins
                  outright regardless of merge order. -->
             <field name="partner_id" position="replace">
+                <field name="direct_order" invisible="1"/>
                 <field name="partner_id" widget="res_partner_many2one" string="Vendor"
-                       invisible="not rfq_id" readonly="1"/>
+                       invisible="not rfq_id and not direct_order"
+                       readonly="rfq_id or state in ('purchase', 'done', 'cancel')"
+                       required="direct_order"
+                       domain="[('is_vendor', '=', True), ('vendor_state', '=', 'active'), ('active', '=', True)]"/>
             </field>
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="vendor_finalized" invisible="1"/>
                 <field name="comparison_state" invisible="1"/>
                 <field name="is_rated" invisible="1"/>
-                <field name="vendor_ids" widget="many2many_tags" invisible="rfq_id"
+                <field name="vendor_ids" widget="many2many_tags" invisible="rfq_id or direct_order"
                        domain="[('is_vendor', '=', True), ('vendor_state', '=', 'active'), ('active', '=', True)]"/>
                 <!-- Feature 8: RFQ Expiry Date (optional) -->
-                <field name="expiry_date" invisible="rfq_id"/>
+                <field name="expiry_date" invisible="rfq_id or direct_order"/>
                 <!-- Optional free-text billing reference - no longer mandatory
                      on confirm (see purchase_order.py button_confirm), vendor
                      bills are now per-vendor and created post-receipt. -->
@@ -166,13 +178,13 @@
                  it does not merge) plus the two bidding conditions; the
                  server-side check is action_submit_for_approval. -->
             <xpath expr="//button[@name='action_submit_for_approval']" position="attributes">
-                <attribute name="invisible">not approval_config_id or approval_status not in ('draft', 'rejected') or comparison_state in ('draft', 'sent') or not vendor_finalized or not comparison_confirmed</attribute>
+                <attribute name="invisible">not approval_config_id or approval_status not in ('draft', 'rejected') or (not direct_order and (comparison_state in ('draft', 'sent') or not vendor_finalized or not comparison_confirmed))</attribute>
             </xpath>
             <xpath expr="//notebook" position="inside">
                 <!-- One row per invited vendor: who has bid, who hasn't. A vendor
                      that cannot use the portal sends prices by phone/email -
                      Enter Bid opens their quote to fill in and submit. -->
-                <page string="Vendor Bids" name="vendor_bids" invisible="comparison_state == 'draft' or rfq_id">
+                <page string="Vendor Bids" name="vendor_bids" invisible="comparison_state == 'draft' or rfq_id or direct_order">
                     <div class="mb-2">
                         <strong>Bids: </strong><field name="bid_progress" class="d-inline"/>
                     </div>
@@ -202,7 +214,7 @@
                         </list>
                     </field>
                 </page>
-                <page string="Vendor Comparison" invisible="comparison_state in ('draft', 'sent') or rfq_id">
+                <page string="Vendor Comparison" invisible="comparison_state in ('draft', 'sent') or rfq_id or direct_order">
                     <p class="text-muted" colspan="2">
                         Confirm one vendor per product below - different products can go to different vendors.
                     </p>
@@ -241,10 +253,10 @@
         <field name="priority">120</field>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='terms_template_id']" position="attributes">
-                <attribute name="invisible">not rfq_id</attribute>
+                <attribute name="invisible">not rfq_id and not direct_order</attribute>
             </xpath>
             <xpath expr="//page[@name='terms_conditions']" position="attributes">
-                <attribute name="invisible">not rfq_id</attribute>
+                <attribute name="invisible">not rfq_id and not direct_order</attribute>
             </xpath>
         </field>
     </record>
@@ -252,14 +264,15 @@
     <!-- Requests for Quotation menu: RFQs only. Purchase orders created
          from an RFQ (one per vendor) live under Orders > Purchase Orders. -->
     <record id="purchase.purchase_rfq" model="ir.actions.act_window">
-        <field name="domain">[('rfq_id', '=', False)]</field>
+        <field name="domain">[('rfq_id', '=', False), ('direct_order', '=', False)]</field>
     </record>
 
-    <!-- Purchase Orders menu: orders only come from an RFQ (Confirm Order),
-         so there is no "New" here - a blank order created from this menu
-         would be a different, RFQ-style form. -->
+    <!-- Purchase Orders menu: "New" creates a direct single-vendor order,
+         shown with the same form as an order split from an RFQ. A draft
+         direct order is listed too, so it doesn't vanish after saving. -->
     <record id="purchase.purchase_form_action" model="ir.actions.act_window">
-        <field name="context">{'create': False}</field>
+        <field name="domain">['|', ('state', '=', 'purchase'), ('direct_order', '=', True)]</field>
+        <field name="context">{'default_direct_order': True}</field>
     </record>
 
     <record id="purchase_order_view_tree_inherit_vendor_mgmt" model="ir.ui.view">

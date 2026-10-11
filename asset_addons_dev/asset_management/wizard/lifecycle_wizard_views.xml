@@ -55,17 +55,20 @@
                 <sheet>
                     <div class="alert alert-warning" role="alert">
                         <i class="fa fa-exclamation-triangle me-1"/>
-                        Select a <strong>temporary replacement asset</strong> for
-                        <field name="employee_id" readonly="1" nolabel="1"
-                               class="d-inline"/>.
+                        Select a <strong>temporary replacement asset</strong> of the same
+                        category. It takes over the repaired asset's assignment.
                         The replacement will be <strong>automatically returned</strong>
                         when the repair ticket is marked as Done.
                     </div>
 
                     <group>
                         <field name="assign_process_id" invisible="1"/>
-                        <field name="employee_id" readonly="1"/>
-                        <field name="replacement_asset_id" required="1"/>
+                        <field name="asset_id" readonly="1"/>
+                        <field name="category_id" readonly="1"/>
+                        <field name="employee_id" readonly="1" invisible="not employee_id"/>
+                        <field name="department_id" readonly="1" invisible="not department_id"/>
+                        <field name="location_id" readonly="1" invisible="not location_id"/>
+                        <field name="replacement_asset_id" required="1" options="{'no_create': True}"/>
                         <field name="assignment_date"/>
                     </group>
                     <group string="Notes">

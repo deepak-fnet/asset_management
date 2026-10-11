@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_visitor_visit_security,visitor.visit security,model_visitor_visit,group_visitor_security,1,1,0,0
+access_visitor_visit_reception,visitor.visit reception,model_visitor_visit,group_visitor_reception,1,1,1,0
+access_visitor_visit_manager,visitor.visit manager,model_visitor_visit,group_visitor_manager,1,1,1,1
+access_visitor_visitor_security,visitor.visitor security,model_visitor_visitor,group_visitor_security,1,0,0,0
+access_visitor_visitor_reception,visitor.visitor reception,model_visitor_visitor,group_visitor_reception,1,1,1,0
+access_visitor_visitor_manager,visitor.visitor manager,model_visitor_visitor,group_visitor_manager,1,1,1,1
+access_visitor_purpose_security,visitor.purpose security,model_visitor_purpose,group_visitor_security,1,0,0,0
+access_visitor_purpose_manager,visitor.purpose manager,model_visitor_purpose,group_visitor_manager,1,1,1,1

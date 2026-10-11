@@ -52,7 +52,7 @@
         <field name="res_model">product.template</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[('is_asset', '=', True)]</field>
-        <field name="context">{'default_is_asset': 1}</field>
+        <field name="context">{'default_is_asset': 1, 'default_is_fixed_asset': True}</field>
     </record>
 
     <!-- Menu Item -->

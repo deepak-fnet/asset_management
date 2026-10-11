@@ -25,7 +25,8 @@ class RepairManagement(models.Model):
         ('software', 'Software'),
         ('hardware', 'Hardware'),
         ('general', 'General / Non-IT'),
-    ], string='Issue Type', required=True, tracking=True)
+    ], string='Issue Behaviour', tracking=True,
+        help="Follows the configured Issue Type (issue_type_id).")
 
     # ── Repair mode / vendor / cost ─────────────────────────────────────
     repair_mode = fields.Selection([
@@ -348,11 +349,9 @@ class RepairManagement(models.Model):
         repairs - in-house work has no third-party invoice to attach.
         """
         for rec in self:
-            if (rec.issue_type == 'general' or rec.repair_mode == 'vendor') \
-                    and not rec.repair_cost:
-                raise UserError(_(
-                    "Enter the repair cost before marking this repair Done."))
-            if rec.repair_mode == 'vendor' and not (rec.vendor_id and rec.bill_file):
+            # A repair may cost nothing (no spares, internal work), so the
+            # cost is not required. A paid vendor repair still needs its bill.
+            if rec.repair_mode == 'vendor' and rec.repair_cost and not (rec.vendor_id and rec.bill_file):
                 raise UserError(_(
                     "Select the vendor and attach the bill before marking "
                     "a vendor repair Done."))
@@ -406,7 +405,37 @@ class RepairManagement(models.Model):
             else:
                 Maintenance.create(vals)
 
+    def _check_standby_returned(self):
+        for rec in self:
+            lent = self.env['asset.assign.process'].search([
+                ('repair_ticket_id', '=', rec.id), ('state', '=', 'replaced')])
+            if lent:
+                raise UserError(_(
+                    "Take back the temporary asset (%s) before marking this repair Done - "
+                    "use Return Temporary Asset.",
+                    ", ".join(lent.replacement_asset_id.mapped('display_name'))))
+            if rec.spare_issue_ids.filtered(lambda i: i.state == 'requested'):
+                raise UserError(_("Spares are still waiting to be issued by the store."))
+
+    def action_return_standby(self):
+        """Take the temporary asset back into stock (Submit)."""
+        for rec in self:
+            lent = self.env['asset.assign.process'].search([
+                ('repair_ticket_id', '=', rec.id), ('state', '=', 'replaced')])
+            if not lent:
+                raise UserError(_("No temporary asset is out for this repair."))
+            for ap in lent:
+                ap.replacement_asset_id.write({
+                    'assigned_employee_id': False, 'department_id': False, 'location_id': False,
+                    'assignment_date': False, 'state': 'submit'})
+                ap.state = 'returned'
+                ap.message_post(body=_("Temporary asset %s returned to stock.",
+                                       ap.replacement_asset_id.display_name))
+            rec.message_post(body=_("Temporary asset returned: %s.",
+                                    ", ".join(lent.replacement_asset_id.mapped('display_name'))))
+
     def action_done(self):
+        self._check_standby_returned()
         self._check_repair_cost_and_bill()
         for rec in self:
             rec.write({
@@ -426,13 +455,8 @@ class RepairManagement(models.Model):
                 })
                 rec.asset_state_before = False
 
-            # ── Auto-return replacement if an assign process references this ticket ──
-            assign_processes = self.env['asset.assign.process'].search([
-                ('repair_ticket_id', '=', rec.id),
-                ('state', '=', 'replaced'),
-            ])
-            for ap in assign_processes:
-                ap.action_return_replacement()
+            # The temporary asset was taken back already (_check_standby_returned);
+            # the repaired asset returns to its own employee / location above.
         self._sync_maintenance_history()
 
     def action_not_repairable(self):
@@ -450,9 +474,15 @@ class RepairManagement(models.Model):
                 'state': 'not_repairable',
                 'resolution_date': fields.Date.today(),
             })
-            if rec.asset_id:
+            if rec.asset_id and rec._scrap_on_not_repairable():
                 rec.asset_id.write({'state': 'scrapped'})
         self._sync_maintenance_history()
+
+    def _scrap_on_not_repairable(self):
+        """Scrap the asset as soon as it is declared not repairable.
+        asset_helpdesk overrides this when a ticket is waiting on the
+        requester's replace decision - the asset is scrapped then."""
+        return True
 
     def action_reset_to_new(self):
         for rec in self:
@@ -489,5 +519,7 @@ class RepairManagement(models.Model):
                 'default_repair_ticket_id': self.id,
                 'default_asset_id': self.asset_id.id,
                 'default_employee_id': self.asset_id.assigned_employee_id.id,
+                'default_department_id': self.asset_id.department_id.id,
+                'default_location_id': self.asset_id.location_id.id,
             },
         }

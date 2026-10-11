@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="animation_parrot" model="perok.login.animation">
+        <field name="name">Parrot</field>
+        <field name="sequence">1</field>
+        <field name="mascot_type">parrot</field>
+        <field name="is_system" eval="True"/>
+        <field name="is_default" eval="True"/>
+    </record>
+    <record id="animation_boy3d" model="perok.login.animation">
+        <field name="name">3D Boy</field>
+        <field name="sequence">2</field>
+        <field name="mascot_type">model3d</field>
+        <field name="model_path">/perok_login/static/src/models3d/boy.glb</field>
+    </record>
+</odoo>

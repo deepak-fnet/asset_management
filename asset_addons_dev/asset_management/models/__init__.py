@@ -57,6 +57,7 @@ from . import asset_software_deployment
 from . import asset_request
 from . import purchase_order
 from . import product_asset_flag
+from . import asset_assign_target
 from . import spare_parts
 
 # Remote Assistance for assets
@@ -69,3 +70,5 @@ from . import spare_product
 from . import spare_request
 
 from . import asset_category_peripheral
+from . import repair_issue_type
+from . import spare_issue

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_visitor_visitor_form" model="ir.ui.view">
+        <field name="name">visitor.visitor.form</field>
+        <field name="model">visitor.visitor</field>
+        <field name="arch" type="xml">
+            <form string="Visitor">
+                <sheet>
+                    <widget name="web_ribbon" title="Blocked" bg_color="text-bg-danger" invisible="not is_blocked"/>
+                    <field name="photo" widget="image" class="oe_avatar" options="{'preview_image': 'photo_128'}"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Visitor name"/></h1>
+                        <field name="company_name" placeholder="Company"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="mobile" widget="phone"/>
+                            <field name="email" widget="email"/>
+                        </group>
+                        <group>
+                            <field name="visit_count"/>
+                            <field name="last_visit_date"/>
+                            <field name="is_blocked"/>
+                            <field name="block_reason" invisible="not is_blocked"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Visit History" name="visits">
+                            <field name="visit_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="purpose_id"/>
+                                    <field name="host_id"/>
+                                    <field name="check_in"/>
+                                    <field name="check_out"/>
+                                    <field name="duration" widget="float_time"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_visitor_visitor_list" model="ir.ui.view">
+        <field name="name">visitor.visitor.list</field>
+        <field name="model">visitor.visitor</field>
+        <field name="arch" type="xml">
+            <list string="Visitors" decoration-danger="is_blocked">
+                <field name="name"/>
+                <field name="mobile"/>
+                <field name="company_name"/>
+                <field name="visit_count"/>
+                <field name="last_visit_date"/>
+                <field name="is_blocked" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_visitor_visitor_kanban" model="ir.ui.view">
+        <field name="name">visitor.visitor.kanban</field>
+        <field name="model">visitor.visitor</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <templates>
+                    <t t-name="card" class="flex-row">
+                        <aside>
+                            <field name="photo_128" widget="image" options="{'size': [64, 64], 'img_class': 'rounded-circle object-fit-cover'}"/>
+                        </aside>
+                        <main class="ms-2">
+                            <field name="name" class="fw-bold"/>
+                            <field name="company_name" class="text-muted"/>
+                            <div class="small"><field name="visit_count"/> visits</div>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_visitor_visitor_search" model="ir.ui.view">
+        <field name="name">visitor.visitor.search</field>
+        <field name="model">visitor.visitor</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="mobile"/>
+                <field name="company_name"/>
+                <filter name="frequent" string="Frequent (3+ visits)" domain="[('visit_count', '>=', 3)]"/>
+                <filter name="blocked" string="Blocked" domain="[('is_blocked', '=', True)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_visitor_visitor" model="ir.actions.act_window">
+        <field name="name">Visitors</field>
+        <field name="res_model">visitor.visitor</field>
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+</odoo>

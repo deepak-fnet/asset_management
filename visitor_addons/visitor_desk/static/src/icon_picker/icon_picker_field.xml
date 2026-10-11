@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="visitor_desk.IconPickerField">
+        <t t-if="props.readonly">
+            <span class="o_vd_icon_preview" t-att-style="color and ('color:' + color)"><i t-att-class="'fa fa-fw fa-lg ' + value" t-att-title="value"/></span>
+        </t>
+        <Dropdown t-else="" menuClass="'o_vd_icon_menu p-2'" position="'bottom-start'">
+            <button type="button" class="btn btn-light o_vd_icon_toggle" title="Choose icon">
+                <i t-att-class="'fa fa-fw fa-lg ' + (value or 'fa-question')" t-att-style="color and ('color:' + color)"/>
+                <span class="small text-muted ms-2" t-esc="value or 'Choose icon'"/>
+                <i class="fa fa-caret-down ms-2 text-muted"/>
+            </button>
+            <t t-set-slot="content">
+                <input class="form-control form-control-sm mb-2" placeholder="Search, or type fa-… and press Enter"
+                       t-model="state.search" t-on-keydown="onCustom"/>
+                <div class="o_vd_icon_grid">
+                    <t t-foreach="icons" t-as="icon" t-key="icon">
+                        <DropdownItem class="{'o_vd_icon_cell': true, 'active': icon === value}"
+                                      onSelected="() => this.select(icon)">
+                            <i t-att-class="'fa fa-fw fa-lg ' + icon" t-att-title="icon"/>
+                        </DropdownItem>
+                    </t>
+                </div>
+            </t>
+        </Dropdown>
+    </t>
+</templates>

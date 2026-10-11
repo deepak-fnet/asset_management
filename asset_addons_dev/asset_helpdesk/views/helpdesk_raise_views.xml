@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- All Mails / Raise Ticket: helpdesk requests, by email or raised here.
+         Mail (New) -> Create Ticket -> Ticket -> Create Task -> repair task. -->
+    <record id="view_asset_helpdesk_mail_list" model="ir.ui.view">
+        <field name="name">asset.helpdesk.mail.list</field>
+        <field name="model">asset.helpdesk.mail</field>
+        <field name="arch" type="xml">
+            <list string="All Mails" decoration-muted="state == 'archived'">
+                <field name="ticket_ref"/>
+                <field name="subject"/>
+                <field name="email_from"/>
+                <field name="create_date" string="Created on"/>
+                <field name="source" optional="hide"/>
+                <field name="ticket_id" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-warning="state == 'new'"
+                       decoration-info="state == 'created'"
+                       decoration-success="state == 'closed'"
+                       decoration-muted="state in ('draft', 'archived')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_helpdesk_mail_form" model="ir.ui.view">
+        <field name="name">asset.helpdesk.mail.form</field>
+        <field name="model">asset.helpdesk.mail</field>
+        <field name="arch" type="xml">
+            <form string="Mail">
+                <header>
+                    <button name="action_submit" type="object" string="Submit"
+                            class="btn-primary" invisible="state != 'draft' or not id"/>
+                    <button name="action_create_ticket" type="object" string="Create Ticket"
+                            class="btn-primary" invisible="state != 'new' or not id"
+                            groups="asset_management.group_asset_user_it,asset_management.group_asset_manager"/>
+                    <button name="action_mail_reply" type="object" string="Mail Reply"
+                            invisible="not id or not email_from"/>
+                    <button name="action_archive_mail" type="object" string="Archive"
+                            invisible="state != 'new' or not id"
+                            groups="asset_management.group_asset_user_it,asset_management.group_asset_manager"/>
+                    <button name="action_map_to_ticket" type="object" string="Map to Ticket"
+                            invisible="state != 'new' or not id or ticket_id"
+                            groups="asset_management.group_asset_user_it,asset_management.group_asset_manager"/>
+                    <button name="action_reset_new" type="object" string="Reset to New"
+                            invisible="state != 'archived'"
+                            groups="asset_management.group_asset_user_it,asset_management.group_asset_manager"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,new,created,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button type="object" name="action_view_lines" class="oe_stat_button"
+                                icon="fa-envelope" invisible="not line_count">
+                            <field name="line_count" widget="statinfo" string="Mails"/>
+                        </button>
+                        <button type="object" name="action_open_ticket" class="oe_stat_button"
+                                icon="fa-ticket" invisible="not ticket_id">
+                            <span class="o_stat_text">Ticket</span>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <field name="ticket_ref" readonly="1" invisible="not ticket_ref"/>
+                        <h1><field name="subject" placeholder="Subject" readonly="state != 'draft'"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="email_from" readonly="1" string="From"/>
+                            <field name="user_id" invisible="not user_id"/>
+                        </group>
+                        <group>
+                            <field name="create_date" string="Created on" invisible="not id"/>
+                            <field name="ticket_id" invisible="not ticket_id"/>
+                            <field name="ticket_state" invisible="not ticket_id"/>
+                            <field name="parent_mail_id" invisible="not parent_mail_id"/>
+                            <field name="source" invisible="not id"/>
+                        </group>
+                    </group>
+                    <field name="body" placeholder="Write your request…" readonly="state != 'draft'"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Raise Ticket: what the user fills in - and, once submitted, their
+         mail conversation with the helpdesk. -->
+    <record id="view_asset_helpdesk_raise_mail_form" model="ir.ui.view">
+        <field name="name">asset.helpdesk.mail.raise.form</field>
+        <field name="model">asset.helpdesk.mail</field>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <form string="Raise Ticket">
+                <header>
+                    <button name="action_submit" type="object" string="Submit" icon="fa-paper-plane"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,new,created,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <span class="text-muted" invisible="not ticket_ref">Ticket# <field name="ticket_ref" readonly="1"/></span>
+                        <h1><field name="subject" placeholder="Issue in short, e.g. AC in Room 101 not cooling"
+                                   readonly="state != 'draft'"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="email_from" string="From" readonly="1" placeholder="your email (from your contact)"/>
+                        </group>
+                        <group>
+                            <field name="user_id" string="Raised By"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Conversation" name="conversation" invisible="state == 'draft'">
+                            <field name="thread_html" readonly="1" nolabel="1" class="o_hd_thread"/>
+                        </page>
+                        <page string="Issue Details" name="details">
+                            <field name="body" placeholder="Describe the issue in detail…" readonly="state != 'draft'"/>
+                        </page>
+                        <page string="Attachments" name="attachments">
+                            <field name="attachment_ids" widget="many2many_binary" readonly="state != 'draft'"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_asset_helpdesk_mail_search" model="ir.ui.view">
+        <field name="name">asset.helpdesk.mail.search</field>
+        <field name="model">asset.helpdesk.mail</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="subject"/>
+                <field name="email_from"/>
+                <field name="ticket_ref"/>
+                <filter name="f_new" string="New" domain="[('state', '=', 'new')]"/>
+                <filter name="f_created" string="Created" domain="[('state', '=', 'created')]"/>
+                <filter name="f_closed" string="Closed" domain="[('state', '=', 'closed')]"/>
+                <filter name="f_archived" string="Archived" domain="[('state', '=', 'archived')]"/>
+                <filter name="f_mine" string="My Requests" domain="[('user_id', '=', uid)]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Raise Ticket: the employee's own requests (list + mail-like form). -->
+    <record id="action_asset_helpdesk_raise" model="ir.actions.act_window">
+        <field name="name">Raise Ticket</field>
+        <field name="res_model">asset.helpdesk.mail</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_asset_helpdesk_mail_list"/>
+        <field name="domain">[('user_id', '=', uid)]</field>
+        <field name="context">{'default_source': 'portal'}</field>
+    </record>
+    <record id="action_asset_helpdesk_raise_view_list" model="ir.actions.act_window.view">
+        <field name="sequence">1</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_asset_helpdesk_mail_list"/>
+        <field name="act_window_id" ref="action_asset_helpdesk_raise"/>
+    </record>
+    <record id="action_asset_helpdesk_raise_view_form" model="ir.actions.act_window.view">
+        <field name="sequence">2</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_asset_helpdesk_raise_mail_form"/>
+        <field name="act_window_id" ref="action_asset_helpdesk_raise"/>
+    </record>
+
+    <record id="action_asset_helpdesk_all_mails" model="ir.actions.act_window">
+        <field name="name">All Mails</field>
+        <field name="res_model">asset.helpdesk.mail</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_asset_helpdesk_mail_list"/>
+        <field name="context">{'search_default_f_new': 1}</field>
+    </record>
+
+    <record id="action_asset_helpdesk_send_mail" model="ir.actions.act_url">
+        <field name="name">Send Mail (Test)</field>
+        <field name="url">/helpdesk/send-mail</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_asset_helpdesk_raise"
+              name="Raise Ticket"
+              parent="menu_asset_helpdesk_main"
+              action="action_asset_helpdesk_raise"
+              sequence="1"/>
+    <menuitem id="menu_asset_helpdesk_all_mails"
+              name="All Mails"
+              parent="menu_asset_helpdesk_main"
+              action="action_asset_helpdesk_all_mails"
+              groups="asset_management.group_asset_user_it,asset_management.group_asset_manager"
+              sequence="2"/>
+
+    <record id="view_asset_helpdesk_mail_map_wizard_form" model="ir.ui.view">
+        <field name="name">asset.helpdesk.mail.map.wizard.form</field>
+        <field name="model">asset.helpdesk.mail.map.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Map to Parent Ticket">
+                <p class="text-muted">This mail's messages move into the parent ticket's
+                    conversation; this mail is marked Merged.</p>
+                <group>
+                    <field name="mail_id" readonly="1"/>
+                    <field name="parent_mail_id" options="{'no_create': True}"/>
+                </group>
+                <footer>
+                    <button name="action_map" type="object" string="Map" class="btn-primary"/>
+                    <button special="cancel" string="Cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_repair_assign_wizard_form" model="ir.ui.view">
+        <field name="name">repair.assign.wizard.form</field>
+        <field name="model">repair.assign.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Assign Task">
+                <group>
+                    <field name="repair_id" readonly="1"/>
+                    <field name="team_id" options="{'no_create': True}"/>
+                    <field name="team_member_ids" invisible="1"/>
+                    <field name="user_id" options="{'no_create': True}"/>
+                </group>
+                <footer>
+                    <button name="action_assign" type="object" string="Assign" class="btn-primary"/>
+                    <button special="cancel" string="Cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_asset_helpdesk_replace_wizard_form" model="ir.ui.view">
+        <field name="name">asset.helpdesk.replace.wizard.form</field>
+        <field name="model">asset.helpdesk.replace.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Replace Asset">
+                <p class="text-muted">The new asset takes over the employee, department and
+                    location of the current asset; the current asset is scrapped.</p>
+                <group>
+                    <field name="ticket_id" invisible="1"/>
+                    <field name="category_id" invisible="1"/>
+                    <field name="old_asset_id" readonly="1"/>
+                    <field name="new_asset_id" options="{'no_create': True}"/>
+                </group>
+                <footer>
+                    <button name="action_replace" type="object" string="Replace" class="btn-primary"/>
+                    <button special="cancel" string="Cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

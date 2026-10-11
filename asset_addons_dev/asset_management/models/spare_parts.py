@@ -19,6 +19,8 @@ class RepairSparePart(models.Model):
         store=True
     )
 
+    # cost is filled in by the store when the spare is issued (Spare Issue).
+
     @api.model_create_multi
     def create(self, vals_list):
         records = super().create(vals_list)

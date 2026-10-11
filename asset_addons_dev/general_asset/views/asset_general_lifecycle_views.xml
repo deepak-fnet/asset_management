@@ -36,7 +36,9 @@
                 <header>
                     <button name="action_submit" type="object" string="Submit"
                             class="btn-primary" invisible="state != 'draft'"/>
-                    z
+                    <button name="action_approve" type="object" string="Approve"
+                            class="btn-primary" invisible="state != 'submitted'"
+                            groups="asset_management.group_asset_manager"/>
                     <button name="action_done" type="object" string="Mark Done"
                             class="btn-primary" invisible="state != 'approved'"/>
                     <button name="action_cancel" type="object" string="Cancel"
@@ -280,9 +282,8 @@
                   decoration-danger="missing_count &gt; 0 and state == 'done'">
                 <field name="name"/>
                 <field name="verification_date"/>
-                <field name="plant_id" optional="show"/>
                 <field name="location_id" optional="show"/>
-                <field name="department_id" optional="hide"/>
+                <field name="department_id" optional="show"/>
                 <field name="verified_by"/>
                 <field name="total_count" string="Total"/>
                 <field name="found_count" string="Found"/>
@@ -319,13 +320,12 @@
                     <group>
                         <group string="Scope">
                             <field name="verification_date"/>
-                            <field name="plant_id"/>
-                            <field name="location_id"/>
-                            <field name="department_id"/>
+                            <field name="location_id" readonly="state not in ('draft',)"/>
+                            <field name="department_id" readonly="state not in ('draft',)"/>
                             <div colspan="2" class="text-muted">
-                                Leave a filter empty to include everything.
-                                Load Assets pulls in every non-scrapped asset
-                                that matches.
+                                Select a Location or a Department to load its assets.
+                                Select both to load only the assets in that
+                                location that also belong to that department.
                             </div>
                         </group>
                         <group string="Result">
@@ -368,7 +368,7 @@
         <field name="view_mode">list,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Start a physical verification</p>
-            <p>Pick a plant, location or department, load the assets, then mark
+            <p>Pick a location, a department, or both, load the assets, then mark
                each one found or missing.</p>
         </field>
     </record>

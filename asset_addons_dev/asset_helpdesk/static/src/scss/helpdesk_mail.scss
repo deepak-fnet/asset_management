@@ -1,0 +1,162 @@
+// Helpdesk mail entries: read like an email client.
+.o_hd_mail_form .o_form_sheet {
+    max-width: 980px;
+    margin: 0 auto;
+}
+.o_hd_mail_card {
+    background: #fff;
+    border: 1px solid #e3e6ea;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(16, 24, 40, 0.06);
+    overflow: hidden;
+}
+.o_hd_mail_subject {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px 24px 12px;
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: #1f2937;
+    border-bottom: 1px solid #f0f2f5;
+}
+.o_hd_mail_ticket {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #6b7280;
+    background: #f3f4f6;
+    border-radius: 999px;
+    padding: 3px 12px;
+    white-space: nowrap;
+}
+.o_hd_mail_head {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 24px;
+    background: #fafbfc;
+    border-bottom: 1px solid #f0f2f5;
+}
+.o_hd_mail_avatar .fa {
+    font-size: 2.6rem;
+    color: #7c8db5;
+}
+.o_hd_mail_meta {
+    flex: 1;
+    min-width: 0;
+}
+.o_hd_mail_row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 2px 0;
+    .o_field_widget {
+        flex: 1;
+        min-width: 0;
+    }
+}
+.o_hd_mail_label {
+    width: 64px;
+    flex: 0 0 64px;
+    color: #9ca3af;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+.o_hd_mail_from {
+    font-weight: 600;
+    color: #111827;
+}
+.o_hd_mail_date {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    color: #6b7280;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+.o_hd_mail_body {
+    padding: 22px 24px 26px;
+    font-size: 0.98rem;
+    line-height: 1.6;
+    color: #1f2937;
+    min-height: 160px;
+    p { margin-bottom: 0.7em; }
+}
+.o_hd_mail_attachments {
+    padding: 0 24px 18px;
+    border-top: 1px dashed #e5e7eb;
+    padding-top: 12px;
+}
+.o_hd_mail_compose {
+    .o_hd_mail_row {
+        border-bottom: 1px solid #eef0f3;
+        padding: 6px 0;
+    }
+    .o_hd_mail_compose_body {
+        margin-top: 10px;
+        min-height: 240px;
+    }
+}
+.o_hd_mailbox td {
+    vertical-align: middle;
+}
+
+// ── Conversation (one page, newest first) ──────────────────────────────
+.o_hd_thread_form .o_form_sheet { max-width: 1100px; margin: 0 auto; }
+.o_hd_thread_head { margin-bottom: 14px; }
+.o_hd_thread_title { font-size: 1.45rem; font-weight: 600; color: #111827; }
+.o_hd_thread_sub { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 6px; color: #6b7280; }
+.o_hd_chip { background: #eef2ff; color: #4338ca; border-radius: 999px; padding: 2px 10px; font-size: .82rem; }
+.o_hd_thread_people { font-size: .85rem; }
+.o_hd_thread { width: 100%; }
+.o_hd_card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 10px;
+    box-shadow: 0 1px 4px rgba(16, 24, 40, .05); overflow: hidden;
+    &[open] { box-shadow: 0 4px 14px rgba(16, 24, 40, .08); }
+    &.o_hd_card_out { border-left: 4px solid #10b981; }
+    &.o_hd_card_in { border-left: 4px solid #3b82f6; }
+}
+.o_hd_card_head {
+    display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; list-style: none;
+    &::-webkit-details-marker { display: none; }
+    &:hover { background: #f9fafb; }
+}
+.o_hd_card_avatar {
+    flex: 0 0 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; color: #fff; background: #6366f1;
+    .o_hd_card_out & { background: #10b981; }
+}
+.o_hd_card_who { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.o_hd_card_preview { color: #6b7280; font-size: .86rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+details[open] .o_hd_card_preview { display: none; }
+.o_hd_card_when { display: flex; align-items: center; gap: 8px; color: #6b7280; font-size: .84rem; white-space: nowrap; }
+.o_hd_badge { border-radius: 999px; padding: 1px 8px; font-size: .74rem; font-weight: 600; }
+.o_hd_badge_in { background: #dbeafe; color: #1d4ed8; }
+.o_hd_badge_out { background: #d1fae5; color: #047857; }
+.o_hd_card_meta { padding: 0 16px 8px 64px; color: #4b5563; font-size: .86rem; }
+.o_hd_card_row { display: flex; gap: 10px; span { width: 28px; color: #9ca3af; } }
+.o_hd_card_body { padding: 6px 16px 14px 64px; line-height: 1.6; color: #1f2937; p { margin-bottom: .6em; } }
+.o_hd_card_atts { padding: 0 16px 12px 64px; display: flex; flex-wrap: wrap; gap: 8px;
+    &:empty { display: none; } }
+.o_hd_att { background: #f3f4f6; border-radius: 6px; padding: 3px 10px; font-size: .84rem; }
+
+// ── Compose ────────────────────────────────────────────────────────────
+.o_hd_compose_head { border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
+.o_hd_compose_row {
+    display: flex; align-items: center; gap: 12px; padding: 6px 14px; border-bottom: 1px solid #f0f2f5;
+    &:last-child { border-bottom: 0; }
+    > span { width: 64px; flex: 0 0 64px; color: #9ca3af; font-size: .85rem; text-transform: uppercase; }
+    .o_field_widget { flex: 1; }
+}
+.o_hd_compose_subject { background: #f9fafb; font-weight: 600; }
+.o_hd_compose_body { border: 1px solid #e5e7eb; border-radius: 10px; min-height: 260px; padding: 4px; }
+.o_hd_compose_foot { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; gap: 12px; }
+.o_hd_compose_tail { display: flex; align-items: center; color: #6b7280; font-size: .88rem; }
+// Plain-text emails arrive wrapped in <pre>: read them like normal text.
+.o_hd_card_body pre {
+    font-family: inherit; font-size: inherit; white-space: pre-wrap; word-break: break-word;
+    background: transparent; border: 0; padding: 0; margin: 0; color: inherit;
+}

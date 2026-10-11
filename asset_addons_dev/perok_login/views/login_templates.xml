@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Layout override -->
+    <template id="perok_login_layout"
+              inherit_id="web.login_layout"
+              name="Perok.ai Login Layout"
+              priority="100">
+
+        <xpath expr="//div[hasclass('oe_website_login_container')]" position="replace">
+            <t t-set="no_header" t-value="True"/>
+            <t t-set="no_footer" t-value="True"/>
+            <t t-set="body_classname" t-value="'pk-body'"/>
+
+            <!-- Loaded here rather than in an asset bundle so they only ship
+                 with the login/signup/reset pages that use this layout.
+                 Odoo caches static files for a week: bump ?v= when editing them. -->
+            <link rel="stylesheet" type="text/css" href="/perok_login/static/src/css/login.css?v=19.2.0"/>
+            <script type="text/javascript" src="/perok_login/static/src/js/login.js?v=19.2.0" defer="defer"/>
+
+            <!-- Settings > Login Page > Animations: the default record picks the mascot and the look -->
+            <t t-set="pk_anim" t-value="request.env['perok.login.animation']._get_login_animation() if request and request.env is not None and 'perok.login.animation' in request.env else False"/>
+            <t t-if="pk_anim">
+                <link t-if="pk_anim._login_font_url()" rel="stylesheet" t-att-href="pk_anim._login_font_url()"/>
+                <style t-out="pk_anim._login_theme_css()"/>
+            </t>
+
+            <!-- full-page background video (Look & colours > Page background video) -->
+            <div t-if="pk_anim and pk_anim.page_bg_image" class="pk-page-bg" aria-hidden="true"
+                 t-attf-style="background-image: url(#{pk_anim._login_video_url('page_bg_image')})"/>
+            <video t-if="pk_anim and pk_anim.page_bg_video" class="pk-page-video" t-att-src="pk_anim._login_page_video_url()"
+                   autoplay="autoplay" muted="muted" loop="loop" playsinline="playsinline" aria-hidden="true"/>
+
+            <div class="pk-wrap">
+                <div class="pk-card">
+                    <video t-if="pk_anim and pk_anim.card_bg_video" class="pk-card-video" t-att-src="pk_anim._login_video_url('card_bg_video')"
+                           autoplay="autoplay" muted="muted" loop="loop" playsinline="playsinline" aria-hidden="true"/>
+                    <!-- LEFT: 3D parrot, one pre-rendered image per pose (animated by login.js).
+                         Bump ?v= on the images when they are re-rendered. -->
+                    <div class="pk-left">
+                        <!-- Settings > Login Page > Animations: the default record picks the mascot -->
+                        <div t-if="pk_anim and pk_anim.mascot_type == 'model3d'" class="pk-stage pk-stage--3d" aria-hidden="true" t-att-data-model3d="pk_anim._login_model_url()">
+                            <div class="pk-stage__bg">
+                                <video t-if="pk_anim and pk_anim.panel_bg_video" class="pk-panel-video" t-att-src="pk_anim._login_video_url('panel_bg_video')"
+                                       autoplay="autoplay" muted="muted" loop="loop" playsinline="playsinline" aria-hidden="true"/>
+                                <div class="pk-stage__glow"/>
+                                <div class="pk-stage__floor"/>
+                            </div>
+                            <div class="pk-stage__rig">
+                                <div class="pk-stage__enter">
+                                    <div class="pk-stage__bird"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div t-elif="pk_anim and pk_anim.mascot_type == 'video'" class="pk-stage pk-stage--video" aria-hidden="true" t-att-data-clips="pk_anim._login_clips_json()">
+                            <div class="pk-stage__bg">
+                                <video t-if="pk_anim and pk_anim.panel_bg_video" class="pk-panel-video" t-att-src="pk_anim._login_video_url('panel_bg_video')"
+                                       autoplay="autoplay" muted="muted" loop="loop" playsinline="playsinline" aria-hidden="true"/>
+                                <div class="pk-stage__glow"/>
+                                <div class="pk-stage__floor"/>
+                            </div>
+                            <div class="pk-stage__rig">
+                                <div class="pk-stage__enter">
+                                    <div class="pk-stage__bird"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div t-else="" class="pk-stage" aria-hidden="true">
+                            <div class="pk-stage__bg">
+                                <video t-if="pk_anim and pk_anim.panel_bg_video" class="pk-panel-video" t-att-src="pk_anim._login_video_url('panel_bg_video')"
+                                       autoplay="autoplay" muted="muted" loop="loop" playsinline="playsinline" aria-hidden="true"/>
+                                <div class="pk-stage__glow"/>
+                                <div class="pk-stage__floor"/>
+                            </div>
+                            <div class="pk-stage__shadow"/>
+                            <div class="pk-stage__rig">
+                                <div class="pk-stage__enter">
+                                    <div class="pk-stage__bird">
+                                        <img class="pk-pose is-on" data-pose="idle" src="/perok_login/static/src/img/parrot/idle.webp?v=19.2.0" alt="" aria-hidden="true" draggable="false" decoding="async" fetchpriority="high"/>
+                                        <img class="pk-pose" data-pose="email" src="/perok_login/static/src/img/parrot/email.webp?v=19.2.0" alt="" aria-hidden="true" draggable="false" decoding="async"/>
+                                        <img class="pk-pose" data-pose="shy" src="/perok_login/static/src/img/parrot/shy.webp?v=19.2.0" alt="" aria-hidden="true" draggable="false" decoding="async"/>
+                                        <img class="pk-pose" data-pose="peek" src="/perok_login/static/src/img/parrot/peek.webp?v=19.2.0" alt="" aria-hidden="true" draggable="false" decoding="async"/>
+                                        <img class="pk-pose" data-pose="success" src="/perok_login/static/src/img/parrot/success.webp?v=19.2.0" alt="" aria-hidden="true" draggable="false" decoding="async"/>
+                                    </div>
+                                    <!-- the success pose cut into layers, for the wing beats of the fly-away -->
+                                    <img class="pk-fly" data-part="body" src="/perok_login/static/src/img/parrot/fly_body.webp?v=19.2.0" alt="" aria-hidden="true" draggable="false" decoding="async"/>
+                                    <img class="pk-fly" data-part="wingL" src="/perok_login/static/src/img/parrot/fly_wing_l.webp?v=19.2.0" alt="" aria-hidden="true" draggable="false" decoding="async"/>
+                                    <img class="pk-fly" data-part="wingR" src="/perok_login/static/src/img/parrot/fly_wing_r.webp?v=19.2.0" alt="" aria-hidden="true" draggable="false" decoding="async"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT: Form -->
+                    <div class="pk-right">
+                        <div class="pk-form-box">
+                            <div class="pk-logo pk-an pk-an1">
+                                <img t-attf-src="/web/binary/company_logo{{ '?dbname='+db if db else '' }}" alt="Logo"/>
+                            </div>
+                            <h1 class="pk-h1 pk-an pk-an2" t-out="pk_anim.heading_text if pk_anim and pk_anim.heading_text else 'Welcome back'"/>
+                            <p class="pk-sub pk-an pk-an3" t-if="not pk_anim or pk_anim.subheading_text" t-out="pk_anim.subheading_text if pk_anim else 'What are you selling today ?'"/>
+                            <div class="pk-an pk-an4">
+                                <t t-out="0"/>
+                            </div>
+                            <div class="pk-foot pk-an pk-an5" t-if="not disable_footer and reset_password_enabled and (not pk_anim or pk_anim.show_reset_link)">
+                                <div style="text-align:center;margin-top:18px;padding-top:14px;border-top:1px solid rgba(0,0,0,.08);">
+                                    <a href="/web/reset_password"
+                                       style="font-size:13px;color:var(--pk-link, #cc1a00);text-decoration:none;letter-spacing:.5px;font-weight:600;">
+                                        🔑 &amp;nbsp; Reset My Password
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="pk-foot pk-an pk-an5" t-if="not disable_footer and (not pk_anim or pk_anim.show_footer)">
+                                <t t-if="not disable_database_manager">
+                                    <a href="/web/database/manager">Manage Databases</a>
+                                    <span> · </span>
+                                </t>
+                                <a href="https://www.odoo.com?utm_source=db&amp;utm_medium=auth" target="_blank">Powered by <b>Odoo</b></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- Override login form -->
+    <template id="perok_login_form"
+              inherit_id="web.login"
+              name="Perok.ai Login Form"
+              priority="100">
+        <!-- Odoo 19 shows a "user switch" list instead of the form for known users: always show the form -->
+        <xpath expr="//owl-component[@name='web.user_switch']" position="replace"/>
+        <xpath expr="//form[contains(@t-attf-class, 'oe_login_form')]" position="replace">
+            <form class="oe_login_form pk-form" role="form" data-captcha="login"
+                  t-attf-action="/web/login" method="post"
+                  onsubmit="this.action = '/web/login' + location.hash">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                <div class="pk-alert pk-alert--err" t-if="error" role="alert">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                    <span><t t-esc="error"/></span>
+                </div>
+                <div class="pk-alert pk-alert--ok" t-if="message" role="status">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="9 12 12 15 16 10"/></svg>
+                    <span><t t-esc="message"/></span>
+                </div>
+
+                <div class="pk-fld" t-if="databases and len(databases) &gt; 1">
+                    <label class="pk-fld__lbl" for="db">Database</label>
+                    <div class="pk-fld__wrap">
+                        <input type="text" name="db" t-att-value="request.db" id="db" class="pk-fld__input" required="required" readonly="readonly"/>
+                    </div>
+                </div>
+
+                <div class="pk-fld">
+                    <label class="pk-fld__lbl" for="login">Email</label>
+                    <div class="pk-fld__wrap">
+                        <input type="text" name="login" t-att-value="login" id="login" class="pk-fld__input" placeholder="yourjohn@mail.com" required="required" autocomplete="username" autofocus="autofocus" autocapitalize="off"/>
+                    </div>
+                </div>
+
+                <div class="pk-fld">
+                    <div class="pk-fld__lbl-row">
+                        <label class="pk-fld__lbl" for="password">Password</label>
+                        <a href="#" class="pk-fld__forgot">My password ?</a>
+                    </div>
+                    <div class="pk-fld__wrap">
+                        <input type="password" name="password" id="pk_password" class="pk-fld__input" placeholder="••••••••" required="required" autocomplete="current-password" t-att-autofocus="'autofocus' if login else None" maxlength="4096" style="padding-right: 40px !important;"/>
+                        <button type="button" class="pk-fld__eye" onclick="var p=document.getElementById('pk_password');var s=p.type==='password';p.type=s?'text':'password';this.querySelector('.pkE1').style.display=s?'none':'block';this.querySelector('.pkE2').style.display=s?'block':'none';" aria-label="Toggle password">
+                            <svg class="pkE1" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg class="pkE2" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="pk-acts">
+                    <button type="submit" class="pk-btn pk-btn--dark">Log in</button>
+                    <t t-if="debug">
+                        <button type="submit" name="redirect" value="/web/become" class="pk-btn pk-btn--ghost">Log in as superuser</button>
+                    </t>
+                </div>
+
+                <div class="pk-social">
+                    <div class="o_login_auth"/>
+                </div>
+
+                <input type="hidden" name="type" value="password"/>
+                <input type="hidden" name="redirect" t-att-value="redirect"/>
+            </form>
+        </xpath>
+    </template>
+
+</odoo>

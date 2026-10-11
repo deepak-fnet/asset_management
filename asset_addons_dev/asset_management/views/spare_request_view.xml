@@ -287,28 +287,135 @@
         <field name="inherit_id" ref="asset_management.view_repair_management_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='spare_part_ids']" position="before">
+                <!-- List the spares needed, then Request Spares: the store
+                     issues them (price + quantity) from Spare Issue. -->
                 <div class="mb-2">
-                    <button name="action_check_spare_availability" type="object"
-                            string="Check Availability" icon="fa-search"
-                            class="btn-secondary"/>
-                    <button name="action_request_spares" type="object"
-                            string="Request Spares" icon="fa-shopping-cart"
-                            class="btn-primary ms-2"/>
-                    <button name="action_confirm_use_spare" type="object" string="Confirm Use"
-                            class="btn-success" invisible="spare_confirmed"
-                            confirm="This removes the quantities from stock. Continue?"/>
-                    <field name="spare_confirmed" invisible="1"/>
+                    <button name="action_request_spare_issue" type="object"
+                            string="Request Spares" icon="fa-paper-plane"
+                            class="btn-primary"/>
                 </div>
             </xpath>
-            <xpath expr="//field[@name='spare_part_ids']" position="attributes">
-                <attribute name="readonly">spare_confirmed</attribute>
+            <xpath expr="//field[@name='spare_part_ids']/list/field[@name='quantity']"
+                   position="attributes">
+                <attribute name="readonly">issued or issue_line_id</attribute>
             </xpath>
             <xpath expr="//field[@name='spare_part_ids']/list/field[@name='quantity']"
                    position="after">
                 <field name="available_qty" string="On Hand" readonly="1"/>
-                <field name="is_short" string="Short" readonly="1"/>
+                <field name="issue_line_id" column_invisible="1"/>
+                <field name="issued" string="Issued" widget="boolean_toggle" readonly="1"/>
+            </xpath>
+            <xpath expr="//field[@name='spare_part_ids']/list/field[@name='cost']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='spare_part_ids']/list/field[@name='product_id']" position="attributes">
+                <attribute name="readonly">issued or issue_line_id</attribute>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <button name="action_return_standby" type="object" string="Return Temporary Asset"
+                        class="btn-warning" invisible="not standby_out"
+                        confirm="Take the temporary asset back into stock?"/>
+                <field name="standby_out" invisible="1"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_spare_issues" type="object" class="oe_stat_button"
+                        icon="fa-wrench" invisible="not spare_issue_count">
+                    <field name="spare_issue_count" widget="statinfo" string="Spare Issues"/>
+                </button>
             </xpath>
         </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         SPARE ISSUE: the store's queue of spares requested by repairs
+         ══════════════════════════════════════════════════════════════════ -->
+    <record id="view_spare_issue_list" model="ir.ui.view">
+        <field name="name">spare.issue.list</field>
+        <field name="model">spare.issue</field>
+        <field name="arch" type="xml">
+            <list decoration-info="state == 'requested'" decoration-muted="state == 'cancel'">
+                <field name="name"/>
+                <field name="repair_id"/>
+                <field name="asset_id"/>
+                <field name="engineer_id"/>
+                <field name="request_date"/>
+                <field name="amount_total" sum="Total"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="state" widget="badge" decoration-info="state == 'requested'"
+                       decoration-success="state == 'issued'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_spare_issue_form" model="ir.ui.view">
+        <field name="name">spare.issue.form</field>
+        <field name="model">spare.issue</field>
+        <field name="arch" type="xml">
+            <form string="Spare Issue" create="0">
+                <header>
+                    <button name="action_issue" type="object" string="Issue" class="btn-primary"
+                            invisible="state != 'requested'"
+                            confirm="Take the issued quantities out of stock and cost the repair?"/>
+                    <button name="action_request_purchase" type="object" string="Request Purchase"
+                            invisible="state != 'requested' or spare_request_id"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state != 'requested'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="requested,issued"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="repair_id"/>
+                            <field name="asset_id"/>
+                            <field name="engineer_id"/>
+                        </group>
+                        <group>
+                            <field name="requested_by"/>
+                            <field name="request_date"/>
+                            <field name="issued_by" invisible="not issued_by"/>
+                            <field name="issue_date" invisible="not issue_date"/>
+                            <field name="picking_id" invisible="not picking_id"/>
+                            <field name="spare_request_id" invisible="not spare_request_id"/>
+                        </group>
+                    </group>
+                    <field name="line_ids" readonly="state != 'requested'">
+                        <list editable="bottom" create="0">
+                            <field name="product_id" readonly="1"/>
+                            <field name="description" optional="hide"/>
+                            <field name="qty_requested"/>
+                            <field name="available_qty"
+                                   decoration-danger="available_qty &lt; qty_requested"/>
+                            <field name="qty_issued"/>
+                            <field name="unit_price"/>
+                            <field name="currency_id" column_invisible="1"/>
+                            <field name="subtotal" sum="Total"/>
+                        </list>
+                    </field>
+                    <group class="oe_subtotal_footer">
+                        <field name="currency_id" invisible="1"/>
+                        <field name="amount_total"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_spare_issue" model="ir.actions.act_window">
+        <field name="name">Spare Issue</field>
+        <field name="res_model">spare.issue</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'create': False}</field>
+        <field name="domain">[]</field>
+    </record>
+
+    <record id="seq_spare_issue" model="ir.sequence">
+        <field name="name">Spare Issue</field>
+        <field name="code">spare.issue</field>
+        <field name="prefix">SI/%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
     </record>
 
     <!-- ══════════════════════════════════════════════════════════════════
@@ -338,6 +445,8 @@
     <menuitem id="menu_spare_root" name="Spares"
               parent="asset_management.menu_asset_root" sequence="45"/>
 
+    <menuitem id="menu_spare_issue" name="Spare Issue" parent="menu_spare_root"
+              action="action_spare_issue" sequence="5"/>
     <menuitem id="menu_spare_request" name="Spare Requests"
               parent="menu_spare_root" action="action_spare_request" sequence="10"/>
 

@@ -13,8 +13,11 @@ class PurchaseOrder(models.Model):
             # gets its PO number once actually approved (see button_approve
             # below) - until then it must not carry the PO sequence.
             if vals.get('name', 'New') in (False, 'New'):
+                # A direct order is a purchase order from the start - no RFQ
+                # round, so it takes the PO number right away.
+                direct = vals.get('direct_order', self.env.context.get('default_direct_order'))
                 vals['name'] = self.env['ir.sequence'].sudo().next_by_code(
-                    'vendor_management.purchase.rfq') or 'New'
+                    'vendor_management.purchase.po' if direct else 'vendor_management.purchase.rfq') or 'New'
             if not vals.get('partner_id') and vals.get('vendor_ids'):
                 vendors = vals.get('vendor_ids')
                 partner_id = False
@@ -30,7 +33,10 @@ class PurchaseOrder(models.Model):
                 if partner_id:
                     vals['partner_id'] = partner_id
 
-        pos = super().create(vals_list)
+        # A direct (single-vendor, no RFQ) order skips the approval flow.
+        direct = any(v.get('direct_order', self.env.context.get('default_direct_order')) for v in vals_list)
+        self_ctx = self.with_context(purchase_approval_skip_default=True) if direct else self
+        pos = super(PurchaseOrder, self_ctx).create(vals_list)
 
         # Task 7: Send PO created email
         template = self.env.ref('vendor_management.mail_template_po_created', raise_if_not_found=False)
@@ -109,8 +115,16 @@ class PurchaseOrder(models.Model):
                 for line in rec.order_line.filtered(lambda l: not l.display_type))
 
     def button_confirm(self):
-        rfqs = self.filtered(lambda po: not po.rfq_id and po.state in ('draft', 'sent'))
+        rfqs = self.filtered(lambda po: not po.rfq_id and not po.direct_order and po.state in ('draft', 'sent'))
         orders = self - rfqs
+        # A direct order has a single vendor: every line belongs to them.
+        for rec in orders.filtered('direct_order'):
+            if not rec.partner_id:
+                raise ValidationError(_("Select the Vendor before confirming the order."))
+            # System fill, not a commercial change: allowed past the
+            # approval lock (purchase_approval) on a submitted order.
+            rec.order_line.filtered(lambda l: not l.display_type and not l.vendor_id).with_context(
+                skip_approval_lock_check=True).write({'vendor_id': rec.partner_id.id})
         if rfqs:
             rfqs._split_into_vendor_orders()
         if not orders:
@@ -223,7 +237,8 @@ class PurchaseOrder(models.Model):
         # given their PO number at creation.
         res = super().button_approve(force=force)
         for rec in self:
-            if rec.state == 'purchase' and not rec.rfq_id:
+            if rec.state == 'purchase' and not rec.rfq_id and not (
+                    rec.direct_order and not (rec.name or '').startswith('RFQ')):
                 rec.name = self.env['ir.sequence'].sudo().next_by_code(
                     'vendor_management.purchase.po') or rec.name
         return res
@@ -486,6 +501,11 @@ class PurchaseOrder(models.Model):
     # a save-blocking trap on a field nobody can see or fill in.
     partner_id = fields.Many2one(required=False)
 
+    direct_order = fields.Boolean(
+        string="Direct Order", copy=False,
+        help="Created straight from Orders > Purchase Orders for a single vendor, "
+             "without an RFQ / vendor comparison.")
+
     vendor_ids = fields.Many2many(
         'res.partner',
         'purchase_order_vendor_rel',
@@ -612,6 +632,7 @@ class PurchaseOrder(models.Model):
                     "behalf from the Vendor Bids tab, or wait for one to submit."))
             pending = rec.quote_ids - submitted
             rec.comparison_state = 'received'
+            rec._auto_award_single_vendor()
             if pending:
                 rec.message_post(body=_(
                     "Bids marked received manually. No bid from: %s.",
@@ -626,13 +647,27 @@ class PurchaseOrder(models.Model):
                     and all(q.state != 'draft' for q in rec.quote_ids)):
                 rec.comparison_state = 'received'
                 rec.message_post(body=_("All vendors have submitted their bids - bids received."))
+                rec._auto_award_single_vendor()
+
+    def _auto_award_single_vendor(self):
+        """Only one vendor bid: nothing to compare - award every product to
+        that vendor straight away (the buyer still confirms the selection)."""
+        for rec in self:
+            submitted = rec.quote_ids.filtered(lambda q: q.state != 'draft')
+            if len(rec.vendor_ids) == 1 and len(submitted) == 1:
+                lines = submitted.line_ids.filtered('po_line_id')
+                if lines:
+                    lines.action_select_line()
+                    rec.message_post(body=_("Single vendor - all products awarded to %s.",
+                                            submitted.vendor_id.name))
 
     def action_submit_for_approval(self):
         """Approval only after bidding is closed and every product has been
         awarded: the approval amount is the awarded total, and once an order
         is submitted its line prices/vendors are locked (purchase_approval's
         write guard), so awarding afterwards would be impossible anyway."""
-        for rec in self:
+        # A direct order has one vendor and no bidding round.
+        for rec in self.filtered(lambda o: not o.direct_order):
             if rec.comparison_state in ('draft', 'sent'):
                 raise UserError(_("Bids must be received before submitting for approval."))
             if not rec.vendor_finalized:

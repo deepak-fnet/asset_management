@@ -363,7 +363,6 @@ class PhysicalVerification(models.Model):
         default=lambda self: _("New"))
     verification_date = fields.Date(
         required=True, default=fields.Date.context_today, tracking=True)
-    plant_id = fields.Many2one("plant.master", string="Plant")
     location_id = fields.Many2one("asset.location", string="Location")
     department_id = fields.Many2one("hr.department", string="Department")
     verified_by = fields.Many2one(
@@ -404,9 +403,11 @@ class PhysicalVerification(models.Model):
     def action_load_assets(self):
         """Populate the lines from the assets matching the filters."""
         self.ensure_one()
+        if not (self.location_id or self.department_id):
+            raise UserError(_("Select a Location, a Department, or both."))
+        # Only one selected: that one decides. Both selected: an asset must
+        # be in that location AND that department.
         domain = [("state", "!=", "scrapped")]
-        if self.plant_id:
-            domain.append(("plant_id", "=", self.plant_id.id))
         if self.location_id:
             domain.append(("location_id", "=", self.location_id.id))
         if self.department_id:
@@ -414,7 +415,7 @@ class PhysicalVerification(models.Model):
 
         assets = self.env["asset.asset"].search(domain)
         if not assets:
-            raise UserError(_("No assets match those filters."))
+            raise UserError(_("No assets match that Location / Department."))
 
         existing = set(self.line_ids.mapped("asset_id").ids)
         Line = self.env["physical.verification.line"]

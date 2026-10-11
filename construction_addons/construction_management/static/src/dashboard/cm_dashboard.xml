@@ -579,6 +579,11 @@
                                     <t t-esc="d.master.lead_name or d.master.name"/>
                                 </a>
                                 <span t-attf-class="o_cm_pill o_cm_pill--{{statusColor(d.master.state)}} ms-2"><t t-esc="d.master.state"/></span>
+                                <span t-if="d.pnl.retention_percent"
+                                      t-attf-class="o_cm_pill o_cm_pill--{{d.pnl.retention_released ? 'success' : 'warning'}} ms-2"
+                                      t-attf-title="Retention {{d.pnl.retention_released ? 'released' : 'held back'}}{{d.pnl.retention_release_date ? ', due ' + d.pnl.retention_release_date : ''}}">
+                                    <i class="fa fa-lock me-1"/>Retention <t t-esc="d.pnl.retention_percent"/>%: <span class="o_cm_cur"><t t-esc="currency"/></span><t t-esc="formatCompact(d.pnl.retention_amount)"/>
+                                </span>
                             </div>
                             <div class="o_cm_projhead_sub">
                                 <t t-esc="d.master.name"/> &#183; <t t-esc="d.master.partner"/>

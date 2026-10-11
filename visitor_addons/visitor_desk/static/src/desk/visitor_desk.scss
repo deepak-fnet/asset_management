@@ -1,0 +1,734 @@
+// Visitor Desk: uses Bootstrap CSS variables so it follows Odoo light/dark theme.
+.o_vd_desk {
+    --vd-accent: #4f46e5;
+    --vd-accent-2: #7c3aed;
+    --vd-ok: #16a34a;
+    --vd-warn: #f59e0b;
+    --vd-over: #dc2626;
+    --vd-card: #{$o-view-background-color};
+    --vd-muted: var(--bs-secondary-color);
+    --vd-line: #{$border-color};
+    --vd-radius: 16px;
+    --vd-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 20px -14px rgba(0, 0, 0, 0.25);
+
+    // .o_action (parent) is a flex column with overflow hidden: we own the scrolling
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 20px;
+    background: $o-webclient-background-color;
+    color: var(--bs-body-color);
+
+    @media (max-width: 767px) {
+        padding: 12px;
+    }
+}
+
+// ---------------------------------------------------------------- hero
+.o_vd_hero {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-radius: 20px;
+    color: #fff;
+    background: radial-gradient(circle at 85% -20%, rgba(255, 255, 255, 0.25), transparent 45%),
+        linear-gradient(120deg, var(--vd-accent), var(--vd-accent-2));
+    box-shadow: 0 12px 30px -12px rgba(79, 70, 229, 0.55);
+
+    .o_vd_hello {
+        font-size: 15px;
+        opacity: 0.9;
+    }
+    .o_vd_clock {
+        font-size: 40px;
+        font-weight: 700;
+        line-height: 1.1;
+        font-variant-numeric: tabular-nums;
+        small {
+            font-size: 15px;
+            font-weight: 400;
+            opacity: 0.85;
+        }
+    }
+}
+
+.o_vd_scan {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 340px;
+    max-width: 520px;
+    padding: 6px 6px 6px 16px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(6px);
+    > .fa {
+        font-size: 22px;
+    }
+    .o_vd_scan_input {
+        flex: 1;
+        min-width: 0;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: #fff;
+        font-size: 16px;
+        letter-spacing: 1px;
+        &::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 0;
+        }
+    }
+}
+
+// ---------------------------------------------------------------- KPIs
+.o_vd_kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    margin: 16px 0;
+}
+.o_vd_kpi {
+    position: relative;
+    padding: 14px 16px;
+    border-radius: var(--vd-radius);
+    background: var(--vd-card);
+    border: 1px solid var(--vd-line);
+    box-shadow: var(--vd-shadow);
+    cursor: default;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    &[class*="o_vd_kpi"]:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px -10px rgba(0, 0, 0, 0.3);
+    }
+    b {
+        display: block;
+        font-size: 28px;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        small {
+            font-size: 14px;
+            margin-left: 2px;
+        }
+    }
+    span {
+        font-size: 12px;
+        color: var(--vd-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+}
+.o_vd_kpi_live {
+    cursor: pointer;
+    b {
+        color: var(--vd-ok);
+    }
+}
+.o_vd_kpi_alert {
+    border-color: var(--vd-over);
+    b {
+        color: var(--vd-over);
+    }
+}
+.o_vd_live_dot {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--vd-ok);
+    animation: o_vd_pulse 1.6s infinite;
+}
+
+// ---------------------------------------------------------------- layout
+.o_vd_main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 16px;
+    align-items: start;
+    &.o_vd_main_full {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    @media (max-width: 1100px) {
+        grid-template-columns: minmax(0, 1fr);
+        .o_vd_register {
+            order: -1;
+        }
+    }
+}
+
+.o_vd_board,
+.o_vd_register {
+    border-radius: 20px;
+    background: var(--vd-card);
+    border: 1px solid var(--vd-line);
+    box-shadow: var(--vd-shadow);
+    padding: 16px;
+}
+
+// ---------------------------------------------------------------- board
+.o_vd_tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+    button {
+        border: 0;
+        border-radius: 999px;
+        padding: 6px 14px;
+        background: transparent;
+        color: var(--vd-muted);
+        font-weight: 600;
+        .badge {
+            background: var(--bs-secondary-bg);
+            color: inherit;
+            margin-left: 4px;
+        }
+        &.active {
+            background: var(--vd-accent);
+            color: #fff;
+            .badge {
+                background: rgba(255, 255, 255, 0.25);
+            }
+        }
+    }
+}
+
+.o_vd_cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 10px;
+    @media (max-width: 480px) {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.o_vd_card {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 12px;
+    border-radius: var(--vd-radius);
+    border: 1px solid var(--vd-line);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.35s ease;
+    animation: o_vd_in 0.3s ease;
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 22px -14px rgba(0, 0, 0, 0.4);
+    }
+    &.o_vd_card_new {
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.45);
+    }
+    &.o_vd_card_leaving {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    &.o_vd_card_blocked {
+        border-color: var(--vd-over);
+    }
+}
+
+.o_vd_avatar {
+    position: relative;
+    flex: 0 0 64px;
+    height: 64px;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 20px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--vd-accent), var(--vd-accent-2));
+    img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.o_vd_card_body {
+    flex: 1;
+    min-width: 0;
+    cursor: pointer;
+}
+.o_vd_card_name {
+    font-weight: 700;
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.o_vd_card_sub {
+    color: var(--vd-muted);
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.o_vd_card_meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--vd-muted);
+}
+.o_vd_chip {
+    --vd-chip: var(--vd-accent);
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--vd-chip) 14%, transparent);
+    color: var(--vd-chip);
+    font-weight: 600;
+}
+.o_vd_card_side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    min-width: 96px;
+}
+.o_vd_timer {
+    font-weight: 700;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: var(--vd-muted);
+    &.o_vd_ok {
+        color: var(--vd-ok);
+    }
+    &.o_vd_warn {
+        color: var(--vd-warn);
+    }
+    &.o_vd_over {
+        color: var(--vd-over);
+    }
+}
+.o_vd_stay {
+    width: 96px;
+    height: 5px;
+    margin-top: 4px;
+    border-radius: 9px;
+    background: var(--bs-secondary-bg);
+    overflow: hidden;
+    > div {
+        height: 100%;
+        transition: width 1s linear;
+        &.o_vd_ok {
+            background: var(--vd-ok);
+        }
+        &.o_vd_warn {
+            background: var(--vd-warn);
+        }
+        &.o_vd_over {
+            background: var(--vd-over);
+        }
+    }
+}
+
+.o_vd_empty {
+    padding: 48px 12px;
+    text-align: center;
+    color: var(--vd-muted);
+    .o_vd_empty_icon {
+        font-size: 44px;
+        margin-bottom: 8px;
+        opacity: 0.6;
+    }
+}
+
+// ---------------------------------------------------------------- register
+.o_vd_host {
+    position: relative;
+    > .fa-search {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--vd-muted);
+        z-index: 2;
+        pointer-events: none;
+    }
+    // make the selector look like the other inputs of the panel
+    .o_record_selector {
+        align-items: center;
+        min-height: 38px;
+        padding: 2px 10px 2px 34px;
+        border: 1px solid var(--vd-line) !important;
+        border-radius: 8px;
+        background: var(--vd-card);
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        &:focus-within {
+            border-color: var(--vd-accent) !important;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+        .o_avatar img {
+            width: 22px;
+            height: 22px;
+            border-radius: 50% !important;
+        }
+        .o-autocomplete--input {
+            border: 0 !important;
+            box-shadow: none !important;
+            background: transparent;
+        }
+    }
+    .o-autocomplete--dropdown-menu {
+        max-height: 280px;
+        overflow-y: auto;
+    }
+}
+.o_vd_register_title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+.o_vd_label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--vd-muted);
+    margin-bottom: 4px;
+}
+.o_vd_mobile {
+    font-size: 22px;
+    letter-spacing: 2px;
+    font-variant-numeric: tabular-nums;
+}
+
+.o_vd_face_pick {
+    position: relative;
+    width: 132px;
+    height: 132px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    cursor: pointer;
+    overflow: hidden;
+    border: 3px dashed var(--vd-accent);
+    background: rgba(79, 70, 229, 0.06);
+    transition: transform 0.15s ease;
+    &:hover {
+        transform: scale(1.04);
+    }
+    &.o_vd_has_face {
+        border-style: solid;
+    }
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+.o_vd_face_placeholder {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--vd-accent);
+    font-weight: 600;
+    font-size: 13px;
+    .fa {
+        font-size: 30px;
+        margin-bottom: 4px;
+    }
+}
+.o_vd_face_retake {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background: var(--vd-accent);
+}
+
+.o_vd_returning {
+    margin-top: 8px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    background: rgba(22, 163, 74, 0.12);
+    color: var(--vd-ok);
+    animation: o_vd_in 0.3s ease;
+    &.o_vd_returning_blocked {
+        background: rgba(220, 38, 38, 0.12);
+        color: var(--vd-over);
+        font-weight: 600;
+    }
+}
+
+.o_vd_active {
+    margin-top: 8px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(245, 158, 11, 0.45);
+    background: rgba(245, 158, 11, 0.12);
+    animation: o_vd_shake 0.4s ease;
+    .o_vd_active_head {
+        display: flex;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #b45309;
+        .fa {
+            margin-top: 2px;
+        }
+    }
+    .o_vd_active_actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+    }
+}
+@keyframes o_vd_shake {
+    0%, 100% { transform: none; }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+.o_vd_purposes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    button {
+        border: 1px solid var(--vd-line);
+        border-radius: 999px;
+        padding: 5px 12px;
+        background: transparent;
+        color: inherit;
+        font-size: 13px;
+        .fa {
+            margin-right: 6px;
+            color: var(--vd-chip, inherit);
+        }
+        &:hover:not(.active) {
+            border-color: var(--vd-chip);
+        }
+        &.active {
+            box-shadow: 0 6px 14px -8px rgba(0, 0, 0, 0.45);
+            .fa {
+                color: #fff;
+            }
+        }
+    }
+}
+.o_vd_consent {
+    font-size: 13px;
+}
+.o_vd_register_actions {
+    display: grid;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+// ---------------------------------------------------------------- success
+.o_vd_success {
+    text-align: center;
+    padding: 8px 4px;
+    animation: o_vd_in 0.35s ease;
+    h3 {
+        margin: 10px 0 2px;
+        font-weight: 700;
+    }
+}
+.o_vd_success_check {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 26px;
+    background: var(--vd-ok);
+    animation: o_vd_pop 0.45s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+.o_vd_success_photo img {
+    width: 110px;
+    height: 110px;
+    margin-top: 12px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--vd-accent);
+}
+.o_vd_success_id {
+    font-weight: 600;
+    color: var(--vd-accent);
+}
+.o_vd_success_token {
+    margin: 6px 0;
+    b {
+        letter-spacing: 4px;
+        font-size: 20px;
+    }
+}
+.o_vd_streak {
+    color: var(--vd-warn);
+    font-weight: 700;
+}
+
+// ---------------------------------------------------------------- camera
+.o_vd_camera_stage {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    max-width: 480px;
+    margin: 0 auto;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #111;
+    video,
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    video {
+        transform: scaleX(-1);
+    }
+    &.o_vd_flash::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: #fff;
+        animation: o_vd_flash 0.25s ease-out forwards;
+    }
+}
+.o_vd_face_guide {
+    position: absolute;
+    inset: 14% 20%;
+    border-radius: 50%;
+    border: 3px dashed rgba(255, 255, 255, 0.75);
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+}
+.o_vd_countdown {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 120px;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+    animation: o_vd_pop 0.6s ease;
+}
+.o_vd_camera_err_icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    color: #fca5a5;
+    background: rgba(220, 38, 38, 0.18);
+}
+.o_vd_camera_hint {
+    max-width: 340px;
+    margin-top: 6px;
+    font-size: 13px;
+    color: #a1a1aa;
+}
+.o_vd_camera_msg {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    text-align: center;
+    color: #ddd;
+}
+
+// ---------------------------------------------------------------- form widget
+.o_vd_form_face {
+    min-width: 180px;
+}
+.o_vd_face_field {
+    .o_vd_face_circle {
+        width: 160px;
+        height: 160px;
+        margin: 0 auto;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 3px solid #4f46e5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        &.o_vd_face_empty {
+            border-style: dashed;
+            color: #4f46e5;
+            font-size: 64px;
+            background: rgba(79, 70, 229, 0.06);
+        }
+    }
+}
+
+// ---------------------------------------------------------------- motion
+@keyframes o_vd_pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.6);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(22, 163, 74, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
+    }
+}
+@keyframes o_vd_in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+@keyframes o_vd_pop {
+    from {
+        transform: scale(0.4);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+@keyframes o_vd_flash {
+    from {
+        opacity: 0.9;
+    }
+    to {
+        opacity: 0;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .o_vd_desk *,
+    .o_vd_camera * {
+        animation: none !important;
+        transition: none !important;
+    }
+}

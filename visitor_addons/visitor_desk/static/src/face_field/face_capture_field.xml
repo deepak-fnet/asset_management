@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="visitor_desk.FaceCaptureField">
+        <div class="o_vd_face_field">
+            <div class="o_vd_face_circle" t-att-class="{'o_vd_face_empty': !src}">
+                <img t-if="src" t-att-src="src" alt="Visitor photo"/>
+                <i t-else="" class="fa fa-user"/>
+            </div>
+            <div t-if="!props.readonly" class="d-flex gap-2 justify-content-center mt-2">
+                <button type="button" class="btn btn-primary btn-sm" t-on-click="capture">
+                    <i class="fa fa-camera me-1"/><t t-if="src">Retake</t><t t-else="">Capture Face</t>
+                </button>
+                <button t-if="src" type="button" class="btn btn-light btn-sm" t-on-click="remove" title="Remove photo">
+                    <i class="fa fa-trash"/>
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>

@@ -3,9 +3,9 @@
 <data noupdate="1">
 
     <record id="seq_asset_joining_process" model="ir.sequence">
-        <field name="name">Asset Joining Process</field>
+        <field name="name">Asset Assign Process (AAP)</field>
         <field name="code">asset.joining.process</field>
-        <field name="prefix">JOIN/%(year)s/</field>
+        <field name="prefix">AAP/%(year)s/</field>
         <field name="padding">4</field>
         <field name="company_id" eval="False"/>
     </record>

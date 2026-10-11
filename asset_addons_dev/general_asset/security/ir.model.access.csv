@@ -23,3 +23,4 @@ access_asset_category_field_line_left_user,asset.category.field.line.left user,m
 access_asset_category_field_line_left_manager,asset.category.field.line.left manager,model_asset_category_field_line_left,asset_management.group_asset_manager,1,1,1,1
 access_asset_category_field_line_right_user,asset.category.field.line.right user,model_asset_category_field_line_right,asset_management.group_asset_user,1,0,0,0
 access_asset_category_field_line_right_manager,asset.category.field.line.right manager,model_asset_category_field_line_right,asset_management.group_asset_manager,1,1,1,1
+access_asset_direct_assign_wizard_user,asset.direct.assign.wizard user,model_asset_direct_assign_wizard,asset_management.group_asset_user,1,1,1,1

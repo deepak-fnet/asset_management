@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_login_animation_tree" model="ir.ui.view">
+        <field name="name">perok.login.animation.list</field>
+        <field name="model">perok.login.animation</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="mascot_type"/>
+                <field name="is_default" widget="boolean_toggle"/>
+                <field name="is_system" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_login_animation_form" model="ir.ui.view">
+        <field name="name">perok.login.animation.form</field>
+        <field name="model">perok.login.animation</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Assistant"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="mascot_type" readonly="is_system"/>
+                            <field name="is_default"/>
+                            <field name="is_system" invisible="1"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-info" role="status" invisible="mascot_type != 'parrot'">
+                        The built-in animated parrot. It cannot be deleted; tick <b>Default</b> to show it again.
+                    </div>
+                    <group string="3D character" invisible="mascot_type != 'model3d'">
+                        <div class="text-muted" colspan="2">
+                            Upload a Mixamo-rigged <b>.glb</b> (one character mesh with its texture embedded) containing an
+                            animation named <b>idle</b>; clips named <b>walk</b> and <b>sit</b> are used when present.
+                            The character waves hello, follows the cursor, covers its eyes for the password, droops on a wrong
+                            login and cheers then walks off on success.
+                        </div>
+                        <field name="model_file" filename="model_file_name"/>
+                        <field name="model_file_name" invisible="1"/>
+                        <field name="model_path" readonly="1" invisible="not model_path"/>
+                    </group>
+                    <div invisible="mascot_type != 'video'">
+                        <div class="text-muted">
+                            Upload MP4 or WebM clips (or PNG stills), all with the same framing; transparent WebM looks best. A clip with
+                            its own background: set <b>Video fit: Fill the panel</b> in Look &amp; colours. Every clip is optional.
+                            <b>Loop (s)</b>: the part that repeats while the state lasts. 0 to 0 = play once and hold the
+                            last frame; "to" 0 = up to the end. The idle clip always repeats.
+                        </div>
+                        <group>
+                        <group string="Idle (page open)">
+                            <field name="idle_video" string="Video" filename="idle_video_name"/>
+                            <field name="idle_video_name" invisible="1"/>
+                            <field name="idle_speed" invisible="not idle_video"/>
+                            <label for="idle_loop_from" string="Loop (s)" invisible="not idle_video"/>
+                            <div class="o_row" invisible="not idle_video">
+                                <field name="idle_loop_from" nolabel="1" class="oe_inline"/>
+                                <span>to</span>
+                                <field name="idle_loop_to" nolabel="1" class="oe_inline"/>
+                            </div>
+                        </group>
+                        <group string="Email field clicked">
+                            <field name="look_video" string="Video" filename="look_video_name"/>
+                            <field name="look_video_name" invisible="1"/>
+                            <field name="look_speed" invisible="not look_video"/>
+                            <label for="look_loop_from" string="Loop (s)" invisible="not look_video"/>
+                            <div class="o_row" invisible="not look_video">
+                                <field name="look_loop_from" nolabel="1" class="oe_inline"/>
+                                <span>to</span>
+                                <field name="look_loop_to" nolabel="1" class="oe_inline"/>
+                            </div>
+                        </group>
+                        </group>
+                        <group>
+                        <group string="Password field clicked">
+                            <field name="eyes_close_video" string="Video" filename="eyes_close_video_name"/>
+                            <field name="eyes_close_video_name" invisible="1"/>
+                            <field name="eyes_close_speed" invisible="not eyes_close_video"/>
+                            <label for="eyes_close_loop_from" string="Loop (s)" invisible="not eyes_close_video"/>
+                            <div class="o_row" invisible="not eyes_close_video">
+                                <field name="eyes_close_loop_from" nolabel="1" class="oe_inline"/>
+                                <span>to</span>
+                                <field name="eyes_close_loop_to" nolabel="1" class="oe_inline"/>
+                            </div>
+                        </group>
+                        <group string="Password made visible (eye icon)">
+                            <field name="eyes_open_video" string="Video" filename="eyes_open_video_name"/>
+                            <field name="eyes_open_video_name" invisible="1"/>
+                            <field name="eyes_open_speed" invisible="not eyes_open_video"/>
+                            <label for="eyes_open_loop_from" string="Loop (s)" invisible="not eyes_open_video"/>
+                            <div class="o_row" invisible="not eyes_open_video">
+                                <field name="eyes_open_loop_from" nolabel="1" class="oe_inline"/>
+                                <span>to</span>
+                                <field name="eyes_open_loop_to" nolabel="1" class="oe_inline"/>
+                            </div>
+                        </group>
+                        </group>
+                        <group>
+                        <group string="Login success">
+                            <field name="happy_video" string="Video" filename="happy_video_name"/>
+                            <field name="happy_video_name" invisible="1"/>
+                            <field name="happy_speed" invisible="not happy_video"/>
+                            <label for="happy_loop_from" string="Loop (s)" invisible="not happy_video"/>
+                            <div class="o_row" invisible="not happy_video">
+                                <field name="happy_loop_from" nolabel="1" class="oe_inline"/>
+                                <span>to</span>
+                                <field name="happy_loop_to" nolabel="1" class="oe_inline"/>
+                            </div>
+                            <field name="happy_run" invisible="not happy_video"/>
+                            <field name="happy_run_delay" invisible="not happy_run"/>
+                            <field name="happy_run_speed" invisible="1"/>
+                            <field name="happy_drop_image" widget="image" invisible="not happy_run" options="{'size': [0, 90]}"/>
+                            <field name="happy_drop_time" invisible="not happy_run or not happy_drop_image"/>
+                            <field name="happy_drop_rect" invisible="not happy_run or not happy_drop_image"/>
+                        </group>
+                        <group string="Login failure">
+                            <field name="sad_video" string="Video" filename="sad_video_name"/>
+                            <field name="sad_video_name" invisible="1"/>
+                            <field name="sad_speed" invisible="not sad_video"/>
+                        </group>
+                        </group>
+                    </div>
+                    <notebook>
+                        <page string="Look &amp; colours" name="theme">
+                            <div class="text-muted mb-2">Used on the login page while this animation is the default.
+                                A picture, when set, covers its background colour.</div>
+                            <group>
+                                <group string="Page background">
+                                    <field name="page_bg" widget="color" invisible="page_bg_transparent"/>
+                                    <field name="page_bg_transparent"/>
+                                    <field name="page_bg_image" widget="image" options="{'size': [0, 70]}"/>
+                                    <field name="page_bg_video" filename="page_bg_video_name"/>
+                                    <field name="page_bg_video_name" invisible="1"/>
+                                    <field name="page_bg_opacity" invisible="not page_bg_image and not page_bg_video"/>
+                                    <field name="z_page"/>
+                                </group>
+                                <group string="Card background">
+                                    <field name="card_bg" widget="color" invisible="card_bg_transparent"/>
+                                    <field name="card_bg_transparent"/>
+                                    <field name="card_bg_image" widget="image" options="{'size': [0, 70]}"/>
+                                    <field name="card_bg_video" filename="card_bg_video_name"/>
+                                    <field name="card_bg_video_name" invisible="1"/>
+                                    <field name="card_video_fit" widget="radio" invisible="not card_bg_video"/>
+                                    <field name="card_video_position" widget="radio" options="{'horizontal': true}" invisible="not card_bg_video"/>
+                                    <field name="card_opacity"/>
+                                    <field name="card_blur"/>
+                                    <field name="card_width"/>
+                                    <field name="card_height"/>
+                                    <field name="card_split"/>
+                                    <field name="card_radius"/>
+                                    <field name="z_card"/>
+                                    <field name="z_card_video" invisible="not card_bg_video"/>
+                                </group>
+                                <group string="Mascot panel">
+                                    <field name="panel_bg" widget="color" invisible="panel_bg_transparent"/>
+                                    <field name="panel_bg_transparent"/>
+                                    <field name="panel_bg_image" widget="image" options="{'size': [0, 70]}"/>
+                                    <field name="panel_bg_video" filename="panel_bg_video_name"/>
+                                    <field name="panel_bg_video_name" invisible="1"/>
+                                    <field name="panel_video_fit" widget="radio" invisible="not panel_bg_video"/>
+                                    <field name="panel_video_position" widget="radio" options="{'horizontal': true}" invisible="not panel_bg_video"/>
+                                    <field name="panel_opacity"/>
+                                    <field name="panel_width"/>
+                                    <field name="panel_height"/>
+                                    <field name="panel_radius"/>
+                                    <field name="mascot_fit" widget="radio"/>
+                                    <field name="z_panel"/>
+                                </group>
+                                <group string="Form &amp; texts">
+                                    <field name="heading_text"/>
+                                    <field name="subheading_text"/>
+                                    <field name="font_family"/>
+                                    <field name="heading_color" widget="color"/>
+                                    <field name="subtext_color" widget="color"/>
+                                    <field name="label_color" widget="color"/>
+                                    <field name="input_line_color" widget="color"/>
+                                    <field name="input_focus_color" widget="color"/>
+                                    <field name="link_color" widget="color"/>
+                                    <field name="show_reset_link"/>
+                                    <field name="show_footer"/>
+                                    <field name="z_form"/>
+                                </group>
+                                <group string="Button">
+                                    <field name="button_bg" widget="color" invisible="button_bg_transparent"/>
+                                    <field name="button_bg_transparent"/>
+                                    <field name="button_text" widget="color"/>
+                                    <field name="button_radius"/>
+                                </group>
+                                <group string="Layers">
+                                    <div class="text-muted" colspan="2">
+                                        z-index: a higher number is drawn on top. Defaults: page 0, card 1,
+                                        card video 0, panel 2, form 3 (the last three inside the card).
+                                    </div>
+                                </group>
+                            </group>
+                            <button name="action_reset_theme" type="object" string="Reset look to default" class="btn-secondary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_login_animation" model="ir.actions.act_window">
+        <field name="name">Login Page Animations</field>
+        <field name="res_model">perok.login.animation</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a login page animation</p>
+            <p>Upload video clips (idle, eyes close, happy, sad ...) and tick <b>Default</b> to show them on the login page.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_login_page_root" name="Login Page" parent="base.menu_administration" sequence="90" groups="base.group_system"/>
+    <menuitem id="menu_login_animation" name="Animations" parent="menu_login_page_root" action="action_login_animation" sequence="10"/>
+
+</odoo>

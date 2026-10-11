@@ -1,0 +1,226 @@
+// Visit form: hero card (face + identity), timeline, then the regular groups.
+.o_vd_visit_form {
+    --vd-accent: #4f46e5;
+    --vd-accent-2: #7c3aed;
+
+    .o_vd_fhero {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 28px;
+        align-items: center;
+        margin: -8px 0 20px;
+        padding: 22px 26px;
+        border-radius: 20px;
+        background: linear-gradient(120deg, rgba(79, 70, 229, 0.09), rgba(124, 58, 237, 0.04) 60%, transparent);
+        border: 1px solid rgba(79, 70, 229, 0.15);
+    }
+    .o_vd_fhero_photo {
+        text-align: center;
+        .o_vd_face_circle {
+            box-shadow: 0 12px 26px -14px rgba(79, 70, 229, 0.8);
+            border-width: 4px;
+        }
+    }
+    .o_vd_fconsent {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+        margin-top: 8px;
+        font-size: 12px;
+        .o_field_boolean {
+            width: auto !important;
+        }
+        label {
+            font-weight: 500 !important;
+        }
+    }
+    .o_vd_fhero_main {
+        flex: 1 1 320px;
+        min-width: 0;
+    }
+    .o_vd_fhero_ids {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 6px;
+    }
+    .o_vd_fpill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        background: var(--bs-secondary-bg);
+        .o_field_widget {
+            width: auto !important;
+        }
+        &.o_vd_fpill_id {
+            color: #fff;
+            background: linear-gradient(120deg, var(--vd-accent), var(--vd-accent-2));
+        }
+        &.o_vd_fpill_warn {
+            color: #b45309;
+            background: rgba(245, 158, 11, 0.18);
+        }
+    }
+    .o_vd_fname {
+        margin: 2px 0 6px;
+        font-size: 2rem;
+        font-weight: 700;
+        .o_field_widget,
+        input {
+            width: 100%;
+        }
+    }
+    .o_vd_fsub {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 24px;
+        color: var(--bs-secondary-color);
+        > span {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 200px;
+            flex: 1 1 200px;
+            max-width: 320px;
+        }
+        .fa {
+            width: 14px;
+            color: var(--vd-accent);
+        }
+        .o_field_widget {
+            flex: 1;
+        }
+    }
+    .o_vd_fhost {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 10px;
+        font-size: 13px;
+    }
+
+    // timeline
+    .o_vd_ftimeline {
+        display: flex;
+        margin: 0 0 18px;
+        padding: 0 4px;
+    }
+    .o_vd_fstep {
+        position: relative;
+        flex: 1 1 0;
+        min-width: 0;
+        text-align: center;
+        padding: 0 6px;
+        // connector line between steps
+        &:not(:first-child)::before {
+            content: "";
+            position: absolute;
+            top: 19px;
+            right: 50%;
+            width: 100%;
+            height: 3px;
+            background: rgba(79, 70, 229, 0.35);
+            z-index: 0;
+        }
+        &.o_vd_fstep_todo {
+            &::before {
+                background: repeating-linear-gradient(90deg, rgba(79, 70, 229, 0.35) 0 6px, transparent 6px 11px) !important;
+            }
+            .o_vd_fstep_dot {
+                color: var(--vd-accent);
+                background: var(--bs-body-bg);
+                border: 2px dashed rgba(79, 70, 229, 0.5);
+                box-shadow: none;
+            }
+            .o_vd_fstep_label {
+                color: var(--bs-secondary-color);
+            }
+        }
+    }
+    .o_vd_fstep_dot {
+        position: relative;
+        z-index: 1;
+        width: 40px;
+        height: 40px;
+        margin: 0 auto 6px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        background: linear-gradient(135deg, var(--vd-accent), var(--vd-accent-2));
+        box-shadow: 0 6px 14px -6px rgba(79, 70, 229, 0.8);
+        &.o_vd_dot_in {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            box-shadow: 0 6px 14px -6px rgba(22, 163, 74, 0.8);
+        }
+        &.o_vd_dot_out {
+            background: linear-gradient(135deg, #64748b, #334155);
+            box-shadow: 0 6px 14px -6px rgba(51, 65, 85, 0.8);
+        }
+        &.o_vd_dot_cancel {
+            background: linear-gradient(135deg, #f87171, #dc2626);
+        }
+    }
+    .o_vd_fstep_label {
+        font-weight: 700;
+        font-size: 13px;
+    }
+    .o_vd_fstep_time,
+    .o_vd_fstep_by {
+        display: block;
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+        font-size: 12px;
+        color: var(--bs-secondary-color);
+        .o_field_widget {
+            display: inline-block;
+            width: auto !important;
+        }
+        span {
+            display: inline;
+        }
+    }
+
+    .o_vd_fgroups .o_horizontal_separator {
+        color: var(--vd-accent);
+        letter-spacing: 0.06em;
+    }
+
+    @media (max-width: 767px) {
+        .o_vd_fhero {
+            padding: 16px;
+            justify-content: center;
+            text-align: center;
+        }
+        .o_vd_fhero_ids,
+        .o_vd_fhost,
+        .o_vd_fsub {
+            justify-content: center;
+        }
+        .o_vd_ftimeline {
+            flex-wrap: wrap;
+            row-gap: 14px;
+        }
+    }
+}
+
+// datetime widgets render as flex rows aligned to the start: center them in the timeline
+.o_form_view .o_vd_visit_form .o_vd_fstep > .o_field_widget,
+.o_vd_visit_form .o_vd_fstep > .o_field_widget {
+    display: flex !important;
+    justify-content: center;
+    width: 100% !important;
+    > * {
+        flex: 0 0 auto;
+        width: auto !important;
+        text-align: center;
+    }
+}

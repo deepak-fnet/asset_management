@@ -148,3 +148,8 @@ access_spare_request_line_manager,spare.request.line manager,model_spare_request
 access_joining_availability_wizard,joining.availability.wizard,model_joining_availability_wizard,group_asset_user,1,1,1,1
 access_joining_availability_wizard_line,joining.availability.wizard.line,model_joining_availability_wizard_line,group_asset_user,1,1,1,1
 access_asset_button_access_manager,asset.button.access manager,model_asset_button_access,group_asset_manager,1,1,1,1
+access_repair_issue_type_user,repair.issue.type user,model_repair_issue_type,base.group_user,1,0,0,0
+access_repair_issue_type_manager,repair.issue.type manager,model_repair_issue_type,asset_management.group_asset_manager,1,1,1,1
+access_spare_issue_user,spare.issue user,model_spare_issue,group_asset_user,1,1,1,0
+access_spare_issue_manager,spare.issue manager,model_spare_issue,group_asset_manager,1,1,1,1
+access_spare_issue_line_user,spare.issue.line user,model_spare_issue_line,group_asset_user,1,1,1,1

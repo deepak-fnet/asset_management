@@ -429,6 +429,25 @@ class AssetAsset(models.Model):
         for asset in self:
             asset.repair_count = len(asset.repair_management_ids)
 
+    repair_done_count = fields.Integer(compute='_compute_repair_summary', string='Repairs Completed')
+    repair_open_count = fields.Integer(compute='_compute_repair_summary', string='Repairs Open')
+    repair_not_repairable_count = fields.Integer(compute='_compute_repair_summary', string='Not Repairable')
+    maintenance_total_cost = fields.Monetary(compute='_compute_repair_summary', currency_field='currency_id',
+                                             string='Total Maintenance Cost')
+    last_repair_date = fields.Date(compute='_compute_repair_summary', string='Last Repair')
+
+    @api.depends('repair_management_ids.state', 'repair_management_ids.resolution_date',
+                 'maintenance_ids.cost', 'maintenance_ids.state')
+    def _compute_repair_summary(self):
+        for asset in self:
+            repairs = asset.repair_management_ids
+            asset.repair_done_count = len(repairs.filtered(lambda r: r.state == 'done'))
+            asset.repair_open_count = len(repairs.filtered(lambda r: r.state in ('new', 'in_progress')))
+            asset.repair_not_repairable_count = len(repairs.filtered(lambda r: r.state == 'not_repairable'))
+            asset.maintenance_total_cost = sum(asset.maintenance_ids.mapped('cost'))
+            dates = [d for d in repairs.mapped('resolution_date') if d]
+            asset.last_repair_date = max(dates) if dates else False
+
     @api.depends('repair_management_ids.state')
     def _compute_in_repair(self):
         for asset in self:
@@ -2005,7 +2024,17 @@ class AssetAsset(models.Model):
             # Link asset to equipment
             asset.write({'maintenance_equipment_id': equipment.id})
 
+    def _assignment_target_text(self):
+        """'Employee / Department / Location' of the asset, for history text."""
+        self.ensure_one()
+        return " / ".join(n for n in [self.assigned_employee_id.name, self.department_id.name,
+                                      self.location_id.complete_name] if n) or _("no target")
+
     def write(self, vals):
+        # What the asset looked like before, to log assignments that have no
+        # employee (a common asset goes to a location / department only).
+        before = {a.id: (a.state, a.assigned_employee_id, a._assignment_target_text())
+                  for a in self} if 'state' in vals else {}
         for asset in self:
             if 'assigned_employee_id' in vals:
                 old_employee = asset.assigned_employee_id
@@ -2063,6 +2092,22 @@ class AssetAsset(models.Model):
                     })
 
         res = super().write(vals)
+        if before:
+            History = self.env['asset.assignment.history']
+            for asset in self:
+                old_state, old_employee, old_target = before[asset.id]
+                new_state = asset.state
+                employee_logged = 'assigned_employee_id' in vals and asset.assigned_employee_id != old_employee
+                if new_state == 'assigned' and old_state != 'assigned' and not employee_logged:
+                    History.create({
+                        'asset_id': asset.id, 'employee_id': asset.assigned_employee_id.id,
+                        'action': 'assign',
+                        'description': _("Assigned to %s", asset._assignment_target_text())})
+                elif old_state == 'assigned' and new_state in ('draft', 'submit') and not employee_logged:
+                    History.create({
+                        'asset_id': asset.id, 'employee_id': old_employee.id,
+                        'action': 'unassign',
+                        'description': _("Returned to stock from %s", old_target)})
         if 'asset_name' in vals and not vals.get('maintenance_equipment_id'):
             self._handle_maintenance_equipment(vals)
         return res

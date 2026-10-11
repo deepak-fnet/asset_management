@@ -406,6 +406,21 @@
                         </page>
 
                         <page string="Maintenance History" name="maintenance_history">
+                            <div class="o_hd_repair_summary">
+                                <group>
+                                    <group>
+                                        <field name="repair_count" string="Total Repairs"/>
+                                        <field name="repair_done_count"/>
+                                        <field name="repair_open_count"/>
+                                    </group>
+                                    <group>
+                                        <field name="maintenance_total_cost" widget="monetary"
+                                               class="fw-bold text-primary"/>
+                                        <field name="repair_not_repairable_count"/>
+                                        <field name="last_repair_date"/>
+                                    </group>
+                                </group>
+                            </div>
                             <field name="maintenance_ids" readonly="(1) or (is_submit and not is_dynamic_form)">
                                 <list decoration-muted="state == 'open'" decoration-success="state == 'completed'">
                                     <field name="name"/>
@@ -423,10 +438,25 @@
                         </page>
 
                         <page string="Repair History" name="repair_history">
+                            <div class="o_hd_repair_summary">
+                                <group>
+                                    <group>
+                                        <field name="repair_count" string="Total Repairs"/>
+                                        <field name="repair_done_count"/>
+                                        <field name="repair_open_count"/>
+                                    </group>
+                                    <group>
+                                        <field name="maintenance_total_cost" widget="monetary"
+                                               class="fw-bold text-primary"/>
+                                        <field name="repair_not_repairable_count"/>
+                                        <field name="last_repair_date"/>
+                                    </group>
+                                </group>
+                            </div>
                             <field name="repair_management_ids" readonly="(1) or (is_submit and not is_dynamic_form)">
                                 <list decoration-danger="state == 'not_repairable'" decoration-success="state == 'done'" decoration-info="state == 'in_progress'">
                                     <field name="name"/>
-                                    <field name="issue_type"/>
+                                    <field name="issue_type_id"/>
                                     <field name="repair_mode" optional="show"/>
                                     <field name="vendor_id" optional="show"/>
                                     <field name="engineer_id"/>

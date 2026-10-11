@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_visitor_desk" model="ir.actions.client">
+        <field name="name">Front Desk</field>
+        <field name="tag">visitor_desk.desk</field>
+    </record>
+
+    <menuitem id="menu_visitor_root" name="Visitor Desk" sequence="40"
+              web_icon="visitor_desk,static/description/icon.png"
+              groups="group_visitor_security"
+              action="action_visitor_desk"/>
+    <menuitem id="menu_visitor_desk" name="Front Desk" parent="menu_visitor_root" sequence="1"
+              action="action_visitor_desk"/>
+    <menuitem id="menu_visitor_inside" name="Inside Now" parent="menu_visitor_root" sequence="2"
+              action="action_visitor_visit_inside"/>
+    <menuitem id="menu_visitor_visits" name="All Visits" parent="menu_visitor_root" sequence="3"
+              action="action_visitor_visit"/>
+    <menuitem id="menu_visitor_visitors" name="Visitors" parent="menu_visitor_root" sequence="4"
+              action="action_visitor_visitor"/>
+    <menuitem id="menu_visitor_config" name="Configuration" parent="menu_visitor_root" sequence="90"
+              groups="group_visitor_manager"/>
+    <menuitem id="menu_visitor_purpose" name="Purposes of Visit" parent="menu_visitor_config" sequence="1"
+              action="action_visitor_purpose"/>
+</odoo>

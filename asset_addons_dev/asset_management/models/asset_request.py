@@ -92,8 +92,23 @@ class AssetRequest(models.Model):
     @api.depends("purchase_order_ids.state")
     def _compute_rfq_count(self):
         for rec in self:
-            rec.rfq_count = len(rec.purchase_order_ids.filtered(
-                lambda p: p.state in ("draft", "sent")))
+            rec.rfq_count = len(rec._rfq_documents())
+
+    def _is_order_document(self, po):
+        """A real purchase order: split from an RFQ (vendor_management's
+        rfq_id) or created directly (direct_order) - as opposed to the RFQ
+        itself."""
+        return bool(getattr(po, "rfq_id", False) or getattr(po, "direct_order", False))
+
+    def _rfq_documents(self):
+        self.ensure_one()
+        return self.purchase_order_ids.filtered(
+            lambda p: not self._is_order_document(p) and p.state != "cancel")
+
+    def _order_documents(self):
+        self.ensure_one()
+        return self.purchase_order_ids.filtered(
+            lambda p: self._is_order_document(p) and p.state != "cancel")
 
     # ----------------------------------------------------------------
     # Computed counters / smart-button helpers
@@ -122,7 +137,7 @@ class AssetRequest(models.Model):
     @api.depends("purchase_order_ids")
     def _compute_po_count(self):
         for rec in self:
-            rec.po_count = len(rec.purchase_order_ids)
+            rec.po_count = len(rec._order_documents())
 
     @api.depends("purchase_order_ids")
     def _compute_asset_ids(self):
@@ -273,8 +288,7 @@ class AssetRequest(models.Model):
             "name": _("RFQs"),
             "res_model": "purchase.order",
             "view_mode": "list,form",
-            "domain": [("asset_request_id", "=", self.id),
-                       ("state", "in", ("draft", "sent"))],
+            "domain": [("id", "in", self._rfq_documents().ids)],
             "context": {"default_asset_request_id": self.id},
         }
 
@@ -300,6 +314,8 @@ class AssetRequest(models.Model):
                 "default_asset_request_id": self.id,
                 "default_origin": self.name,
                 "default_order_line": self._prefill_po_lines(),
+                # vendor_management: a single-vendor order, not an RFQ.
+                "default_direct_order": True,
                 # Force form to open in create mode
                 "form_view_initial_mode": "edit",
             },
@@ -440,7 +456,7 @@ class AssetRequest(models.Model):
             "name": _("Purchase Orders"),
             "res_model": "purchase.order",
             "view_mode": "list,form",
-            "domain": [("id", "in", self.purchase_order_ids.ids)],
+            "domain": [("id", "in", self._order_documents().ids)],
             "context": {
                 "default_asset_request_id": self.id,
             },

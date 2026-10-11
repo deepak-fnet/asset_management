@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_visitor_visit_form" model="ir.ui.view">
+        <field name="name">visitor.visit.form</field>
+        <field name="model">visitor.visit</field>
+        <field name="arch" type="xml">
+            <form string="Visit" class="o_vd_visit_form">
+                <header>
+                    <button name="action_check_in" string="Check In" type="object" class="btn-primary" icon="fa-sign-in"
+                            invisible="state != 'registered'"/>
+                    <button name="action_check_out" string="Check Out" type="object" class="btn-primary" icon="fa-sign-out"
+                            invisible="state != 'checked_in'"/>
+                    <button name="action_print_pass" string="Print Label" type="object" icon="fa-id-badge"
+                            invisible="state == 'cancelled' or not id"/>
+                    <button name="action_cancel" string="Cancel Visit" type="object"
+                            invisible="state != 'registered' or not id"
+                            groups="visitor_desk.group_visitor_reception"/>
+                    <field name="state" widget="statusbar" statusbar_visible="registered,checked_in,checked_out"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Blocked" bg_color="text-bg-danger" invisible="not visitor_blocked"/>
+                    <widget name="web_ribbon" title="Overstay" bg_color="text-bg-warning" invisible="not is_overstay"/>
+
+                    <!-- Hero: face + identity -->
+                    <div class="o_vd_fhero">
+                        <div class="o_vd_fhero_photo">
+                            <field name="photo" widget="face_capture" nolabel="1"
+                                   readonly="state in ('checked_out', 'cancelled')"/>
+                            <div class="o_vd_fconsent" invisible="not photo">
+                                <field name="photo_consent" nolabel="1" readonly="state in ('checked_out', 'cancelled')"/>
+                                <label for="photo_consent" string="Visitor agreed to photo"/>
+                            </div>
+                        </div>
+                        <div class="o_vd_fhero_main">
+                            <div class="o_vd_fhero_ids">
+                                <span class="o_vd_fpill o_vd_fpill_id"><i class="fa fa-hashtag" title="Visitor ID"/><field name="name" readonly="1"/></span>
+                                <span class="o_vd_fpill" invisible="not id"><i class="fa fa-qrcode" title="Pass code"/><field name="pass_token" readonly="1"/></span>
+                                <span class="o_vd_fpill o_vd_fpill_warn" invisible="not visitor_id or visitor_visit_count &lt; 2">
+                                    <i class="fa fa-star" title="Returning visitor"/>Visit #<field name="visitor_visit_count" readonly="1"/>
+                                </span>
+                            </div>
+                            <h1 class="o_vd_fname">
+                                <field name="visitor_name" placeholder="Visitor name" readonly="state != 'registered'"/>
+                            </h1>
+                            <div class="o_vd_fsub">
+                                <span><i class="fa fa-building-o" title="Company"/><field name="company_name" placeholder="Company" readonly="state != 'registered'"/></span>
+                                <span><i class="fa fa-phone" title="Mobile"/><field name="mobile" placeholder="Mobile number" readonly="state != 'registered'"/></span>
+                            </div>
+                            <div class="o_vd_fhost" invisible="not host_id">
+                                <span class="text-muted">Meeting</span>
+                                <field name="host_id" widget="many2one_avatar_user" readonly="1" options="{'no_open': True}"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Timeline -->
+                    <div class="o_vd_ftimeline" invisible="not id">
+                        <div class="o_vd_fstep o_vd_fstep_done">
+                            <div class="o_vd_fstep_dot"><i class="fa fa-user-plus" title="Registered"/></div>
+                            <div class="o_vd_fstep_label">Registered</div>
+                            <field name="registered_on" readonly="1" class="o_vd_fstep_time"/>
+                            <field name="registered_by" readonly="1" class="o_vd_fstep_by" options="{'no_open': True}"/>
+                        </div>
+                        <div class="o_vd_fstep" invisible="not check_in">
+                            <div class="o_vd_fstep_dot o_vd_dot_in"><i class="fa fa-sign-in" title="Check in"/></div>
+                            <div class="o_vd_fstep_label">Checked in</div>
+                            <field name="check_in" readonly="1" class="o_vd_fstep_time"/>
+                            <field name="check_in_by" readonly="1" class="o_vd_fstep_by" options="{'no_open': True}"/>
+                        </div>
+                        <div class="o_vd_fstep o_vd_fstep_todo" invisible="check_in or state == 'cancelled'">
+                            <div class="o_vd_fstep_dot"><i class="fa fa-sign-in" title="Check in"/></div>
+                            <div class="o_vd_fstep_label">Check in</div>
+                            <div class="o_vd_fstep_time">at the gate</div>
+                        </div>
+                        <div class="o_vd_fstep" invisible="not check_out">
+                            <div class="o_vd_fstep_dot o_vd_dot_out"><i class="fa fa-sign-out" title="Check out"/></div>
+                            <div class="o_vd_fstep_label">Checked out</div>
+                            <field name="check_out" readonly="1" class="o_vd_fstep_time"/>
+                            <div class="o_vd_fstep_by">stayed <field name="duration" widget="float_time" readonly="1"/> h</div>
+                        </div>
+                        <div class="o_vd_fstep o_vd_fstep_todo" invisible="check_out or state == 'cancelled'">
+                            <div class="o_vd_fstep_dot"><i class="fa fa-sign-out" title="Check out"/></div>
+                            <div class="o_vd_fstep_label">Check out</div>
+                            <div class="o_vd_fstep_time">expected stay <field name="expected_hours" widget="float_time" readonly="1"/> h</div>
+                        </div>
+                        <div class="o_vd_fstep" invisible="state != 'cancelled'">
+                            <div class="o_vd_fstep_dot o_vd_dot_cancel"><i class="fa fa-times" title="Cancelled"/></div>
+                            <div class="o_vd_fstep_label">Cancelled</div>
+                        </div>
+                    </div>
+
+                    <group class="o_vd_fgroups">
+                        <group string="Visit">
+                            <field name="purpose_id" widget="selection_badge" options="{'no_create': True}" readonly="state != 'registered'"/>
+                            <field name="purpose_note" placeholder="e.g. Quarterly review with purchase team"
+                                   readonly="state != 'registered'"/>
+                            <field name="host_id" widget="many2one_avatar_user" options="{'no_create': True}"
+                                   placeholder="Search employee…" readonly="state != 'registered'"/>
+                            <field name="expected_hours" widget="float_time" string="Expected stay"
+                                   readonly="state in ('checked_out', 'cancelled')"/>
+                        </group>
+                        <group string="Visitor">
+                            <field name="email" widget="email" placeholder="name@company.com" readonly="state != 'registered'"/>
+                            <field name="visitor_id" string="Visitor card" invisible="not visitor_id" readonly="1"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                        </group>
+                    </group>
+                    <field name="visitor_blocked" invisible="1"/>
+                    <field name="is_overstay" invisible="1"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_visitor_visit_list" model="ir.ui.view">
+        <field name="name">visitor.visit.list</field>
+        <field name="model">visitor.visit</field>
+        <field name="arch" type="xml">
+            <list string="Visits" decoration-info="state == 'registered'" decoration-success="state == 'checked_in'"
+                  decoration-muted="state in ('checked_out', 'cancelled')">
+                <field name="name"/>
+                <field name="visitor_name"/>
+                <field name="mobile"/>
+                <field name="company_name"/>
+                <field name="purpose_id"/>
+                <field name="host_id" widget="many2one_avatar_user"/>
+                <field name="check_in"/>
+                <field name="check_out"/>
+                <field name="duration" widget="float_time" sum="Total"/>
+                <field name="state" widget="badge" decoration-info="state == 'registered'"
+                       decoration-success="state == 'checked_in'" decoration-muted="state == 'checked_out'"
+                       decoration-danger="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_visitor_visit_kanban" model="ir.ui.view">
+        <field name="name">visitor.visit.kanban</field>
+        <field name="model">visitor.visit</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" quick_create="false" group_create="false" records_draggable="false">
+                <field name="state"/>
+                <templates>
+                    <t t-name="card" class="flex-row">
+                        <aside class="o_kanban_aside_full">
+                            <field name="photo" widget="image" options="{'size': [72, 72], 'img_class': 'rounded-circle object-fit-cover'}"/>
+                        </aside>
+                        <main class="ms-2">
+                            <field name="visitor_name" class="fw-bold fs-5"/>
+                            <field name="company_name" class="text-muted"/>
+                            <div class="small"><field name="name"/> · <field name="purpose_id"/></div>
+                            <footer class="pt-1">
+                                <field name="host_id" widget="many2one_avatar_user"/>
+                            </footer>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_visitor_visit_search" model="ir.ui.view">
+        <field name="name">visitor.visit.search</field>
+        <field name="model">visitor.visit</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="visitor_name"/>
+                <field name="mobile"/>
+                <field name="name"/>
+                <field name="pass_token"/>
+                <field name="company_name"/>
+                <field name="host_id"/>
+                <filter name="inside" string="Inside Now" domain="[('state', '=', 'checked_in')]"/>
+                <filter name="waiting" string="Waiting" domain="[('state', '=', 'registered')]"/>
+                <separator/>
+                <filter name="today" string="Today" domain="[('registered_on', '>=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="registered_on" string="Date" date="registered_on"/>
+                <group>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_purpose" string="Purpose" context="{'group_by': 'purpose_id'}"/>
+                    <filter name="group_host" string="Person to Meet" context="{'group_by': 'host_id'}"/>
+                    <filter name="group_day" string="Day" context="{'group_by': 'registered_on:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_visitor_visit_graph" model="ir.ui.view">
+        <field name="name">visitor.visit.graph</field>
+        <field name="model">visitor.visit</field>
+        <field name="arch" type="xml">
+            <graph string="Visits" type="bar">
+                <field name="registered_on" interval="day"/>
+                <field name="purpose_id"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_visitor_visit" model="ir.actions.act_window">
+        <field name="name">Visits</field>
+        <field name="res_model">visitor.visit</field>
+        <field name="view_mode">list,kanban,form,graph</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No visitors yet</p>
+            <p>Open the Front Desk to register your first visitor with a photo.</p>
+        </field>
+    </record>
+
+    <record id="action_visitor_visit_inside" model="ir.actions.act_window">
+        <field name="name">Inside Now</field>
+        <field name="res_model">visitor.visit</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'search_default_inside': 1, 'default_group_by': False}</field>
+    </record>
+</odoo>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 75 x 50 mm colour label (landscape), zero margins: the design bleeds to the edge -->
+    <record id="paperformat_visitor_pass" model="report.paperformat">
+        <field name="name">Visitor Label 75x50 mm</field>
+        <field name="format">custom</field>
+        <field name="page_width">75</field>
+        <field name="page_height">50</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">0</field>
+        <field name="margin_bottom">0</field>
+        <field name="margin_left">0</field>
+        <field name="margin_right">0</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="disable_shrinking" eval="True"/>
+        <field name="dpi">96</field>
+    </record>
+
+    <record id="action_report_visitor_pass" model="ir.actions.report">
+        <field name="name">Visitor Label</field>
+        <field name="model">visitor.visit</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">visitor_desk.report_visitor_pass</field>
+        <field name="report_file">visitor_desk.report_visitor_pass</field>
+        <field name="print_report_name">'Visitor Label - %s' % object.visitor_name</field>
+        <field name="paperformat_id" ref="paperformat_visitor_pass"/>
+        <field name="binding_model_id" ref="model_visitor_visit"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_visitor_pass">
+        <t t-call="web.html_container">
+            <style>
+                html, body { margin: 0; padding: 0; background: #fff; }
+                .vl { position: relative; width: 75mm; height: 50mm; overflow: hidden;
+                      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #111827;
+                      page-break-inside: avoid; }
+                .vl-top { position: relative; height: 10.5mm; color: #fff; overflow: hidden; }
+                .vl-bubble { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.14); }
+                .vl-top table, .vl-mid table, .vl-bot table { width: 100%; border-collapse: collapse; }
+                .vl-top td, .vl-bot td { color: #fff !important; }
+                .vl-co { font-size: 9pt; font-weight: bold; padding: 0 0 0 3mm; white-space: nowrap; }
+                .vl-kicker { font-size: 5pt; font-weight: bold; letter-spacing: 1.4pt; color: rgba(255,255,255,0.8) !important; text-transform: uppercase; }
+                .vl-date { text-align: right; font-size: 6pt; padding-right: 3mm; white-space: nowrap; }
+                .vl-date b { display: block; font-size: 9pt; }
+                .vl-mid { height: 31mm; padding: 0 2.5mm; }
+                .vl-ring, .vl-photo { box-sizing: content-box; }
+                .vl-ring { width: 22mm; height: 22mm; padding: 0.8mm; border-radius: 11.8mm; }
+                .vl-photo { width: 21mm; height: 21mm; padding: 0.5mm; border-radius: 11mm; background: #fff; }
+                .vl-photo img { width: 21mm; height: 21mm; border-radius: 10.5mm; display: block; }
+                .vl-initials { width: 21mm; height: 21mm; border-radius: 10.5mm; line-height: 21mm;
+                               text-align: center; color: #fff; font-size: 16pt; font-weight: bold; }
+                .vl-name { font-size: 12pt; font-weight: bold; line-height: 1.1; max-height: 9mm; overflow: hidden; }
+                .vl-comp { font-size: 6.6pt; color: #6b7280; margin-top: 0.8mm; max-height: 5mm; overflow: hidden; }
+                .vl-chip { display: inline-block; margin-top: 1.6mm; padding: 0.5mm 2mm; border-radius: 3mm;
+                           font-size: 5.6pt; font-weight: bold; color: #fff; letter-spacing: 0.3pt; }
+                .vl-host { font-size: 5.8pt; color: #374151; margin-top: 1.2mm; }
+                .vl-qr { text-align: center; width: 19mm; }
+                .vl-qr img { width: 17mm; height: 17mm; }
+                .vl-token { font-size: 6.6pt; font-weight: bold; letter-spacing: 1.2pt; margin-top: 0.3mm; }
+                .vl-bot { position: absolute; left: 0; right: 0; bottom: 0; height: 8.5mm; color: #fff; }
+                .vl-bot td { font-size: 6pt; padding: 0 3mm; white-space: nowrap; }
+                .vl-id { font-size: 8pt; font-weight: bold; letter-spacing: 0.6pt; }
+                .vl-note { text-align: right; font-size: 5.4pt; }
+            </style>
+            <t t-foreach="docs" t-as="o">
+                <t t-set="c" t-value="o._pass_colors()"/>
+                <t t-set="grad" t-value="'background: %s; background: -webkit-linear-gradient(left, %s, %s); background: linear-gradient(90deg, %s, %s);' % (c[0], c[0], c[1], c[0], c[1])"/>
+                <div t-if="not o_first" style="page-break-before: always;"/>
+                <div class="vl">
+                    <!-- header -->
+                    <div class="vl-top" t-att-style="grad">
+                        <div class="vl-bubble" style="width: 22mm; height: 22mm; right: 14mm; top: -12mm;"/>
+                        <div class="vl-bubble" style="width: 12mm; height: 12mm; right: 4mm; top: 5mm;"/>
+                        <table style="height: 10.5mm;">
+                            <tr>
+                                <td class="vl-co">
+                                    <div class="vl-kicker">Visitor</div>
+                                    <span t-out="o.company_id.name"/>
+                                </td>
+                                <td class="vl-date">
+                                    <b t-out="o.registered_on" t-options="{'widget': 'datetime', 'format': 'dd MMM'}"/>
+                                    <span t-out="o.registered_on" t-options="{'widget': 'datetime', 'format': 'EEE, hh:mm a'}"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- body -->
+                    <div class="vl-mid">
+                        <table style="height: 31mm;">
+                            <tr>
+                                <td style="width: 25mm; vertical-align: middle;">
+                                    <div class="vl-ring" t-att-style="grad">
+                                        <div class="vl-photo">
+                                            <img t-if="o.photo" t-att-src="image_data_uri(o.photo)"/>
+                                            <div t-else="" class="vl-initials" t-att-style="grad"
+                                                 t-out="''.join(p[0] for p in (o.visitor_name or '?').split()[:2]).upper()"/>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="vertical-align: middle; padding-right: 1.5mm;">
+                                    <div class="vl-name" t-out="o.visitor_name"/>
+                                    <div class="vl-comp" t-out="o.company_name or ''"/>
+                                    <span class="vl-chip" t-att-style="'background: %s;' % c[0]" t-out="o.purpose_id.name"/>
+                                    <div class="vl-host" t-if="o.host_id">
+                                        Meeting <b t-out="o.host_id.name"/>
+                                    </div>
+                                </td>
+                                <td class="vl-qr" style="vertical-align: middle;">
+                                    <img t-att-src="o._pass_qr_data_uri()"/>
+                                    <div class="vl-token" t-att-style="'color: %s;' % c[0]" t-out="o.pass_token"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- footer -->
+                    <div class="vl-bot" t-att-style="grad">
+                        <table style="height: 8.5mm;">
+                            <tr>
+                                <td class="vl-id" t-out="o.name"/>
+                                <td class="vl-note">Please wear this badge - scan at the gate</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

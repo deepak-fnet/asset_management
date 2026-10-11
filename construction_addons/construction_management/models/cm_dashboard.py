@@ -356,6 +356,9 @@ class ConstructionDashboard(models.AbstractModel):
         outstanding = sum(client_invoices.mapped('amount_residual'))
         margin = contract - cost
 
+        retention_bills = order.milestone_bill_ids.filtered(lambda m: m.milestone_type == 'retention')
+        retention_released = bool(retention_bills) and all(m.state == 'invoiced' for m in retention_bills)
+
         sales = False
         if order:
             sales = {
@@ -443,6 +446,12 @@ class ConstructionDashboard(models.AbstractModel):
                 'pending_bill': sum(subs.mapped('pending_bill_amount')),
                 'vendor_paid': sum(subs.mapped('payment_total')),
                 'labour': sum(subs.mapped('labour_wage_total')),
+                'retention_percent': order.retention_percent,
+                'retention_amount': sum(retention_bills.mapped('amount')) or (
+                    contract * order.retention_percent / 100.0),
+                'retention_released': retention_released,
+                'retention_release_date': (
+                    retention_bills[:1].release_date.isoformat() if retention_bills[:1].release_date else False),
             },
             'sales': sales,
             'subprojects': subprojects,
