@@ -354,8 +354,9 @@ MENU_LAYOUT = [
     # IT Asset
     ('asset_workspace.menu_ws_assets', 'asset_workspace.menu_ws_it_root', 10),
     ('asset_workspace.menu_ws_iot', 'asset_workspace.menu_ws_it_root', 15),
-    ('asset_workspace.menu_ws_request', 'asset_workspace.menu_ws_it_root', 20),
-    ('asset_management.menu_spare_root', 'asset_workspace.menu_ws_it_root', 30),
+    ('asset_management.menu_spare_root', 'asset_workspace.menu_ws_req_root', 20),
+    ('asset_management.menu_spare_request', 'asset_management.menu_spare_root', 10),
+    ('asset_management.menu_spare_issue', 'asset_management.menu_spare_root', 25),
     ('asset_warranty_license.menu_warranty_license_root', 'asset_workspace.menu_ws_it_root', 40),
     ('asset_patch_vuln.menu_security_root', 'asset_workspace.menu_ws_it_root', 50),
     ('asset_workspace.menu_ws_telemetry', 'asset_workspace.menu_ws_it_root', 60),
@@ -365,6 +366,10 @@ MENU_LAYOUT = [
 MENUS_HIDDEN_IN_LAYOUT = [
     'asset_workspace.menu_ws_all_asset',          # its two children are top-level now
     'asset_workspace.menu_asset_button_access',
+    # Now in the "Request" app (menu_ws_req_asset).
+    'asset_workspace.menu_ws_request',            # IT Asset > Asset Request (+ Asset Requests)
+    # Temporarily hidden: remove this line and re-wire to show it again.
+    'asset_management.menu_spare_request_approve',  # Spare > To Approve
 ]
 
 

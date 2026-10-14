@@ -16,6 +16,12 @@
                             <field name="review_frequency"/>
                         </setting>
                     </block>
+                    <block title="Advance Payments">
+                        <setting string="Advance Needs Manager Approval"
+                                 help="The requester's Department Manager approves an advance request before Purchase Finance pays it. Switch off to send requests straight to Finance.">
+                            <field name="advance_manager_approval"/>
+                        </setting>
+                    </block>
                     <block title="Risk Score Weights">
                         <setting string="Missing Documents Weight" help="Score added for each missing mandatory document">
                             <field name="risk_score_weight_missing"/>

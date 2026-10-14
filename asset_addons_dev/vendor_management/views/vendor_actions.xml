@@ -28,7 +28,7 @@
         <field name="name">Vendors Under Review</field>
         <field name="res_model">res.partner</field>
         <field name="view_mode">list,form</field>
-        <field name="domain">[('is_vendor','=',True), ('vendor_state','in',('submitted','manager_review'))]</field>
+        <field name="domain">[('is_vendor','=',True), ('vendor_state','in',('submitted','manager_review','query'))]</field>
         <field name="context">{'default_is_vendor': True, 'default_vendor_state': 'submitted'}</field>
         <field name="view_ids" eval="[(5, 0, 0), 
             (0, 0, {'view_mode': 'list', 'view_id': ref('view_vendor_partner_list')}),

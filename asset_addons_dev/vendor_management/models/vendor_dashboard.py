@@ -337,7 +337,7 @@ class VendorDashboard(models.Model):
         # ---------------- KPIs (snapshot) ----------------
         total_vendors = Partner.search_count(vend_dom)
         active_vendors = Partner.search_count(vend_dom + [('vendor_state', '=', 'active')])
-        under_review = Partner.search_count(vend_dom + [('vendor_state', 'in', ('submitted', 'manager_review'))])
+        under_review = Partner.search_count(vend_dom + [('vendor_state', 'in', ('submitted', 'manager_review', 'query'))])
         blocked = Partner.search_count(vend_dom + [('vendor_state', '=', 'blocked')])
         high_risk = Partner.search_count(vend_dom + [('risk_score', '>', 70)])
         compliant = Partner.search_count(vend_dom + [('compliance_status', '=', 'ok')])

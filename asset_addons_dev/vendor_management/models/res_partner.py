@@ -12,7 +12,7 @@ class ResPartner(models.Model):
 
     @api.model
     def _get_under_review_vendor_domain(self):
-        return [('is_vendor', '=', True), ('vendor_state', 'in', ['submitted', 'manager_review'])]
+        return [('is_vendor', '=', True), ('vendor_state', 'in', ['submitted', 'manager_review', 'query'])]
 
     @api.model
     def _get_blocked_vendor_domain(self):
@@ -297,6 +297,7 @@ class ResPartner(models.Model):
         ('draft', 'Draft'),
         ('submitted', 'Submitted'),
         ('manager_review', 'Manager Review'),
+        ('query', 'Query Raised'),
         ('active', 'Approved/Active'),
         ('blocked', 'Blocked'),
         ('rejected', 'Rejected'),
@@ -795,6 +796,8 @@ class ResPartner(models.Model):
     def action_mark_reviewed(self):
         """Manager reviews."""
         self._check_group('vendor_management.group_vendor_manager')
+        if self.vendor_state == 'query':
+            raise UserError(_("A query is open - wait for the vendor to answer it."))
         old_state = self.vendor_state
         self.vendor_state = 'manager_review'
         self._log_audit('state_change', old_value=old_state, new_value='manager_review', action=_('Marked Reviewed by Manager'))
@@ -802,6 +805,8 @@ class ResPartner(models.Model):
     def action_approve_activate(self):
         """MD Approval & Activation."""
         self._check_group('vendor_management.group_vendor_md')
+        if self.vendor_state == 'query':
+            raise UserError(_("A query is open - wait for the vendor to answer it."))
         if self.compliance_status != 'ok':
             raise UserError(_("Vendor cannot be activated until all mandatory documents are approved."))
         

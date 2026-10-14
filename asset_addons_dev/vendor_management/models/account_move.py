@@ -3,7 +3,7 @@ from markupsafe import Markup
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError, AccessError
 from odoo.tools.misc import formatLang
-from .vendor_compat_utils import group_member_emails, group_members
+from .vendor_compat_utils import group_member_emails, group_members, find_department_head
 
 class AccountMove(models.Model):
     _inherit = 'account.move'
@@ -28,6 +28,11 @@ class AccountMove(models.Model):
         'vendor_management.group_vendor_manager',
         'vendor_management.group_vendor_md',
     )
+    AUDIT_GROUPS = (
+        'vendor_management.group_purchase_role_audit',
+        'vendor_management.group_vendor_manager',
+        'vendor_management.group_vendor_md',
+    )
     FINANCE_GROUPS = (
         'vendor_management.group_purchase_role_finance',
         'vendor_management.group_vendor_manager',
@@ -48,7 +53,8 @@ class AccountMove(models.Model):
         ('draft', 'Draft'),
         ('to_dept', 'Waiting Department Head'),
         ('to_stores', 'Waiting Stores'),
-        ('stores_approved', 'Waiting Finance'),
+        ('to_audit', 'Waiting Audit'),
+        ('to_finance', 'Waiting Finance'),
     ], string="Bill Approval", default='draft', copy=False, tracking=True)
     bill_submitted_by = fields.Many2one('res.users', string="Submitted By", copy=False, readonly=True)
     bill_dept_approver_id = fields.Many2one(
@@ -69,6 +75,7 @@ class AccountMove(models.Model):
     can_bill_submit = fields.Boolean(compute='_compute_bill_approval_rights')
     can_dept_approve = fields.Boolean(compute='_compute_bill_approval_rights')
     can_stores_approve = fields.Boolean(compute='_compute_bill_approval_rights')
+    can_audit_verify = fields.Boolean(compute='_compute_bill_approval_rights')
     can_finance_post = fields.Boolean(compute='_compute_bill_approval_rights')
     can_bill_reject = fields.Boolean(compute='_compute_bill_approval_rights')
 
@@ -80,18 +87,49 @@ class AccountMove(models.Model):
     def _compute_bill_approval_rights(self):
         is_buyer = self._user_in(self.PURCHASE_USER_GROUPS)
         is_stores = self._user_in(self.STORES_GROUPS)
+        is_audit = self._user_in(self.AUDIT_GROUPS)
         is_finance = self._user_in(self.FINANCE_GROUPS)
         is_override = self._user_in(self.DEPT_OVERRIDE_GROUPS)
         for move in self:
             move.can_bill_submit = is_buyer
             move.can_dept_approve = is_override or move.bill_dept_approver_id == self.env.user
             move.can_stores_approve = is_stores
+            move.can_audit_verify = is_audit
             move.can_finance_post = is_finance
             move.can_bill_reject = {
                 'to_dept': move.can_dept_approve,
                 'to_stores': is_stores,
-                'stores_approved': is_finance,
+                'to_audit': is_audit,
+                'to_finance': is_finance,
             }.get(move.bill_approval_state, False)
+
+    # ------------------------------------------------------ audit checkpoint
+    audit_verified_by = fields.Many2one('res.users', string="Audit Verified By", copy=False, readonly=True)
+    audit_verified_on = fields.Datetime(string="Audit Verified On", copy=False, readonly=True)
+    audit_po_value = fields.Monetary(compute='_compute_audit_check', string="PO Value (these lines)")
+    audit_received_value = fields.Monetary(compute='_compute_audit_check', string="Received Value")
+    audit_bill_untaxed = fields.Monetary(compute='_compute_audit_check', string="Bill (untaxed)")
+    audit_difference = fields.Monetary(compute='_compute_audit_check', string="Bill - Received")
+    audit_duplicate_id = fields.Many2one('account.move', compute='_compute_audit_check', string="Same Bill No. Found")
+    audit_ok = fields.Boolean(compute='_compute_audit_check')
+
+    @api.depends('invoice_line_ids.purchase_line_id', 'invoice_line_ids.price_subtotal', 'amount_untaxed', 'ref',
+                 'partner_id')
+    def _compute_audit_check(self):
+        for move in self:
+            po_lines = move.invoice_line_ids.purchase_line_id
+            move.audit_po_value = sum(l.product_qty * l.price_unit * (1 - l.discount / 100.0) for l in po_lines)
+            move.audit_received_value = sum(l.qty_received * l.price_unit * (1 - l.discount / 100.0) for l in po_lines)
+            move.audit_bill_untaxed = move.amount_untaxed
+            move.audit_difference = move.amount_untaxed - move.audit_received_value
+            dup = self.env['account.move']
+            if move.ref and move.partner_id:
+                dup = self.search([('move_type', '=', 'in_invoice'), ('partner_id', '=', move.partner_id.id),
+                                   ('ref', '=ilike', move.ref), ('id', '!=', move._origin.id or 0),
+                                   ('state', '!=', 'cancel')], limit=1)
+            move.audit_duplicate_id = dup
+            move.audit_ok = (bool(po_lines) and not dup
+                             and move.currency_id.is_zero(move.audit_difference))
 
     # -------------------------------------------------------------- helpers
     def _bill_notify(self, users, subject, body):
@@ -119,16 +157,7 @@ class AccountMove(models.Model):
     def _bill_find_dept_head(self, user):
         """Manager of the user's department; when the user IS that manager,
         the parent department's manager (else themselves)."""
-        employee = user.employee_id or user.employee_ids[:1]
-        department = employee.department_id
-        while department:
-            manager_user = department.manager_id.user_id
-            if manager_user and manager_user != user:
-                return manager_user
-            if not department.parent_id:
-                return manager_user
-            department = department.parent_id
-        return self.env['res.users']
+        return find_department_head(self.env, user)
 
     def _check_bill_stage(self, stage):
         for move in self:
@@ -141,6 +170,8 @@ class AccountMove(models.Model):
             raise AccessError(_("Only a Purchase User can submit this bill."))
         self._check_bill_stage('draft')
         for move in self:
+            # Held until the whole order is delivered (Bill Policy on the PO).
+            move.invoice_line_ids.purchase_line_id.order_id._check_bill_policy()
             if not move.invoice_date:
                 raise UserError(_("Enter the Bill Date before submitting."))
             if not move.ref:
@@ -190,11 +221,30 @@ class AccountMove(models.Model):
             raise AccessError(_("Only Purchase Stores can approve this bill."))
         self._check_bill_stage('to_stores')
         for move in self:
-            move.bill_approval_state = 'stores_approved'
-            move.message_post(body=_("Approved by Stores (%s).", self.env.user.name))
+            move.bill_approval_state = 'to_audit'
+            move.message_post(body=_("Validated by Stores (%s).", self.env.user.name))
+            move._bill_notify(move._bill_group_users('vendor_management.group_purchase_role_audit'),
+                              _("Bill waiting for Audit: %s", move.ref),
+                              Markup('<p>%s was validated by Stores and is waiting for Audit '
+                                     'verification.</p>') % move._bill_label())
+
+    def action_audit_verify(self):
+        if not self._user_in(self.AUDIT_GROUPS):
+            raise AccessError(_("Only Purchase Audit can verify this bill."))
+        self._check_bill_stage('to_audit')
+        for move in self:
+            # Authorised just above; audit users may hold read-only accounting
+            # rights, and the verification is recorded as them (sudo keeps uid).
+            move = move.sudo()
+            move.write({'bill_approval_state': 'to_finance', 'audit_verified_by': self.env.user.id,
+                        'audit_verified_on': fields.Datetime.now()})
+            note = Markup('<p>Verified by Audit (%s).</p><p>Bill %s | PO %s | received %s | difference %s</p>') % (
+                self.env.user.name, move.audit_bill_untaxed, move.audit_po_value,
+                move.audit_received_value, move.audit_difference)
+            move.message_post(body=note)
             move._bill_notify(move._bill_group_users('vendor_management.group_purchase_role_finance'),
                               _("Bill waiting for Finance confirmation: %s", move.ref),
-                              Markup('<p>%s was approved by Stores and is waiting for Finance '
+                              Markup('<p>%s was verified by Audit and is waiting for Finance '
                                      'to confirm it.</p>') % move._bill_label())
 
     def action_bill_reject(self):
@@ -230,10 +280,10 @@ class AccountMove(models.Model):
 
     def action_post(self):
         for move in self.filtered('purchase_bill_approval'):
-            if move.bill_approval_state != 'stores_approved':
+            if move.bill_approval_state != 'to_finance':
                 raise UserError(_(
-                    "%s must be submitted and approved by the Department Head and Stores "
-                    "before it can be confirmed.", move.name or _("This bill")))
+                    "%s must be approved by the Department Head, validated by Stores and "
+                    "verified by Audit before it can be confirmed.", move.name or _("This bill")))
             if not self._user_in(self.FINANCE_GROUPS):
                 raise AccessError(_("Only Purchase Finance can confirm (post) this bill."))
         res = super().action_post()
@@ -270,7 +320,9 @@ class AccountMove(models.Model):
 
     def _compute_is_rated(self):
         for rec in self:
-            rec.is_rated = self.env['vendor.performance.overview'].search_count([
+            # A yes/no flag: Dept Head / Audit / Stores / Finance open the bill too
+            # and hold no vendor-performance rights.
+            rec.is_rated = self.env['vendor.performance.overview'].sudo().search_count([
                 ('vendor_id', '=', rec.partner_id.id),
                 '|',
                 ('move_id', '=', rec.id),

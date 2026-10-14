@@ -1,21 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <!-- Payment Terms: Advance % -->
-    <record id="view_payment_term_form_inherit_advance" model="ir.ui.view">
-        <field name="name">account.payment.term.form.inherit.advance</field>
-        <field name="model">account.payment.term</field>
-        <field name="inherit_id" ref="account.view_payment_term_form"/>
-        <field name="arch" type="xml">
-            <xpath expr="//group/div" position="after">
-                <label for="advance_percent"/>
-                <div class="o_row">
-                    <field name="advance_percent" class="oe_inline"/>
-                    <span>% of the purchase order, payable in advance after confirmation</span>
-                </div>
-            </xpath>
-        </field>
-    </record>
-
     <!-- Purchase order: Request Advance + Advances smart button -->
     <record id="purchase_order_form_inherit_advance" model="ir.ui.view">
         <field name="name">purchase.order.form.inherit.advance</field>
@@ -30,14 +14,35 @@
             </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button type="object" name="action_view_advances" class="oe_stat_button"
-                        icon="fa-money" invisible="not advance_count">
+                        icon="fa-money" invisible="not advance_count"
+                        groups="account.group_account_invoice,account.group_account_readonly">
                     <field name="advance_count" widget="statinfo" string="Advances"/>
                 </button>
             </xpath>
             <xpath expr="//field[@name='payment_term_id']" position="after">
-                <field name="advance_percent" invisible="not advance_percent" string="Advance %"/>
                 <field name="advance_requested" invisible="not advance_count"/>
                 <field name="advance_paid" invisible="not advance_count"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Advances" name="advances" invisible="not advance_count"
+                      groups="account.group_account_invoice,account.group_account_readonly">
+                    <field name="advance_payment_ids" readonly="1">
+                        <list>
+                            <field name="name" string="Payment"/>
+                            <field name="date"/>
+                            <field name="amount" sum="Total"/>
+                            <field name="currency_id" column_invisible="1"/>
+                            <field name="advance_requested_by" string="Requested By"/>
+                            <field name="advance_manager_id" string="Manager"/>
+                            <field name="advance_invoice_ids" widget="many2many_binary" string="Vendor Invoice"/>
+                            <field name="advance_state" widget="badge"
+                                   decoration-info="advance_state == 'to_manager'"
+                                   decoration-warning="advance_state == 'requested'"
+                                   decoration-success="advance_state == 'approved'"
+                                   decoration-danger="advance_state == 'rejected'"/>
+                        </list>
+                    </field>
+                </page>
             </xpath>
         </field>
     </record>
@@ -52,23 +57,34 @@
                 <attribute name="invisible">state != 'draft' or (purchase_advance_id and (advance_state != 'requested' or not can_advance_finance))</attribute>
             </xpath>
             <xpath expr="//header/button[@name='action_cancel']" position="attributes">
-                <attribute name="invisible">not id or not (state == 'draft' or (state == 'in_process' and is_sent)) or (purchase_advance_id and advance_state == 'requested')</attribute>
+                <attribute name="invisible">not id or not (state == 'draft' or (state == 'in_process' and is_sent)) or (purchase_advance_id and advance_state in ('to_manager', 'requested'))</attribute>
             </xpath>
             <xpath expr="//header" position="inside">
+                <button name="action_advance_manager_approve" type="object" string="Approve" class="btn-primary"
+                        invisible="not purchase_advance_id or advance_state != 'to_manager' or state != 'draft' or not can_advance_manager"/>
                 <button name="action_advance_reject" type="object" string="Reject" class="btn-danger"
-                        invisible="not purchase_advance_id or advance_state != 'requested' or state != 'draft' or not can_advance_finance"/>
+                        invisible="not purchase_advance_id or state != 'draft' or (advance_state == 'to_manager' and not can_advance_manager) or (advance_state == 'requested' and not can_advance_finance) or advance_state not in ('to_manager', 'requested')"/>
                 <field name="can_advance_finance" invisible="1"/>
+                <field name="can_advance_manager" invisible="1"/>
             </xpath>
             <xpath expr="//header" position="after">
+                <div class="alert alert-info mb-0" role="status"
+                     invisible="not purchase_advance_id or advance_state != 'to_manager'">
+                    Advance requested by <field name="advance_requested_by" readonly="1" class="d-inline-flex"/>
+                    - waiting for the Department Manager <strong><field name="advance_manager_id" readonly="1" class="d-inline-flex"/></strong> to approve.
+                </div>
                 <div class="alert alert-warning mb-0" role="status"
                      invisible="not purchase_advance_id or advance_state != 'requested'">
-                    Advance requested by <field name="advance_requested_by" readonly="1" class="d-inline"/>
+                    Advance requested by <field name="advance_requested_by" readonly="1" class="d-inline-flex"/>
                     - waiting for <strong>Finance</strong> to confirm.
                 </div>
             </xpath>
             <xpath expr="//field[@name='memo']" position="after">
                 <field name="purchase_advance_id" invisible="not purchase_advance_id"/>
+                <field name="advance_invoice_ids" widget="many2many_binary" string="Vendor Invoice"
+                       invisible="not purchase_advance_id"/>
                 <field name="advance_state" invisible="not purchase_advance_id" widget="badge"
+                       decoration-info="advance_state == 'to_manager'"
                        decoration-warning="advance_state == 'requested'"
                        decoration-success="advance_state == 'approved'"
                        decoration-danger="advance_state == 'rejected'"/>
@@ -85,21 +101,33 @@
                 <field name="order_id" invisible="1"/>
                 <field name="currency_id" invisible="1"/>
                 <field name="company_id" invisible="1"/>
-                <p class="text-muted">
+                <field name="needs_manager" invisible="1"/>
+                <p class="text-muted" invisible="needs_manager">
                     A draft payment is created and Purchase Finance is emailed to confirm it.
+                </p>
+                <p class="text-muted" invisible="not needs_manager">
+                    Your Department Manager approves first; then Purchase Finance is emailed to confirm the payment.
                 </p>
                 <group>
                     <group>
                         <field name="amount_total"/>
-                        <field name="advance_percent" string="Advance %"/>
                         <field name="advance_requested"/>
+                        <field name="advance_balance"/>
                     </group>
                     <group>
-                        <field name="amount"/>
+                        <field name="advance_type" widget="radio" options="{'horizontal': true}"/>
+                        <field name="percent" invisible="advance_type != 'percent'"
+                               required="advance_type == 'percent'"/>
+                        <field name="amount" readonly="advance_type == 'percent'"/>
                         <field name="journal_id" options="{'no_create': True}"/>
                         <field name="date"/>
                         <field name="memo"/>
+                        <field name="manager_id" invisible="not needs_manager"/>
                     </group>
+                </group>
+                <group>
+                    <field name="invoice_ids" widget="many2many_binary" string="Vendor Invoice"
+                           required="1"/>
                 </group>
                 <footer>
                     <button name="action_confirm_request" type="object" string="Request" class="btn-primary"/>

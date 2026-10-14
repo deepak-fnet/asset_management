@@ -7,7 +7,10 @@ class PurchaseOrder(models.Model):
     _inherit = "purchase.order"
 
     asset_count = fields.Integer(
-        string="Assets", compute='_compute_asset_count')
+        string="Assets", compute='_compute_asset_count',
+        # Just a count for the smart button: approvers and buyers without
+        # asset rights open purchase orders too.
+        compute_sudo=True)
 
     def _compute_asset_count(self):
         grouped = self.env['asset.asset']._read_group(

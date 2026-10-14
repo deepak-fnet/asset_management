@@ -1,6 +1,6 @@
 {
     'name': 'Vendor Management',
-    'version': '19.0.1.7.0',  # advance payment: Advance % on payment terms, Request Advance (Purchase User, Finance emailed) -> Finance Confirm/Reject, auto-adjusted on the bill; bill approval Submit -> Dept Head -> Stores -> Finance with reject + emails; comparison Confirm gates approval; bids editable after rejection; T&C on purchase orders only; ACCOM purchase order PDF; Price Comparison dashboard (overview, vendor cards with trend, on-time + rating charts, price history); RFQ split: Confirm Order creates one purchase order per awarded vendor (RFQ -> 'Ordered'); child orders single-vendor with Upload Bill; bill approval Stores Approve -> Finance Confirm on the bill itself (vendor.bill + multi-vendor picking split removed); no duplicates in portal/Price Comparison/report; comparison: per-vendor Total row, Selected total, Lowest tags, order currency, refined layout; comparison top bar lists vendor names only (no checkboxes); bid stage: Vendor Bids tab + manual Enter/Submit Bid, Bid Received (manual, or automatic once every vendor bids), approval only after bids received + all products awarded; Purchase role ACLs on vendor.quote
+    'version': '19.0.1.13.0',  # PO payment method from the vendor; Other tab payment terms / fiscal position / incoterm hidden; Purchase Audit step in bill approval (Submit -> Dept Head -> Stores -> Audit -> Finance); bill hold until the PO is fully received (Bill Policy); advance needs department-manager approval (setting) + vendor invoice attached and shown on the PO; direct orders take the approval flow after Send RFQ; revision requests unlock bids and awards; onboarding query back to the vendor (portal reply + resubmit); vendor code (VC0001) on approval, shown in the name and searchable; portal login conflicts reported on the vendor; vendor bid carries the scanned quotation copy; advance requested as a percentage or an amount on the confirmed PO (before goods are received), no longer set on payment terms; advance payment: Advance % on payment terms, Request Advance (Purchase User, Finance emailed) -> Finance Confirm/Reject, auto-adjusted on the bill; bill approval Submit -> Dept Head -> Stores -> Finance with reject + emails; comparison Confirm gates approval; bids editable after rejection; T&C on purchase orders only; ACCOM purchase order PDF; Price Comparison dashboard (overview, vendor cards with trend, on-time + rating charts, price history); RFQ split: Confirm Order creates one purchase order per awarded vendor (RFQ -> 'Ordered'); child orders single-vendor with Upload Bill; bill approval Stores Approve -> Finance Confirm on the bill itself (vendor.bill + multi-vendor picking split removed); no duplicates in portal/Price Comparison/report; comparison: per-vendor Total row, Selected total, Lowest tags, order currency, refined layout; comparison top bar lists vendor names only (no checkboxes); bid stage: Vendor Bids tab + manual Enter/Submit Bid, Bid Received (manual, or automatic once every vendor bids), approval only after bids received + all products awarded; Purchase role ACLs on vendor.quote
     'category': 'Services',
     'summary': 'Vendor Management System',
     'author': 'Prasanna',
@@ -35,6 +35,7 @@
         'security/vendor_quote_portal_rules.xml',
 
         # ================= VIEWS =================
+        'views/vendor_query_views.xml',
         'views/res_partner_vendor_views.xml',
         'views/res_partner_vendor_stats.xml',
         'views/vendor_category_views.xml',
@@ -78,6 +79,7 @@
         'data/vendor_performance_cron.xml',
         'data/vendor_document_request_sequence.xml',
         'data/purchase_order_sequence.xml',
+        'data/vendor_code_sequence.xml',
 
         # ================= MENUS =================
         'views/vendor_menu.xml',

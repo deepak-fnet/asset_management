@@ -18,6 +18,9 @@
                 <button name="action_stores_approve" type="object" string="Stores Approve"
                         class="btn-primary"
                         invisible="not purchase_bill_approval or state != 'draft' or bill_approval_state != 'to_stores' or not can_stores_approve"/>
+                <button name="action_audit_verify" type="object" string="Audit Verify"
+                        class="btn-primary"
+                        invisible="not purchase_bill_approval or state != 'draft' or bill_approval_state != 'to_audit' or not can_audit_verify"/>
                 <button name="action_bill_reject" type="object" string="Reject"
                         class="btn-danger"
                         invisible="not purchase_bill_approval or state != 'draft' or not can_bill_reject"/>
@@ -37,12 +40,38 @@
                 </div>
                 <div class="alert alert-warning mb-0" role="status"
                      invisible="not purchase_bill_approval or state != 'draft' or bill_approval_state != 'to_stores'">
-                    Approved by the Department Head - waiting for <strong>Stores</strong> approval.
+                    Approved by the Department Head - waiting for <strong>Stores</strong> to validate it.
+                </div>
+                <div class="alert alert-warning mb-0" role="status"
+                     invisible="not purchase_bill_approval or state != 'draft' or bill_approval_state != 'to_audit'">
+                    Validated by Stores - waiting for <strong>Audit</strong> to verify it.
                 </div>
                 <div class="alert alert-info mb-0" role="status"
-                     invisible="not purchase_bill_approval or state != 'draft' or bill_approval_state != 'stores_approved'">
-                    Approved by Stores - waiting for <strong>Finance</strong> to confirm.
+                     invisible="not purchase_bill_approval or state != 'draft' or bill_approval_state != 'to_finance'">
+                    Verified by Audit - waiting for <strong>Finance</strong> to confirm.
                 </div>
+            </xpath>
+            <!-- Audit Check: what Audit looks at before verifying. -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Audit Check" name="audit_check"
+                      invisible="not purchase_bill_approval or bill_approval_state in ('draft', 'to_dept')">
+                    <group>
+                        <group string="Amounts (untaxed)">
+                            <field name="audit_po_value"/>
+                            <field name="audit_received_value"/>
+                            <field name="audit_bill_untaxed"/>
+                            <field name="audit_difference"
+                                   decoration-danger="not audit_ok" decoration-success="audit_ok"/>
+                        </group>
+                        <group string="Checks">
+                            <field name="audit_ok" widget="boolean" readonly="1" string="Bill matches what was received"/>
+                            <field name="audit_duplicate_id" invisible="not audit_duplicate_id"
+                                   decoration-danger="1"/>
+                            <field name="audit_verified_by" invisible="not audit_verified_by"/>
+                            <field name="audit_verified_on" invisible="not audit_verified_on"/>
+                        </group>
+                    </group>
+                </page>
             </xpath>
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="is_rated" invisible="1"/>
@@ -51,6 +80,7 @@
                 <field name="can_bill_submit" invisible="1"/>
                 <field name="can_dept_approve" invisible="1"/>
                 <field name="can_stores_approve" invisible="1"/>
+                <field name="can_audit_verify" invisible="1"/>
                 <field name="can_finance_post" invisible="1"/>
                 <field name="can_bill_reject" invisible="1"/>
             </xpath>
@@ -62,7 +92,7 @@
                  selector (Odoo 19), hence positional. Server-side check is
                  action_post. -->
             <xpath expr="(//button[@name='action_post'])[2]" position="attributes">
-                <attribute name="invisible">hide_post_button or move_type == 'entry' or display_inactive_currency_warning or (purchase_bill_approval and (bill_approval_state != 'stores_approved' or not can_finance_post))</attribute>
+                <attribute name="invisible">hide_post_button or move_type == 'entry' or display_inactive_currency_warning or (purchase_bill_approval and (bill_approval_state != 'to_finance' or not can_finance_post))</attribute>
             </xpath>
         </field>
     </record>
@@ -80,8 +110,8 @@
                        widget="badge"
                        invisible="not purchase_bill_approval or state != 'draft'"
                        decoration-muted="bill_approval_state == 'draft'"
-                       decoration-warning="bill_approval_state in ('to_dept', 'to_stores')"
-                       decoration-info="bill_approval_state == 'stores_approved'"/>
+                       decoration-warning="bill_approval_state in ('to_dept', 'to_stores', 'to_audit')"
+                       decoration-info="bill_approval_state == 'to_finance'"/>
             </xpath>
         </field>
     </record>

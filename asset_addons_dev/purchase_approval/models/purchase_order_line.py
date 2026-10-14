@@ -20,7 +20,7 @@ class PurchaseOrderLine(models.Model):
         if set(vals) & self._APPROVAL_LOCKED_FIELDS and not self.env.context.get(
                 "skip_approval_lock_check"):
             locked = self.filtered(
-                lambda l: l.order_id.approval_status in ("submitted", "approved"))
+                lambda l: l.order_id.approval_status in ("submitted", "approved", "query"))
             if locked:
                 raise UserError(_(
                     "%(order)s is awaiting or has approval - product, quantity, "

@@ -8,6 +8,13 @@ class VendorQuote(models.Model):
 
     rfq_id = fields.Many2one('purchase.order', string="RFQ Reference", required=True, ondelete='cascade')
     vendor_id = fields.Many2one('res.partner', string="Vendor", required=True, domain="[('is_vendor','=',True)]", tracking=True)
+
+    @api.depends('rfq_id.name', 'vendor_id.name')
+    def _compute_display_name(self):
+        # "Bid - Sri Balaji Computers (RFQ/2026/10/00045)" instead of "vendor.quote,39"
+        for quote in self:
+            quote.display_name = _("Bid - %(vendor)s (%(rfq)s)", vendor=quote.vendor_id.name or '',
+                                   rfq=quote.rfq_id.name or '')
     
     quote_date = fields.Date(string="Quotation Date", default=fields.Date.today)
     # Computed, not a plain input: the vendor portal only ever collects a
@@ -72,6 +79,17 @@ class VendorQuote(models.Model):
                     _("This RFQ has expired. You can no longer submit or modify quotations.")
                 )
         return super().create(vals_list)
+
+    quotation_attachment_ids = fields.Many2many(
+        'ir.attachment', 'vendor_quote_attachment_rel', 'quote_id', 'attachment_id',
+        string="Quotation Copy",
+        help="The vendor's scanned quotation (PDF / image), kept for audit records.")
+    attachment_count = fields.Integer(compute='_compute_attachment_count', string="Files")
+
+    @api.depends('quotation_attachment_ids')
+    def _compute_attachment_count(self):
+        for rec in self:
+            rec.attachment_count = len(rec.quotation_attachment_ids)
 
     def action_submit_bid(self):
         """Buyer enters a bid on a vendor's behalf (vendor cannot use the
@@ -272,7 +290,7 @@ class VendorQuoteLine(models.Model):
                 rfq = line.quote_id.rfq_id
                 if line.quote_id.state != 'draft' and (
                         rfq.state not in ('draft', 'sent')
-                        or rfq.approval_status in ('submitted', 'approved')):
+                        or rfq.approval_status in ('submitted', 'approved', 'query')):
                     raise UserError(_(
                         "Bid prices can't be changed while %s is waiting for or has approval.",
                         rfq.name))

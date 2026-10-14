@@ -1,5 +1,5 @@
 from odoo import models, fields, api, _
-from odoo.exceptions import ValidationError, UserError
+from odoo.exceptions import ValidationError, UserError, AccessError
 from odoo.tools.misc import formatLang
 from .vendor_compat_utils import group_members, group_member_emails
 
@@ -18,6 +18,12 @@ class PurchaseOrder(models.Model):
                 direct = vals.get('direct_order', self.env.context.get('default_direct_order'))
                 vals['name'] = self.env['ir.sequence'].sudo().next_by_code(
                     'vendor_management.purchase.po' if direct else 'vendor_management.purchase.rfq') or 'New'
+            # Payment terms always come from the vendor (direct order or code).
+            if vals.get('partner_id') and not vals.get('payment_term_id'):
+                term = self.env['res.partner'].browse(vals['partner_id']).with_company(
+                    vals.get('company_id') or self.env.company.id).property_supplier_payment_term_id
+                if term:
+                    vals['payment_term_id'] = term.id
             if not vals.get('partner_id') and vals.get('vendor_ids'):
                 vendors = vals.get('vendor_ids')
                 partner_id = False
@@ -33,10 +39,10 @@ class PurchaseOrder(models.Model):
                 if partner_id:
                     vals['partner_id'] = partner_id
 
-        # A direct (single-vendor, no RFQ) order skips the approval flow.
-        direct = any(v.get('direct_order', self.env.context.get('default_direct_order')) for v in vals_list)
-        self_ctx = self.with_context(purchase_approval_skip_default=True) if direct else self
-        pos = super(PurchaseOrder, self_ctx).create(vals_list)
+        # A direct (single-vendor) order takes the default approval flow like
+        # any RFQ: Send RFQ, then Submit for Approval (Comment / Query /
+        # Request Revision / Reject / Approve), then Confirm Order.
+        pos = super().create(vals_list)
 
         # Task 7: Send PO created email
         template = self.env.ref('vendor_management.mail_template_po_created', raise_if_not_found=False)
@@ -54,6 +60,12 @@ class PurchaseOrder(models.Model):
 
     def write(self, vals):
         """Override write - vendor assignment moved to vendor_quote.action_select_line()"""
+        if 'bill_policy' in vals and not (
+                self.env.user.has_group('purchase.group_purchase_manager')
+                or self.env.user.has_group('vendor_management.group_vendor_manager')
+                or self.env.user.has_group('vendor_management.group_vendor_md')
+                or self.env.su):
+            raise AccessError(_("Only a Purchase Manager can change the Bill Policy."))
         # Feature: RFQ Revision Handling
         # Meaningful fields to track for revision
         meaningful_fields = ['order_line', 'product_id', 'product_qty', 'price_unit']
@@ -107,12 +119,77 @@ class PurchaseOrder(models.Model):
         for rec in self:
             rec.child_po_count = len(rec.child_po_ids)
 
-    @api.depends('order_line.qty_received', 'order_line.qty_invoiced', 'state')
+    # How the vendor is paid (bank transfer, cheque...): the vendor's own
+    # Payment Method (vendor form > Sales & Purchase), editable per order.
+    vendor_payment_method_line_id = fields.Many2one(
+        'account.payment.method.line', string='Payment Method',
+        compute='_compute_vendor_payment_method', store=True, readonly=False, tracking=True,
+        domain="[('payment_type', '=', 'outbound')]",
+        help="Taken from the vendor's Payment Method; can be changed on this order.")
+
+    @api.depends('partner_id')
+    def _compute_vendor_payment_method(self):
+        for order in self:
+            order.vendor_payment_method_line_id = order.partner_id.with_company(
+                order.company_id).property_outbound_payment_method_line_id
+
+    bill_policy = fields.Selection([
+        ('hold', 'Hold until fully received'),
+        ('received', 'Bill as received'),
+    ], string="Bill Policy", default='hold', required=True, copy=False, tracking=True,
+        help="Hold: a bill can be raised only once every ordered item has been received "
+             "(or the rest was cancelled). Bill as received: bill what has arrived so far. "
+             "Only Purchase Managers can change this.")
+    can_edit_bill_policy = fields.Boolean(compute='_compute_can_edit_bill_policy')
+    receipt_complete = fields.Boolean(compute='_compute_receipt_complete')
+    receipt_pending_text = fields.Char(compute='_compute_receipt_complete')
+
+    @api.depends_context('uid')
+    def _compute_can_edit_bill_policy(self):
+        user = self.env.user
+        allowed = (user.has_group('purchase.group_purchase_manager')
+                   or user.has_group('vendor_management.group_vendor_manager')
+                   or user.has_group('vendor_management.group_vendor_md'))
+        for rec in self:
+            rec.can_edit_bill_policy = allowed
+
+    @api.depends('order_line.qty_received', 'order_line.product_qty', 'picking_ids.state', 'state')
+    def _compute_receipt_complete(self):
+        for rec in self:
+            lines = rec.order_line.filtered(lambda l: not l.display_type and l.product_id.type != 'service')
+            pending = [l for l in lines if l.qty_received < l.product_qty]
+            incoming = rec.picking_ids.filtered(lambda p: p.picking_type_code == 'incoming')
+            # Items still outstanding are fine when the rest of the delivery
+            # was cancelled (no open receipt left).
+            open_receipts = incoming.filtered(lambda p: p.state not in ('done', 'cancel'))
+            cancelled_rest = bool(incoming) and not open_receipts and any(l.qty_received > 0 for l in lines)
+            rec.receipt_complete = bool(lines) and (not pending or cancelled_rest)
+            rec.receipt_pending_text = ", ".join(
+                "%s: %g of %g received" % (l.product_id.display_name, l.qty_received, l.product_qty)
+                for l in pending) if pending and not cancelled_rest else False
+
+    @api.depends('order_line.qty_received', 'order_line.qty_invoiced', 'state', 'bill_policy',
+                 'receipt_complete')
     def _compute_bill_ready(self):
         for rec in self:
             rec.bill_ready = rec.state == 'purchase' and any(
                 line.qty_received > line.qty_invoiced
-                for line in rec.order_line.filtered(lambda l: not l.display_type))
+                for line in rec.order_line.filtered(lambda l: not l.display_type)
+            ) and (rec.bill_policy != 'hold' or rec.receipt_complete)
+
+    def _check_bill_policy(self):
+        for rec in self:
+            if rec.bill_policy == 'hold' and not rec.receipt_complete:
+                raise UserError(_(
+                    "%(order)s is only partly delivered - its bill is held until everything is "
+                    "received (%(pending)s).\nA Purchase Manager can change its Bill Policy to "
+                    "'Bill as received' to bill what has arrived.",
+                    order=rec.name, pending=rec.receipt_pending_text or _("items pending")))
+
+    def action_create_invoice(self):
+        self._check_bill_policy()
+        return super().action_create_invoice()
+
 
     def button_confirm(self):
         rfqs = self.filtered(lambda po: not po.rfq_id and not po.direct_order and po.state in ('draft', 'sent'))
@@ -318,6 +395,7 @@ class PurchaseOrder(models.Model):
         Finance Confirm (see account_move.py)."""
         self.ensure_one()
         if not self.bill_ready:
+            self._check_bill_policy()
             raise UserError(_("Nothing has been received that is not already billed."))
         return self.action_create_invoice()
 
@@ -666,7 +744,11 @@ class PurchaseOrder(models.Model):
         awarded: the approval amount is the awarded total, and once an order
         is submitted its line prices/vendors are locked (purchase_approval's
         write guard), so awarding afterwards would be impossible anyway."""
-        # A direct order has one vendor and no bidding round.
+        # A direct order has one vendor and no bidding round - but its RFQ
+        # must have been sent before it goes for approval.
+        for rec in self.filtered('direct_order'):
+            if rec.state != 'sent':
+                raise UserError(_("Send the RFQ to the vendor first, then submit it for approval."))
         for rec in self.filtered(lambda o: not o.direct_order):
             if rec.comparison_state in ('draft', 'sent'):
                 raise UserError(_("Bids must be received before submitting for approval."))
@@ -731,7 +813,9 @@ class PurchaseOrder(models.Model):
 
     def _compute_is_rated(self):
         for rec in self:
-            rec.is_rated = self.env['vendor.performance.overview'].search_count([('purchase_id', '=', rec.id)]) > 0
+            # sudo: approvers / stores / finance open the order without vendor-performance rights
+            rec.is_rated = self.env['vendor.performance.overview'].sudo().search_count(
+                [('purchase_id', '=', rec.id)]) > 0
 
     def action_send_to_vendors(self):
         """Notify all selected vendors about the RFQ."""
@@ -811,7 +895,7 @@ class PurchaseOrder(models.Model):
             # Selection is frozen while approval is pending/given, and once
             # purchase orders were created from this RFQ.
             'locked': self.state not in ('draft', 'sent')
-                      or self.approval_status in ('submitted', 'approved'),
+                      or self.approval_status in ('submitted', 'approved', 'query'),
             'locked_reason': (
                 _("Purchase orders have been created from this RFQ - the selection below is final.")
                 if self.state not in ('draft', 'sent') else
@@ -819,7 +903,7 @@ class PurchaseOrder(models.Model):
             'confirmed': self.comparison_confirmed,
             'can_confirm': self.state in ('draft', 'sent')
                            and self.comparison_state not in ('draft', 'sent')
-                           and self.approval_status not in ('submitted', 'approved'),
+                           and self.approval_status not in ('submitted', 'approved', 'query'),
             'currency_symbol': self.currency_id.symbol or '',
             'currency_position': self.currency_id.position or 'before',
             'vendors': [{

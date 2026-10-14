@@ -62,3 +62,10 @@ access_purchase_order_line_portal,Purchase Order Line Portal,purchase.model_purc
 access_purchase_bill_reject_wizard_user,Purchase Bill Reject Wizard,vendor_management.model_purchase_bill_reject_wizard,base.group_user,1,1,1,1
 access_purchase_advance_request_wizard_user,Purchase Advance Request Wizard,vendor_management.model_purchase_advance_request_wizard,base.group_user,1,1,1,1
 access_purchase_advance_reject_wizard_user,Purchase Advance Reject Wizard,vendor_management.model_purchase_advance_reject_wizard,base.group_user,1,1,1,1
+access_vendor_query_user,Vendor Query User,vendor_management.model_vendor_query,vendor_management.group_vendor_user,1,0,0,0
+access_vendor_query_manager,Vendor Query Manager,vendor_management.model_vendor_query,vendor_management.group_vendor_manager,1,1,1,0
+access_vendor_query_md,Vendor Query MD,vendor_management.model_vendor_query,vendor_management.group_vendor_md,1,1,1,0
+access_vendor_query_portal,Vendor Query Portal,vendor_management.model_vendor_query,base.group_portal,1,0,0,0
+access_vendor_query_wizard,Vendor Query Wizard,vendor_management.model_vendor_query_wizard,vendor_management.group_vendor_manager,1,1,1,1
+access_vendor_query_wizard_md,Vendor Query Wizard MD,vendor_management.model_vendor_query_wizard,vendor_management.group_vendor_md,1,1,1,1
+access_vendor_quote_purchase_approver,Vendor Quote Approver (read),vendor_management.model_vendor_quote,purchase.group_purchase_user,1,0,0,0

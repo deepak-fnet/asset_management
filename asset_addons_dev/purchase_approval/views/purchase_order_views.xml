@@ -33,12 +33,22 @@
                 <button name="action_approve_order" type="object"
                         string="Approve" class="btn-success"
                         invisible="not can_approve"/>
+                <button name="action_approval_query" type="object"
+                        string="Query" icon="fa-question-circle" class="btn-secondary"
+                        invisible="not can_approve"/>
+                <button name="action_approval_revision" type="object"
+                        string="Request Revision" icon="fa-pencil-square-o" class="btn-warning"
+                        invisible="not can_approve"/>
                 <button name="action_reject_order" type="object"
                         string="Reject" class="btn-danger"
                         invisible="not can_approve"/>
+                <button name="action_reply_query" type="object"
+                        string="Reply to Query" icon="fa-reply" class="btn-primary"
+                        invisible="not can_reply_query"/>
+                <field name="can_reply_query" invisible="1"/>
                 <button name="action_submit_for_approval" type="object"
                         string="Submit for Approval" class="btn-primary"
-                        invisible="not approval_config_id or approval_status not in ('draft', 'rejected')"/>
+                        invisible="not approval_config_id or approval_status not in ('draft', 'revision')"/>
                 <button name="action_reset_approval" type="object"
                         string="Reset Approval" class="btn-secondary"
                         invisible="1"
@@ -67,7 +77,37 @@
             <!-- Approvals tab is now a read-only history: who must approve,
                  where each stands, and when they acted. The Approve/Reject
                  buttons live in the header instead. -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button type="object" name="action_view_approval_events" class="oe_stat_button"
+                        icon="fa-comments-o" invisible="not approval_event_ids">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value"><field name="query_count"/> / <field name="revision_count"/></span>
+                        <span class="o_stat_text">Queries / Revisions</span>
+                    </div>
+                </button>
+            </xpath>
             <xpath expr="//notebook" position="inside">
+                <page string="Approval History" name="approval_history" invisible="not approval_event_ids">
+                    <field name="approval_event_ids" readonly="1" nolabel="1">
+                        <list create="0" delete="0" edit="0"
+                              decoration-success="kind in ('approve', 'reply')"
+                              decoration-danger="kind == 'reject'"
+                              decoration-warning="kind in ('query', 'revision')"
+                              decoration-muted="kind in ('comment', 'resubmit')">
+                            <field name="date"/>
+                            <field name="kind" widget="badge"
+                                   decoration-success="kind in ('approve', 'reply')"
+                                   decoration-danger="kind == 'reject'"
+                                   decoration-warning="kind in ('query', 'revision')"/>
+                            <field name="user_id" string="By"/>
+                            <field name="level_name" string="Level"/>
+                            <field name="text"/>
+                            <field name="reply" optional="show"/>
+                            <field name="change_summary" optional="show"/>
+                            <field name="state" widget="badge" decoration-warning="state == 'open'"/>
+                        </list>
+                    </field>
+                </page>
                 <page string="Approvals" name="approvals" invisible="not approver_ids">
                     <field name="approval_line_ids" nolabel="1" readonly="1">
                         <list create="0" delete="0" edit="0">
@@ -75,7 +115,7 @@
                             <field name="status" widget="badge"
                                    decoration-success="status == 'approved'"
                                    decoration-danger="status == 'rejected'"
-                                   decoration-warning="status == 'pending'"/>
+                                   decoration-warning="status in ('pending', 'query', 'revision')"/>
                             <field name="comment"/>
                             <field name="action_date"/>
                         </list>
@@ -112,7 +152,7 @@
                  below with one row per term type in the template. -->
             <xpath expr="//field[@name='partner_ref']" position="after">
                 <field name="terms_template_id" options="{'no_create': True}" string="Terms &amp; conditions"
-                       readonly="approval_status not in (False, 'draft', 'rejected')"/>
+                       readonly="approval_status not in (False, 'draft', 'rejected', 'revision')"/>
             </xpath>
 
             <!-- Terms & Conditions tab: rows prefilled by the header Payment
@@ -123,7 +163,7 @@
             <xpath expr="//notebook" position="inside">
                 <page string="Terms Conditions" name="terms_conditions">
                     <field name="terms_condition_line_ids"
-                           readonly="approval_status not in (False, 'draft', 'rejected')">
+                           readonly="approval_status not in (False, 'draft', 'rejected', 'revision')">
                         <list editable="bottom">
                             <field name="term_id"/>
                             <field name="value_id" options="{'create_edit': True}"

@@ -13,6 +13,7 @@
                 <t t-if="success == 'profile_saved'">Profile updated successfully.</t>
                 <t t-if="success == 'doc_uploaded'">Document uploaded and submitted for review.</t>
                 <t t-if="success == 'submitted'">Your vendor application has been submitted for review.</t>
+                <t t-if="success == 'resubmitted'">Thank you - your reply was sent and the application is back in review.</t>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         </t>
@@ -36,6 +37,7 @@
                     <t t-if="vendor.vendor_state == 'draft'">Draft</t>
                     <t t-elif="vendor.vendor_state == 'submitted'">Submitted</t>
                     <t t-elif="vendor.vendor_state == 'manager_review'">Under Review</t>
+                    <t t-elif="vendor.vendor_state == 'query'">Query Raised</t>
                     <t t-elif="vendor.vendor_state == 'active'">Approved Vendor</t>
                     <t t-elif="vendor.vendor_state == 'blocked'">Blocked</t>
                     <t t-else="">Rejected</t>
@@ -61,9 +63,41 @@
             </div>
           </div>
 
+          <!-- ================= OPEN QUERY ================= -->
+          <t t-if="vendor.vendor_state == 'query' and vendor.open_query_id">
+            <t t-set="oq" t-value="vendor.open_query_id.sudo()"/>
+            <div class="vp-card mt-3" style="border-left: 5px solid #f59e0b;">
+              <h5><i class="fa fa-question-circle me-2 text-warning"/>We need a few corrections</h5>
+              <p class="vp-muted mb-2">
+                From <t t-esc="oq.raised_by.name"/> on <t t-esc="oq.raised_on" t-options="{'widget': 'datetime'}"/>
+              </p>
+              <blockquote class="mb-3" style="white-space: pre-wrap;"><t t-esc="oq.query"/></blockquote>
+              <t t-if="oq.document_ids">
+                <div class="mb-2 fw-bold">Documents to upload again:</div>
+                <ul class="mb-3">
+                  <t t-foreach="oq.document_ids" t-as="qd">
+                    <li>
+                      <t t-esc="qd.doc_type_id.name"/>
+                      <span t-if="qd.query_flag" class="vp-pill sm ds-rejected ms-2">Not uploaded yet</span>
+                      <span t-else="" class="vp-pill sm ds-approved ms-2"><i class="fa fa-check"/> Uploaded</span>
+                    </li>
+                  </t>
+                </ul>
+              </t>
+              <form action="/my/vendor" method="POST">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <input type="hidden" name="action" value="resubmit_query"/>
+                <label class="form-label small fw-bold">Your reply</label>
+                <textarea name="response" class="form-control mb-3" rows="3"
+                          placeholder="What you corrected (optional)"/>
+                <button type="submit" class="vp-btn solid"><i class="fa fa-paper-plane me-1"/> Resubmit for Review</button>
+              </form>
+            </div>
+          </t>
+
           <!-- ================= ONBOARDING STEPPER ================= -->
-          <t t-if="vendor.vendor_state in ('draft', 'submitted', 'manager_review', 'active')">
-            <t t-set="step_idx" t-value="{'draft': 0, 'submitted': 1, 'manager_review': 2, 'active': 3}[vendor.vendor_state]"/>
+          <t t-if="vendor.vendor_state in ('draft', 'submitted', 'manager_review', 'query', 'active')">
+            <t t-set="step_idx" t-value="{'draft': 0, 'submitted': 1, 'manager_review': 2, 'query': 2, 'active': 3}[vendor.vendor_state]"/>
             <div class="vp-card vp-stepper-card">
               <div class="vp-stepper">
                 <div class="vp-step-line"><div class="vp-step-line-fill" t-attf-style="width: #{step_idx * 33.33}%"/></div>
@@ -165,7 +199,8 @@
                         <span class="vp-muted sm" t-else="">No number yet</span>
                       </div>
                       <span t-attf-class="vp-pill sm ds-#{doc.state if doc.attachment or doc.state != 'draft' else 'missing'}">
-                        <t t-if="not doc.attachment and doc.state == 'draft'">Required</t>
+                        <t t-if="doc.query_flag">Correction needed</t>
+                        <t t-elif="not doc.attachment and doc.state == 'draft'">Required</t>
                         <t t-elif="doc.state == 'draft'">Draft</t>
                         <t t-elif="doc.state == 'submitted'">In Review</t>
                         <t t-elif="doc.state == 'manager_review'">Manager Review</t>
@@ -190,7 +225,7 @@
                     </div>
 
                     <div class="vp-doc-actions">
-                      <t t-if="not doc.attachment or doc.state in ('rejected', 'expired')">
+                      <t t-if="not doc.attachment or doc.state in ('rejected', 'expired') or doc.query_flag">
                         <button type="button" class="vp-btn solid sm w-100" data-bs-toggle="modal" t-attf-data-bs-target="#uploadModal#{doc.id}">
                           <i class="fa fa-cloud-upload me-1"/> Upload
                         </button>
@@ -550,7 +585,7 @@
               </div>
             </div>
 
-            <form action="" method="POST">
+            <form action="" method="POST" enctype="multipart/form-data">
               <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
               <div class="table-responsive">
                 <table class="table">
@@ -630,7 +665,25 @@
                           t-att-readonly="not can_edit_quote and 'readonly' or None"><t t-if="quote" t-esc="quote.note"/></textarea>
               </div>
               
-              <div class="d-flex justify-content-end gap-2">
+              <div class="mt-3">
+                <label class="form-label">Scanned Quotation Copy</label>
+                <t t-if="quote and quote.quotation_attachment_ids">
+                  <ul class="list-unstyled mb-2">
+                    <t t-foreach="quote.quotation_attachment_ids.sudo()" t-as="att">
+                      <li>
+                        <i class="fa fa-paperclip me-1"/>
+                        <a t-att-href="'/web/content/%s?download=true&amp;access_token=%s' % (att.id, att.sudo().generate_access_token()[0])"
+                           t-esc="att.name"/>
+                      </li>
+                    </t>
+                  </ul>
+                </t>
+                <input t-if="can_edit_quote" type="file" name="quotation_files" multiple="multiple"
+                       class="form-control" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/*"/>
+                <small t-if="can_edit_quote" class="text-muted">PDF or image of your signed quotation (optional).</small>
+              </div>
+
+              <div class="d-flex justify-content-end gap-2 mt-3">
                 <!-- Hide submit if RFQ expired or quote already submitted and NOT revised -->
                 <t t-if="can_edit_quote">
                   <button type="submit" class="btn btn-primary">

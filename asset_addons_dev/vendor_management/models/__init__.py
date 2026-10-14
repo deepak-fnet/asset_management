@@ -14,3 +14,5 @@ from . import account_move
 from . import purchase_report
 from . import res_partner
 from . import purchase_advance
+from . import res_partner_vendor_code
+from . import vendor_query

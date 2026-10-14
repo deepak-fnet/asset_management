@@ -174,13 +174,18 @@ class VendorSettings(models.TransientModel):
         string="Review Frequency (Months)",
         default=1
     )
+    advance_manager_approval = fields.Boolean(
+        string="Advance Needs Manager Approval", default=True,
+        help="A requested advance first goes to the requester's Department Manager; only after "
+             "the manager approves is Purchase Finance asked to pay it.")
 
     def set_values(self):
         super().set_values()
-        self.env['ir.config_parameter'].sudo().set_param(
-            'vendor_management.review_frequency',
-            self.review_frequency or 1
-        )
+        param = self.env['ir.config_parameter'].sudo()
+        param.set_param('vendor_management.review_frequency', self.review_frequency or 1)
+        # stored as an explicit 'True'/'False' (an empty value would delete the key and read as the default)
+        param.set_param('vendor_management.advance_manager_approval',
+                        'True' if self.advance_manager_approval else 'False')
 
     def get_values(self):
         res = super().get_values()
@@ -188,7 +193,9 @@ class VendorSettings(models.TransientModel):
         res.update(
             review_frequency=int(param.get_param(
                 'vendor_management.review_frequency', default='1'
-            ))
+            )),
+            advance_manager_approval=param.get_param(
+                'vendor_management.advance_manager_approval', default='True') != 'False',
         )
         return res
 

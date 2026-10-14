@@ -80,7 +80,7 @@
     &.sm { font-size: 11px; padding: 3px 10px; }
 
     &.st-draft { background: rgba(255,255,255,0.18); color: #fff; }
-    &.st-submitted, &.st-manager_review { background: #fbbf24; color: #451a03; }
+    &.st-submitted, &.st-manager_review, &.st-query { background: #fbbf24; color: #451a03; }
     &.st-active { background: #34d399; color: #064e3b; }
     &.st-blocked, &.st-rejected { background: #f87171; color: #450a0a; }
 

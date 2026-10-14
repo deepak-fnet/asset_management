@@ -442,19 +442,19 @@
     <!-- ══════════════════════════════════════════════════════════════════
          MENUS
          ══════════════════════════════════════════════════════════════════ -->
-    <menuitem id="menu_spare_root" name="Spares"
+    <menuitem id="menu_spare_root" name="Spare"
               parent="asset_management.menu_asset_root" sequence="45"/>
 
     <menuitem id="menu_spare_issue" name="Spare Issue" parent="menu_spare_root"
-              action="action_spare_issue" sequence="5"/>
-    <menuitem id="menu_spare_request" name="Spare Requests"
+              action="action_spare_issue" sequence="25"/>
+    <menuitem id="menu_spare_request" name="Spare Request"
               parent="menu_spare_root" action="action_spare_request" sequence="10"/>
 
     <menuitem id="menu_spare_request_approve" name="To Approve"
               parent="menu_spare_root" action="action_spare_request_to_approve"
               sequence="20" groups="asset_management.group_asset_manager"/>
 
-    <menuitem id="menu_spare_product" name="Spare Products"
+    <menuitem id="menu_spare_product" name="Spare Product"
               parent="menu_spare_root" action="action_spare_product" sequence="30"/>
 
 </odoo>

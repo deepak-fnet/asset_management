@@ -38,3 +38,18 @@ def has_field(record, field_name):
     'l10n_in_pan' when the l10n_in module is not installed).
     """
     return bool(record) and field_name in record._fields
+
+
+def find_department_head(env, user):
+    """Manager (a user) of the user's department; when the user IS that
+    manager, the parent department's manager (else themselves)."""
+    employee = user.employee_id or user.employee_ids[:1]
+    department = employee.department_id
+    while department:
+        manager_user = department.manager_id.user_id
+        if manager_user and manager_user != user:
+            return manager_user
+        if not department.parent_id:
+            return manager_user
+        department = department.parent_id
+    return env['res.users']

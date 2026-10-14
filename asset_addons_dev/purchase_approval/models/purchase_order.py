@@ -2,7 +2,7 @@ import json
 
 from markupsafe import Markup
 
-from odoo import models, fields, api
+from odoo import _, models, fields, api
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools.misc import formatLang
 
@@ -33,6 +33,8 @@ class PurchaseOrder(models.Model):
             ("submitted", "Waiting Approval"),
             ("approved", "Approved"),
             ("rejected", "Rejected"),
+            ("query", "Query Raised"),
+            ("revision", "Revision Requested"),
         ],
         string="Approval Status", compute="_compute_approval_status",
         store=True, copy=False,
@@ -53,6 +55,10 @@ class PurchaseOrder(models.Model):
             order.approval_progress = "%d / %d Approved" % (len(approved), len(lines))
             if any(l.status == "rejected" for l in lines):
                 order.approval_status = "rejected"
+            elif any(l.status == "revision" for l in lines):
+                order.approval_status = "revision"
+            elif any(l.status == "query" for l in lines):
+                order.approval_status = "query"
             elif len(approved) == len(lines):
                 order.approval_status = "approved"
             else:
@@ -70,19 +76,21 @@ class PurchaseOrder(models.Model):
              "approval line on this order. Drives the header buttons.",
     )
 
-    @api.depends("approval_line_ids.status", "approval_line_ids.approver_id")
+    @api.depends("approval_line_ids.status", "approval_line_ids.approver_id",
+                 "approval_line_ids.sequence")
+    @api.depends_context("uid")
     def _compute_can_approve(self):
-        uid = self.env.user
         for order in self:
-            order.can_approve = bool(order.approval_line_ids.filtered(
-                lambda l: l.approver_id == uid and l.status == "pending"
-            ))
+            order.can_approve = bool(order._own_pending_line())
 
     def _own_pending_line(self):
-        """The current user's pending approval line on this order."""
+        """The current user's pending approval line on this order - only once
+        every lower level has approved (levels act in order)."""
         self.ensure_one()
-        return self.approval_line_ids.filtered(
+        lines = self.approval_line_ids
+        return lines.filtered(
             lambda l: l.approver_id == self.env.user and l.status == "pending"
+            and not any(o.sequence < l.sequence and o.status != "approved" for o in lines)
         )[:1]
 
     def action_approve_order(self):
@@ -114,18 +122,11 @@ class PurchaseOrder(models.Model):
         }
 
     # ------------------------------------------------------------------
-    # Rejection history: reason every time, and what changed afterwards
+    # Reject: final. The order stays Rejected (a revision request is the
+    # way to send it back for changes).
     # ------------------------------------------------------------------
     approval_submitted_by = fields.Many2one(
         "res.users", string="Submitted for Approval By", copy=False, readonly=True)
-    rejection_ids = fields.One2many(
-        "purchase.approval.rejection", "order_id", string="Rejections", copy=False)
-    rejection_count = fields.Integer(compute="_compute_rejection_count")
-
-    @api.depends("rejection_ids")
-    def _compute_rejection_count(self):
-        for order in self:
-            order.rejection_count = len(order.rejection_ids)
 
     def _reject_with_reason(self, reason):
         self.ensure_one()
@@ -136,36 +137,177 @@ class PurchaseOrder(models.Model):
             )
         line.comment = reason
         line.action_reject()
-        rejection = self.env["purchase.approval.rejection"].create({
-            "order_id": self.id,
-            "cycle": len(self.rejection_ids) + 1,
-            "rejected_by": self.env.user.id,
-            "rejected_on": fields.Datetime.now(),
-            "reason": reason,
-            "snapshot": json.dumps(self._approval_snapshot()),
-        })
-        # Nobody else needs to act on this round any more.
+        event = self._approval_log("reject", text=reason, line=line)
+        # Nobody else needs to act on this order any more.
         self._close_approval_activities()
         self._approval_notify(
             self._approval_requesters(),
             "Rejected: %s" % self.name,
             Markup(
-                "<p><b>%s</b> was <b>rejected</b> by %s (rejection #%s).</p>"
+                "<p><b>%s</b> was <b>rejected</b> by %s.</p>"
                 "<p><b>Reason:</b> %s</p>"
-                "<p>Please make the required changes and submit it for approval again.</p>"
-            ) % (self.name, self.env.user.name, rejection.cycle, reason),
+            ) % (self.name, self.env.user.name, reason),
         )
-        return rejection
+        return event
 
-    def action_view_rejections(self):
+    # ------------------------------------------------------------------
+    # Comment / Query / Request Revision (approver) and the reply (creator)
+    # ------------------------------------------------------------------
+    approval_event_ids = fields.One2many(
+        "purchase.approval.event", "order_id", string="Approval History", copy=False)
+    open_query_id = fields.Many2one(
+        "purchase.approval.event", compute="_compute_approval_events", string="Open Query")
+    query_count = fields.Integer(compute="_compute_approval_events")
+    revision_count = fields.Integer(compute="_compute_approval_events")
+    can_reply_query = fields.Boolean(compute="_compute_can_reply_query")
+
+    @api.depends("approval_event_ids.kind", "approval_event_ids.state")
+    def _compute_approval_events(self):
+        for order in self:
+            events = order.approval_event_ids
+            order.open_query_id = events.filtered(lambda e: e.kind == "query" and e.state == "open")[:1]
+            order.query_count = len(events.filtered(lambda e: e.kind == "query"))
+            order.revision_count = len(events.filtered(lambda e: e.kind == "revision"))
+
+    @api.depends("approval_status", "approval_submitted_by", "user_id", "approval_event_ids.state")
+    @api.depends_context("uid")
+    def _compute_can_reply_query(self):
+        # Only the user who submitted the order for approval answers a query.
+        user = self.env.user
+        for order in self:
+            order.can_reply_query = bool(order.open_query_id) and user == order._approval_submitter()
+
+    def _approval_submitter(self):
+        self.ensure_one()
+        return self.approval_submitted_by or self.user_id
+
+    def _approval_log(self, kind, text=False, line=None, state="closed", snapshot=False):
+        self.ensure_one()
+        if line is None:
+            line = self._own_pending_line()
+        number = len(self.approval_event_ids.filtered(lambda e: e.kind == kind)) + 1
+        level_name = False
+        if line:
+            # The approval role of that level, e.g. "Level - 1" or "CFO".
+            tier = self.approval_config_id.line_ids.filtered(lambda t: t.sequence == line.sequence)[:1]
+            level_name = tier.role_id.name or False
+        return self.env["purchase.approval.event"].sudo().create({
+            "order_id": self.id, "kind": kind, "text": text, "level_name": level_name,
+            "user_id": self.env.user.id, "level": line.sequence if line else 0,
+            "state": state, "number": number,
+            "snapshot": json.dumps(snapshot) if snapshot else False,
+        })
+
+    def _approval_open_action(self, kind):
+        self.ensure_one()
+        if not self._own_pending_line():
+            raise UserError(_("You do not have a pending approval on this Purchase Order."))
+        title = {"comment": _("Add Comment"), "query": _("Raise Query"),
+                 "revision": _("Request Revision")}[kind]
+        return {
+            "type": "ir.actions.act_window", "name": title,
+            "res_model": "purchase.approval.action.wizard", "view_mode": "form", "target": "new",
+            "context": {"default_order_id": self.id, "default_kind": kind},
+        }
+
+    def action_approval_comment(self):
+        return self._approval_open_action("comment")
+
+    def action_approval_query(self):
+        return self._approval_open_action("query")
+
+    def action_approval_revision(self):
+        return self._approval_open_action("revision")
+
+    def _approval_comment(self, text):
+        self.ensure_one()
+        line = self._own_pending_line()
+        if not line:
+            raise UserError(_("You do not have a pending approval on this Purchase Order."))
+        self._approval_log("comment", text, line)
+        self._approval_notify(
+            self._approval_requesters(), _("Comment on %s", self.name),
+            Markup("<p><b>%s</b> commented on <b>%s</b>:</p><blockquote>%s</blockquote>") % (
+                self.env.user.name, self.name, text))
+
+    def _approval_query(self, text):
+        # Approver asks a question: their line is parked until the creator replies.
+        self.ensure_one()
+        line = self._own_pending_line()
+        if not line:
+            raise UserError(_("You do not have a pending approval on this Purchase Order."))
+        event = self._approval_log("query", text, line, state="open")
+        line.write({"status": "query", "comment": text, "action_date": fields.Datetime.now()})
+        line._close_own_activity()
+        requesters = self._approval_submitter()
+        for user in requesters:
+            self.activity_schedule(
+                "mail.mail_activity_data_todo", user_id=user.id,
+                summary=_("Reply to the approver's query on %s", self.name),
+                note=text)
+        self._approval_notify(
+            requesters, _("Query on %s", self.name),
+            Markup("<p><b>%s</b> has a query on <b>%s</b>:</p><blockquote>%s</blockquote>"
+                   "<p>Open the order and click <b>Reply to Query</b>. The approval waits until you do.</p>")
+            % (self.env.user.name, self.name, text))
+        return event
+
+    def _approval_reply(self, query, text):
+        # Creator answers the query: the same approver gets the order back.
+        self.ensure_one()
+        if not self.can_reply_query or query != self.open_query_id:
+            raise UserError(_("There is no open query for you to answer."))
+        query.sudo().write({"state": "closed", "reply": text, "replied_by": self.env.user.id,
+                            "replied_on": fields.Datetime.now()})
+        self._approval_log("reply", text, line=self.env["purchase.approval.line"])
+        self.env["mail.activity"].search([
+            ("res_model", "=", "purchase.order"), ("res_id", "=", self.id),
+            ("summary", "=", _("Reply to the approver's query on %s", self.name)),
+        ]).action_feedback(feedback=_("Replied."))
+        line = self.approval_line_ids.filtered(
+            lambda l: l.status == "query" and l.approver_id == query.user_id)[:1]
+        if line:
+            line.sudo().write({"status": "pending", "comment": False, "action_date": False})
+            self._approval_request_tier(line)
+        self._approval_notify(
+            query.user_id, _("Reply on %s", self.name),
+            Markup("<p><b>%s</b> replied to your query on <b>%s</b>:</p><blockquote>%s</blockquote>"
+                   "<p>The order is back with you for approval.</p>") % (
+                self.env.user.name, self.name, text))
+
+    def _approval_request_revision(self, text):
+        # Approver asks for changes: the order goes back to the creator.
+        self.ensure_one()
+        line = self._own_pending_line()
+        if not line:
+            raise UserError(_("You do not have a pending approval on this Purchase Order."))
+        event = self._approval_log("revision", text, line, state="open")
+        event._store_order_copy()
+        line.write({"status": "revision", "comment": text, "action_date": fields.Datetime.now()})
+        # Nobody else needs to act on this round any more.
+        self._close_approval_activities()
+        self._approval_notify(
+            self._approval_submitter(), _("Revision requested: %s", self.name),
+            Markup("<p><b>%s</b> asked for changes on <b>%s</b>:</p><blockquote>%s</blockquote>"
+                   "<p>Edit the order and submit it for approval again.</p>") % (
+                self.env.user.name, self.name, text))
+
+    def action_reply_query(self):
+        self.ensure_one()
+        if not self.can_reply_query:
+            raise UserError(_("There is no open query for you to answer."))
+        return {
+            "type": "ir.actions.act_window", "name": _("Reply to Query"),
+            "res_model": "purchase.approval.reply.wizard", "view_mode": "form", "target": "new",
+            "context": {"default_order_id": self.id, "default_query_id": self.open_query_id.id},
+        }
+
+    def action_view_approval_events(self):
         self.ensure_one()
         return {
-            "type": "ir.actions.act_window",
-            "name": "Rejections - %s" % self.name,
-            "res_model": "purchase.approval.rejection",
-            "view_mode": "list,form",
-            "domain": [("order_id", "=", self.id)],
-            "context": {"create": False, "delete": False},
+            "type": "ir.actions.act_window", "name": _("Approval History - %s", self.name),
+            "res_model": "purchase.approval.event", "view_mode": "list,form",
+            "domain": [("order_id", "=", self.id)], "context": {"create": False},
         }
 
     def _approval_snapshot(self):
@@ -315,6 +457,13 @@ class PurchaseOrder(models.Model):
     # ------------------------------------------------------------------
     def action_submit_for_approval(self):
         for order in self:
+            if order.approval_status in ("submitted", "approved"):
+                raise UserError(_("This order is already %s.",
+                                  dict(order._fields["approval_status"].selection)[order.approval_status]))
+            if order.approval_status == "query":
+                raise UserError(_("An approver has a query on this order - reply to it first."))
+            if order.approval_status == "rejected":
+                raise UserError(_("This order was rejected and cannot be submitted again."))
             lines = order.approval_config_id.line_ids
 
             # Highest-sequence tier whose amount band contains the order
@@ -378,14 +527,17 @@ class PurchaseOrder(models.Model):
                     "sequence": required_sequence[user],
                 })
 
-            # A resubmission after rejection: record what was changed.
-            reopened = order.rejection_ids.filtered(lambda r: r.state == "open")
-            if reopened:
-                reopened._record_resubmission()
-                for rejection in reopened:
-                    order.message_post(body=Markup(
-                        "<p>Resubmitted after rejection #%s. Changes made:</p><pre>%s</pre>"
-                    ) % (rejection.cycle, rejection.change_summary))
+            # A resubmission after a revision request: keep a full copy of
+            # the order as resubmitted (the revision event holds the copy
+            # from before), viewable from the Approval History.
+            revisions = order.approval_event_ids.filtered(
+                lambda e: e.kind == "revision" and e.state == "open")
+            if revisions:
+                revisions._close_revision()
+                order._approval_log(
+                    "resubmit", text=_("Resubmitted after revision request #%s.",
+                                       ", ".join(str(n) for n in revisions.mapped("number"))),
+                    line=self.env["purchase.approval.line"])._store_order_copy()
 
             order.approval_submitted_by = self.env.user
             order._close_approval_activities()

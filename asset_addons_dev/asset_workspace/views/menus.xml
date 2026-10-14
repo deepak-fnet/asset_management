@@ -201,6 +201,20 @@
                   action="asset_management.action_asset_request"
                   sequence="10"/>
 
+        <!-- ── 5a. Request app: Asset Request. The spare screens (Spare
+             Request, Spare Issue, Spare Product) live together under
+             Request > Spare (moved here by hooks.py MENU_LAYOUT). The old IT Asset > Asset Request entry is
+             hidden by hooks.py (MENUS_HIDDEN_IN_LAYOUT). -->
+        <menuitem id="menu_ws_req_root"
+                  name="Request"
+                  web_icon="asset_workspace,static/description/request_icon.png"
+                  sequence="12"/>
+        <menuitem id="menu_ws_req_asset"
+                  name="Asset Request"
+                  parent="menu_ws_req_root"
+                  action="asset_management.action_asset_request"
+                  sequence="10"/>
+
         <!--    <menuitem id="menu_ws_request_po"-->
         <!--              name="Purchase Orders"-->
         <!--              parent="menu_ws_request"-->

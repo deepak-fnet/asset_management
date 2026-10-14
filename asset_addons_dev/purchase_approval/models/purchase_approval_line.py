@@ -20,6 +20,8 @@ class PurchaseApprovalLine(models.Model):
             ("pending", "Pending"),
             ("approved", "Approved"),
             ("rejected", "Rejected"),
+            ("query", "Query Raised"),
+            ("revision", "Revision Requested"),
         ],
         string="Status", default="pending", required=True, copy=False,
     )
@@ -62,6 +64,7 @@ class PurchaseApprovalLine(models.Model):
             line.order_id.message_post(
                 body="%s approved this Purchase Order." % line.approver_id.display_name
             )
+            line.order_id._approval_log("approve", line=line)
             line._close_own_activity()
             line.order_id._approval_after_line_approved(line)
         return True

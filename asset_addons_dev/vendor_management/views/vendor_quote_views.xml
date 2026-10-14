@@ -70,6 +70,10 @@
                                 </list>
                             </field>
                         </page>
+                        <page string="Quotation Copy" name="quotation_copy">
+                            <field name="quotation_attachment_ids" widget="many2many_binary"
+                                   readonly="state != 'draft'"/>
+                        </page>
                         <page string="Notes">
                             <field name="note" readonly="state != 'draft'"/>
                         </page>

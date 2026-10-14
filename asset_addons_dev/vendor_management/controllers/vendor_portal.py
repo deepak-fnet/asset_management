@@ -54,6 +54,14 @@ class VendorPortal(http.Controller):
             partner.sudo().write(vals)
             return request.redirect('/my/vendor?success=profile_saved')
 
+        # Answer an open query from the reviewer
+        if post.get('action') == 'resubmit_query':
+            try:
+                partner.sudo().action_resubmit_query(post.get('response'))
+                return request.redirect('/my/vendor?success=resubmitted')
+            except Exception as e:
+                return request.redirect('/my/vendor?error=%s' % str(e))
+
         # Handle Workflow Submission
         if post.get('action') == 'submit_workflow':
             try:
@@ -286,10 +294,22 @@ class VendorPortal(http.Controller):
                     'vendor_notes': v_note or False,
                 })
             
+            # Scanned quotation copy (optional, several files allowed).
+            attachments = request.env['ir.attachment'].sudo()
+            for upload in request.httprequest.files.getlist('quotation_files'):
+                if not upload or not upload.filename:
+                    continue
+                attachments |= request.env['ir.attachment'].sudo().create({
+                    'name': upload.filename,
+                    'datas': base64.b64encode(upload.read()),
+                    'res_model': 'vendor.quote',
+                    'res_id': quote.id,
+                })
             # Update Quote Header
             quote.sudo().write({
                 'note': post.get('note'),
-                'state': 'submitted'
+                'state': 'submitted',
+                'quotation_attachment_ids': [(4, a.id) for a in attachments],
             })
             
             # Notify PO (bids-received is handled by vendor.quote.write)

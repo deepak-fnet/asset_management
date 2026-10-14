@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_vendor_query_list" model="ir.ui.view">
+        <field name="name">vendor.query.list</field>
+        <field name="model">vendor.query</field>
+        <field name="arch" type="xml">
+            <list create="0" delete="0" decoration-warning="state == 'open'" decoration-success="state == 'answered'">
+                <field name="round_no" string="#"/>
+                <field name="vendor_id"/>
+                <field name="query"/>
+                <field name="document_ids" widget="many2many_tags"/>
+                <field name="raised_by"/>
+                <field name="raised_on"/>
+                <field name="response"/>
+                <field name="answered_on"/>
+                <field name="state" widget="badge" decoration-warning="state == 'open'" decoration-success="state == 'answered'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vendor_query_form" model="ir.ui.view">
+        <field name="name">vendor.query.form</field>
+        <field name="model">vendor.query</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" delete="0">
+                <header><field name="state" widget="statusbar"/></header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="vendor_id"/>
+                            <field name="round_no"/>
+                            <field name="raised_by"/>
+                            <field name="raised_on"/>
+                        </group>
+                        <group>
+                            <field name="answered_by" invisible="not answered_by"/>
+                            <field name="answered_on" invisible="not answered_on"/>
+                            <field name="document_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+                    <group string="Query"><field name="query" nolabel="1" colspan="2"/></group>
+                    <group string="Vendor Reply" invisible="state != 'answered'">
+                        <field name="response" nolabel="1" colspan="2"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_vendor_query" model="ir.actions.act_window">
+        <field name="name">Vendor Queries</field>
+        <field name="res_model">vendor.query</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('vendor_id', '=', active_id)]</field>
+        <field name="context">{'create': False}</field>
+    </record>
+
+    <record id="view_vendor_query_wizard_form" model="ir.ui.view">
+        <field name="name">vendor.query.wizard.form</field>
+        <field name="model">vendor.query.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Query to Vendor">
+                <p class="text-muted">The vendor is emailed this query and sees it on the portal. The
+                    application is put on hold until the vendor replies and resubmits.</p>
+                <group>
+                    <field name="vendor_id"/>
+                    <field name="query" placeholder="e.g. The GST certificate is not readable and the cancelled cheque is missing."/>
+                    <field name="document_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                </group>
+                <footer>
+                    <button name="action_send" type="object" string="Send Query" icon="fa-paper-plane" class="btn-primary"/>
+                    <button special="cancel" string="Cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Queries listed on the vendor form, below the documents. -->
+    <record id="view_partner_form_vendor_queries" model="ir.ui.view">
+        <field name="name">res.partner.form.vendor.queries</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="priority">210</field>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Queries" name="vendor_queries" invisible="not vendor_query_count">
+                    <field name="vendor_query_ids" readonly="1"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
