@@ -112,6 +112,7 @@ class AssetTransfer(models.Model):
     # ── Workflow ──────────────────────────────────────────────────────────
     def action_submit(self):
         for rec in self:
+            rec.asset_id._check_not_in_repair(_("transfer"))
             if rec.state != "draft":
                 raise UserError(_("Only draft transfers can be submitted."))
             rec.state = "submitted"
@@ -119,6 +120,7 @@ class AssetTransfer(models.Model):
 
     def action_approve(self):
         for rec in self:
+            rec.asset_id._check_not_in_repair(_("transfer"))
             if rec.state != "submitted":
                 raise UserError(_("Only submitted transfers can be approved."))
             rec.write({"state": "approved",
@@ -129,6 +131,7 @@ class AssetTransfer(models.Model):
     def action_done(self):
         """Apply the change to the asset."""
         for rec in self:
+            rec.asset_id._check_not_in_repair(_("transfer"))
             if rec.state != "approved":
                 raise UserError(_(
                     "Transfer %s must be approved before completing.") % rec.name)
@@ -304,6 +307,7 @@ class AssetScrap(models.Model):
 
     def action_submit(self):
         for rec in self:
+            rec.asset_id._check_not_in_repair(_("scrap"))
             if rec.state != "draft":
                 raise UserError(_("Only draft records can be submitted."))
             rec.state = "submitted"
@@ -320,6 +324,7 @@ class AssetScrap(models.Model):
 
     def action_done(self):
         for rec in self:
+            rec.asset_id._check_not_in_repair(_("scrap"))
             if rec.state != "approved":
                 raise UserError(_(
                     "Scrap %s must be approved before completing.") % rec.name)

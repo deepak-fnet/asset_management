@@ -28,6 +28,7 @@ class AssetDirectAssignWizard(models.TransientModel):
 
     def action_assign(self):
         self.ensure_one()
+        self.asset_id._check_not_in_repair(_("assign"))
         if self.asset_id.state != 'draft':
             raise UserError(_("Only a Draft asset can be assigned from here."))
         self.asset_id._assign_to_target(self.assign_type, self.employee_id,

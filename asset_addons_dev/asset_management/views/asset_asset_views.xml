@@ -354,6 +354,13 @@
 
                     </div><!-- /oe_button_box -->
 
+                    <div class="alert alert-warning d-flex align-items-center gap-2" role="status"
+                         invisible="not in_repair">
+                        <i class="fa fa-wrench fa-lg me-2"/>
+                        <span><field name="repair_notice" readonly="1" class="d-inline"/></span>
+                        <field name="in_repair" invisible="1"/>
+                    </div>
+
                     <!-- LIFECYCLE GUIDANCE BANNER (draft, no employee) -->
                     <div class="alert alert-info d-flex align-items-center gap-2"
                          role="alert"

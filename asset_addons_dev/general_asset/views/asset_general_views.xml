@@ -227,6 +227,13 @@
                      instead - this comment is the one place that explains
                      why, so it isn't repeated 70+ times. -->
                 <sheet>
+                    <div class="alert alert-warning d-flex align-items-center gap-2 mb-2" role="status"
+                         invisible="not in_repair">
+                        <i class="fa fa-wrench fa-lg me-2"/>
+                        <span><field name="repair_notice" readonly="1" class="d-inline"/>
+                            <button name="action_view_repairs" type="object" class="btn btn-link p-0 ms-2">Open repair</button></span>
+                        <field name="in_repair" invisible="1"/>
+                    </div>
                     <div class="oe_button_box" name="button_box">
 
                         <button name="action_view_it_asset" type="object" class="oe_stat_button" icon="fa-desktop" invisible="not it_asset_id">

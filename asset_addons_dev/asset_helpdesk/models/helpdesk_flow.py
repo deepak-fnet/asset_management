@@ -276,6 +276,15 @@ class RepairManagement(models.Model):
                     lambda t: t.state not in ('solved', 'replaced', 'cancelled')):
                 where = ", ".join(n for n in [rec.asset_id.assigned_employee_id.name,
                                               rec.asset_id.location_id.complete_name] if n)
+                if rec.standby_kept:
+                    ticket._notify_requester(
+                        _("Repair completed: %s", ticket.ticket_number),
+                        Markup('<p>Dear %s,</p><p>The repair of <b>%s</b> is complete and it has been '
+                               'returned to stock. The temporary asset you were given stays with you '
+                               'permanently. Ticket <b>%s</b> is now resolved and closed.</p>') % (
+                            ticket._requester_name(), rec.asset_id.display_name, ticket.ticket_number))
+                    ticket.with_context(helpdesk_closing_mail_sent=True).state = 'solved'
+                    continue
                 ticket._notify_requester(
                     _("Repair completed: %s", ticket.ticket_number),
                     Markup('<p>Dear %s,</p><p>Your asset <b>%s</b> has been repaired and is assigned '

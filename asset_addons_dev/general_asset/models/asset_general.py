@@ -627,6 +627,7 @@ class AssetAssetGeneral(models.Model):
         camera record; it only flips the flag that locks this form. Submit
         (or Update) can be pressed again afterwards to re-sync.
         """
+        self._check_not_in_repair(_("reset"))
         for rec in self:
             rec.is_submit = False
             if rec.state == 'submit':

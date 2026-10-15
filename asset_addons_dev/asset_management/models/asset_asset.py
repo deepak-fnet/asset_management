@@ -454,6 +454,30 @@ class AssetAsset(models.Model):
             asset.in_repair = any(
                 r.state in ('new', 'in_progress') for r in asset.repair_management_ids)
 
+    open_repair_id = fields.Many2one(
+        'repair.management', string="Open Repair", compute='_compute_repair_notice')
+    repair_notice = fields.Char(string="Repair Notice", compute='_compute_repair_notice')
+
+    @api.depends('repair_management_ids.state', 'repair_management_ids.name')
+    def _compute_repair_notice(self):
+        labels = {'new': _('New'), 'in_progress': _('In Progress')}
+        for asset in self:
+            repair = asset.repair_management_ids.filtered(
+                lambda r: r.state in ('new', 'in_progress'))[:1]
+            asset.open_repair_id = repair
+            asset.repair_notice = _(
+                "Under repair: %(ref)s (%(state)s). Reset, transfer, scrap and recovery are "
+                "blocked until the repair is Done or Not Repairable.",
+                ref=repair.name, state=labels.get(repair.state, '')) if repair else False
+
+    def _check_not_in_repair(self, what):
+        """Stop lifecycle actions on an asset whose repair is still open."""
+        for asset in self.filtered('in_repair'):
+            raise UserError(_(
+                "%(asset)s is under repair (%(ref)s). You cannot %(what)s it until the repair "
+                "is marked Done or Not Repairable.",
+                asset=asset.display_name, ref=asset.open_repair_id.name, what=what))
+
     def action_view_repairs(self):
         self.ensure_one()
         return {

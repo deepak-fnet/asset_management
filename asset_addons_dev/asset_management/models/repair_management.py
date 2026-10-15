@@ -417,6 +417,34 @@ class RepairManagement(models.Model):
             if rec.spare_issue_ids.filtered(lambda i: i.state == 'requested'):
                 raise UserError(_("Spares are still waiting to be issued by the store."))
 
+    standby_kept = fields.Boolean(
+        string="Temporary Asset Kept", copy=False, readonly=True,
+        help="The temporary asset was made permanent for its place; when this repair is "
+             "done the repaired asset goes to stock instead of back to that place.")
+
+    def action_keep_standby(self):
+        """The repair is taking long: the temporary asset stays for good and the
+        asset under repair goes to stock once it is repaired."""
+        for rec in self:
+            lent = self.env['asset.assign.process'].search([
+                ('repair_ticket_id', '=', rec.id), ('state', '=', 'replaced')])
+            if not lent:
+                raise UserError(_("No temporary asset is out for this repair."))
+            for ap in lent:
+                ap.state = 'done'
+                ap.message_post(body=_("%s is now the permanent asset for this place.",
+                                       ap.replacement_asset_id.display_name))
+            asset = rec.asset_id
+            # The place now belongs to the temporary asset: free the old one, and
+            # send it to stock (not back to that place) when the repair is done.
+            asset.write({'assigned_employee_id': False, 'department_id': False,
+                         'location_id': False, 'assignment_date': False})
+            rec.write({'standby_kept': True, 'asset_state_before': 'submit'})
+            rec.message_post(body=_(
+                "Temporary asset %(new)s kept permanently. %(old)s goes to stock when this "
+                "repair is done.", new=", ".join(lent.replacement_asset_id.mapped('display_name')),
+                old=asset.display_name))
+
     def action_return_standby(self):
         """Take the temporary asset back into stock (Submit)."""
         for rec in self:

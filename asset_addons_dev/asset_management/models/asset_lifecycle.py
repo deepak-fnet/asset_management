@@ -606,6 +606,7 @@ class AssetExitProcess(models.Model):
         for rec in self:
             if rec.state != 'in_progress':
                 raise UserError(_("Process must be in progress before completing."))
+            rec.recovery_line_ids.asset_id._check_not_in_repair(_("recover"))
             all_recovered = all(line.recovered for line in rec.recovery_line_ids)
             if not all_recovered:
                 raise UserError(_(

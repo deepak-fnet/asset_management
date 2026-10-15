@@ -46,3 +46,20 @@ class RepairManagementStandbyMail(models.Model):
                         ticket._requester_name(),
                         ", ".join(lent.get(rec.id).mapped('display_name')), rec.asset_id.display_name))
         return res
+
+    def action_keep_standby(self):
+        lent = {rec.id: self.env['asset.assign.process'].search([
+            ('repair_ticket_id', '=', rec.id), ('state', '=', 'replaced')]).replacement_asset_id
+            for rec in self}
+        res = super().action_keep_standby()
+        for rec in self:
+            for ticket in _tickets_for_repair(rec):
+                ticket._notify_requester(
+                    _("Temporary asset made permanent: %s", ticket.ticket_number),
+                    Markup('<p>Dear %s,</p><p>The repair of <b>%s</b> will take longer, so the '
+                           'temporary asset <b>%s</b> now stays with you permanently.</p>'
+                           '<p>The repaired asset will go to stock once the repair is complete. '
+                           'We will let you know when ticket <b>%s</b> is closed.</p>') % (
+                        ticket._requester_name(), rec.asset_id.display_name,
+                        ", ".join(lent.get(rec.id).mapped('display_name')), ticket.ticket_number))
+        return res

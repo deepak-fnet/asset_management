@@ -315,6 +315,9 @@
                 <button name="action_return_standby" type="object" string="Return Temporary Asset"
                         class="btn-warning" invisible="not standby_out"
                         confirm="Take the temporary asset back into stock?"/>
+                <button name="action_keep_standby" type="object" string="Keep Temporary Asset"
+                        class="btn-secondary" invisible="not standby_out"
+                        confirm="Keep the temporary asset permanently for this place? The asset under repair will go to stock after the repair."/>
                 <field name="standby_out" invisible="1"/>
             </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
