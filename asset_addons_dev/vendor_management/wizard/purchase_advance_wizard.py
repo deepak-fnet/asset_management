@@ -44,7 +44,28 @@ class PurchaseAdvanceRequestWizard(models.TransientModel):
                 [('type', '=', 'bank'), ('company_id', '=', order.company_id.id)], limit=1)
             if journal:
                 res.setdefault('journal_id', journal.id)
+            if 'invoice_ids' in fields_list and not res.get('invoice_ids'):
+                att = self._po_report_attachment(order)
+                if att:
+                    res['invoice_ids'] = [(6, 0, att.ids)]
         return res
+
+    @api.model
+    def _po_report_attachment(self, order):
+        """Attach the purchase order PDF (our PO format) by default; the user
+        can remove it or add the vendor's own invoice."""
+        report = self.env.ref('vendor_management.action_report_purchase_order_accom', raise_if_not_found=False)
+        if not report:
+            return self.env['ir.attachment']
+        try:
+            pdf, _fmt = self.env['ir.actions.report'].sudo()._render_qweb_pdf(report.report_name, [order.id])
+        except Exception:
+            return self.env['ir.attachment']
+        return self.env['ir.attachment'].create({
+            'name': '%s.pdf' % (order.name or 'Purchase Order').replace('/', '_'),
+            'raw': pdf, 'mimetype': 'application/pdf',
+            'res_model': 'purchase.advance.request.wizard', 'res_id': 0,
+        })
 
     @api.depends('advance_type', 'percent', 'order_id.amount_total')
     def _compute_amount(self):

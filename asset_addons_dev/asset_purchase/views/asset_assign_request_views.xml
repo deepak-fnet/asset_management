@@ -107,9 +107,15 @@
                         <field name="product_id" column_invisible="1"/>
                         <field name="asset_id" options="{'no_create': True}"
                                domain="[('category_id', '=', category_id), ('product_id', '=', product_id), ('state', '=', 'submit'), ('in_repair', '=', False)]"/>
-                        <field name="location_id" required="assign_type == 'employee'" options="{'no_create': True}"/>
-                        <field name="employee_id" required="assign_type == 'employee'" readonly="assign_type == 'common'" options="{'no_create': True}"/>
-                        <field name="department_id" required="assign_type == 'employee'" readonly="assign_type == 'employee'" force_save="1" options="{'no_create': True}"/>
+                        <field name="allowed_employee_id" column_invisible="1"/>
+                        <field name="allowed_department_id" column_invisible="1"/>
+                        <field name="allowed_location_ids" column_invisible="1"/>
+                        <field name="location_id" required="assign_type == 'employee'" options="{'no_create': True}"
+                               domain="[('id', 'in', allowed_location_ids)]"/>
+                        <field name="employee_id" required="assign_type == 'employee'" readonly="assign_type == 'common'" force_save="1"
+                               options="{'no_create': True}" domain="[('id', '=', allowed_employee_id)]"/>
+                        <field name="department_id" required="assign_type == 'employee'" readonly="assign_type == 'employee'" force_save="1"
+                               options="{'no_create': True}" domain="[('id', '=', allowed_department_id)]"/>
                     </list>
                 </field>
                 <footer>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_dms_disposal" model="ir.sequence">
+            <field name="name">DMS Disposal</field>
+            <field name="code">dms.disposal</field>
+            <field name="prefix">DISP/%(year)s/</field>
+            <field name="padding">4</field>
+        </record>
+        <record id="type_sop" model="dms.document.type"><field name="name">SOP</field><field name="code">SOP</field></record>
+        <record id="type_wi" model="dms.document.type"><field name="name">Work Instruction</field><field name="code">WI</field></record>
+        <record id="type_form" model="dms.document.type"><field name="name">Form</field><field name="code">FRM</field></record>
+        <record id="type_policy" model="dms.document.type"><field name="name">Policy</field><field name="code">POL</field><field name="requires_final_approval" eval="True"/></record>
+        <record id="type_contract" model="dms.document.type"><field name="name">Contract</field><field name="code">CON</field><field name="requires_final_approval" eval="True"/></record>
+        <record id="type_invoice" model="dms.document.type"><field name="name">Invoice</field><field name="code">INV</field></record>
+        <record id="type_record" model="dms.document.type"><field name="name">Record</field><field name="code">REC</field></record>
+
+        <record id="param_host" model="ir.config_parameter"><field name="key">dms.server_host</field><field name="value">192.168.105.20</field></record>
+        <record id="param_port" model="ir.config_parameter"><field name="key">dms.server_port</field><field name="value">22</field></record>
+        <record id="param_user" model="ir.config_parameter"><field name="key">dms.server_user</field><field name="value">odooteam</field></record>
+        <record id="param_password" model="ir.config_parameter"><field name="key">dms.server_password</field><field name="value">Root@123</field></record>
+        <record id="param_path" model="ir.config_parameter"><field name="key">dms.server_path</field><field name="value">/home/odooteam/DMS</field></record>
+    </data>
+    <record id="cron_dms_cutoff" model="ir.cron">
+        <field name="name">DMS: archive revisions past cut-off</field>
+        <field name="model_id" ref="model_dms_revision"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_cutoff()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+    </record>
+</odoo>

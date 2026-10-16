@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Folders -->
+    <record id="dms_folder_view_list" model="ir.ui.view">
+        <field name="name">dms.folder.list</field>
+        <field name="model">dms.folder</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="complete_name"/>
+                <field name="code"/>
+                <field name="department_id"/>
+                <field name="reviewer_id" widget="many2one_avatar_user"/>
+                <field name="approver_id" widget="many2one_avatar_user"/>
+                <field name="final_approver_id" widget="many2one_avatar_user"/>
+                <field name="server_path"/>
+            </list>
+        </field>
+    </record>
+    <record id="dms_folder_view_form" model="ir.ui.view">
+        <field name="name">dms.folder.form</field>
+        <field name="model">dms.folder</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_documents" type="object" class="oe_stat_button" icon="fa-file-text-o">
+                            <field name="document_count" widget="statinfo" string="Documents"/>
+                        </button>
+                    </div>
+                    <div class="oe_title"><h1><field name="name" placeholder="Folder name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="parent_id"/>
+                            <field name="department_id"/>
+                            <field name="is_archive"/>
+                        </group>
+                        <group string="Approval chain">
+                            <field name="reviewer_id" widget="many2one_avatar_user"/>
+                            <field name="approver_id" widget="many2one_avatar_user"/>
+                            <field name="final_approver_id" widget="many2one_avatar_user"/>
+                            <field name="dept_head_id" widget="many2one_avatar_user"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Folder Access" name="access">
+                            <field name="access_ids">
+                                <list editable="bottom">
+                                    <field name="user_id" widget="many2one_avatar_user"/>
+                                    <field name="group_id"/>
+                                    <field name="level" widget="badge" decoration-info="level == 'view'" decoration-warning="level == 'download'" decoration-success="level == 'edit'"/>
+                                    <field name="granted_by_id" widget="many2one_avatar_user" optional="show"/>
+                                    <field name="create_date" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Server" name="server">
+                            <group><field name="server_path"/><field name="description"/></group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_dms_folder" model="ir.actions.act_window">
+        <field name="name">Folders</field>
+        <field name="res_model">dms.folder</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Document types -->
+    <record id="dms_type_view_list" model="ir.ui.view">
+        <field name="name">dms.document.type.list</field>
+        <field name="model">dms.document.type</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="requires_final_approval"/>
+                <field name="retention_days"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_dms_type" model="ir.actions.act_window">
+        <field name="name">Document Types</field>
+        <field name="res_model">dms.document.type</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <!-- Documents (controller back-office view) -->
+    <record id="dms_document_view_list" model="ir.ui.view">
+        <field name="name">dms.document.list</field>
+        <field name="model">dms.document</field>
+        <field name="arch" type="xml">
+            <list create="0">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="folder_id"/>
+                <field name="type_id"/>
+                <field name="current_rev"/>
+                <field name="owner_id" widget="many2one_avatar_user"/>
+                <field name="locked_by_id" widget="many2one_avatar_user"/>
+                <field name="state" widget="badge" decoration-success="state == 'published'" decoration-warning="state == 'in_review'" decoration-danger="state == 'rejected'"/>
+            </list>
+        </field>
+    </record>
+    <record id="dms_document_view_form" model="ir.ui.view">
+        <field name="name">dms.document.form</field>
+        <field name="model">dms.document</field>
+        <field name="arch" type="xml">
+            <form create="0">
+                <header><field name="state" widget="statusbar" statusbar_visible="draft,in_review,published"/></header>
+                <sheet>
+                    <div class="oe_title"><span class="text-muted"><field name="code"/></span><h1><field name="name"/></h1></div>
+                    <group>
+                        <group><field name="folder_id"/><field name="type_id"/><field name="owner_id"/></group>
+                        <group><field name="current_rev"/><field name="locked_by_id"/><field name="locked_date"/></group>
+                    </group>
+                    <notebook>
+                        <page string="Revisions">
+                            <field name="revision_ids" readonly="1">
+                                <list>
+                                    <field name="rev_label" string="Rev"/>
+                                    <field name="file_name"/>
+                                    <field name="author_id"/>
+                                    <field name="approved_date"/>
+                                    <field name="cutoff_date"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="storage_path" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="File Access">
+                            <field name="access_ids">
+                                <list editable="bottom">
+                                    <field name="user_id"/><field name="group_id"/><field name="level"/><field name="granted_by_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Description"><field name="description"/></page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="dms_document_view_search" model="ir.ui.view">
+        <field name="name">dms.document.search</field>
+        <field name="model">dms.document</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="code"/><field name="name"/><field name="folder_id"/><field name="type_id"/><field name="owner_id"/>
+                <filter name="in_review" string="In Review" domain="[('state', '=', 'in_review')]"/>
+                <filter name="locked" string="Checked Out" domain="[('locked_by_id', '!=', False)]"/>
+                <group><filter name="g_folder" string="Folder" context="{'group_by': 'folder_id'}"/></group>
+            </search>
+        </field>
+    </record>
+    <record id="action_dms_document" model="ir.actions.act_window">
+        <field name="name">All Documents</field>
+        <field name="res_model">dms.document</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Disposal -->
+    <record id="dms_disposal_view_list" model="ir.ui.view">
+        <field name="name">dms.disposal.list</field>
+        <field name="model">dms.disposal</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/><field name="folder_id"/><field name="requested_by_id"/>
+                <field name="controller_approved_id"/><field name="head_approved_id"/>
+                <field name="state" widget="badge" decoration-success="state == 'done'" decoration-warning="state == 'submitted'" decoration-danger="state == 'refused'"/>
+            </list>
+        </field>
+    </record>
+    <record id="dms_disposal_view_form" model="ir.ui.view">
+        <field name="name">dms.disposal.form</field>
+        <field name="model">dms.disposal</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_submit" type="object" string="Submit for Disposal Approval" class="btn-primary" invisible="state != 'draft'" groups="dms.group_dms_controller"/>
+                    <button name="action_approve" type="object" string="Approve Disposal" class="btn-primary" invisible="state != 'submitted'"/>
+                    <button name="action_refuse" type="object" string="Refuse" invisible="state != 'submitted'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group><field name="folder_id" readonly="state != 'draft'"/><field name="requested_by_id"/><field name="dept_head_id"/></group>
+                        <group><field name="controller_approved_id"/><field name="head_approved_id"/></group>
+                    </group>
+                    <field name="reason" placeholder="Why these files can be discarded…" readonly="state != 'draft'"/>
+                    <field name="revision_ids" readonly="state != 'draft'"
+                           domain="[('state', '=', 'archived'), '|', ('document_id.folder_id', 'child_of', folder_id), ('document_id.origin_folder_id', 'child_of', folder_id)]">
+                        <list>
+                            <field name="display_name" string="File"/>
+                            <field name="file_name"/>
+                            <field name="archived_date"/>
+                            <field name="retention_end"/>
+                        </list>
+                    </field>
+                    <group invisible="state != 'done'" string="Disposal log"><field name="file_log" nolabel="1" colspan="2"/></group>
+                    <group invisible="state != 'refused'"><field name="refuse_reason"/></group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_dms_disposal" model="ir.actions.act_window">
+        <field name="name">Disposal Requests</field>
+        <field name="res_model">dms.disposal</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Audit log -->
+    <record id="dms_log_view_list" model="ir.ui.view">
+        <field name="name">dms.log.list</field>
+        <field name="model">dms.log</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0">
+                <field name="date"/><field name="user_id" widget="many2one_avatar_user"/>
+                <field name="action" widget="badge"/><field name="document_ref"/><field name="folder_id"/><field name="details"/>
+            </list>
+        </field>
+    </record>
+    <record id="dms_log_view_search" model="ir.ui.view">
+        <field name="name">dms.log.search</field>
+        <field name="model">dms.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="document_ref"/><field name="user_id"/><field name="folder_id"/><field name="action"/>
+                <group><filter name="g_action" string="Action" context="{'group_by': 'action'}"/><filter name="g_user" string="User" context="{'group_by': 'user_id'}"/></group>
+            </search>
+        </field>
+    </record>
+    <record id="action_dms_log" model="ir.actions.act_window">
+        <field name="name">Audit Log</field>
+        <field name="res_model">dms.log</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <record id="dms_group_view_list" model="ir.ui.view">
+        <field name="name">dms.group.list</field>
+        <field name="model">dms.group</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="level" widget="badge"/>
+                <field name="folder_ids" widget="many2many_tags"/>
+                <field name="user_ids" widget="many2many_avatar_user"/>
+            </list>
+        </field>
+    </record>
+    <record id="dms_group_view_form" model="ir.ui.view">
+        <field name="name">dms.group.form</field>
+        <field name="model">dms.group</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" placeholder="e.g. Accounts + Software"/></h1></div>
+                    <group>
+                        <field name="level" widget="radio" options="{'horizontal': true}"/>
+                        <field name="folder_ids" widget="many2many_tags"/>
+                        <field name="user_ids" widget="many2many_avatar_user"/>
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_dms_group" model="ir.actions.act_window">
+        <field name="name">Groups</field>
+        <field name="res_model">dms.group</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_dms_app" model="ir.actions.client">
+        <field name="name">DMS</field>
+        <field name="tag">dms_app</field>
+    </record>
+</odoo>

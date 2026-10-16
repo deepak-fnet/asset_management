@@ -458,10 +458,14 @@ class AssetAssetGeneral(models.Model):
         though its own menu correctly used view_asset_general_form all along.
         """
         self.ensure_one()
-        if self.is_general_asset:
-            general_view = self.env.ref('general_asset.view_asset_general_form', raise_if_not_found=False)
-            if general_view:
-                return general_view.id
+        if self.monitoring_protocol == 'agent':
+            # The general form is the default now; agent records keep the IT form.
+            it_view = self.env.ref('asset_management.view_asset_asset_form', raise_if_not_found=False)
+            if it_view:
+                return it_view.id
+        general_view = self.env.ref('general_asset.view_asset_general_form', raise_if_not_found=False)
+        if general_view:
+            return general_view.id
         return super().get_formview_id(access_uid=access_uid)
 
     def action_view_it_asset(self):

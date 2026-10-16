@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_dms_root" name="DMS" action="action_dms_app" web_icon="dms,static/description/icon.png" sequence="25" groups="group_dms_user"/>
+    <menuitem id="menu_dms_repository" name="Repository" parent="menu_dms_root" action="action_dms_app" sequence="1"/>
+    <menuitem id="menu_dms_control" name="Control" parent="menu_dms_root" sequence="10" groups="group_dms_controller">
+        <menuitem id="menu_dms_documents" name="All Documents" action="action_dms_document" sequence="1"/>
+        <menuitem id="menu_dms_disposal" name="Disposal Requests" action="action_dms_disposal" sequence="2"/>
+        <menuitem id="menu_dms_log" name="Audit Log" action="action_dms_log" sequence="3"/>
+    </menuitem>
+    <menuitem id="menu_dms_config" name="Configuration" parent="menu_dms_root" sequence="20" groups="group_dms_controller">
+        <menuitem id="menu_dms_settings" name="Settings" action="action_dms_settings" sequence="1"/>
+        <menuitem id="menu_dms_folders" name="Folders" action="action_dms_folder" sequence="2"/>
+        <menuitem id="menu_dms_groups" name="Groups" action="action_dms_group" sequence="3"/>
+        <menuitem id="menu_dms_types" name="Document Types" action="action_dms_type" sequence="3"/>
+    </menuitem>
+</odoo>

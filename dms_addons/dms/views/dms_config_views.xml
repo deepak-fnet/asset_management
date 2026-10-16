@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_dms" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.dms</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority">90</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="DMS" string="DMS" name="dms" groups="dms.group_dms_controller">
+                    <block title="DMS Server Connection" name="dms_server">
+                        <setting string="Server Credential" help="Files are stored on this server over SFTP.">
+                            <div class="row mt8"><label for="dms_server_host" class="col-lg-4 o_light_label"/><field name="dms_server_host" class="col-lg-8"/></div>
+                            <div class="row"><label for="dms_server_port" class="col-lg-4 o_light_label"/><field name="dms_server_port" class="col-lg-8"/></div>
+                            <div class="row"><label for="dms_server_user" class="col-lg-4 o_light_label"/><field name="dms_server_user" class="col-lg-8"/></div>
+                            <div class="row"><label for="dms_server_password" class="col-lg-4 o_light_label"/><field name="dms_server_password" password="True" class="col-lg-8"/></div>
+                            <div class="row"><label for="dms_server_path" class="col-lg-4 o_light_label"/><field name="dms_server_path" class="col-lg-8"/></div>
+                            <button name="action_dms_test_connection" type="object" string="Test Connection &amp; Sync Folders" icon="fa-plug" class="btn-link mt8"/>
+                        </setting>
+                    </block>
+                    <block title="Revisions &amp; Appearance" name="dms_rules">
+                        <setting string="Cut-off" help="Days a superseded revision stays on screen after the next one is approved.">
+                            <field name="dms_cutoff_days"/>
+                        </setting>
+                        <setting string="Theme" help="Navy, Brown (parchment) or Gold: applies to the whole DMS app.">
+                            <field name="dms_theme" widget="radio" options="{'horizontal': true}"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+    <record id="action_dms_settings" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'module': 'dms', 'bin_size': False}</field>
+    </record>
+</odoo>

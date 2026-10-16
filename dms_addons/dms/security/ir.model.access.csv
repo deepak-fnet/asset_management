@@ -1,0 +1,17 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_dms_folder_user,dms.folder user,model_dms_folder,group_dms_user,1,0,0,0
+access_dms_folder_ctrl,dms.folder ctrl,model_dms_folder,group_dms_controller,1,1,1,1
+access_dms_access_user,dms.access user,model_dms_access,group_dms_user,1,0,0,0
+access_dms_access_ctrl,dms.access ctrl,model_dms_access,group_dms_controller,1,1,1,1
+access_dms_log_user,dms.log user,model_dms_log,group_dms_user,1,0,0,0
+access_dms_type_user,dms.type user,model_dms_document_type,group_dms_user,1,0,0,0
+access_dms_type_ctrl,dms.type ctrl,model_dms_document_type,group_dms_controller,1,1,1,1
+access_dms_document_user,dms.document user,model_dms_document,group_dms_user,1,0,0,0
+access_dms_document_ctrl,dms.document ctrl,model_dms_document,group_dms_controller,1,1,1,0
+access_dms_revision_user,dms.revision user,model_dms_revision,group_dms_user,1,0,0,0
+access_dms_revision_ctrl,dms.revision ctrl,model_dms_revision,group_dms_controller,1,1,0,0
+access_dms_approval_user,dms.approval user,model_dms_approval,group_dms_user,1,0,0,0
+access_dms_disposal_user,dms.disposal user,model_dms_disposal,group_dms_user,1,0,0,0
+access_dms_disposal_ctrl,dms.disposal ctrl,model_dms_disposal,group_dms_controller,1,1,1,1
+access_dms_group_user,dms.group user,model_dms_group,group_dms_user,1,0,0,0
+access_dms_group_ctrl,dms.group ctrl,model_dms_group,group_dms_controller,1,1,1,1

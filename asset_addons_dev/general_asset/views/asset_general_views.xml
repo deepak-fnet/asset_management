@@ -200,13 +200,18 @@
     <record id="view_asset_general_form" model="ir.ui.view">
         <field name="name">asset.asset.general.form</field>
         <field name="model">asset.asset</field>
+        <!-- Default asset form (priority below asset_management's 16): any
+             screen or reload without an explicit form opens this one. The IT
+             menus name the IT form explicitly; agent records also get it
+             from get_formview_id. -->
+        <field name="priority">15</field>
         <field name="arch" type="xml">
             <form string="General Asset">
                 <header>
                     <button name="action_submit" type="object" string="Submit" class="btn-primary" invisible="is_submit"/>
                     <button name="action_update" type="object" string="Update" class="btn-primary"
                             invisible="not is_submit or (not it_asset_id and not network_asset_id)"/>
-                    <button name="action_reset" type="object" string="Reset" class="btn-secondary" invisible="not is_submit" confirm="This unlocks the form for editing again. Continue?"/>
+                    <button name="action_reset" type="object" string="Reset" class="btn-secondary" invisible="not is_submit or in_repair or state != 'submit'" confirm="This unlocks the form for editing again. Continue?"/>
                     <field name="state" widget="badge" class="fs-5 px-3 py-2"
                            decoration-info="state == 'submit'"
                            decoration-success="state == 'assigned'"

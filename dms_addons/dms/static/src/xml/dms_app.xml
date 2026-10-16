@@ -1,0 +1,913 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="dms.App">
+    <div class="o_dms" t-ref="root" t-attf-class="theme-{{state.boot ? state.boot.theme : 'navy'}}">
+        <t t-if="state.phase === 'checking'">
+            <div class="o_dms_splash"><i class="fa fa-circle-o-notch fa-spin"/></div>
+        </t>
+        <t t-elif="state.phase === 'login'"><t t-call="dms.Login"/></t>
+        <t t-else=""><t t-call="dms.Shell"/></t>
+    </div>
+</t>
+
+<!-- ================================================================ LOGIN -->
+<t t-name="dms.Login">
+    <div class="o_dms_login" t-att-class="{o_dms_unlocking: state.unlocking}">
+        <div class="o_dms_login_art" aria-hidden="true">
+            <div class="o_dms_cabinet">
+                <div class="o_dms_drawer"><span>Accounts</span></div>
+                <div class="o_dms_drawer"><span>Software</span></div>
+                <div class="o_dms_drawer open"><span>Administration</span>
+                    <div class="o_dms_drawer_files"><i/><i/><i/></div>
+                </div>
+            </div>
+            <p>Every document here has an owner, an approver and a history.</p>
+        </div>
+        <form class="o_dms_login_form" t-att-class="{'o_shake': state.shake}" t-on-submit="doLogin">
+            <h1>Document Management</h1>
+            <p class="o_dms_muted">Sign in again to open the repository.</p>
+            <label for="dms_login">User name</label>
+            <input id="dms_login" class="o_dms_field" type="text" t-model="state.login" autocomplete="username"/>
+            <label for="dms_pw">Password</label>
+            <input id="dms_pw" class="o_dms_field" type="password" t-ref="password" t-model="state.password" autocomplete="current-password"/>
+            <div t-if="state.loginError" class="o_dms_login_error" role="alert"><t t-esc="state.loginError"/></div>
+            <button type="submit" class="o_dms_btn o_dms_btn_ink o_dms_btn_block" t-att-disabled="state.loggingIn or !state.password">
+                <t t-if="state.loggingIn"><i class="fa fa-circle-o-notch fa-spin"/></t>
+                <t t-else="">Open repository</t>
+            </button>
+            <p class="o_dms_login_foot">Views and downloads are recorded against your name.</p>
+        </form>
+    </div>
+</t>
+
+<!-- ================================================================ SHELL -->
+<t t-name="dms.Shell">
+    <t t-set="boot" t-value="state.boot"/>
+    <div class="o_dms_shell" t-on-dragover="onDragOver" t-on-dragleave="onDragLeave" t-on-drop="onDrop">
+        <aside class="o_dms_side">
+            <div class="o_dms_side_actions">
+                <button class="o_dms_btn o_dms_btn_ink" t-on-click="() => this.openUpload()" title="Upload (U)"><i class="fa fa-arrow-up"/> Upload</button>
+            </div>
+            <nav class="o_dms_nav">
+                <t t-call="dms.NavItem"><t t-set="key" t-value="'recent'"/><t t-set="icon" t-value="'fa-home'"/><t t-set="label" t-value="'Home'"/></t>
+                <t t-call="dms.NavItem"><t t-set="key" t-value="'approvals'"/><t t-set="icon" t-value="'fa-gavel'"/><t t-set="label" t-value="'To approve'"/><t t-set="count" t-value="boot.counts.approvals"/><t t-set="hot" t-value="true"/></t>
+                <t t-call="dms.NavItem"><t t-set="key" t-value="'my_uploads'"/><t t-set="icon" t-value="'fa-pencil-square-o'"/><t t-set="label" t-value="'My documents'"/><t t-set="count" t-value="boot.counts.my_uploads"/></t>
+                <t t-call="dms.NavItem"><t t-set="key" t-value="'checked_out'"/><t t-set="icon" t-value="'fa-lock'"/><t t-set="label" t-value="'Checked out'"/><t t-set="count" t-value="boot.counts.checked_out"/></t>
+                <t t-call="dms.NavItem"><t t-set="key" t-value="'starred'"/><t t-set="icon" t-value="'fa-star-o'"/><t t-set="label" t-value="'Starred'"/><t t-set="count" t-value="boot.counts.starred"/></t>
+                <t t-if="boot.user.is_controller">
+                    <t t-call="dms.NavItem"><t t-set="key" t-value="'requests'"/><t t-set="icon" t-value="'fa-inbox'"/><t t-set="label" t-value="'Delete requests'"/><t t-set="count" t-value="boot.counts.folder_deletes"/><t t-set="hot" t-value="true"/></t>
+                    <t t-call="dms.NavItem"><t t-set="key" t-value="'groups'"/><t t-set="icon" t-value="'fa-users'"/><t t-set="label" t-value="'Groups'"/></t>
+                </t>
+            </nav>
+            <h2 class="o_dms_side_h">Folders</h2>
+            <div class="o_dms_tree" role="tree">
+                <div t-if="!rootFolders.length" class="o_dms_tree_empty">No folder is shared with you yet. Ask the Document Controller for access.</div>
+                <t t-foreach="rootFolders" t-as="f" t-key="f.id">
+                    <t t-call="dms.FolderNode"><t t-set="depth" t-value="0"/></t>
+                </t>
+            </div>
+            <div class="o_dms_side_foot">
+                <t t-if="boot.user.is_controller">
+                    <a t-on-click="() => this.openBackend('dms.action_dms_folder')"><i class="fa fa-sliders"/> Approvers</a>
+                    <a t-on-click="() => this.openBackend('dms.action_dms_disposal')"><i class="fa fa-trash-o"/> Disposal
+                        <span t-if="boot.counts.disposals" class="o_dms_count hot" t-esc="boot.counts.disposals"/></a>
+                    <a t-on-click="() => this.openBackend('dms.action_dms_log')"><i class="fa fa-history"/> Audit log</a>
+                </t>
+                <div class="o_dms_me">
+                    <img t-att-src="'/web/image/res.users/' + boot.user.id + '/avatar_128'" alt=""/>
+                    <div><b t-esc="boot.user.name"/><small t-esc="boot.user.is_controller ? 'Document Controller' : 'Member'"/></div>
+                    <button class="o_dms_icon_btn" t-on-click="toggleMute" t-att-title="state.muted ? 'Turn sounds on' : 'Turn sounds off'"><i class="fa" t-att-class="state.muted ? 'fa-volume-off' : 'fa-volume-up'"/></button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="o_dms_main">
+            <t t-if="state.view === 'groups'"><t t-call="dms.Groups"/></t>
+            <t t-elif="state.view === 'requests'"><t t-call="dms.Requests"/></t>
+            <t t-else="">
+            <header class="o_dms_top">
+                <div class="o_dms_path">
+                    <t t-if="state.view === 'folder'">
+                        <a class="o_dms_path_home" t-on-click="() => this.openView('recent')" title="Home"><i class="fa fa-home"/></a>
+                        <t t-foreach="breadcrumb" t-as="c" t-key="c.id">
+                            <span class="o_dms_path_sep">/</span>
+                            <a t-if="!c_last" t-on-click="() => this.openFolder(c)" t-esc="c.name"/>
+                            <h1 t-else="" t-esc="c.name"/>
+                        </t>
+                    </t>
+                    <h1 t-else="" t-esc="viewTitle"/>
+                </div>
+                <label class="o_dms_search">
+                    <i class="fa fa-search"/>
+                    <input t-ref="search" placeholder="Search by number or title" t-att-value="state.search" t-on-input="onSearchInput"/>
+                    <kbd>/</kbd>
+                </label>
+            </header>
+            <div t-if="state.view === 'folder' and currentFolder" class="o_dms_folderbar">
+                <span class="o_dms_level" t-attf-class="lv_{{currentFolder.level}}">
+                    <i class="fa" t-att-class="{'fa-pencil': currentFolder.level === 'edit', 'fa-download': currentFolder.level === 'download', 'fa-eye': currentFolder.level === 'view'}"/>
+                    You can <t t-esc="{edit: 'edit', download: 'view and download', view: 'only view'}[currentFolder.level] || 'see some files'"/> here</span>
+                <span class="o_dms_muted" t-if="currentFolder.department">Department: <t t-esc="currentFolder.department"/></span>
+                <span t-if="currentFolder.delete_requested" class="o_dms_badge s_rejected">Deletion requested</span>
+                <div class="o_dms_folderbar_actions">
+                    <button t-if="canUploadHere" class="o_dms_btn o_dms_btn_sm" t-on-click="() => this.openUpload()"><i class="fa fa-arrow-up"/> Upload here</button>
+                    <t t-if="currentFolder.can_share or currentFolder.can_rename or currentFolder.can_delete">
+                        <div class="o_dms_menu_wrap">
+                            <button class="o_dms_btn o_dms_btn_sm" t-on-click="toggleMenu" t-att-aria-expanded="state.menuOpen ? 'true' : 'false'" title="Folder options"><i class="fa fa-ellipsis-h"/> Folder</button>
+                            <div t-if="state.menuOpen" class="o_dms_menu" t-on-click.stop="">
+                                <a t-if="currentFolder.can_share" t-on-click="() => this.openShare('folder')"><i class="fa fa-user-plus fa-fw"/> Who has access</a>
+                                <a t-if="currentFolder.can_rename" t-on-click="openRename"><i class="fa fa-i-cursor fa-fw"/> Rename</a>
+                                <a t-if="currentFolder.can_delete and !currentFolder.delete_requested" class="danger" t-on-click="openDelete"><i class="fa fa-trash-o fa-fw"/> <t t-esc="boot.user.is_controller ? 'Delete folder' : 'Ask to delete'"/></a>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+
+            <section class="o_dms_body o_dms_nav_anim" t-key="state.navKey" t-attf-class="nav_{{state.navDir}}">
+                <t t-if="tiles.length or (canCreateFolderHere and state.view === 'folder')">
+                    <h2 class="o_dms_h2"><t t-esc="state.view === 'folder' ? 'Folders' : 'Your folders'"/></h2>
+                    <div class="o_dms_tiles">
+                        <t t-foreach="tiles" t-as="f" t-key="f.id">
+                            <button class="o_dms_tile" t-att-class="{archive: f.is_archive, doomed: f.delete_requested, opening: state.openingTile === f.id}" t-on-click="(ev) => this.openTile(f, ev)" t-attf-style="--i: {{f_index}}">
+                                <span class="o_dms_tile_back"/>
+                                <span class="o_dms_ripple"/>
+                                <span class="o_dms_tile_papers"><i/><i/></span>
+                                <span class="o_dms_tile_body">
+                                    <b t-esc="f.name"/>
+                                    <small t-if="!f.level">Only files shared with you</small>
+                                    <small t-elif="f.is_archive">Read only</small>
+                                    <small t-else="">You can <t t-esc="{edit: 'edit', download: 'view and download', view: 'view'}[f.level]"/></small>
+                                </span>
+                                <i t-if="f.level === 'view'" class="fa fa-eye o_dms_tile_lv" title="View only"/>
+                                <i t-elif="f.level === 'download'" class="fa fa-download o_dms_tile_lv" title="View and download"/>
+                            </button>
+                        </t>
+                        <button t-if="canCreateFolderHere" class="o_dms_tile o_dms_tile_new" t-on-click="openNewFolder">
+                            <span class="o_dms_tile_body"><b><i class="fa fa-plus"/> New folder</b><small>inside <t t-esc="currentFolder ? currentFolder.name : 'the repository'"/></small></span>
+                        </button>
+                    </div>
+                </t>
+
+                <div class="o_dms_docs_head" t-if="state.docs.length or state.view !== 'recent' or state.search">
+                    <h2 class="o_dms_h2"><t t-esc="state.view === 'recent' and !state.search ? 'Recently changed' : 'Documents'"/>
+                        <span class="o_dms_muted" t-if="state.docs.length"> <t t-esc="state.docs.length"/></span></h2>
+                    <div class="o_dms_seg" t-if="state.docs.length">
+                        <button t-att-class="{active: state.layout === 'list'}" t-on-click="() => this.setLayout('list')" title="Register"><i class="fa fa-list"/></button>
+                        <button t-att-class="{active: state.layout === 'grid'}" t-on-click="() => this.setLayout('grid')" title="Cards"><i class="fa fa-th-large"/></button>
+                    </div>
+                </div>
+
+                <t t-if="state.loading and !state.docs.length">
+                    <div class="o_dms_loading"><i class="fa fa-circle-o-notch fa-spin"/></div>
+                </t>
+                <t t-elif="!state.docs.length"><t t-call="dms.Empty"/></t>
+                <t t-elif="state.layout === 'grid'">
+                    <div class="o_dms_grid">
+                        <t t-foreach="state.docs" t-as="d" t-key="d.id"><t t-call="dms.Card"/></t>
+                    </div>
+                </t>
+                <t t-else="">
+                    <table class="o_dms_register">
+                        <thead><tr><th class="w_icon"/><th>Number</th><th>Title</th><th>Rev</th><th>Status</th><th class="hide_sm">Owner</th><th class="hide_sm">Changed</th><th class="w_icon"/></tr></thead>
+                        <tbody>
+                            <t t-foreach="state.docs" t-as="d" t-key="d.id">
+                                <t t-set="k" t-value="helpers.fileKind(d.file_name, d.mimetype)"/>
+                                <tr t-att-class="{selected: state.selectedId === d.id}" t-on-click="() => this.select(d)">
+                                    <td class="w_icon"><span class="o_dms_ext" t-attf-class="k_{{k.cls}}" t-esc="k.label"/></td>
+                                    <td class="o_dms_code" t-esc="d.code"/>
+                                    <td><b t-esc="d.name"/><div t-if="state.view !== 'folder'" class="o_dms_muted small"><i class="fa fa-folder-o"/> <t t-esc="d.folder"/></div></td>
+                                    <td><t t-esc="d.rev === null ? '—' : d.rev"/></td>
+                                    <td><t t-call="dms.StateBadge"/><i t-if="d.locked_by" class="fa fa-lock o_dms_lockicon" t-att-title="'Checked out by ' + d.locked_by.name"/></td>
+                                    <td class="hide_sm" t-esc="d.owner.name"/>
+                                    <td class="hide_sm o_dms_muted" t-esc="helpers.timeAgo(d.updated)"/>
+                                    <td class="w_icon"><button class="o_dms_star" t-att-class="{on: d.starred}" t-on-click="(ev) => this.toggleStar(d, ev)" t-att-title="d.starred ? 'Unstar' : 'Star'"><i class="fa" t-att-class="d.starred ? 'fa-star' : 'fa-star-o'"/></button></td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </t>
+            </section>
+            </t>
+
+            <div t-if="state.dragging" class="o_dms_drop">
+                <div>
+                    <i class="fa fa-arrow-down"/>
+                    <h3 t-if="state.detail and state.detail.can_checkin">Drop to check in a new version of <t t-esc="state.detail.code"/></h3>
+                    <h3 t-else="">Drop to upload<t t-if="canUploadHere"> into <t t-esc="currentFolder.name"/></t></h3>
+                </div>
+            </div>
+        </main>
+
+        <aside t-if="state.detail" class="o_dms_detail" t-key="state.detail.id" t-att-class="{closing: state.closing}">
+            <div class="o_dms_rod top" aria-hidden="true"><i/></div>
+            <div class="o_dms_paper"><t t-call="dms.Detail"/></div>
+            <div class="o_dms_scroll_roll" aria-hidden="true"><div class="o_dms_rod"><i/></div></div>
+        </aside>
+    </div>
+
+    <t t-if="state.modal === 'upload'"><t t-call="dms.UploadModal"/></t>
+    <t t-if="state.modal === 'checkin'"><t t-call="dms.CheckinModal"/></t>
+    <t t-if="state.modal === 'decision'"><t t-call="dms.DecisionModal"/></t>
+    <t t-if="state.modal === 'cutoff'"><t t-call="dms.CutoffModal"/></t>
+    <t t-if="state.modal === 'share'"><t t-call="dms.ShareModal"/></t>
+    <t t-if="state.modal === 'folder'"><t t-call="dms.FolderModal"/></t>
+    <t t-if="state.modal === 'group'"><t t-call="dms.GroupModal"/></t>
+    <t t-if="state.modal === 'rename'"><t t-call="dms.RenameModal"/></t>
+    <t t-if="state.modal === 'delete'"><t t-call="dms.DeleteModal"/></t>
+    <t t-if="state.modal === 'move'"><t t-call="dms.MoveModal"/></t>
+    <t t-if="state.modal === 'retire'"><t t-call="dms.RetireModal"/></t>
+    <t t-if="state.preview"><t t-call="dms.Preview"/></t>
+    <t t-if="state.cine"><t t-call="dms.Cine"/></t>
+    <div t-if="state.flash" class="o_dms_flash" t-key="state.flash.key" t-attf-class="f_{{state.flash.kind}}" aria-live="polite">
+        <div class="o_dms_flash_stamp"><t t-esc="state.flash.text"/></div>
+        <div t-if="state.flash.sub" class="o_dms_flash_sub" t-esc="state.flash.sub"/>
+    </div>
+</t>
+
+<t t-name="dms.NavItem">
+    <a class="o_dms_nav_item" t-att-class="{active: state.view === key}" t-on-click="() => this.openView(key)">
+        <i t-attf-class="fa fa-fw {{icon}}"/> <span t-esc="label"/>
+        <span t-if="count" class="o_dms_count" t-att-class="{hot: hot}" t-esc="count"/>
+    </a>
+</t>
+
+<t t-name="dms.FolderNode">
+    <t t-set="kids" t-value="children(f.id)"/>
+    <div class="o_dms_node" role="treeitem" t-att-class="{active: state.view === 'folder' and state.folderId === f.id, archive: f.is_archive}"
+         t-attf-style="padding-left: {{6 + depth * 16}}px" t-on-click="() => this.openFolder(f)">
+        <i class="fa fa-fw o_dms_caret" t-att-class="kids.length ? (state.expanded[f.id] ? 'fa-angle-down' : 'fa-angle-right') : ''" t-on-click="(ev) => this.toggleExpand(f, ev)"/>
+        <i class="fa fa-fw o_dms_node_icon" t-att-class="f.is_archive ? 'fa-archive' : (state.view === 'folder' and state.folderId === f.id ? 'fa-folder-open' : 'fa-folder')"/>
+        <span class="o_dms_node_name" t-esc="f.name"/>
+        <i t-if="f.level === 'view'" class="fa fa-eye o_dms_node_lv" title="View only"/>
+        <i t-elif="f.level === 'download'" class="fa fa-download o_dms_node_lv" title="View and download"/>
+    </div>
+    <t t-if="state.expanded[f.id]">
+        <t t-foreach="kids" t-as="f" t-key="f.id">
+            <t t-call="dms.FolderNode"><t t-set="depth" t-value="depth + 1"/></t>
+        </t>
+    </t>
+</t>
+
+<t t-name="dms.StateBadge">
+    <t t-if="d.pending_state === 'in_review' and d.state === 'published'"><span class="o_dms_badge s_in_review">New rev in review</span></t>
+    <t t-elif="d.pending_state === 'draft' and d.state === 'published'"><span class="o_dms_badge s_draft">New rev not sent</span></t>
+    <t t-else=""><span class="o_dms_badge" t-attf-class="s_{{d.state}}" t-esc="helpers.STATE_LABEL[d.state]"/></t>
+</t>
+
+<t t-name="dms.Stamp">
+    <t t-if="d.state === 'published'"><span class="o_dms_stamp ok">Approved<small>Rev <t t-esc="d.rev"/></small></span></t>
+    <t t-elif="d.state === 'in_review'"><span class="o_dms_stamp wait">In review</span></t>
+    <t t-elif="d.state === 'rejected'"><span class="o_dms_stamp bad">Refused</span></t>
+    <t t-elif="d.state === 'archived'"><span class="o_dms_stamp old">Archived</span></t>
+    <t t-elif="d.state === 'draft'"><span class="o_dms_stamp draft">Draft</span></t>
+</t>
+
+<t t-name="dms.Card">
+    <t t-set="k" t-value="helpers.fileKind(d.file_name, d.mimetype)"/>
+    <div class="o_dms_card" t-att-class="{selected: state.selectedId === d.id}" t-on-click="() => this.select(d)">
+        <div class="o_dms_card_top">
+            <t t-call="dms.File3d"/>
+            <button class="o_dms_star" t-att-class="{on: d.starred}" t-on-click="(ev) => this.toggleStar(d, ev)"><i class="fa" t-att-class="d.starred ? 'fa-star' : 'fa-star-o'"/></button>
+        </div>
+        <div class="o_dms_code" t-esc="d.code"/>
+        <div class="o_dms_card_title" t-esc="d.name" t-att-title="d.name"/>
+        <div t-if="state.view !== 'folder'" class="o_dms_muted small"><i class="fa fa-folder-o"/> <t t-esc="d.folder"/></div>
+        <t t-call="dms.Stamp"/>
+        <div class="o_dms_card_foot">
+            <span><t t-esc="d.owner.name"/> · <t t-esc="helpers.timeAgo(d.updated)"/></span>
+            <i t-if="d.locked_by" class="fa fa-lock o_dms_lockicon" t-att-title="'Checked out by ' + d.locked_by.name"/>
+        </div>
+    </div>
+</t>
+
+<t t-name="dms.Empty">
+    <div class="o_dms_empty">
+        <t t-if="state.search"><h3>No document matches “<t t-esc="state.search"/>”</h3><p>Search by the full number, for example ACC-INV-004, or by a word in the title.</p></t>
+        <t t-elif="state.view === 'approvals'"><h3>Nothing waits for your approval</h3><p>When someone sends you a document to approve, it shows up here.</p></t>
+        <t t-elif="state.view === 'checked_out'"><h3>You have nothing checked out</h3><p>Check out a document to edit it. Readers keep the approved version meanwhile.</p></t>
+        <t t-elif="state.view === 'starred'"><h3>No starred documents</h3><p>Star the documents you open often to keep them here.</p></t>
+        <t t-elif="state.view === 'my_uploads'"><h3>You have not uploaded anything yet</h3><p>Open a folder where you can edit and upload your first document.</p></t>
+        <t t-elif="canUploadHere">
+            <h3>No documents in <t t-esc="currentFolder.name"/> yet</h3>
+            <p>Drop files anywhere on this page, or upload one.</p>
+            <button class="o_dms_btn o_dms_btn_ink" t-on-click="() => this.openUpload()"><i class="fa fa-arrow-up"/> Upload a document</button>
+        </t>
+        <t t-elif="state.view === 'folder'"><h3>No documents here yet</h3><p>Documents appear here once they are approved.</p></t>
+    </div>
+</t>
+
+<!-- ================================================================ DETAIL -->
+<t t-name="dms.Detail">
+    <t t-set="d" t-value="state.detail"/>
+    <t t-set="k" t-value="helpers.fileKind(d.file_name, d.mimetype)"/>
+    <t t-set="cur" t-value="d.revisions.find(r => r.state === 'current') || d.revisions[0]"/>
+    <div class="o_dms_jacket">
+        <button class="o_dms_icon_btn o_dms_close" t-on-click="rollUpDetail" title="Close (Esc)"><i class="fa fa-times"/></button>
+        <div class="o_dms_jacket_top">
+            <t t-call="dms.File3d"><t t-set="big" t-value="true"/></t>
+            <div>
+                <div class="o_dms_code" t-esc="d.code"/>
+                <h2 t-esc="d.name"/>
+            </div>
+        </div>
+        <div class="o_dms_jacket_meta"><t t-esc="d.type"/> in <t t-esc="d.folder"/></div>
+        <t t-call="dms.Stamp"/>
+        <div t-if="d.origin_folder" class="o_dms_note"><i class="fa fa-archive"/> Retired from <b t-esc="d.origin_folder"/>. Read only; it can be disposed of after its retention period.</div>
+        <div t-if="d.locked_by" class="o_dms_note warn"><i class="fa fa-lock"/> Checked out by <b t-esc="d.locked_by.name"/>. Readers still see the approved revision.</div>
+        <div t-if="cur and !cur.can_download and cur.can_preview" class="o_dms_note"><i class="fa fa-eye"/> You can read this inside Odoo. Downloading needs more access.</div>
+
+        <t t-set="mine" t-value="d.revisions.find(r => r.my_turn)"/>
+        <div t-if="mine" class="o_dms_ask hot o_dms_ask_jacket">
+            <span>Revision <t t-esc="mine.rev"/> waits for your approval<t t-if="mine.note">: “<t t-esc="mine.note"/>”</t></span>
+            <div>
+                <button class="o_dms_btn o_dms_btn_ok o_dms_btn_sm" t-on-click="() => this.openDecision(mine, 'approve')">Approve</button>
+                <button class="o_dms_btn o_dms_btn_bad o_dms_btn_sm" t-on-click="() => this.openDecision(mine, 'refuse')">Refuse</button>
+            </div>
+        </div>
+        <div class="o_dms_jacket_actions">
+            <button t-if="cur and cur.can_preview" class="o_dms_btn o_dms_btn_ink" t-on-click="() => this.openPreview(cur)" title="Enter"><i class="fa fa-eye"/> Open</button>
+            <button t-if="cur and cur.can_download" class="o_dms_btn" t-on-click="() => this.download(cur)"><i class="fa fa-download"/> Download</button>
+            <button t-if="d.can_checkout" class="o_dms_btn" t-on-click="checkout" t-att-disabled="state.busy"><i class="fa fa-pencil"/> Check out to edit</button>
+            <button t-if="d.can_checkin" class="o_dms_btn o_dms_btn_ink" t-on-click="() => this.openCheckin()"><i class="fa fa-arrow-up"/> Check in new version</button>
+            <button t-if="d.can_move" class="o_dms_btn" t-on-click="openMove" title="Move to another folder"><i class="fa fa-share"/> Move</button>
+            <button t-if="d.can_retire" class="o_dms_btn o_dms_btn_quiet_bad" t-on-click="openRetire" title="Send to the Archive"><i class="fa fa-archive"/> Retire</button>
+            <button t-if="d.can_unlock" class="o_dms_btn" t-on-click="unlock" t-att-disabled="state.busy"><i class="fa fa-unlock"/> <t t-esc="d.locked_by and d.locked_by.id === state.boot.user.id ? 'Cancel check-out' : 'Force unlock'"/></button>
+            <button class="o_dms_icon_btn" t-on-click="() => this.toggleStar(d)" t-att-title="d.starred ? 'Unstar' : 'Star'"><i class="fa" t-att-class="d.starred ? 'fa-star o_dms_gold' : 'fa-star-o'"/></button>
+            <button t-if="d.can_manage_access" class="o_dms_icon_btn" t-on-click="() => this.openShare('doc')" title="Share this file only"><i class="fa fa-user-plus"/></button>
+        </div>
+    </div>
+
+    <div class="o_dms_tabs" role="tablist">
+        <a t-att-class="{active: state.detailTab === 'revisions'}" t-on-click="() => this.openTab('revisions')">Revisions</a>
+        <a t-att-class="{active: state.detailTab === 'approvals'}" t-on-click="() => this.openTab('approvals')">Approval</a>
+        <a t-att-class="{active: state.detailTab === 'info'}" t-on-click="() => this.openTab('info')">Details</a>
+        <a t-if="d.can_manage_access" t-att-class="{active: state.detailTab === 'access'}" t-on-click="() => this.openTab('access')">Access</a>
+        <a t-if="d.log.length" t-att-class="{active: state.detailTab === 'log'}" t-on-click="() => this.openTab('log')">History</a>
+    </div>
+
+    <div class="o_dms_detail_body">
+        <t t-if="state.detailTab === 'revisions'">
+            <ol class="o_dms_revs">
+                <t t-foreach="d.revisions" t-as="r" t-key="r.id">
+                    <li t-attf-class="r_{{r.state}}">
+                        <div class="o_dms_rev_no"><t t-esc="r.rev"/></div>
+                        <div class="o_dms_rev_body">
+                            <div class="o_dms_rev_head"><b>Revision <t t-esc="r.rev"/></b><span class="o_dms_badge" t-attf-class="s_{{r.state}}" t-esc="r.state_label"/></div>
+                            <div class="o_dms_muted small"><t t-esc="r.file_name"/>, <t t-esc="helpers.humanSize(r.size)"/></div>
+                            <blockquote t-if="r.note"><t t-esc="r.note"/><cite><t t-esc="r.author.name"/></cite></blockquote>
+                            <div class="o_dms_rev_dates small">
+                                <span t-if="r.approved_date">Approved <t t-esc="helpers.fmtDate(r.approved_date)"/></span>
+                                <span t-if="r.cutoff_date" class="cut">On screen until <t t-esc="helpers.fmtDate(r.cutoff_date)"/></span>
+                            </div>
+                            <div class="o_dms_rev_links">
+                                <a t-if="r.can_preview" t-on-click="() => this.openPreview(r)">Open</a>
+                                <a t-if="r.can_download" t-on-click="() => this.download(r)">Download</a>
+                                <a t-if="r.can_cutoff" t-on-click="() => this.openCutoff(r)">Bring cut-off forward</a>
+                            </div>
+                            <div t-if="r.can_submit" class="o_dms_ask">
+                                <span>Not sent yet. It goes to <t t-esc="d.approvers.l1"/>, then <t t-esc="d.approvers.l2"/><t t-if="d.approvers.l3">, then <t t-esc="d.approvers.l3"/></t>.</span>
+                                <button class="o_dms_btn o_dms_btn_ink o_dms_btn_sm" t-on-click="() => this.submitRev(r)" t-att-disabled="state.busy">Send for approval</button>
+                            </div>
+                            <div t-if="r.my_turn" class="o_dms_ask hot">
+                                <span>Your approval is needed.</span>
+                                <div>
+                                    <button class="o_dms_btn o_dms_btn_ok o_dms_btn_sm" t-on-click="() => this.openDecision(r, 'approve')">Approve</button>
+                                    <button class="o_dms_btn o_dms_btn_bad o_dms_btn_sm" t-on-click="() => this.openDecision(r, 'refuse')">Refuse</button>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                </t>
+            </ol>
+        </t>
+        <t t-elif="state.detailTab === 'approvals'">
+            <t t-set="ar" t-value="d.revisions.find(r => r.approvals.length)"/>
+            <t t-if="ar">
+                <p class="o_dms_muted small">Revision <t t-esc="ar.rev"/>, <t t-esc="ar.state_label.toLowerCase()"/></p>
+                <ol class="o_dms_steps">
+                    <t t-foreach="ar.approvals" t-as="a" t-key="a_index">
+                        <li t-attf-class="st_{{a.state}}">
+                            <span class="o_dms_step_mark"><i class="fa" t-att-class="{'fa-check': a.state === 'approved', 'fa-times': a.state === 'refused', 'fa-clock-o': a.state === 'waiting', 'fa-minus': a.state === 'skipped'}"/></span>
+                            <div>
+                                <b t-esc="a.user"/> <span class="o_dms_muted small"><t t-esc="a.level"/></span>
+                                <div class="small o_dms_muted"><t t-esc="{approved: 'Approved', refused: 'Refused', waiting: 'Waiting', skipped: 'Not needed'}[a.state]"/><t t-if="a.date">, <t t-esc="helpers.timeAgo(a.date)"/></t></div>
+                                <blockquote t-if="a.comment"><t t-esc="a.comment"/></blockquote>
+                            </div>
+                        </li>
+                    </t>
+                </ol>
+            </t>
+            <t t-else="">
+                <p class="o_dms_muted small">Not sent for approval yet. This folder's approvers are:</p>
+                <ol class="o_dms_steps">
+                    <li><span class="o_dms_step_mark">1</span><div><b t-esc="d.approvers.l1 || 'Not set'"/> <span class="o_dms_muted small">L1 reviewer</span></div></li>
+                    <li><span class="o_dms_step_mark">2</span><div><b t-esc="d.approvers.l2 || 'Not set'"/> <span class="o_dms_muted small">L2 approver</span></div></li>
+                    <li t-if="d.approvers.l3"><span class="o_dms_step_mark">3</span><div><b t-esc="d.approvers.l3"/> <span class="o_dms_muted small">L3 director</span></div></li>
+                </ol>
+            </t>
+        </t>
+        <t t-elif="state.detailTab === 'info'">
+            <dl class="o_dms_info">
+                <dt>Folder</dt><dd t-esc="d.folder"/>
+                <dt>Type</dt><dd t-esc="d.type"/>
+                <dt>Owner</dt><dd t-esc="d.owner.name"/>
+                <dt>Current since</dt><dd t-esc="helpers.fmtDate(d.approved_date)"/>
+                <dt>Description</dt><dd t-esc="d.description || '—'"/>
+            </dl>
+
+        </t>
+        <t t-elif="state.detailTab === 'access'">
+            <t t-set="fa" t-value="state.fileAccess"/>
+            <p class="o_dms_muted small">Everyone with access to <b t-esc="d.folder"/> gets this file automatically. Take someone off this file only, or give them a different level here.</p>
+            <div t-if="!fa" class="o_dms_loading"><i class="fa fa-circle-o-notch fa-spin"/></div>
+            <t t-else="">
+                <p t-if="!fa.rows.length" class="o_dms_muted small">Only the Document Controller and the owner (<t t-esc="fa.owner"/>) can see it.</p>
+                <div t-foreach="fa.rows" t-as="row" t-key="row.user_id" class="o_dms_amap" t-att-class="{off: row.file_level === 'none'}">
+                    <img t-att-src="'/web/image/res.users/' + row.user_id + '/avatar_128'" alt=""/>
+                    <div class="o_dms_amap_who">
+                        <b t-esc="row.name"/>
+                        <small t-if="row.file_level === 'none'">Removed from this file</small>
+                        <small t-elif="row.file_level">Set on this file</small>
+                        <small t-elif="!row.from and row.is_owner">Owner of this document</small>
+                        <small t-elif="row.from and row.from.kind === 'group'"><i class="fa fa-users"/> via group <t t-esc="row.from.label"/></small>
+                        <small t-elif="row.from"><i class="fa fa-folder"/> via <t t-esc="row.from.label"/></small>
+                    </div>
+                    <select class="o_dms_amap_level" t-att-class="'lv_' + (row.level || 'none')" t-on-change="(ev) => this.setFileAccess(row, ev.target.value)" t-att-title="'Access for ' + row.name">
+                        <option value="" t-att-selected="!row.file_level">From folder<t t-if="row.from"> (<t t-esc="helpers.LEVEL_LABEL[row.from.level]"/>)</t></option>
+                        <option value="view" t-att-selected="row.file_level === 'view'">View</option>
+                        <option value="download" t-att-selected="row.file_level === 'download'">View &amp; Download</option>
+                        <option value="edit" t-att-selected="row.file_level === 'edit'">Edit</option>
+                        <option value="none" t-att-selected="row.file_level === 'none'">No access</option>
+                    </select>
+                </div>
+                <button class="o_dms_btn o_dms_btn_sm o_dms_amap_add" t-on-click="() => this.openShare('doc')"><i class="fa fa-user-plus"/> Add someone to this file</button>
+            </t>
+        </t>
+        <t t-elif="state.detailTab === 'log'">
+            <ul class="o_dms_log">
+                <li t-foreach="d.log" t-as="l" t-key="l_index">
+                    <span><b t-esc="l.user"/> <t t-esc="l.action.toLowerCase()"/><span class="o_dms_muted" t-if="l.details">: <t t-esc="l.details"/></span></span>
+                    <time class="o_dms_muted" t-esc="helpers.timeAgo(l.date)"/>
+                </li>
+            </ul>
+        </t>
+    </div>
+</t>
+
+<!-- ================================================================ GROUPS -->
+<t t-name="dms.Groups">
+    <header class="o_dms_top">
+        <div class="o_dms_path"><h1>Groups</h1></div>
+        <button class="o_dms_btn o_dms_btn_ink" t-on-click="() => this.openGroupForm()"><i class="fa fa-plus"/> New group</button>
+    </header>
+    <section class="o_dms_body">
+        <p class="o_dms_lede">A group bundles folders under one access level. Add a person to the group and they get every folder in it, sub-folders included.</p>
+        <t t-if="state.loading and !state.groups.length"><div class="o_dms_loading"><i class="fa fa-circle-o-notch fa-spin"/></div></t>
+        <div t-elif="!state.groups.length" class="o_dms_empty">
+            <h3>No groups yet</h3>
+            <p>For example, make “Accounts + Software” with both folders and add the people who need them.</p>
+            <button class="o_dms_btn o_dms_btn_ink" t-on-click="() => this.openGroupForm()"><i class="fa fa-plus"/> New group</button>
+        </div>
+        <div t-else="" class="o_dms_groups">
+            <button t-foreach="state.groups" t-as="g" t-key="g.id" class="o_dms_group" t-on-click="() => this.openGroupForm(g)">
+                <div class="o_dms_group_head">
+                    <b t-esc="g.name"/>
+                    <span class="o_dms_level" t-attf-class="lv_{{g.level}}" t-esc="helpers.LEVEL_LABEL[g.level]"/>
+                </div>
+                <div class="o_dms_group_folders">
+                    <span t-foreach="g.folders" t-as="f" t-key="f.id" class="o_dms_chip"><i class="fa fa-folder"/> <t t-esc="f.name"/></span>
+                    <span t-if="!g.folders.length" class="o_dms_muted small">No folders yet</span>
+                </div>
+                <div class="o_dms_group_people">
+                    <t t-foreach="g.users.slice(0, 6)" t-as="u" t-key="u.id">
+                        <img t-att-src="'/web/image/res.users/' + u.id + '/avatar_128'" t-att-title="u.name" alt=""/>
+                    </t>
+                    <span class="o_dms_muted small"><t t-esc="g.users.length"/> member<t t-if="g.users.length !== 1">s</t></span>
+                </div>
+            </button>
+        </div>
+    </section>
+</t>
+
+<!-- ================================================================ MODALS -->
+<t t-name="dms.ModalShell">
+    <div class="o_dms_backdrop" t-on-click.self="() => state.modal = null">
+        <div class="o_dms_modal" t-att-class="size" role="dialog">
+            <div class="o_dms_modal_head"><h2 t-esc="title"/><button class="o_dms_icon_btn" t-on-click="() => state.modal = null" title="Close"><i class="fa fa-times"/></button></div>
+            <t t-out="0"/>
+        </div>
+    </div>
+</t>
+
+<t t-name="dms.FolderModal">
+    <t t-set="f" t-value="state.folderForm"/>
+    <t t-call="dms.ModalShell"><t t-set="title" t-value="'New folder'"/><t t-set="size" t-value="'sm'"/>
+        <form class="o_dms_modal_body" t-on-submit.prevent="doCreateFolder">
+            <p class="o_dms_muted small" t-if="f.parent">Inside <b t-esc="folderLabel(f.parent)"/>. It takes this folder's access and approvers.</p>
+            <p class="o_dms_muted small" t-else="">A top-level folder. Grant access to it once it exists.</p>
+            <label for="dms_fname">Folder name</label>
+            <input id="dms_fname" class="o_dms_field" t-model="f.name" placeholder="e.g. Gopi" autofocus=""/>
+        </form>
+        <div class="o_dms_modal_foot">
+            <button class="o_dms_btn" t-on-click="() => state.modal = null">Cancel</button>
+            <button class="o_dms_btn o_dms_btn_ink" t-on-click="doCreateFolder" t-att-disabled="!f.name.trim()">Create folder</button>
+        </div>
+    </t>
+</t>
+
+<t t-name="dms.GroupModal">
+    <t t-set="g" t-value="state.groupForm"/>
+    <t t-call="dms.ModalShell"><t t-set="title" t-value="g.id ? 'Edit group' : 'New group'"/>
+        <div class="o_dms_modal_body">
+            <label for="dms_gname">Group name</label>
+            <input id="dms_gname" class="o_dms_field" t-model="g.name" placeholder="e.g. Accounts + Software"/>
+            <label>Members can</label>
+            <div class="o_dms_seg o_dms_seg_wide">
+                <t t-foreach="state.boot.levels" t-as="lv" t-key="lv[0]">
+                    <button t-att-class="{active: g.level === lv[0]}" t-on-click="() => g.level = lv[0]" t-esc="lv[1]"/>
+                </t>
+            </div>
+            <label>Folders <span class="o_dms_muted">(<t t-esc="g.folderIds.size"/> selected)</span></label>
+            <div class="o_dms_checklist">
+                <t t-foreach="folderTree" t-as="row" t-key="row.f.id">
+                    <t t-set="f" t-value="row.f"/>
+                    <label class="o_dms_check" t-attf-style="padding-left: {{8 + row.depth * 20}}px">
+                        <input type="checkbox" t-att-checked="g.folderIds.has(f.id)" t-on-change="() => this.toggleGroupFolder(f.id)"/>
+                        <i class="fa fa-folder"/> <span t-esc="f.name"/>
+                    </label>
+                </t>
+            </div>
+            <label>Members</label>
+            <div class="o_dms_ac">
+                <input class="o_dms_field" placeholder="Add a person by name or login" t-att-value="g.term" t-on-input="searchMembers"/>
+                <div t-if="g.results.length" class="o_dms_ac_menu">
+                    <a t-foreach="g.results" t-as="p" t-key="p.id" t-on-click="() => this.addMember(p)"><b t-esc="p.name"/> <small t-esc="p.sub"/></a>
+                </div>
+            </div>
+            <div class="o_dms_members">
+                <span t-foreach="g.users" t-as="u" t-key="u.id" class="o_dms_member">
+                    <img t-att-src="'/web/image/res.users/' + u.id + '/avatar_128'" alt=""/> <t t-esc="u.name"/>
+                    <button t-on-click="() => this.removeMember(u)" t-att-title="'Remove ' + u.name"><i class="fa fa-times"/></button>
+                </span>
+                <span t-if="!g.users.length" class="o_dms_muted small">No members yet.</span>
+            </div>
+        </div>
+        <div class="o_dms_modal_foot">
+            <button t-if="g.id" class="o_dms_btn o_dms_btn_quiet_bad" t-on-click="deleteGroup">Delete group</button>
+            <button class="o_dms_btn" t-on-click="() => state.modal = null">Cancel</button>
+            <button class="o_dms_btn o_dms_btn_ink" t-on-click="saveGroup" t-att-disabled="!g.name.trim()">Save group</button>
+        </div>
+    </t>
+</t>
+
+<t t-name="dms.UploadModal">
+    <t t-set="u" t-value="state.upload"/>
+    <t t-call="dms.ModalShell"><t t-set="title" t-value="'Upload a document'"/>
+        <div class="o_dms_modal_body">
+            <label class="o_dms_pick" t-att-class="{has: u.file}">
+                <input type="file" t-ref="file" t-on-change="onPickFile" hidden=""/>
+                <t t-if="u.file">
+                    <t t-set="k" t-value="helpers.fileKind(u.file.name, u.file.type)"/>
+                    <span class="o_dms_ext" t-attf-class="k_{{k.cls}}" t-esc="k.label"/>
+                    <span class="o_dms_pick_text"><b t-esc="u.file.name"/><small t-esc="helpers.humanSize(u.file.size)"/></span>
+                    <span class="o_dms_link">Choose another</span>
+                </t>
+                <t t-else=""><i class="fa fa-arrow-up"/><span class="o_dms_pick_text"><b>Choose a file</b><small>or drop it anywhere on the page</small></span></t>
+            </label>
+            <div class="o_dms_row2">
+                <div><label>Folder</label>
+                    <select class="o_dms_field" t-model.number="u.folderId">
+                        <t t-foreach="editableFolders" t-as="f" t-key="f.id"><option t-att-value="f.id" t-esc="folderLabel(f)"/></t>
+                    </select></div>
+                <div><label>Document type</label>
+                    <select class="o_dms_field" t-model.number="u.typeId">
+                        <t t-foreach="state.boot.types" t-as="t" t-key="t.id"><option t-att-value="t.id" t-esc="t.name"/></t>
+                    </select></div>
+            </div>
+            <label>Title</label>
+            <input class="o_dms_field" t-model="u.title" placeholder="e.g. Vendor payment policy"/>
+            <p class="o_dms_hint">Numbered <b class="o_dms_code" t-esc="uploadPreviewCode"/> and published as revision 0 once approved.</p>
+            <label>Short description</label>
+            <textarea class="o_dms_field" rows="2" t-model="u.description"/>
+            <label class="o_dms_switch"><input type="checkbox" t-model="u.submit"/><span/>
+                Send for approval now<small class="o_dms_muted"> (<t t-esc="uploadType and uploadType.l3 ? 'L1, L2 and L3' : 'L1 and L2'"/>)</small></label>
+        </div>
+        <div class="o_dms_modal_foot">
+            <button class="o_dms_btn" t-on-click="() => state.modal = null">Cancel</button>
+            <button class="o_dms_btn o_dms_btn_ink" t-on-click="doUpload" t-att-disabled="state.busy or !u.file">
+                <i t-if="state.busy" class="fa fa-circle-o-notch fa-spin"/> <t t-esc="u.submit ? 'Upload and send' : 'Upload as draft'"/></button>
+        </div>
+    </t>
+</t>
+
+<t t-name="dms.CheckinModal">
+    <t t-set="c" t-value="state.checkin"/>
+    <t t-call="dms.ModalShell"><t t-set="title" t-value="'Check in ' + state.detail.code"/>
+        <div class="o_dms_modal_body">
+            <label class="o_dms_pick" t-att-class="{has: c.file}">
+                <input type="file" t-ref="checkinFile" t-on-change="onPickCheckin" hidden=""/>
+                <t t-if="c.file"><i class="fa fa-file-o"/><span class="o_dms_pick_text"><b t-esc="c.file.name"/><small t-esc="helpers.humanSize(c.file.size)"/></span><span class="o_dms_link">Choose another</span></t>
+                <t t-else=""><i class="fa fa-arrow-up"/><span class="o_dms_pick_text"><b>Choose the edited file</b><small>keep the same file name</small></span></t>
+            </label>
+            <p t-if="checkinNameWarning" class="o_dms_note warn" t-esc="checkinNameWarning"/>
+            <label>What changed?</label>
+            <textarea class="o_dms_field" rows="3" t-model="c.note" placeholder="e.g. Payment terms changed from 30 to 45 days"/>
+            <label class="o_dms_switch"><input type="checkbox" t-model="c.submit"/><span/> Send for approval now</label>
+            <p class="o_dms_hint">Readers keep seeing the current revision until this one is approved.</p>
+        </div>
+        <div class="o_dms_modal_foot">
+            <button class="o_dms_btn" t-on-click="() => state.modal = null">Cancel</button>
+            <button class="o_dms_btn o_dms_btn_ink" t-on-click="doCheckin" t-att-disabled="state.busy or !c.file">
+                <i t-if="state.busy" class="fa fa-circle-o-notch fa-spin"/> Check in</button>
+        </div>
+    </t>
+</t>
+
+<t t-name="dms.DecisionModal">
+    <t t-set="x" t-value="state.decision"/>
+    <t t-call="dms.ModalShell"><t t-set="title" t-value="(x.kind === 'approve' ? 'Approve ' : 'Refuse ') + state.detail.code + ', revision ' + x.rev.rev"/>
+        <div class="o_dms_modal_body">
+            <div class="o_dms_decision_file">
+                <span t-esc="x.rev.file_name"/>
+                <a t-if="x.rev.can_preview" t-on-click="() => this.openPreview(x.rev)">Open file</a>
+            </div>
+            <blockquote t-if="x.rev.note"><t t-esc="x.rev.note"/><cite t-esc="x.rev.author.name"/></blockquote>
+            <label t-esc="x.kind === 'approve' ? 'Comment (optional)' : 'Reason for refusing'"/>
+            <textarea class="o_dms_field" rows="3" t-model="x.comment" t-att-placeholder="x.kind === 'approve' ? '' : 'What should the author fix?'"/>
+            <p t-if="x.kind === 'refuse'" class="o_dms_note warn">A refused upload goes back to its author. A refused new revision is dropped.</p>
+        </div>
+        <div class="o_dms_modal_foot">
+            <button class="o_dms_btn" t-on-click="() => state.modal = null">Cancel</button>
+            <button class="o_dms_btn" t-att-class="x.kind === 'approve' ? 'o_dms_btn_ok' : 'o_dms_btn_bad'" t-on-click="doDecision" t-att-disabled="state.busy">
+                <t t-esc="x.kind === 'approve' ? 'Approve' : 'Refuse'"/></button>
+        </div>
+    </t>
+</t>
+
+<t t-name="dms.CutoffModal">
+    <t t-call="dms.ModalShell"><t t-set="title" t-value="'Bring cut-off forward'"/><t t-set="size" t-value="'sm'"/>
+        <div class="o_dms_modal_body">
+            <p class="o_dms_muted">Revision <t t-esc="state.cutoff.rev.rev"/> stays on screen until this date, then moves to the archive.</p>
+            <input type="date" class="o_dms_field" t-model="state.cutoff.date" t-att-max="state.cutoff.rev.cutoff_date"/>
+        </div>
+        <div class="o_dms_modal_foot">
+            <button class="o_dms_btn" t-on-click="() => state.modal = null">Cancel</button>
+            <button class="o_dms_btn o_dms_btn_ink" t-on-click="doCutoff" t-att-disabled="state.busy">Save cut-off</button>
+        </div>
+    </t>
+</t>
+
+<t t-name="dms.ShareModal">
+    <t t-set="s" t-value="state.share"/>
+    <t t-call="dms.ModalShell"><t t-set="title" t-value="'Who has access to ' + s.title"/>
+        <div class="o_dms_modal_body">
+            <div class="o_dms_share_add">
+                <div class="o_dms_ac">
+                    <input class="o_dms_field" placeholder="Add a person by name or login" t-att-value="s.term" t-on-input="searchPrincipals"/>
+                    <div t-if="s.results.length" class="o_dms_ac_menu">
+                        <a t-foreach="s.results" t-as="p" t-key="p.id" t-on-click="() => this.pickPrincipal(p)"><b t-esc="p.name"/> <small t-esc="p.sub"/></a>
+                    </div>
+                </div>
+                <div class="o_dms_seg">
+                    <t t-foreach="state.boot.levels" t-as="lv" t-key="lv[0]">
+                        <button t-att-class="{active: s.level === lv[0]}" t-on-click="() => s.level = lv[0]" t-esc="lv[1]"/>
+                    </t>
+                </div>
+                <button class="o_dms_btn o_dms_btn_ink" t-on-click="grant" t-att-disabled="!s.pick">Give access</button>
+            </div>
+            <p class="o_dms_hint" t-if="s.isFolder">They get this level on everything inside, sub-folders included. To share only some files, open a file and use its access button instead.</p>
+            <p class="o_dms_hint" t-else="">Only this file. They will see the folder, but only the files shared with them.</p>
+
+            <div class="o_dms_share_list">
+                <h3 class="o_dms_h3">Added here</h3>
+                <p t-if="!s.data.direct.length" class="o_dms_muted small">Nobody yet.</p>
+                <div t-foreach="s.data.direct" t-as="a" t-key="a.id" class="o_dms_person">
+                    <img t-att-src="'/web/image/res.users/' + a.user_id + '/avatar_128'" alt=""/>
+                    <div class="o_dms_person_name"><b t-esc="a.who"/><small class="o_dms_muted">Added by <t t-esc="a.by"/>, <t t-esc="helpers.timeAgo(a.date)"/></small></div>
+                    <span class="o_dms_level" t-attf-class="lv_{{a.level}}" t-esc="helpers.LEVEL_LABEL[a.level]"/>
+                    <button class="o_dms_icon_btn" t-on-click="() => this.revoke(a)" t-att-title="'Remove ' + a.who"><i class="fa fa-times"/></button>
+                </div>
+
+                <t t-if="s.data.inherited.length">
+                    <h3 class="o_dms_h3">From the folder above</h3>
+                    <div t-foreach="s.data.inherited" t-as="a" t-key="a.id" class="o_dms_person inherited">
+                        <img t-att-src="'/web/image/res.users/' + a.user_id + '/avatar_128'" alt=""/>
+                        <div class="o_dms_person_name"><b t-esc="a.who"/><small class="o_dms_muted">via <t t-esc="a.from"/></small></div>
+                        <span class="o_dms_level" t-attf-class="lv_{{a.level}}" t-esc="helpers.LEVEL_LABEL[a.level]"/>
+                    </div>
+                </t>
+                <t t-if="s.data.groups.length">
+                    <h3 class="o_dms_h3">From groups</h3>
+                    <div t-foreach="s.data.groups" t-as="g" t-key="g.id" class="o_dms_person inherited">
+                        <i class="fa fa-users"/>
+                        <div class="o_dms_person_name"><b t-esc="g.name"/><small class="o_dms_muted"><t t-esc="g.members.join(', ') || 'No members'"/>, via <t t-esc="g.via"/></small></div>
+                        <span class="o_dms_level" t-attf-class="lv_{{g.level}}" t-esc="helpers.LEVEL_LABEL[g.level]"/>
+                    </div>
+                </t>
+                <p class="o_dms_hint">When someone appears more than once, the highest level counts. Access set on a single file replaces the folder level for that file.</p>
+            </div>
+        </div>
+    </t>
+</t>
+
+<t t-name="dms.RenameModal">
+    <t t-set="f" t-value="state.folderForm"/>
+    <t t-call="dms.ModalShell"><t t-set="title" t-value="'Rename folder'"/><t t-set="size" t-value="'sm'"/>
+        <form class="o_dms_modal_body" t-on-submit.prevent="doRename">
+            <label for="dms_rname">New name</label>
+            <input id="dms_rname" class="o_dms_field" t-model="f.name"/>
+        </form>
+        <div class="o_dms_modal_foot">
+            <button class="o_dms_btn" t-on-click="() => state.modal = null">Cancel</button>
+            <button class="o_dms_btn o_dms_btn_ink" t-on-click="doRename">Rename</button>
+        </div>
+    </t>
+</t>
+
+<t t-name="dms.DeleteModal">
+    <t t-set="f" t-value="state.folderForm"/>
+    <t t-set="ctrl" t-value="state.boot.user.is_controller"/>
+    <t t-call="dms.ModalShell"><t t-set="title" t-value="(ctrl ? 'Delete ' : 'Ask to delete ') + f.folder.name"/><t t-set="size" t-value="'sm'"/>
+        <div class="o_dms_modal_body">
+            <t t-if="f.count">
+                <p class="o_dms_note warn"><t t-esc="f.count"/> document<t t-if="f.count !== 1">s</t> still inside. A folder is deleted only once it is empty: move them, or archive and dispose of them first.</p>
+            </t>
+            <p t-else="" class="o_dms_muted"><t t-if="f.subs">Its <t t-esc="f.subs"/> sub-folder<t t-if="f.subs !== 1">s</t> go with it. </t><t t-esc="ctrl ? 'The folder is removed from Odoo and from the DMS server.' : 'The Document Controller gets your request and decides.'"/></p>
+            <label for="dms_dreason">Reason</label>
+            <textarea id="dms_dreason" class="o_dms_field" rows="2" t-model="f.reason" placeholder="e.g. Project closed, documents moved to Archive"/>
+        </div>
+        <div class="o_dms_modal_foot">
+            <button class="o_dms_btn" t-on-click="() => state.modal = null">Cancel</button>
+            <button class="o_dms_btn o_dms_btn_bad" t-on-click="doDelete" t-att-disabled="ctrl and f.count"><t t-esc="ctrl ? 'Delete folder' : 'Send request'"/></button>
+        </div>
+    </t>
+</t>
+
+<t t-name="dms.Requests">
+    <header class="o_dms_top"><div class="o_dms_path"><h1>Folder deletion requests</h1></div></header>
+    <section class="o_dms_body">
+        <div t-if="!state.requests.length and !state.loading" class="o_dms_empty"><h3>No folder waits for deletion</h3><p>When someone asks to delete a folder, the request lands here.</p></div>
+        <div t-foreach="state.requests" t-as="r" t-key="r.id" class="o_dms_request">
+            <div class="o_dms_request_main">
+                <b t-esc="r.name"/>
+                <div class="o_dms_muted small">Asked by <t t-esc="r.by"/>, <t t-esc="helpers.timeAgo(r.date)"/></div>
+                <blockquote t-if="r.reason" t-esc="r.reason"/>
+                <ol class="o_dms_steps_inline">
+                    <li t-att-class="r.docs ? 'now' : 'done'"><span>1</span> Empty the folder</li>
+                    <li t-att-class="r.docs ? '' : 'now'"><span>2</span> Delete it</li>
+                </ol>
+                <t t-if="r.docs">
+                    <p class="small o_dms_warn_text"><t t-esc="r.docs"/> document<t t-if="r.docs !== 1">s</t> still inside. Move them to another folder, or retire them to the Archive.</p>
+                    <ul class="o_dms_request_items">
+                        <li t-foreach="r.items" t-as="it" t-key="it.id"><span class="o_dms_code" t-esc="it.code"/> <t t-esc="it.name"/> <span class="o_dms_muted small" t-esc="it.folder"/></li>
+                    </ul>
+                    <div class="o_dms_request_empty">
+                        <select class="o_dms_field" t-model.number="r.target">
+                            <option value="">Move all to…</option>
+                            <t t-foreach="moveTargets(r.id)" t-as="row" t-key="row.f.id">
+                                <option t-att-value="row.f.id" t-esc="'  '.repeat(row.depth) + row.f.name"/>
+                            </t>
+                        </select>
+                        <button class="o_dms_btn o_dms_btn_sm" t-on-click="() => this.moveAll(r)" t-att-disabled="!r.target">Move all</button>
+                        <span class="o_dms_muted small">or</span>
+                        <button class="o_dms_btn o_dms_btn_sm" t-on-click="() => this.retireAll(r)"><i class="fa fa-archive"/> Retire all to Archive</button>
+                    </div>
+                </t>
+                <p t-else="" class="small o_dms_muted">Empty<t t-if="r.subfolders">, with <t t-esc="r.subfolders"/> empty sub-folder<t t-if="r.subfolders !== 1">s</t></t>. Ready to delete.</p>
+            </div>
+            <div class="o_dms_request_actions">
+                <button class="o_dms_btn o_dms_btn_sm" t-on-click="() => this.decideDelete(r, false)">Keep folder</button>
+                <button class="o_dms_btn o_dms_btn_bad o_dms_btn_sm" t-on-click="() => this.decideDelete(r, true)" t-att-disabled="r.docs">Delete folder</button>
+            </div>
+        </div>
+    </section>
+</t>
+
+<t t-name="dms.MoveModal">
+    <t t-set="m" t-value="state.moveForm"/>
+    <t t-call="dms.ModalShell"><t t-set="title" t-value="'Move ' + m.title"/>
+        <div class="o_dms_modal_body">
+            <p class="o_dms_muted small">The document keeps its number and history. People who could see it only through the old folder lose access.</p>
+            <div class="o_dms_checklist o_dms_pickfolder">
+                <t t-foreach="moveTargets()" t-as="row" t-key="row.f.id">
+                    <button class="o_dms_pickrow" t-att-class="{active: m.target === row.f.id, here: m.current === row.f.id}" t-attf-style="padding-left: {{10 + row.depth * 20}}px"
+                            t-att-disabled="m.current === row.f.id" t-on-click="() => m.target = row.f.id">
+                        <i class="fa" t-att-class="m.target === row.f.id ? 'fa-folder-open' : 'fa-folder'"/> <t t-esc="row.f.name"/>
+                        <small t-if="m.current === row.f.id" class="o_dms_muted">current</small>
+                    </button>
+                </t>
+            </div>
+        </div>
+        <div class="o_dms_modal_foot">
+            <button class="o_dms_btn" t-on-click="() => state.modal = null">Cancel</button>
+            <button class="o_dms_btn o_dms_btn_ink" t-on-click="doMove" t-att-disabled="!m.target">Move here</button>
+        </div>
+    </t>
+</t>
+
+<t t-name="dms.RetireModal">
+    <t t-call="dms.ModalShell"><t t-set="title" t-value="'Retire ' + state.detail.code"/><t t-set="size" t-value="'sm'"/>
+        <div class="o_dms_modal_body">
+            <p class="o_dms_muted">The document and all its revisions go to the Archive, read only. After the retention period you can dispose of it from Disposal.</p>
+            <label for="dms_rr">Reason</label>
+            <textarea id="dms_rr" class="o_dms_field" rows="2" t-model="state.retireForm.reason" placeholder="e.g. Policy replaced by ACC-POL-007"/>
+        </div>
+        <div class="o_dms_modal_foot">
+            <button class="o_dms_btn" t-on-click="() => state.modal = null">Cancel</button>
+            <button class="o_dms_btn o_dms_btn_bad" t-on-click="doRetire">Retire to Archive</button>
+        </div>
+    </t>
+</t>
+
+<t t-name="dms.Cine">
+    <t t-set="c" t-value="state.cine"/>
+    <div class="o_dms_cine" t-attf-class="ph_{{c.phase}} {{c.archive ? 'archive' : ''}}" t-on-click="skipCine" title="Click to skip">
+        <div class="o_dms_cine_backdrop"/>
+        <div class="o_dms_cine_streak"><i/><i/><i/></div>
+        <div class="o_dms_cine_folder" t-att-style="c.phase === 'start' ? 'transform: ' + c.from : ''">
+            <div class="o_dms_cine_glow"/>
+            <div class="o_dms_cine_back"/>
+            <div class="o_dms_cine_papers">
+                <t t-foreach="[...Array(c.papers).keys()]" t-as="i" t-key="i">
+                    <div class="o_dms_cine_paper" t-attf-class="p{{i}}">
+                        <span t-if="i === c.papers - 1" class="o_dms_cine_pdf">PDF</span>
+                        <i/><i/><i/><i/><i/>
+                    </div>
+                </t>
+            </div>
+            <div class="o_dms_cine_front">
+                <b t-esc="c.name"/>
+                <small t-esc="c.sub"/>
+            </div>
+            <div class="o_dms_cine_sparks"><i/><i/><i/><i/><i/><i/><i/><i/></div>
+        </div>
+    </div>
+</t>
+
+<t t-name="dms.File3d">
+    <span class="o_dms_file3d" t-attf-class="k_{{k.cls}} {{big ? 'big' : ''}}" aria-hidden="true">
+        <span class="o_dms_file3d_sheet"><i/><i/><i/></span>
+        <span class="o_dms_file3d_label" t-esc="k.label"/>
+    </span>
+</t>
+
+<t t-name="dms.Preview">
+    <t t-set="p" t-value="state.preview"/>
+    <div class="o_dms_preview" t-att-class="{guarded: guarded, shielded: state.shield}" t-on-contextmenu="noContext" t-on-dragstart="noContext">
+        <div class="o_dms_preview_bar">
+            <div><span class="o_dms_code" t-esc="p.doc.code"/> <b t-esc="p.doc.name"/> <span class="o_dms_muted">revision <t t-esc="p.rev.rev"/></span>
+                <span t-if="p.rev.state === 'superseded'" class="o_dms_badge s_superseded">Superseded</span>
+                <span t-if="guarded" class="o_dms_badge s_view"><i class="fa fa-shield"/> <t t-esc="p.canDownload ? 'Protected view' : 'View only'"/></span></div>
+            <div>
+                <t t-if="p.pages">
+                    <span class="o_dms_muted small">Page <t t-esc="p.page"/> of <t t-esc="p.pages.length"/></span>
+                    <button class="o_dms_icon_btn" t-on-click="() => this.zoomPages(-0.2)" title="Zoom out"><i class="fa fa-search-minus"/></button>
+                    <span class="o_dms_muted small"><t t-esc="Math.round(p.zoom * 100)"/>%</span>
+                    <button class="o_dms_icon_btn" t-on-click="() => this.zoomPages(0.2)" title="Zoom in"><i class="fa fa-search-plus"/></button>
+                </t>
+                <button t-if="p.canDownload" class="o_dms_btn o_dms_btn_sm" t-on-click="() => this.download(p.rev)"><i class="fa fa-download"/> Download</button>
+                <button class="o_dms_icon_btn" t-on-click="closePreview" title="Close (Esc)"><i class="fa fa-times"/></button>
+            </div>
+        </div>
+        <div class="o_dms_preview_body">
+            <div t-if="p.loading" class="o_dms_preview_loading">
+                <div class="o_dms_file3d big" t-attf-class="k_{{p.kind.cls}}"><span class="o_dms_file3d_sheet"><i/><i/><i/></span><span class="o_dms_file3d_label" t-esc="p.kind.label"/></div>
+                <p>Preparing <t t-esc="p.rev.file_name"/>…</p>
+            </div>
+            <iframe t-elif="p.frame" t-att-src="p.frame" t-on-load="onPdfLoad"/>
+            <div t-elif="p.pages" class="o_dms_pages" t-on-scroll="onPagesScroll" t-on-wheel="onPagesWheel">
+                <img t-foreach="p.pages" t-as="n" t-key="n" class="o_dms_pg" t-att-data-page="n"
+                     t-att-src="'/dms/view/' + p.rev.id + '/page/' + n" loading="lazy" draggable="false" alt=""
+                     t-attf-style="width: {{Math.round(p.zoom * 860)}}px"/>
+            </div>
+            <iframe t-elif="p.sheet" class="o_dms_sheet" t-att-src="p.sheet" sandbox="allow-same-origin" t-on-load="onFrameLoad"/>
+            <img t-elif="p.img" class="o_dms_single" t-att-src="p.img" draggable="false" alt=""/>
+            <video t-elif="p.media and p.view === 'video'" t-att-src="p.media" controls="" controlsList="nodownload noplaybackrate" disablePictureInPicture="" class="o_dms_media"/>
+            <audio t-elif="p.media and p.view === 'audio'" t-att-src="p.media" controls="" controlsList="nodownload"/>
+            <pre t-elif="p.text !== undefined" t-esc="p.text"/>
+            <div t-elif="p.entries" class="o_dms_zip">
+                <h3><t t-esc="p.entries.length"/> item<t t-if="p.entries.length !== 1">s</t> in this archive</h3>
+                <div t-foreach="p.entries" t-as="e" t-key="e_index" class="o_dms_zip_row">
+                    <i class="fa" t-att-class="e.dir ? 'fa-folder' : 'fa-file-o'"/> <span t-esc="e.name"/>
+                    <small t-if="!e.dir" t-esc="helpers.humanSize(e.size)"/>
+                </div>
+            </div>
+            <div t-else="" class="o_dms_empty">
+                <h3>This file type cannot be shown inside Odoo</h3>
+                <p t-if="p.canDownload">Download it to open in its own application.</p>
+                <p t-else="">Ask the Document Controller for view and download access.</p>
+            </div>
+            <div t-if="guarded" class="o_dms_wm" t-attf-style="background-image: {{p.watermark}}"/>
+            <div t-if="state.shield" class="o_dms_shield">
+                <i class="fa fa-lock"/>
+                <h3>Screenshot blocked</h3>
+                <p>This document is protected. Screenshots are not permitted. Only Ctrl, the arrow keys and Ctrl + scroll (zoom) are allowed while it is open.</p>
+                <button class="o_dms_btn o_dms_btn_ink" t-on-click="showAgain"><i class="fa fa-refresh"/> Show the document again</button>
+            </div>
+        </div>
+    </div>
+</t>
+
+</templates>

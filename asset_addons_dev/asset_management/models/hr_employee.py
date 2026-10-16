@@ -80,3 +80,12 @@ class HrEmployee(models.Model):
             'context': {'default_employee_id': self.id},
         }
 
+
+
+class HrDepartmentAssetLocation(models.Model):
+    _inherit = 'hr.department'
+
+    location_id = fields.Many2one(
+        'asset.location', string="Asset Location",
+        help="Where this department's assets are kept. Used as the location when "
+             "assets are mapped to this department or its employees.")

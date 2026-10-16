@@ -29,8 +29,16 @@
         <field name="inherit_id" ref="general_asset.view_asset_general_form"/>
         <field name="arch" type="xml">
             <xpath expr="//header/field[@name='state']" position="before">
+                <field name="in_repair" invisible="1"/>
                 <button name="action_open_direct_assign" type="object" string="Assign"
-                        class="btn-primary" invisible="state != 'draft'"/>
+                        class="btn-primary" invisible="state != 'submit' or in_repair"/>
+                <button name="action_open_transfer" type="object" string="Transfer"
+                        class="btn-secondary" invisible="state != 'assigned' or in_repair"/>
+                <button name="action_unassign" type="object" string="Unassign"
+                        class="btn-secondary" invisible="state != 'assigned' or in_repair"
+                        confirm="Take this asset back to stock? The employee, department and location are cleared."/>
+                <button name="action_open_scrap" type="object" string="Scrap"
+                        class="btn-danger" invisible="state not in ('submit', 'assigned') or in_repair"/>
             </xpath>
         </field>
     </record>

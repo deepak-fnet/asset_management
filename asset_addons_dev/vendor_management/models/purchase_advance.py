@@ -171,11 +171,39 @@ class PurchaseOrder(models.Model):
             order.advance_balance = max(order.amount_total - order.advance_requested, 0.0)
             order.goods_received = any(
                 l.qty_received > 0 for l in order.order_line if not l.display_type)
-            # After Confirm Order and before anything is received; a
-            # percentage or an amount, up to the order total in all.
+            order.order_fully_paid = order._is_fully_paid()
+            # Any time after Confirm Order (before or after the goods arrive)
+            # until the order is fully paid; up to the order total in all.
             order.can_request_advance = (
-                is_buyer and order.state == 'purchase' and not order.goods_received
+                is_buyer and order.state in ('purchase', 'done') and not order.order_fully_paid
                 and order.currency_id.compare_amounts(order.advance_balance, 0) > 0)
+
+    order_fully_paid = fields.Boolean(compute='_compute_advance_amounts')
+
+    def _is_fully_paid(self):
+        """Posted bills cover the whole order and are paid (Paid or In Process -
+        a bank payment not reconciled yet counts as paid)."""
+        self.ensure_one()
+        bills = self.sudo().invoice_ids.filtered(
+            lambda m: m.move_type == 'in_invoice' and m.state == 'posted')
+        if not bills:
+            return False
+        covered = self.currency_id.compare_amounts(sum(bills.mapped('amount_total')), self.amount_total) >= 0
+        return covered and all(b.payment_state in ('paid', 'in_payment') for b in bills)
+
+    def _check_no_pending_advance(self):
+        """A bill cannot go ahead while an advance on its order is still waiting
+        for the manager or Finance: confirm or reject that advance first."""
+        for order in self:
+            pending = order.sudo().advance_payment_ids.filtered(
+                lambda p: p.advance_state in ('to_manager', 'requested') and p.state == 'draft')
+            if pending:
+                raise UserError(_(
+                    "%(order)s has an advance still waiting for approval (%(amt)s). Ask the "
+                    "manager / Finance to confirm it, or reject (cancel) it, before this bill "
+                    "goes ahead - otherwise the vendor would be paid twice.",
+                    order=order.name, amt=", ".join(
+                        formatLang(self.env, p.amount, currency_obj=p.currency_id) for p in pending)))
 
     def _advance_notify(self, users, subject, body):
         """Email + chatter message on the order to these users (not the actor)."""
@@ -216,10 +244,10 @@ class PurchaseOrder(models.Model):
         self.ensure_one()
         if not _user_in(self.env, PURCHASE_USER_GROUPS):
             raise AccessError(_("Only a Purchase User can request an advance."))
-        if self.state != 'purchase':
+        if self.state not in ('purchase', 'done'):
             raise UserError(_("An advance can be requested once the order is confirmed."))
-        if self.goods_received:
-            raise UserError(_("Goods are already being received - an advance can no longer be requested."))
+        if self._is_fully_paid():
+            raise UserError(_("%s is already fully paid - no advance can be requested.", self.name))
         if float_compare(amount, 0, precision_rounding=self.currency_id.rounding) <= 0:
             raise UserError(_("Enter an advance amount or percentage."))
         remaining = self.advance_balance

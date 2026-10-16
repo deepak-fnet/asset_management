@@ -29,8 +29,8 @@ class AssetDirectAssignWizard(models.TransientModel):
     def action_assign(self):
         self.ensure_one()
         self.asset_id._check_not_in_repair(_("assign"))
-        if self.asset_id.state != 'draft':
-            raise UserError(_("Only a Draft asset can be assigned from here."))
+        if self.asset_id.state != 'submit':
+            raise UserError(_("Only a Submitted (in stock) asset can be assigned. Submit it first."))
         self.asset_id._assign_to_target(self.assign_type, self.employee_id,
                                         self.department_id, self.location_id)
         self.asset_id.message_post(body=_(
@@ -47,8 +47,9 @@ class AssetAsset(models.Model):
 
     def action_open_direct_assign(self):
         self.ensure_one()
-        if self.state != 'draft':
-            raise UserError(_("Only a Draft asset can be assigned from here."))
+        self._check_not_in_repair(_("assign"))
+        if self.state != 'submit':
+            raise UserError(_("Only a Submitted (in stock) asset can be assigned. Submit it first."))
         return {
             'type': 'ir.actions.act_window',
             'name': _("Assign Asset"),
@@ -57,3 +58,39 @@ class AssetAsset(models.Model):
             'target': 'new',
             'context': {'default_asset_id': self.id},
         }
+
+    # ── Lifecycle shortcuts on the general asset form ────────────────────
+    def _open_lifecycle(self, model, title):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window', 'name': title, 'res_model': model,
+            'view_mode': 'form', 'target': 'current',
+            'context': {'default_asset_id': self.id},
+        }
+
+    def action_open_transfer(self):
+        self._check_not_in_repair(_("transfer"))
+        if self.state != 'assigned':
+            raise UserError(_("Only an assigned asset can be transferred."))
+        return self._open_lifecycle('asset.transfer', _("Asset Transfer"))
+
+    def action_open_scrap(self):
+        self._check_not_in_repair(_("scrap"))
+        if self.state not in ('submit', 'assigned'):
+            raise UserError(_("Submit the asset before scrapping it."))
+        return self._open_lifecycle('asset.scrap', _("Asset Scrap"))
+
+    def action_unassign(self):
+        """Take an assigned asset back to stock (Submit)."""
+        for asset in self:
+            asset._check_not_in_repair(_("unassign"))
+            if asset.state != 'assigned':
+                raise UserError(_("%s is not assigned.", asset.display_name))
+            holder = ", ".join(n for n in [asset.assigned_employee_id.name, asset.department_id.name,
+                                            asset.location_id.complete_name] if n)
+            asset.write({'assigned_employee_id': False, 'department_id': False, 'location_id': False,
+                         'assignment_date': False, 'state': 'submit'})
+            asset.message_post(body=_("Unassigned by %(user)s (was: %(holder)s). Back in stock.",
+                                      user=self.env.user.name, holder=holder or "-"))
+        return True
+

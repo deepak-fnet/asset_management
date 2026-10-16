@@ -172,6 +172,7 @@ class AccountMove(models.Model):
         for move in self:
             # Held until the whole order is delivered (Bill Policy on the PO).
             move.invoice_line_ids.purchase_line_id.order_id._check_bill_policy()
+            move.invoice_line_ids.purchase_line_id.order_id._check_no_pending_advance()
             if not move.invoice_date:
                 raise UserError(_("Enter the Bill Date before submitting."))
             if not move.ref:
@@ -286,6 +287,7 @@ class AccountMove(models.Model):
                     "verified by Audit before it can be confirmed.", move.name or _("This bill")))
             if not self._user_in(self.FINANCE_GROUPS):
                 raise AccessError(_("Only Purchase Finance can confirm (post) this bill."))
+            move.invoice_line_ids.purchase_line_id.order_id._check_no_pending_advance()
         res = super().action_post()
         for move in self.filtered('purchase_bill_approval'):
             move._bill_notify(move.bill_submitted_by | move.bill_dept_approver_id,

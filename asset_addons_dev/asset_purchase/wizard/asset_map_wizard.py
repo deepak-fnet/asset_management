@@ -29,17 +29,29 @@ class AssetMapWizard(models.TransientModel):
         return res
 
     @api.model
+    def _target_vals(self, joining, assign_type):
+        """Who / where the rows default to, from the Assign Process: employee
+        rows get the request's employee, their department and that
+        department's asset location; common rows get the department and
+        location only."""
+        employee = joining.employee_id
+        department = employee.department_id
+        vals = {'assign_type': assign_type,
+                'department_id': department.id or False,
+                'location_id': department.location_id.id or False,
+                'employee_id': employee.id if assign_type == 'employee' else False}
+        return vals
+
+    @api.model
     def _default_line_vals(self, line, assign_type):
-        # Location / employee / department are always filled in by hand.
-        return {'assign_type': assign_type}
+        return self._target_vals(line.joining_id, assign_type)
 
     @api.onchange('assign_type')
     def _onchange_assign_type(self):
-        # The radio sets the type of every row and clears what was entered
-        # for the previous type.
+        # The radio sets the type of every row and refills who / where for it.
+        vals = self._target_vals(self.joining_id, self.assign_type)
         for line in self.line_ids:
-            line.update({'assign_type': self.assign_type, 'location_id': False,
-                         'employee_id': False, 'department_id': False})
+            line.update(vals)
 
     def action_confirm(self):
         self.ensure_one()
@@ -97,10 +109,21 @@ class AssetMapWizardLine(models.TransientModel):
     location_id = fields.Many2one('asset.location', string="Location")
     employee_id = fields.Many2one('hr.employee', string="Employee")
     department_id = fields.Many2one('hr.department', string="Department")
+    # Choices limited to the Assign Process's employee, their department and
+    # that department's asset location (any location if the department has none).
+    allowed_employee_id = fields.Many2one(related='wizard_id.joining_id.employee_id')
+    allowed_department_id = fields.Many2one(related='wizard_id.joining_id.employee_id.department_id')
+    allowed_location_ids = fields.Many2many('asset.location', compute='_compute_allowed_location_ids')
+
+    @api.depends('allowed_department_id')
+    def _compute_allowed_location_ids(self):
+        for line in self:
+            loc = line.allowed_department_id.location_id
+            line.allowed_location_ids = loc if loc else self.env['asset.location'].search([])
 
     @api.onchange('assign_type')
     def _onchange_assign_type(self):
-        self.location_id = self.employee_id = self.department_id = False
+        self.update(self.env['asset.map.wizard']._target_vals(self.wizard_id.joining_id, self.assign_type))
 
     @api.onchange('employee_id')
     def _onchange_employee_id(self):

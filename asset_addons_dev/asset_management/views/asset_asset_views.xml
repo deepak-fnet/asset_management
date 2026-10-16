@@ -1481,5 +1481,33 @@
         </field>
     </record>
 
+    <!-- IT menus keep the IT form (the general asset form is the default form) -->
+    <record id="action_asset_asset" model="ir.actions.act_window">
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_asset_asset_kanban')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_asset_asset_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_asset_asset_form')})]"/>
+    </record>
+    <!-- IT menus keep the IT form (the general asset form is the default form) -->
+    <record id="action_ubuntu_asset" model="ir.actions.act_window">
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_asset_asset_kanban')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_asset_asset_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_asset_asset_form')})]"/>
+    </record>
+    <!-- IT menus keep the IT form (the general asset form is the default form) -->
+    <record id="action_mac_asset" model="ir.actions.act_window">
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_asset_asset_kanban')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_asset_asset_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_asset_asset_form')})]"/>
+    </record>
+    <!-- IT menus keep the IT form (the general asset form is the default form) -->
+    <record id="action_all_assets" model="ir.actions.act_window">
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_asset_asset_kanban')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_asset_asset_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_asset_asset_form')})]"/>
+    </record>
     </data>
 </odoo>
