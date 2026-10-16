@@ -1,0 +1,932 @@
+/* ============================================================
+   PEROK.AI LOGIN — Odoo 17
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+/* === THEME ===
+   Every colour / radius below can be overridden from
+   Settings > Login Page > Animations (the default record writes
+   these variables on .pk-body). The values here are the defaults. */
+body.pk-body {
+    --pk-page-bg: #EDD1A9;
+    --pk-card-bg: #FFFEFC;
+    --pk-panel-bg: #D3892A;
+    --pk-heading: #1C1917;
+    --pk-subtext: #A8A29E;
+    --pk-label: #78716C;
+    --pk-input-line: #E7E5E4;
+    --pk-input-focus: #1C1917;
+    --pk-link: #EF4444;
+    --pk-btn-bg: #1C1917;
+    --pk-btn-text: #FFFFFF;
+    --pk-card-radius: 28px;
+    --pk-panel-radius: 20px;
+    --pk-btn-radius: 24px;
+    --pk-font: 'Plus Jakarta Sans';
+    --pk-form-w: 340px;
+    --pk-align: left;
+    --pk-logo-h: 36px;
+    --pk-logo-gap: 28px;
+    --pk-h1-size: 26px;
+    --pk-h1-weight: 800;
+    --pk-sub-size: 14px;
+    --pk-sub-gap: 28px;
+    --pk-label-size: 12px;
+    --pk-label-weight: 500;
+    --pk-link-size: 11px;
+    --pk-input-h: 44px;
+    --pk-input-size: 14px;
+    --pk-input-text: #1C1917;
+    --pk-placeholder: #D6D3D1;
+    --pk-input-bg: transparent;
+    --pk-line-w: 1.5px;
+    --pk-focus-w: 1.5px;
+    --pk-input-radius: 0px;
+    --pk-field-gap: 16px;
+    --pk-eye: #A8A29E;
+    --pk-btn-h: 46px;
+    --pk-btn-size: 14px;
+    --pk-btn-weight: 600;
+    --pk-btn-border: #1C1917;
+    --pk-btn-border-w: 0px;
+    --pk-btn-gap: 22px;
+    --pk-foot: #A8A29E;
+    --pk-foot-size: 12px;
+    --pk-reset-size: 13px;
+}
+
+/* === BASE === */
+body.pk-body {
+    background: var(--pk-page-bg) !important;
+    overflow-x: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+body.pk-body #wrapwrap {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--pk-page-bg) !important;
+}
+body.pk-body #wrapwrap > main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+body.pk-body header#top,
+body.pk-body footer#bottom {
+    display: none !important;
+}
+
+/* === WRAPPER === */
+.pk-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    width: 100%;
+    padding: 24px;
+    font-family: var(--pk-font), 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--pk-page-bg);
+}
+
+/* === CARD === */
+.pk-card {
+    display: grid;
+    grid-template-columns: 48% 52%;
+    width: 100%;
+    max-width: 980px;
+    min-height: 600px;
+    padding: 14px;
+    background: var(--pk-card-bg);
+    border-radius: var(--pk-card-radius);
+    overflow: hidden;
+    box-sizing: border-box;
+    box-shadow: 0 24px 60px rgba(122, 62, 10, 0.16), 0 2px 6px rgba(122, 62, 10, 0.06);
+    animation: pkCardIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+    position: relative;
+}
+/* the card's picture sits on its own layer so it can be made see-through */
+.pk-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    background-image: var(--pk-card-img, none);
+    background-size: cover;
+    background-position: center;
+    opacity: var(--pk-card-img-opacity, 1);
+    pointer-events: none;
+}
+
+/* === LEFT PANEL — parrot stage ===
+   Five pre-rendered 3D poses (static/src/img/parrot/*.webp, 800x1000,
+   feet on y=960, body centred on x=400) stacked in .pk-stage__bird.
+   login.js draws them through WebGL (.pk-gl, the <img>s are then only
+   texture sources) or, without WebGL, cross-fades the <img>s directly.
+   The bird is taller than the panel and centred on the orange box's
+   right edge, so it breaks out of the box onto the card like the reference. */
+.pk-left {
+    position: relative;
+    z-index: 2;
+    min-height: 420px;
+    container-type: size;
+}
+.pk-stage {
+    --pk-box: 80cqw;                            /* orange box width */
+    --pk-bh: min(112cqh, 150cqw);               /* bird canvas height */
+    --pk-bw: calc(var(--pk-bh) * 0.8);          /* bird canvas width (800:1000) */
+    --pk-bx: calc(var(--pk-box) - 44px);        /* bird centre */
+    --pk-feet: 18px;                            /* feet above the panel bottom */
+    position: absolute;
+    inset: 0;
+    perspective: 1400px;
+    perspective-origin: 50% 70%;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.pk-stage__bg {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: var(--pk-box);
+    overflow: hidden;
+    border-radius: var(--pk-panel-radius);
+    background:
+        radial-gradient(120% 80% at 30% 0%, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 60%),
+        var(--pk-panel-bg);
+    box-shadow: inset 0 0 90px rgba(120, 58, 6, 0.22);
+    animation: pkFadeIn 0.6s ease 0.1s both;
+}
+/* warm key light behind the bird */
+.pk-stage__glow {
+    position: absolute;
+    left: 62%;
+    top: 34%;
+    width: 130%;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(255, 228, 168, 0.55), rgba(255, 220, 150, 0.18) 55%, rgba(255, 220, 150, 0) 100%);
+    pointer-events: none;
+}
+/* floor: darkens gently toward the bottom of the box */
+.pk-stage__floor {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: calc(var(--pk-feet) + 70px);
+    background: linear-gradient(to bottom, rgba(150, 78, 12, 0) 0%, rgba(150, 78, 12, 0.16) 55%, rgba(110, 52, 4, 0.26) 100%);
+    pointer-events: none;
+}
+/* contact shadow: outside the box so it follows the bird past the edge */
+.pk-stage__shadow {
+    position: absolute;
+    left: var(--pk-bx);
+    bottom: var(--pk-feet);
+    width: calc(var(--pk-bw) * 0.56);
+    height: calc(var(--pk-bw) * 0.07);
+    margin-left: calc(var(--pk-bw) * -0.28);
+    margin-bottom: calc(var(--pk-bw) * -0.035);
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(74, 32, 0, 0.45) 0%, rgba(74, 32, 0, 0.2) 55%, rgba(74, 32, 0, 0) 100%);
+    pointer-events: none;
+}
+.pk-stage__rig,
+.pk-stage__enter {
+    position: absolute;
+    inset: 0;
+    transform-origin: 70% 92%;
+}
+.pk-stage__enter {
+    animation: pkBirdIn 0.9s cubic-bezier(0.34, 1.4, 0.64, 1) 0.3s both;
+}
+.pk-stage__bird {
+    position: absolute;
+    left: calc(var(--pk-bx) - var(--pk-bw) / 2);
+    bottom: calc(var(--pk-feet) - var(--pk-bh) * 0.04);
+    width: var(--pk-bw);
+    height: var(--pk-bh);
+    transform-origin: 50% 96%;
+    pointer-events: none;
+}
+.pk-pose {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    display: block;
+    object-fit: contain;
+    transform-origin: 50% 96%;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    -webkit-user-drag: none;
+    will-change: transform, opacity;
+}
+.pk-pose.is-on {
+    opacity: 1;
+    visibility: visible;
+}
+/* pre-rendered video clips (login.js VideoRenderer): stacked, the playing one shown */
+.pk-vid {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+.pk-vid video {
+    position: absolute;
+    display: block;
+    max-width: none;
+    object-fit: contain;
+    opacity: 0;
+    pointer-events: none;
+    background: transparent;
+}
+.pk-vid video.is-on {
+    opacity: 1;
+}
+/* uploaded video mascot: fills the bird box, feet at the bottom, quick cross-fades */
+.pk-vid--human img,
+.pk-vid--human video {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: 50% 100%;
+}
+.pk-vid--human img {
+    position: absolute;
+    display: block;
+    max-width: none;
+    opacity: 0;
+    pointer-events: none;
+}
+.pk-vid--human img.is-on {
+    opacity: 1;
+}
+/* still idle pose: gentle breathing */
+.pk-vid--human img.is-breath {
+    transform-origin: 50% 100%;
+    animation: pkBreath 3.6s ease-in-out infinite;
+}
+@keyframes pkBreath {
+    0%, 100% { transform: scale(1, 1); }
+    50% { transform: scale(1.006, 1.014); }
+}
+.pk-stage.is-video .pk-pose {
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* card / panel background videos (Look & colours) */
+.pk-card-video,
+.pk-panel-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+    pointer-events: none;
+}
+.pk-card-video {
+    z-index: 0;
+}
+
+/* full-page background video, behind the card */
+.pk-page-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    pointer-events: none;
+}
+.pk-page-video {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    z-index: 0;
+    pointer-events: none;
+}
+.pk-page-video ~ .pk-wrap {
+    position: relative;
+    z-index: 1;
+}
+
+/* login accepted: the same bird in its flying pose (login.js makePoseFlyer) */
+.pk-poseflyer {
+    position: absolute;
+    pointer-events: none;
+    will-change: transform, opacity;
+}
+.pk-poseflyer img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    display: block;
+    will-change: transform;
+}
+
+/* 3D character (login.js Model3DRenderer + mascot3d.js) */
+.pk-3d {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 2;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+.pk-stage--3d.is-ready .pk-3d {
+    opacity: 1;
+}
+/* login success: the character runs out of its panel, over the form */
+.pk-3d.is-escaped {
+    position: fixed;
+    z-index: 3000;
+    opacity: 1;
+    pointer-events: none;
+}
+
+/* video mascot running out on success (login.js runAcross) */
+.pk-runlayer {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    overflow: hidden;
+    pointer-events: none;
+}
+.pk-vid--human.is-running {
+    position: fixed;
+    will-change: transform;
+}
+
+/* item dropped by the running clip: falls and stays in the panel */
+.pk-drop {
+    position: absolute;
+    height: auto;
+    max-width: none;
+    pointer-events: none;
+    z-index: 1;
+    transform-origin: 50% 100%;
+}
+.pk-drop.is-falling {
+    animation: pkDrop 0.42s cubic-bezier(0.5, 0, 0.75, 0) forwards;
+}
+@keyframes pkDrop {
+    0% { transform: translateY(0) rotate(0deg); }
+    80% { transform: translateY(var(--pk-fall)) rotate(-14deg); }
+    90% { transform: translateY(calc(var(--pk-fall) - 6px)) rotate(-10deg); }
+    100% { transform: translateY(var(--pk-fall)) rotate(-12deg); }
+}
+
+/* flight layers: texture sources only */
+.pk-fly {
+    display: none !important;
+}
+/* WebGL canvas: the image plus the warp margin (PAD_X / PAD_Y in login.js) */
+.pk-gl {
+    position: absolute;
+    left: -8%;
+    top: -6%;
+    width: 116%;
+    height: 112%;
+    display: block;
+    pointer-events: none;
+}
+.pk-stage.is-gl .pk-pose,
+.pk-stage__bird.is-gl .pk-pose {
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* login accepted: the bird is moved into this layer and flies off the page */
+.pk-flight {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    overflow: hidden;
+    pointer-events: none;
+}
+/* side-view flight sprite: one frame of the flight.webp atlas, stepped by
+   login.js through background-position; sized, placed and moved by its
+   transform (origin = the body anchor) */
+.pk-flyer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    opacity: 0;
+    pointer-events: none;
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+}
+
+@keyframes pkCardIn {
+    from { opacity: 0; transform: translateY(18px) scale(0.985); }
+    to { opacity: 1; transform: none; }
+}
+@keyframes pkBirdIn {
+    0% { opacity: 0; transform: translateY(60px) scale(0.94); }
+    60% { opacity: 1; }
+    100% { opacity: 1; transform: none; }
+}
+
+/* === RIGHT PANEL === */
+/* above the bird (whose head / wings can reach into this column) and
+   transparent, so the bird passes behind the form instead of covering it */
+.pk-right {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;   /* leaves room for the bird breaking out of the box */
+    padding: 48px 48px 48px 24px;
+    background: transparent;
+}
+
+.pk-form-box {
+    width: 100%;
+    max-width: var(--pk-form-w);
+}
+.pk-logo, .pk-h1, .pk-sub, .pk-foot {
+    text-align: var(--pk-align);
+}
+.pk-h1:empty, .pk-sub:empty {
+    display: none;
+}
+
+.pk-logo {
+    margin-bottom: var(--pk-logo-gap);
+}
+.pk-logo img {
+    max-height: var(--pk-logo-h);
+    width: auto;
+}
+
+.pk-h1 {
+    font-family: var(--pk-font), 'Plus Jakarta Sans', sans-serif;
+    font-size: var(--pk-h1-size);
+    font-weight: var(--pk-h1-weight);
+    color: var(--pk-heading);
+    letter-spacing: -0.03em;
+    margin: 0 0 4px 0;
+    line-height: 1.2;
+}
+.pk-sub {
+    font-size: var(--pk-sub-size);
+    color: var(--pk-subtext);
+    margin: 0 0 var(--pk-sub-gap) 0;
+    font-weight: 400;
+}
+
+/* === FORM RESET — override ALL Odoo defaults === */
+.pk-form .mb-3,
+.pk-form .field-login,
+.pk-form .clearfix,
+.pk-form .oe_login_buttons,
+.pk-form .input-group {
+    all: unset !important;
+    display: block !important;
+    width: 100% !important;
+}
+.pk-form label.form-label,
+.pk-form label.col-form-label {
+    display: none !important;
+}
+.pk-form .form-control,
+.pk-form .form-control-sm {
+    all: unset !important;
+}
+.pk-form .btn,
+.pk-form .btn-primary,
+.pk-form .btn-link {
+    all: unset !important;
+}
+.pk-form .btn-secondary {
+    display: none !important;
+}
+.pk-form .alert {
+    all: unset !important;
+}
+.pk-form input[type="hidden"] {
+    display: none !important;
+}
+
+/* === FORM FIELDS === */
+.pk-fld {
+    margin-bottom: var(--pk-field-gap);
+}
+.pk-fld__lbl {
+    display: block;
+    font-size: var(--pk-label-size);
+    font-weight: var(--pk-label-weight);
+    color: var(--pk-label);
+    margin-bottom: 6px;
+    letter-spacing: 0.01em;
+    font-family: var(--pk-font), 'Plus Jakarta Sans', sans-serif;
+}
+.pk-fld__lbl-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+.pk-fld__lbl-row .pk-fld__lbl {
+    margin-bottom: 0;
+}
+.pk-fld__forgot {
+    font-size: var(--pk-link-size);
+    color: var(--pk-link);
+    text-decoration: none;
+    font-weight: 500;
+    font-family: var(--pk-font), 'Plus Jakarta Sans', sans-serif;
+}
+.pk-fld__forgot:hover {
+    text-decoration: underline;
+}
+
+.pk-fld__wrap {
+    position: relative;
+}
+
+.pk-fld__input {
+    width: 100% !important;
+    height: var(--pk-input-h) !important;
+    padding: 0 14px !important;
+    background: var(--pk-input-bg) !important;
+    border: none !important;
+    border-bottom: var(--pk-line-w) solid var(--pk-input-line) !important;
+    border-radius: 0 !important;
+    color: var(--pk-input-text) !important;
+    font-family: var(--pk-font), 'Plus Jakarta Sans', sans-serif !important;
+    font-size: var(--pk-input-size) !important;
+    font-weight: 400 !important;
+    transition: border-color 0.25s ease !important;
+    outline: none !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    -webkit-appearance: none !important;
+    box-shadow: none !important;
+}
+.pk-fld__input::placeholder {
+    color: var(--pk-placeholder) !important;
+    font-weight: 400 !important;
+}
+.pk-fld__input:focus {
+    border-bottom-color: var(--pk-input-focus) !important;
+    border-bottom-width: var(--pk-focus-w) !important;
+    box-shadow: none !important;
+}
+
+.pk-fld__eye {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--pk-eye);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+.pk-fld__eye:hover {
+    color: var(--pk-eye);
+    filter: brightness(0.75);
+}
+
+/* === ALERTS === */
+.pk-alert {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 16px;
+    line-height: 1.4;
+    font-family: var(--pk-font), 'Plus Jakarta Sans', sans-serif;
+}
+.pk-alert--err {
+    background: #FEF2F2;
+    color: #DC2626;
+    border: 1px solid #FECACA;
+}
+.pk-alert--ok {
+    background: #F0FDF4;
+    color: #16A34A;
+    border: 1px solid #BBF7D0;
+}
+.pk-alert svg {
+    flex-shrink: 0;
+}
+
+/* === BUTTONS === */
+.pk-acts {
+    margin-top: var(--pk-btn-gap);
+}
+
+.pk-btn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: var(--pk-btn-h) !important;
+    border-radius: var(--pk-btn-radius) !important;
+    font-family: var(--pk-font), 'Plus Jakarta Sans', sans-serif !important;
+    font-size: var(--pk-btn-size) !important;
+    font-weight: var(--pk-btn-weight) !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    border: none !important;
+    letter-spacing: 0.01em !important;
+    text-decoration: none !important;
+    box-sizing: border-box !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: var(--pk-btn-h) !important;
+    text-align: center !important;
+}
+
+.pk-btn--dark {
+    background: var(--pk-btn-bg) !important;
+    color: var(--pk-btn-text) !important;
+    border: var(--pk-btn-border-w) solid var(--pk-btn-border) !important;
+}
+.pk-btn--dark:hover {
+    background: var(--pk-btn-bg) !important;
+    filter: brightness(1.15);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15) !important;
+    transform: translateY(-1px);
+}
+/* waiting for the server after "Log in" */
+.pk-btn--dark.is-loading {
+    pointer-events: none !important;
+    opacity: 0.9;
+}
+.pk-btn--dark.is-loading::after {
+    content: "";
+    width: 14px;
+    height: 14px;
+    margin-left: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #FFFFFF;
+    border-radius: 50%;
+    animation: pkSpin 0.7s linear infinite;
+}
+@keyframes pkSpin {
+    to { transform: rotate(360deg); }
+}
+.pk-btn--dark:active {
+    transform: translateY(0);
+}
+
+.pk-btn--ghost {
+    background: transparent !important;
+    color: #A8A29E !important;
+    border: 1px solid #E7E5E4 !important;
+    margin-top: 8px !important;
+    font-weight: 500 !important;
+    font-size: 12px !important;
+    height: 38px !important;
+    line-height: 38px !important;
+}
+.pk-btn--ghost:hover {
+    background: #FAFAF9 !important;
+    border-color: #D6D3D1 !important;
+}
+
+/* === SOCIAL AUTH === */
+.pk-social .o_login_auth {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+.pk-social .o_login_auth a,
+.pk-social .o_login_auth button {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px;
+    width: 100%;
+    height: 44px;
+    border-radius: 24px !important;
+    border: 1.5px solid #E7E5E4 !important;
+    background: #fff !important;
+    font-family: var(--pk-font), 'Plus Jakarta Sans', sans-serif !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: #57534E !important;
+    cursor: pointer;
+    text-decoration: none !important;
+    transition: all 0.2s;
+}
+.pk-social .o_login_auth a:hover,
+.pk-social .o_login_auth button:hover {
+    background: #FAFAF9 !important;
+    border-color: #D6D3D1 !important;
+}
+
+/* === FOOTER === */
+.pk-foot {
+    text-align: center;
+    margin-top: 28px;
+    font-size: var(--pk-foot-size);
+    color: var(--pk-foot);
+    font-family: var(--pk-font), 'Plus Jakarta Sans', sans-serif;
+}
+.pk-foot a {
+    color: var(--pk-foot);
+    text-decoration: none;
+}
+.pk-foot a:hover {
+    color: var(--pk-foot);
+    filter: brightness(0.75);
+}
+.pk-foot--reset a {
+    font-size: var(--pk-reset-size) !important;
+}
+.pk-foot b {
+    font-weight: 600;
+}
+
+/* === ENTRANCE ANIMATIONS === */
+@keyframes pkSlideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pkFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.pk-an {
+    opacity: 0;
+    animation: pkSlideUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.pk-an1 { animation-delay: 0.08s; }
+.pk-an2 { animation-delay: 0.16s; }
+.pk-an3 { animation-delay: 0.24s; }
+.pk-an4 { animation-delay: 0.32s; }
+.pk-an5 { animation-delay: 0.44s; }
+
+/* === RESPONSIVE === */
+/* narrower cards: keep the bird inside its panel */
+@media (max-width: 1000px) {
+    .pk-stage {
+        --pk-box: 100cqw;
+        --pk-bh: min(104cqh, 120cqw);
+        --pk-bx: 50cqw;
+    }
+    .pk-right {
+        justify-content: center;
+        padding: 48px 36px;
+    }
+}
+@media (max-width: 768px) {
+    .pk-card {
+        grid-template-columns: 1fr;
+        max-width: 440px;
+        min-height: 0;
+        padding: 10px;
+    }
+    /* compact banner: head and shoulders only, nothing spills over the form */
+    .pk-left {
+        min-height: 230px;
+        overflow: hidden;
+        border-radius: var(--pk-panel-radius);
+    }
+    .pk-stage {
+        --pk-bh: 520px;
+    }
+    .pk-stage__bird {
+        top: -40px;
+        bottom: auto;
+    }
+    .pk-stage__glow {
+        top: 30%;
+        left: 50%;
+        width: 90%;
+    }
+    .pk-stage__floor,
+    .pk-stage__shadow {
+        display: none;
+    }
+    .pk-right {
+        padding: 32px 22px 28px;
+    }
+    .pk-wrap {
+        padding: 16px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pk-card,
+    .pk-stage__bg,
+    .pk-stage__enter,
+    .pk-an {
+        animation: none !important;
+        opacity: 1 !important;
+    }
+    .pk-pose {
+        transition: opacity 0.2s linear, visibility 0.2s linear;
+    }
+    /* no flight: the page navigates straight away */
+    .pk-flyer {
+        display: none !important;
+    }
+}
+
+/* === 2FA STEP (/web/login/totp): Odoo's code form in the same look === */
+.pk-form-box .oe_login_form:not(.pk-form) {
+    font-family: var(--pk-font), 'Plus Jakarta Sans', sans-serif;
+    color: var(--pk-label);
+    font-size: var(--pk-sub-size);
+}
+.pk-form-box .oe_login_form:not(.pk-form) .card-title {
+    color: var(--pk-heading);
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+.pk-form-box .oe_login_form:not(.pk-form) .text-muted {
+    color: var(--pk-subtext) !important;
+}
+.pk-form-box .oe_login_form:not(.pk-form) a {
+    color: var(--pk-link);
+}
+.pk-form-box .oe_login_form:not(.pk-form) label {
+    color: var(--pk-label);
+    font-size: var(--pk-label-size);
+    font-weight: var(--pk-label-weight) !important;
+}
+.pk-form-box .oe_login_form:not(.pk-form) .form-control {
+    height: var(--pk-input-h);
+    padding: 0 14px;
+    background: var(--pk-input-bg);
+    border: none;
+    border-bottom: var(--pk-line-w) solid var(--pk-input-line);
+    border-radius: 0;
+    box-shadow: none;
+    color: var(--pk-input-text);
+    font-size: calc(var(--pk-input-size) + 4px);
+    letter-spacing: 0.3em;
+}
+.pk-form-box .oe_login_form:not(.pk-form) .form-control::placeholder {
+    color: var(--pk-placeholder);
+    letter-spacing: normal;
+}
+.pk-form-box .oe_login_form:not(.pk-form) .form-control:focus {
+    border-bottom: var(--pk-focus-w) solid var(--pk-input-focus);
+}
+.pk-form-box .oe_login_form:not(.pk-form) .border-top {
+    border-top: none !important;
+}
+.pk-form-box .oe_login_form:not(.pk-form) .btn-primary {
+    height: var(--pk-btn-h);
+    border-radius: var(--pk-btn-radius);
+    background: var(--pk-btn-bg);
+    color: var(--pk-btn-text);
+    border: var(--pk-btn-border-w) solid var(--pk-btn-border);
+    font-size: var(--pk-btn-size);
+    font-weight: var(--pk-btn-weight);
+    text-transform: none;
+}
+.pk-form-box .oe_login_form:not(.pk-form) .btn-primary.is-loading::after {
+    content: "";
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-left: 10px;
+    vertical-align: -2px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #FFFFFF;
+    border-radius: 50%;
+    animation: pkSpin 0.7s linear infinite;
+}
+.pk-form-box .oe_login_form:not(.pk-form) .btn-secondary,
+.pk-form-box .oe_login_form:not(.pk-form) .btn-link {
+    border-radius: var(--pk-btn-radius);
+    color: var(--pk-subtext);
+}

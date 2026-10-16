@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_login_animation_tree" model="ir.ui.view">
+        <field name="name">perok.login.animation.list</field>
+        <field name="model">perok.login.animation</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="mascot_type"/>
+                <field name="is_default" widget="boolean_toggle"/>
+                <field name="is_system" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_login_animation_form" model="ir.ui.view">
+        <field name="name">perok.login.animation.form</field>
+        <field name="model">perok.login.animation</field>
+        <field name="arch" type="xml">
+            <form class="o_pk_anim_form">
+                <header>
+                    <button name="action_reset_theme" type="object" string="Reset look to default" class="btn-secondary"
+                            confirm="Reset every colour, size and text of the login page to the default?"/>
+                </header>
+                <sheet>
+                    <div class="pk-cfg__head">
+                        <div class="oe_title flex-grow-1 mb-0">
+                            <label for="name"/>
+                            <h1 class="mb-0"><field name="name" placeholder="e.g. Assistant"/></h1>
+                        </div>
+                        <group class="mb-0">
+                            <field name="mascot_type" readonly="is_system"/>
+                            <field name="is_default" widget="boolean_toggle"/>
+                            <field name="is_system" invisible="1"/>
+                        </group>
+                    </div>
+                    <div class="pk-cfg">
+                        <div class="pk-cfg__opts">
+                            <notebook>
+                                <page string="Character" name="character">
+                                    <div class="alert alert-info" role="status" invisible="mascot_type != 'parrot'">
+                                        The built-in animated parrot. It cannot be deleted; tick <b>Default</b> to show it again.
+                                    </div>
+                                    <div invisible="mascot_type != 'model3d'">
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-cube"/>3D character</div>
+                                        <div class="pk-sec__hint">A Mixamo-rigged <b>.glb</b> with an animation named <b>idle</b>; <b>walk</b> and <b>sit</b> are used when present.</div>
+                                        <group>
+                                            <field name="model_file" filename="model_file_name"/>
+                                            <field name="model_file_name" invisible="1"/>
+                                            <field name="model_path" readonly="1" invisible="not model_path"/>
+                                        </group>
+                                    </div>
+                                    </div>
+                                    <div invisible="mascot_type != 'video'">
+                                        <div class="pk-sec__hint mb-3">MP4 / WebM clips (or PNG stills) with the same framing; transparent WebM looks best.
+                                            <b>Loop</b>: the part that repeats while the state lasts (0 to 0 = play once and hold; "to" 0 = up to the end).</div>
+                                        <div class="pk-sec-grid">
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-pause-circle-o"/>Idle (page open)</div>
+                                        <group>
+                                            <field name="idle_video" string="Video / image" filename="idle_video_name"/>
+                                            <field name="idle_video_name" invisible="1"/>
+                                            <field name="idle_speed" widget="pk_range" options="{'min': 0.1, 'max': 4, 'step': 0.1, 'unit': '×'}" invisible="not idle_video"/>
+                                            <label for="idle_loop_from" string="Loop (s)" invisible="not idle_video"/>
+                                            <div class="o_row" invisible="not idle_video">
+                                                <field name="idle_loop_from" nolabel="1" class="oe_inline"/>
+                                                <span>to</span>
+                                                <field name="idle_loop_to" nolabel="1" class="oe_inline"/>
+                                            </div>
+                                        </group>
+                                    </div>
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-envelope-o"/>Email field clicked</div>
+                                        <group>
+                                            <field name="look_video" string="Video / image" filename="look_video_name"/>
+                                            <field name="look_video_name" invisible="1"/>
+                                            <field name="look_speed" widget="pk_range" options="{'min': 0.1, 'max': 4, 'step': 0.1, 'unit': '×'}" invisible="not look_video"/>
+                                            <label for="look_loop_from" string="Loop (s)" invisible="not look_video"/>
+                                            <div class="o_row" invisible="not look_video">
+                                                <field name="look_loop_from" nolabel="1" class="oe_inline"/>
+                                                <span>to</span>
+                                                <field name="look_loop_to" nolabel="1" class="oe_inline"/>
+                                            </div>
+                                        </group>
+                                    </div>
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-eye-slash"/>Password field clicked</div>
+                                        <group>
+                                            <field name="eyes_close_video" string="Video / image" filename="eyes_close_video_name"/>
+                                            <field name="eyes_close_video_name" invisible="1"/>
+                                            <field name="eyes_close_speed" widget="pk_range" options="{'min': 0.1, 'max': 4, 'step': 0.1, 'unit': '×'}" invisible="not eyes_close_video"/>
+                                            <label for="eyes_close_loop_from" string="Loop (s)" invisible="not eyes_close_video"/>
+                                            <div class="o_row" invisible="not eyes_close_video">
+                                                <field name="eyes_close_loop_from" nolabel="1" class="oe_inline"/>
+                                                <span>to</span>
+                                                <field name="eyes_close_loop_to" nolabel="1" class="oe_inline"/>
+                                            </div>
+                                        </group>
+                                    </div>
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-eye"/>Password shown (eye icon)</div>
+                                        <group>
+                                            <field name="eyes_open_video" string="Video / image" filename="eyes_open_video_name"/>
+                                            <field name="eyes_open_video_name" invisible="1"/>
+                                            <field name="eyes_open_speed" widget="pk_range" options="{'min': 0.1, 'max': 4, 'step': 0.1, 'unit': '×'}" invisible="not eyes_open_video"/>
+                                            <label for="eyes_open_loop_from" string="Loop (s)" invisible="not eyes_open_video"/>
+                                            <div class="o_row" invisible="not eyes_open_video">
+                                                <field name="eyes_open_loop_from" nolabel="1" class="oe_inline"/>
+                                                <span>to</span>
+                                                <field name="eyes_open_loop_to" nolabel="1" class="oe_inline"/>
+                                            </div>
+                                        </group>
+                                    </div>
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-smile-o"/>Login success</div>
+                                        <group>
+                                            <field name="happy_video" string="Video / image" filename="happy_video_name"/>
+                                            <field name="happy_video_name" invisible="1"/>
+                                            <field name="happy_speed" widget="pk_range" options="{'min': 0.1, 'max': 4, 'step': 0.1, 'unit': '×'}" invisible="not happy_video"/>
+                                            <label for="happy_loop_from" string="Loop (s)" invisible="not happy_video"/>
+                                            <div class="o_row" invisible="not happy_video">
+                                                <field name="happy_loop_from" nolabel="1" class="oe_inline"/>
+                                                <span>to</span>
+                                                <field name="happy_loop_to" nolabel="1" class="oe_inline"/>
+                                            </div>
+                                            <field name="happy_run" invisible="not happy_video"/>
+                                            <field name="happy_run_delay" invisible="not happy_run"/>
+                                            <field name="happy_run_speed" invisible="1"/>
+                                            <field name="happy_drop_image" widget="image" invisible="not happy_run" options="{'size': [0, 90]}"/>
+                                            <field name="happy_drop_time" invisible="not happy_run or not happy_drop_image"/>
+                                            <field name="happy_drop_rect" invisible="not happy_run or not happy_drop_image"/>
+                                        </group>
+                                    </div>
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-frown-o"/>Login failure</div>
+                                        <group>
+                                            <field name="sad_video" string="Video / image" filename="sad_video_name"/>
+                                            <field name="sad_video_name" invisible="1"/>
+                                            <field name="sad_speed" widget="pk_range" options="{'min': 0.1, 'max': 4, 'step': 0.1, 'unit': '×'}" invisible="not sad_video"/>
+                                            
+                                        </group>
+                                    </div>
+                                        </div>
+                                    </div>
+                                </page>
+                                <page string="Background" name="background">
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-desktop"/>Page</div>
+                                        <div class="pk-sec__hint">A picture or video covers the colour. Animated GIFs work too.</div>
+                                        <group>
+                                            <field name="page_bg" widget="color" invisible="page_bg_transparent"/>
+                                            <field name="page_bg_transparent"/>
+                                            <field name="page_bg_image" widget="image" options="{'size': [0, 70]}"/>
+                                            <field name="page_bg_video" filename="page_bg_video_name"/>
+                                            <field name="page_bg_video_name" invisible="1"/>
+                                            <field name="page_bg_opacity" widget="pk_range" options="{'min': 0, 'max': 100, 'step': 1, 'unit': '%'}" invisible="not page_bg_image and not page_bg_video"/>
+                                        </group>
+                                    </div>
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-square-o"/>Card</div>
+                                        <div class="pk-sec__hint">Lower the opacity and add blur for a frosted-glass card.</div>
+                                        <group>
+                                            <field name="card_bg" widget="color" invisible="card_bg_transparent"/>
+                                            <field name="card_bg_transparent"/>
+                                            <field name="card_bg_image" widget="image" options="{'size': [0, 70]}"/>
+                                            <field name="card_bg_video" filename="card_bg_video_name"/>
+                                            <field name="card_bg_video_name" invisible="1"/>
+                                            <field name="card_video_fit" widget="radio" invisible="not card_bg_video"/>
+                                            <field name="card_video_position" widget="radio" options="{'horizontal': true}" invisible="not card_bg_video"/>
+                                            <field name="card_opacity" widget="pk_range" options="{'min': 0, 'max': 100, 'step': 1, 'unit': '%'}"/>
+                                            <field name="card_blur" widget="pk_range" options="{'min': 0, 'max': 40, 'step': 1, 'unit': 'px'}"/>
+                                        </group>
+                                    </div>
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-user-circle-o"/>Mascot panel</div>
+                                        <group>
+                                            <field name="panel_bg" widget="color" invisible="panel_bg_transparent"/>
+                                            <field name="panel_bg_transparent"/>
+                                            <field name="panel_bg_image" widget="image" options="{'size': [0, 70]}"/>
+                                            <field name="panel_bg_video" filename="panel_bg_video_name"/>
+                                            <field name="panel_bg_video_name" invisible="1"/>
+                                            <field name="panel_video_fit" widget="radio" invisible="not panel_bg_video"/>
+                                            <field name="panel_video_position" widget="radio" options="{'horizontal': true}" invisible="not panel_bg_video"/>
+                                            <field name="panel_opacity" widget="pk_range" options="{'min': 0, 'max': 100, 'step': 1, 'unit': '%'}"/>
+                                        </group>
+                                    </div>
+                                </page>
+                                <page string="Layout" name="layout">
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-arrows-alt"/>Card size</div>
+                                        <group>
+                                            <field name="card_width" widget="pk_range" options="{'min': 600, 'max': 1800, 'step': 1, 'unit': 'px'}"/>
+                                            <field name="card_height" widget="pk_range" options="{'min': 380, 'max': 1200, 'step': 1, 'unit': 'px'}"/>
+                                            <field name="card_split" widget="pk_range" options="{'min': 20, 'max': 80, 'step': 1, 'unit': '%'}"/>
+                                            <field name="card_radius" widget="pk_range" options="{'min': 0, 'max': 60, 'step': 1, 'unit': 'px'}"/>
+                                        </group>
+                                    </div>
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-columns"/>Mascot panel</div>
+                                        <group>
+                                            <field name="panel_width" widget="pk_range" options="{'min': 30, 'max': 100, 'step': 1, 'unit': '%'}"/>
+                                            <field name="panel_height" widget="pk_range" options="{'min': 30, 'max': 100, 'step': 1, 'unit': '%'}"/>
+                                            <field name="panel_radius" widget="pk_range" options="{'min': 0, 'max': 60, 'step': 1, 'unit': 'px'}"/>
+                                            <field name="mascot_fit" widget="radio"/>
+                                            <field name="keep_in_panel"/>
+                                        </group>
+                                    </div>
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-clone"/>Layers</div>
+                                        <div class="pk-sec__hint">A higher number is drawn on top. Defaults: page 0, card 1, card video 0, panel 2, form 3.</div>
+                                        <group>
+                                            <field name="z_page" widget="pk_range" options="{'min': -10, 'max': 50, 'step': 1, 'unit': ''}"/>
+                                            <field name="z_card" widget="pk_range" options="{'min': -10, 'max': 50, 'step': 1, 'unit': ''}"/>
+                                            <field name="z_card_video" widget="pk_range" options="{'min': -10, 'max': 50, 'step': 1, 'unit': ''}" invisible="not card_bg_video"/>
+                                            <field name="z_panel" widget="pk_range" options="{'min': -10, 'max': 50, 'step': 1, 'unit': ''}"/>
+                                            <field name="z_form" widget="pk_range" options="{'min': -10, 'max': 50, 'step': 1, 'unit': ''}"/>
+                                        </group>
+                                    </div>
+                                </page>
+                                <page string="Texts &amp; font" name="texts">
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-font"/>Font &amp; alignment</div>
+                                        <group>
+                                            <field name="font_family"/>
+                                            <field name="text_align" widget="radio" options="{'horizontal': true}"/>
+                                            <field name="form_width" widget="pk_range" options="{'min': 240, 'max': 600, 'step': 1, 'unit': 'px'}"/>
+                                        </group>
+                                    </div>
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-picture-o"/>Logo</div>
+                                        <div class="pk-sec__hint">The company logo (Settings &gt; Companies).</div>
+                                        <group>
+                                            <field name="show_logo" widget="boolean_toggle"/>
+                                            <field name="logo_height" widget="pk_range" options="{'min': 12, 'max': 160, 'step': 1, 'unit': 'px'}" invisible="not show_logo"/>
+                                            <field name="logo_gap" widget="pk_range" options="{'min': 0, 'max': 120, 'step': 1, 'unit': 'px'}" invisible="not show_logo"/>
+                                        </group>
+                                    </div>
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-header"/>Heading</div>
+                                        <group>
+                                            <field name="heading_text"/>
+                                            <field name="heading_color" widget="color"/>
+                                            <field name="heading_size" widget="pk_range" options="{'min': 12, 'max': 72, 'step': 1, 'unit': 'px'}"/>
+                                            <field name="heading_weight"/>
+                                        </group>
+                                    </div>
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-paragraph"/>Sub-heading</div>
+                                        <div class="pk-sec__hint">Leave the text empty to hide it.</div>
+                                        <group>
+                                            <field name="subheading_text"/>
+                                            <field name="subtext_color" widget="color"/>
+                                            <field name="subheading_size" widget="pk_range" options="{'min': 8, 'max': 40, 'step': 1, 'unit': 'px'}"/>
+                                            <field name="subheading_gap" widget="pk_range" options="{'min': 0, 'max': 120, 'step': 1, 'unit': 'px'}"/>
+                                        </group>
+                                    </div>
+                                </page>
+                                <page string="Fields" name="fields">
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-tag"/>Labels</div>
+                                        <group>
+                                            <field name="email_label"/>
+                                            <field name="password_label"/>
+                                            <field name="label_color" widget="color"/>
+                                            <field name="label_size" widget="pk_range" options="{'min': 8, 'max': 30, 'step': 1, 'unit': 'px'}"/>
+                                            <field name="label_weight"/>
+                                        </group>
+                                    </div>
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-i-cursor"/>Inputs</div>
+                                        <group>
+                                            <field name="email_placeholder"/>
+                                            <field name="input_style" widget="radio" options="{'horizontal': true}"/>
+                                            <field name="input_text_color" widget="color"/>
+                                            <field name="placeholder_color" widget="color"/>
+                                            <field name="input_bg" widget="color" invisible="input_bg_transparent"/>
+                                            <field name="input_bg_transparent"/>
+                                            <field name="input_size" widget="pk_range" options="{'min': 10, 'max': 30, 'step': 1, 'unit': 'px'}"/>
+                                            <field name="input_height" widget="pk_range" options="{'min': 28, 'max': 80, 'step': 1, 'unit': 'px'}"/>
+                                            <field name="input_radius" widget="pk_range" options="{'min': 0, 'max': 40, 'step': 1, 'unit': 'px'}" invisible="input_style != 'box'"/>
+                                            <field name="field_gap" widget="pk_range" options="{'min': 0, 'max': 80, 'step': 1, 'unit': 'px'}"/>
+                                            <field name="eye_color" widget="color"/>
+                                        </group>
+                                    </div>
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-minus"/>Underline / border</div>
+                                        <div class="pk-sec__hint">The line under each field, and its look while the field is being typed in.</div>
+                                        <group>
+                                            <field name="input_line_color" widget="color"/>
+                                            <field name="input_line_width" widget="pk_range" options="{'min': 0, 'max': 8, 'step': 0.5, 'unit': 'px'}"/>
+                                            <field name="input_focus_color" widget="color"/>
+                                            <field name="input_focus_width" widget="pk_range" options="{'min': 0, 'max': 8, 'step': 0.5, 'unit': 'px'}"/>
+                                        </group>
+                                    </div>
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-question-circle"/>"Forgot password" link</div>
+                                        <group>
+                                            <field name="show_forgot" widget="boolean_toggle"/>
+                                            <field name="forgot_text" invisible="not show_forgot"/>
+                                            <field name="link_color" widget="color"/>
+                                            <field name="link_size" widget="pk_range" options="{'min': 8, 'max': 30, 'step': 1, 'unit': 'px'}"/>
+                                        </group>
+                                    </div>
+                                </page>
+                                <page string="Button" name="button">
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-hand-pointer-o"/>Log in button</div>
+                                        <group>
+                                            <field name="button_label"/>
+                                            <field name="button_bg" widget="color" invisible="button_bg_transparent"/>
+                                            <field name="button_bg_transparent"/>
+                                            <field name="button_text" widget="color"/>
+                                            <field name="button_font_size" widget="pk_range" options="{'min': 10, 'max': 32, 'step': 1, 'unit': 'px'}"/>
+                                            <field name="button_weight"/>
+                                            <field name="button_height" widget="pk_range" options="{'min': 28, 'max': 90, 'step': 1, 'unit': 'px'}"/>
+                                            <field name="button_radius" widget="pk_range" options="{'min': 0, 'max': 60, 'step': 1, 'unit': 'px'}"/>
+                                            <field name="button_border_width" widget="pk_range" options="{'min': 0, 'max': 8, 'step': 1, 'unit': 'px'}"/>
+                                            <field name="button_border_color" widget="color" invisible="not button_border_width"/>
+                                            <field name="button_gap" widget="pk_range" options="{'min': 0, 'max': 120, 'step': 1, 'unit': 'px'}"/>
+                                        </group>
+                                    </div>
+                                </page>
+                                <page string="Footer" name="footer">
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-key"/>Reset password link</div>
+                                        <div class="pk-sec__hint">Uses the link colour (Fields tab).</div>
+                                        <group>
+                                            <field name="show_reset_link" widget="boolean_toggle"/>
+                                            <field name="reset_text" invisible="not show_reset_link"/>
+                                            <field name="reset_size" widget="pk_range" options="{'min': 8, 'max': 30, 'step': 1, 'unit': 'px'}" invisible="not show_reset_link"/>
+                                        </group>
+                                    </div>
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-info-circle"/>Manage Databases · Powered by</div>
+                                        <group>
+                                            <field name="show_footer" widget="boolean_toggle"/>
+                                            <field name="footer_color" widget="color" invisible="not show_footer"/>
+                                            <field name="footer_size" widget="pk_range" options="{'min': 8, 'max': 24, 'step': 1, 'unit': 'px'}" invisible="not show_footer"/>
+                                        </group>
+                                    </div>
+                                </page>
+                            </notebook>
+                        </div>
+                        <div class="pk-cfg__preview">
+                            <widget name="perok_live_preview"/>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_login_animation" model="ir.actions.act_window">
+        <field name="name">Login Page Animations</field>
+        <field name="res_model">perok.login.animation</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add a login page animation</p>
+            <p>Upload video clips (idle, eyes close, happy, sad ...) and tick <b>Default</b> to show them on the login page.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_login_page_root" name="Login Page" parent="base.menu_administration" sequence="90" groups="base.group_system"/>
+    <menuitem id="menu_login_animation" name="Animations" parent="menu_login_page_root" action="action_login_animation" sequence="10"/>
+
+</odoo>
