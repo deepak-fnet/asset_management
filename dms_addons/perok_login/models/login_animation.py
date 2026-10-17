@@ -222,6 +222,9 @@ class PerokLoginAnimation(models.Model):
         defaults.update({'card_bg_video': False, 'card_bg_video_name': False,
                          'panel_bg_video': False, 'panel_bg_video_name': False, 'keep_in_panel': False})
         defaults.update({'card_bg_image': False, 'card_opacity': 100, 'card_blur': 0, 'panel_opacity': 100})
+        defaults.update(self.default_get(['mascot_offset_x', 'mascot_offset_y', 'mascot_scale', 'mascot_width',
+                                          'mascot_height', 'mobile_mascot', 'mobile_banner_height',
+                                          'mobile_offset_x', 'mobile_offset_y', 'mobile_scale']))
         defaults.update(self.default_get([f for f, *_r in STYLE_VARS] + TEXT_FIELDS + [
             'text_align', 'show_logo', 'show_forgot', 'input_style', 'input_bg', 'input_bg_transparent',
             'heading_text', 'subheading_text', 'show_reset_link', 'show_footer']))
@@ -259,6 +262,19 @@ class PerokLoginAnimation(models.Model):
     z_card_video = fields.Integer('Card video layer', default=0)
     z_panel = fields.Integer('Panel & mascot layer', default=2)
     z_form = fields.Integer('Form & texts layer', default=3)
+
+    # mascot position / size inside its panel (desktop) and on phones
+    mascot_offset_x = fields.Integer('Move left / right (%)', default=0, help='Negative = left, positive = right.')
+    mascot_offset_y = fields.Integer('Move up / down (%)', default=0, help='Negative = up, positive = down.')
+    mascot_scale = fields.Integer('Size (%)', default=100)
+    mascot_width = fields.Integer('Width (%)', default=100, help='Stretches the mascot sideways only.')
+    mascot_height = fields.Integer('Height (%)', default=100, help='Stretches the mascot up and down only.')
+    mobile_mascot = fields.Selection([('banner', 'Banner above the form'), ('hide', 'Hidden')],
+                                     string='Mascot on phones', default='banner', required=True)
+    mobile_banner_height = fields.Integer('Banner height (px)', default=230)
+    mobile_offset_x = fields.Integer('Move left / right (%)', default=0)
+    mobile_offset_y = fields.Integer('Move up / down (%)', default=0)
+    mobile_scale = fields.Integer('Size (%)', default=100)
 
     keep_in_panel = fields.Boolean('Keep the mascot inside the panel',
                                    help='Centres the mascot in its panel and cuts it at the panel edges, so wide '
@@ -350,6 +366,8 @@ class PerokLoginAnimation(models.Model):
         # the card's children above its picture layer
         css += ' body.pk-body .pk-card > :not(.pk-card-video) { position: relative; }'
         clamp = lambda v, lo, hi, d: max(lo, min(int(v if v not in (False, None) else d), hi))
+        # sizes, split and fit: desktop only, phones stack the card (login.css)
+        desk_from = len(css)
         # card size and column split
         split = clamp(self.card_split, 20, 80, 48)
         css += ' body.pk-body .pk-card { max-width: %dpx; min-height: %dpx; grid-template-columns: %d%% %d%%; }' % (
@@ -372,6 +390,8 @@ class PerokLoginAnimation(models.Model):
             css += ' body.pk-body .pk-vid--human video, body.pk-body .pk-vid--human img { object-fit: %s; object-position: 50%% %s; }' % (
                 fit, '50%' if fit == 'cover' else '100%')
             css += ' body.pk-body .pk-stage__shadow { display: none; }'
+        css = css[:desk_from] + ' @media (min-width: 769px) {%s }' % css[desk_from:]
+        css += self._login_mascot_css()
         # layers
         css += ' body.pk-body .pk-card-video { z-index: %d; }' % clamp(self.z_card_video, -10, 50, 0)
         css += ' body.pk-body .pk-left { z-index: %d; }' % clamp(self.z_panel, -10, 50, 2)
@@ -386,6 +406,22 @@ class PerokLoginAnimation(models.Model):
         if panel < 1:
             css += ' body.pk-body .pk-stage__bg { opacity: %.2f !important; }' % panel
         return css + self._login_form_css()
+
+    def _login_mascot_css(self):
+        """Mascot position and size: desktop and phone values."""
+        clamp = lambda v, lo, hi, d: max(lo, min(int(v if v not in (False, None) else d), hi))
+        rule = ' body.pk-body .pk-stage__rig { transform-origin: 50%% 100%%; translate: %d%% %d%%; scale: %.3f %.3f; }'
+        size = clamp(self.mascot_scale, 20, 300, 100) / 100.0
+        css = ' @media (min-width: 769px) {%s }' % (rule % (
+            clamp(self.mascot_offset_x, -100, 100, 0), clamp(self.mascot_offset_y, -100, 100, 0),
+            size * clamp(self.mascot_width, 20, 300, 100) / 100.0, size * clamp(self.mascot_height, 20, 300, 100) / 100.0))
+        if self.mobile_mascot == 'hide':
+            mobile = ' body.pk-body .pk-left { display: none !important; }'
+        else:
+            msize = clamp(self.mobile_scale, 20, 300, 100) / 100.0
+            mobile = ' body.pk-body .pk-left { min-height: %dpx; height: %dpx; }' % ((clamp(self.mobile_banner_height, 80, 600, 230),) * 2)
+            mobile += rule % (clamp(self.mobile_offset_x, -100, 100, 0), clamp(self.mobile_offset_y, -100, 100, 0), msize, msize)
+        return css + ' @media (max-width: 768px) {%s }' % mobile
 
     def _login_form_css(self):
         """Texts, fields and button: CSS variables and show / hide rules."""

@@ -15,3 +15,12 @@ access_dms_disposal_user,dms.disposal user,model_dms_disposal,group_dms_user,1,0
 access_dms_disposal_ctrl,dms.disposal ctrl,model_dms_disposal,group_dms_controller,1,1,1,1
 access_dms_group_user,dms.group user,model_dms_group,group_dms_user,1,0,0,0
 access_dms_group_ctrl,dms.group ctrl,model_dms_group,group_dms_controller,1,1,1,1
+access_dms_ai_rule_user,dms.ai.rule user,model_dms_ai_rule,group_dms_user,1,0,0,0
+access_dms_ai_rule_ctrl,dms.ai.rule ctrl,model_dms_ai_rule,group_dms_controller,1,1,1,1
+access_dms_ai_precheck_user,dms.ai.precheck user,model_dms_ai_precheck,group_dms_user,1,0,0,0
+access_dms_access_request_user,dms.access.request user,model_dms_access_request,group_dms_user,1,0,0,0
+access_dms_access_request_ctrl,dms.access.request ctrl,model_dms_access_request,group_dms_controller,1,1,1,1
+access_dms_notify_rule_user,dms.notify.rule user,model_dms_notify_rule,group_dms_user,1,0,0,0
+access_dms_notify_rule_ctrl,dms.notify.rule ctrl,model_dms_notify_rule,group_dms_controller,1,1,0,0
+access_dms_ai_session_user,dms.ai.session user,model_dms_ai_session,group_dms_user,1,1,1,1
+access_dms_ai_message_user,dms.ai.message user,model_dms_ai_message,group_dms_user,1,1,1,1

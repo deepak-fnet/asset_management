@@ -137,45 +137,106 @@ class DmsStorage(models.AbstractModel):
         with self._sftp() as (sftp, root):
             self._mkdirs(sftp, self._abs(root, rel))
 
+    # ------------------------------------------------------------------
+    # Files at rest: an AES-256 ZIP next to the logical path ("<path>.zip") when the
+    # server password is on. Callers always use the logical path; this layer adds/removes
+    # the protection, so viewer, AI and downloads keep working unchanged.
+    # ------------------------------------------------------------------
+    @api.model
+    def _server_crypto(self):
+        ICP = self.env['ir.config_parameter'].sudo()
+        on = ICP.get_param('dms.server_encrypt') in ('True', '1')
+        pw = ICP.get_param('dms.file_password') or ''
+        prev = ICP.get_param('dms.file_password_prev') or ''
+        return on and bool(pw), pw, prev
+
+    @staticmethod
+    def _exists(sftp, path):
+        try:
+            sftp.stat(path)
+            return True
+        except FileNotFoundError:
+            return False
+
     @api.model
     def write_file(self, rel, data):
+        from .dms_crypto import ZIP_SUFFIX, zip_encrypt
+        on, pw, _prev = self._server_crypto()
         with self._sftp() as (sftp, root):
             path = self._abs(root, rel)
             self._mkdirs(sftp, posixpath.dirname(path))
-            with sftp.open(path, 'wb') as f:
+            target, stale = (path + ZIP_SUFFIX, path) if on else (path, path + ZIP_SUFFIX)
+            blob = zip_encrypt(data, posixpath.basename(rel), pw) if on else data
+            with sftp.open(target, 'wb') as f:
                 f.set_pipelined(True)
-                f.write(data)
+                f.write(blob)
+            if self._exists(sftp, stale):
+                sftp.remove(stale)
         return rel
 
     @api.model
     def read_file(self, rel):
+        from .dms_crypto import ZIP_SUFFIX, zip_decrypt
+        _on, pw, prev = self._server_crypto()
         with self._sftp() as (sftp, root):
-            try:
-                with sftp.open(self._abs(root, rel), 'rb') as f:
-                    f.prefetch()
-                    return f.read()
-            except FileNotFoundError:
-                raise UserError(_("File not found on DMS server: %s", rel))
+            path = self._abs(root, rel)
+            for candidate, wrapped in ((path + ZIP_SUFFIX, True), (path, False)):
+                try:
+                    with sftp.open(candidate, 'rb') as f:
+                        f.prefetch()
+                        blob = f.read()
+                except FileNotFoundError:
+                    continue
+                if not wrapped:
+                    return blob
+                for key in filter(None, (pw, prev)):
+                    try:
+                        return zip_decrypt(blob, key)
+                    except RuntimeError:
+                        continue
+                raise UserError(_("The stored copy of %s cannot be opened with the server password in DMS Settings.", rel))
+            raise UserError(_("File not found on DMS server: %s", rel))
 
     @api.model
     def move_file(self, rel_from, rel_to):
+        from .dms_crypto import ZIP_SUFFIX
         with self._sftp() as (sftp, root):
             src, dst = self._abs(root, rel_from), self._abs(root, rel_to)
             self._mkdirs(sftp, posixpath.dirname(dst))
-            try:
-                sftp.posix_rename(src, dst)
-            except FileNotFoundError:
-                _logger.warning("DMS move: %s not found", src)
-                return rel_from
-        return rel_to
+            for suffix in (ZIP_SUFFIX, ''):
+                if self._exists(sftp, src + suffix):
+                    sftp.posix_rename(src + suffix, dst + suffix)
+                    return rel_to
+            _logger.warning("DMS move: %s not found", src)
+            return rel_from
 
     @api.model
     def delete_file(self, rel):
+        from .dms_crypto import ZIP_SUFFIX
         with self._sftp() as (sftp, root):
-            try:
-                sftp.remove(self._abs(root, rel))
-            except FileNotFoundError:
+            gone = True
+            for suffix in (ZIP_SUFFIX, ''):
+                try:
+                    sftp.remove(self._abs(root, rel) + suffix)
+                    gone = False
+                except FileNotFoundError:
+                    pass
+            if gone:
                 _logger.warning("DMS delete: %s already gone", rel)
+
+    @api.model
+    def reprotect_all(self):
+        """Rewrite every stored file with the current server-password setting
+        (encrypts, decrypts or re-keys). Returns (done, failed)."""
+        done, failed = 0, []
+        revs = self.env['dms.revision'].sudo().with_context(active_test=False).search([('storage_path', '!=', False)])
+        for rev in revs:
+            try:
+                self.write_file(rev.storage_path, self.read_file(rev.storage_path))
+                done += 1
+            except UserError as e:
+                failed.append('%s: %s' % (rev.display_name, e.args[0] if e.args else e))
+        return done, failed
 
     @api.model
     def remove_dir(self, rel):
@@ -195,3 +256,55 @@ class DmsStorage(models.AbstractModel):
                 except OSError as e:
                     _logger.warning("DMS: folder %s not removed (not empty?): %s", path, e)
             rm(self._abs(root, rel))
+
+    @api.model
+    def purge_document_dirs(self, code, keep=()):
+        """Remove every folder named exactly after a document number (files included), then the
+        parent folders that became empty. Top-level folders and folders in `keep` stay."""
+        if not code or '/' in code or code in ('.', '..'):
+            return 0
+        if self.env['dms.document'].sudo().with_context(active_test=False).search_count([('code', '=', code)]):
+            return 0  # a live document carries this number: its folder stays
+        import stat
+        removed = 0
+        with self._sftp() as (sftp, root):
+            keep_abs = {self._abs(root, k) for k in keep if k}
+            found = []
+
+            def walk(path, depth):
+                try:
+                    entries = sftp.listdir_attr(path)
+                except FileNotFoundError:
+                    return
+                for e in entries:
+                    if stat.S_ISDIR(e.st_mode):
+                        sub = posixpath.join(path, e.filename)
+                        if e.filename == code:
+                            found.append(sub)
+                        elif depth < 8:
+                            walk(sub, depth + 1)
+            walk(root, 0)
+
+            def rm_tree(path):
+                for e in sftp.listdir_attr(path):
+                    p = posixpath.join(path, e.filename)
+                    if stat.S_ISDIR(e.st_mode):
+                        rm_tree(p)
+                    else:
+                        sftp.remove(p)
+                sftp.rmdir(path)
+
+            for path in found:
+                rm_tree(path)
+                removed += 1
+                parent = posixpath.dirname(path)
+                # walk up while the parent is empty, never touching the root's direct children
+                while posixpath.dirname(parent) != root and parent not in keep_abs and parent.startswith(root + '/'):
+                    try:
+                        if sftp.listdir(parent):
+                            break
+                        sftp.rmdir(parent)
+                    except OSError:
+                        break
+                    parent = posixpath.dirname(parent)
+        return removed

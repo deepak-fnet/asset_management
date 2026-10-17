@@ -18,6 +18,49 @@
                             <button name="action_dms_test_connection" type="object" string="Test Connection &amp; Sync Folders" icon="fa-plug" class="btn-link mt8"/>
                         </setting>
                     </block>
+                    <block title="File protection" name="dms_protect">
+                        <setting string="Server copy password" help="Files on the DMS server are kept in a password-protected ZIP (AES-256). Someone who copies them straight from the server needs this password. Changing it rewrites every stored file.">
+                            <field name="dms_server_encrypt"/>
+                            <div class="row mt8" invisible="not dms_server_encrypt"><label for="dms_server_file_password" class="col-lg-4 o_light_label"/><field name="dms_server_file_password" password="True" class="col-lg-8"/></div>
+                        </setting>
+                        <setting string="Download password" help="Files downloaded from the DMS get this password. PDF and Word/Excel/PowerPoint open with a password prompt in their usual app; other types come as a password ZIP. Use a different password from the server one.">
+                            <field name="dms_download_protect"/>
+                            <div class="row mt8" invisible="not dms_download_protect"><label for="dms_download_password" class="col-lg-4 o_light_label"/><field name="dms_download_password" password="True" class="col-lg-8"/></div>
+                        </setting>
+                    </block>
+                    <block title="Ask DMS (meaning search)" name="dms_vector">
+                        <setting string="Meaning search service" help="The ERP AI Flask service (ChromaDB) that finds documents by meaning for Ask DMS. Documents are sent there when their text is read; access is always checked in Odoo.">
+                            <field name="dms_vector_url"/>
+                            <div class="row mt8"><label for="dms_vector_token" class="col-lg-4 o_light_label"/><field name="dms_vector_token" password="True" class="col-lg-8"/></div>
+                            <div class="mt8"><button name="action_dms_vector_rebuild" type="object" string="Rebuild meaning search" icon="fa-refresh" class="btn-link"/></div>
+                        </setting>
+                    </block>
+                    <block title="Emails" name="dms_mail">
+                        <setting string="Send DMS emails" help="Approval needed, approved, refused, published, access requests and grants, folder deletion, disposal, expiry and a daily unusual-activity mail to the Document Controllers.">
+                            <field name="dms_mail_enabled"/>
+                        </setting>
+                    </block>
+                    <block title="Unusual activity alerts" name="dms_alerts">
+                        <setting string="Alert thresholds" help="The Document Controller's dashboard flags anyone above these numbers in the last 7 days.">
+                            <div class="row mt8"><label for="dms_alert_bulk_downloads" class="col-lg-6 o_light_label"/><field name="dms_alert_bulk_downloads" class="col-lg-3"/></div>
+                            <div class="row mt8"><label for="dms_alert_bulk_views" class="col-lg-6 o_light_label"/><field name="dms_alert_bulk_views" class="col-lg-3"/></div>
+                        </setting>
+                        <setting string="Working hours and delays" help="Views and downloads outside these hours, or on Sunday, are flagged.">
+                            <div class="row mt8"><label for="dms_alert_work_from" class="col-lg-6 o_light_label"/><field name="dms_alert_work_from" class="col-lg-3"/></div>
+                            <div class="row mt8"><label for="dms_alert_work_to" class="col-lg-6 o_light_label"/><field name="dms_alert_work_to" class="col-lg-3"/></div>
+                            <div class="row mt8"><label for="dms_alert_approval_days" class="col-lg-6 o_light_label"/><field name="dms_alert_approval_days" class="col-lg-3"/></div>
+                            <div class="row mt8"><label for="dms_alert_checkout_days" class="col-lg-6 o_light_label"/><field name="dms_alert_checkout_days" class="col-lg-3"/></div>
+                            <div class="row mt8"><label for="dms_expiry_alert_days" class="col-lg-6 o_light_label"/><field name="dms_expiry_alert_days" class="col-lg-3"/></div>
+                        </setting>
+                    </block>
+                    <block title="AI" name="dms_ai">
+                        <setting string="AI checks and search" help="Checks uploads against the rules of their document type, extracts fields, and powers natural-language search.">
+                            <field name="dms_ai_enabled"/>
+                            <div class="row mt8" invisible="not dms_ai_enabled"><label for="dms_ai_url" class="col-lg-4 o_light_label"/><field name="dms_ai_url" class="col-lg-8"/></div>
+                            <div class="row" invisible="not dms_ai_enabled"><label for="dms_ai_model" class="col-lg-4 o_light_label"/><field name="dms_ai_model" class="col-lg-8"/></div>
+                            <div class="row" invisible="not dms_ai_enabled"><label for="dms_ai_key" class="col-lg-4 o_light_label"/><field name="dms_ai_key" password="True" class="col-lg-8"/></div>
+                        </setting>
+                    </block>
                     <block title="Revisions &amp; Appearance" name="dms_rules">
                         <setting string="Cut-off" help="Days a superseded revision stays on screen after the next one is approved.">
                             <field name="dms_cutoff_days"/>

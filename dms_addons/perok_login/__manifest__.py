@@ -1,6 +1,6 @@
 {
     'name': 'Perok.ai Login Page',
-    'version': '19.0.3.1.0',
+    'version': '19.0.3.2.0',
     'category': 'Website',
     'summary': 'Modern animated login page inspired by Perok.ai design',
     'description': 'Replaces the default Odoo login page with a Perok.ai-inspired design '

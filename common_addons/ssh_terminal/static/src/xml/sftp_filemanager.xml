@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+<t t-name="ssh_terminal.SFTPFileManager" owl="1">
+<div class="sftp-container">
+
+    <!-- ════ HEADER ════════════════════════════════════════ -->
+    <div class="sftp-header">
+        <div class="sftp-header-left">
+            <span class="sftp-logo"><i class="fa fa-folder-open-o"/></span>
+            <span class="sftp-title">SFTP File Manager</span>
+            <t t-if="state.serverName">
+                <span class="sftp-server-badge">
+                    <span t-att-class="state.connected ? 'dot-green' : 'dot-red'">●</span>
+                    <t t-esc="state.serverName"/>
+                </span>
+            </t>
+        </div>
+        <div class="sftp-header-right">
+            <t t-if="state.connected">
+                <button class="btn btn-sm sftp-disconnect-btn" t-on-click="onDisconnect">
+                    <i class="fa fa-power-off"/> Disconnect
+                </button>
+            </t>
+        </div>
+    </div>
+
+    <!-- ════ ERROR BANNER ═════════════════════════════════ -->
+    <t t-if="state.error and !state.connected">
+        <div class="sftp-error-banner">
+            <i class="fa fa-exclamation-triangle"/>
+            <span t-esc="state.error"/>
+        </div>
+    </t>
+
+    <t t-if="state.connected">
+
+    <!-- ════ TOOLBAR ══════════════════════════════════════ -->
+    <div class="sftp-toolbar">
+        <div class="sftp-nav-group">
+            <button class="sftp-nav-btn" t-on-click="goUp" title="Go Up">
+                <i class="fa fa-level-up"/>
+            </button>
+            <button class="sftp-nav-btn" t-on-click="goHome" title="Home">
+                <i class="fa fa-home"/>
+            </button>
+            <button class="sftp-nav-btn" t-on-click="refresh" title="Refresh">
+                <i class="fa fa-refresh" t-att-class="state.loading ? 'fa-spin' : ''"/>
+            </button>
+        </div>
+
+        <div class="sftp-breadcrumb">
+            <t t-foreach="getBreadcrumbs()" t-as="crumb" t-key="crumb.path">
+                <span class="sftp-crumb" t-on-click="onBreadcrumbClick" t-att-data-path="crumb.path" t-esc="crumb.name"/>
+                <t t-if="!crumb_last"><span class="sftp-crumb-sep">/</span></t>
+            </t>
+        </div>
+
+        <div class="sftp-toolbar-actions">
+            <div class="sftp-search-box">
+                <i class="fa fa-search"/>
+                <input type="text" placeholder="Filter files…"
+                       t-att-value="state.searchQuery"
+                       t-on-input="onSearchInput"/>
+            </div>
+            <button class="sftp-action-btn sftp-btn-upload" t-on-click="onUploadClick" title="Upload Files">
+                <i class="fa fa-cloud-upload"/> Upload
+            </button>
+            <button class="sftp-action-btn sftp-btn-newfolder" t-on-click="onNewFolder" title="New Folder">
+                <i class="fa fa-folder-o"/> New Folder
+            </button>
+            <t t-if="selectedCount > 0">
+                <button class="sftp-action-btn sftp-btn-delete" t-on-click="onDeleteSelected">
+                    <i class="fa fa-trash"/> Delete (<t t-esc="selectedCount"/>)
+                </button>
+            </t>
+        </div>
+    </div>
+
+    <!-- Hidden file input -->
+    <input type="file" multiple="multiple" t-ref="uploadInput"
+           style="display:none" t-on-change="onFileSelected"/>
+
+    <!-- ════ FILE LIST ════════════════════════════════════ -->
+    <div class="sftp-file-area"
+         t-ref="fileList"
+         t-on-dragover="onDragOver"
+         t-on-dragleave="onDragLeave"
+         t-on-drop="onDrop">
+
+        <!-- Drag overlay -->
+        <t t-if="state.dragOver">
+            <div class="sftp-drop-overlay">
+                <i class="fa fa-cloud-upload fa-3x"/>
+                <p>Drop files to upload</p>
+            </div>
+        </t>
+
+        <!-- Column headers -->
+        <div class="sftp-list-header">
+            <div class="sftp-col sftp-col-check">
+                <input type="checkbox" t-on-change="toggleSelectAll"/>
+            </div>
+            <div class="sftp-col sftp-col-name" t-on-click="sortByName">
+                Name <i t-att-class="getSortIcon('name')"/>
+            </div>
+            <div class="sftp-col sftp-col-size" t-on-click="sortBySize">
+                Size <i t-att-class="getSortIcon('size')"/>
+            </div>
+            <div class="sftp-col sftp-col-modified" t-on-click="sortByMtime">
+                Modified <i t-att-class="getSortIcon('mtime')"/>
+            </div>
+            <div class="sftp-col sftp-col-perms">Permissions</div>
+            <div class="sftp-col sftp-col-actions">Actions</div>
+        </div>
+
+        <!-- Loading -->
+        <t t-if="state.loading and state.files.length === 0">
+            <div class="sftp-loading">
+                <i class="fa fa-spinner fa-spin fa-2x"/>
+                <span>Loading directory…</span>
+            </div>
+        </t>
+
+        <!-- Empty -->
+        <t t-if="!state.loading and getFilteredFiles().length === 0">
+            <div class="sftp-empty">
+                <i class="fa fa-folder-open-o fa-3x"/>
+                <p>This directory is empty</p>
+            </div>
+        </t>
+
+        <!-- File rows -->
+        <t t-foreach="getFilteredFiles()" t-as="file" t-key="file.name">
+            <div t-att-class="'sftp-file-row' + (state.selectedFiles[file.name] ? ' selected' : '')"
+                 t-att-data-index="file_index"
+                 t-on-dblclick="onRowDblClick"
+                 t-on-contextmenu="onRowContextMenu">
+                <div class="sftp-col sftp-col-check">
+                    <input type="checkbox"
+                           t-att-checked="state.selectedFiles[file.name]"
+                           t-att-data-index="file_index"
+                           t-on-click.stop="onRowCheckbox"/>
+                </div>
+                <div class="sftp-col sftp-col-name">
+                    <i t-att-class="getFileIcon(file)"/>
+                    <span class="sftp-filename" t-esc="file.name"/>
+                </div>
+                <div class="sftp-col sftp-col-size">
+                    <t t-if="!file.is_dir" t-esc="formatSize(file.size)"/>
+                    <t t-else="">—</t>
+                </div>
+                <div class="sftp-col sftp-col-modified" t-esc="formatDate(file.mtime)"/>
+                <div class="sftp-col sftp-col-perms">
+                    <code class="sftp-perms" t-esc="file.permissions"/>
+                </div>
+                <div class="sftp-col sftp-col-actions">
+                    <t t-if="!file.is_dir">
+                        <button class="sftp-icon-btn" t-att-data-index="file_index" t-on-click.stop="onRowDownload" title="Download">
+                            <i class="fa fa-download"/>
+                        </button>
+                    </t>
+                    <t t-if="!file.is_dir and this.isTextFile(file.name)">
+                        <button class="sftp-icon-btn" t-att-data-index="file_index" t-on-click.stop="onRowEdit" title="Edit">
+                            <i class="fa fa-pencil"/>
+                        </button>
+                    </t>
+                    <button class="sftp-icon-btn" t-att-data-index="file_index" t-on-click.stop="onRowRename" title="Rename">
+                        <i class="fa fa-i-cursor"/>
+                    </button>
+                    <button class="sftp-icon-btn sftp-icon-btn-danger" t-att-data-index="file_index" t-on-click.stop="onRowDelete" title="Delete">
+                        <i class="fa fa-trash-o"/>
+                    </button>
+                </div>
+            </div>
+        </t>
+    </div>
+
+    <!-- ════ TRANSFER LOG ════════════════════════════════ -->
+    <t t-if="state.transfers.length > 0">
+        <div class="sftp-transfer-log">
+            <div class="sftp-transfer-header">
+                <span><i class="fa fa-exchange"/> Transfers</span>
+                <button class="sftp-transfer-clear" t-on-click="clearTransfers">Clear</button>
+            </div>
+            <div class="sftp-transfer-list">
+                <t t-foreach="state.transfers" t-as="tr" t-key="tr.id">
+                    <div t-att-class="'sftp-transfer-item sftp-transfer-' + tr.status">
+                        <i t-att-class="tr.status === 'success' ? 'fa fa-check-circle' : tr.status === 'error' ? 'fa fa-times-circle' : 'fa fa-spinner fa-spin'"/>
+                        <span class="sftp-transfer-icon"><t t-if="tr.type === 'upload'">↑</t><t t-else="">↓</t></span>
+                        <span class="sftp-transfer-name" t-esc="tr.name"/>
+                        <span class="sftp-transfer-size" t-esc="tr.size"/>
+                        <span class="sftp-transfer-time" t-esc="tr.time"/>
+                        <t t-if="tr.error"><span class="sftp-transfer-error" t-esc="tr.error"/></t>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+
+    </t><!-- /connected -->
+
+    <!-- ════ CONTEXT MENU ════════════════════════════════ -->
+    <t t-if="state.ctxMenu">
+        <div class="sftp-ctx-menu"
+             t-attf-style="left:{{state.ctxMenu.x}}px;top:{{state.ctxMenu.y}}px">
+            <t t-if="state.ctxMenu.file.is_dir">
+                <div class="sftp-ctx-item" t-on-click="ctxOpen"><i class="fa fa-folder-open"/> Open</div>
+            </t>
+            <t t-if="!state.ctxMenu.file.is_dir">
+                <div class="sftp-ctx-item" t-on-click="ctxDownload"><i class="fa fa-download"/> Download</div>
+            </t>
+            <t t-if="!state.ctxMenu.file.is_dir and this.isTextFile(state.ctxMenu.file.name)">
+                <div class="sftp-ctx-item" t-on-click="ctxEdit"><i class="fa fa-pencil"/> Edit</div>
+            </t>
+            <div class="sftp-ctx-item" t-on-click="ctxRename"><i class="fa fa-i-cursor"/> Rename</div>
+            <div class="sftp-ctx-sep"/>
+            <div class="sftp-ctx-item sftp-ctx-danger" t-on-click="ctxDelete"><i class="fa fa-trash"/> Delete</div>
+        </div>
+    </t>
+
+    <!-- ════ MODALS ═══════════════════════════════════════ -->
+
+    <!-- New Folder -->
+    <t t-if="state.showNewFolder">
+        <div class="sftp-modal-bg" t-on-click.self="closeNewFolderDialog">
+            <div class="sftp-modal">
+                <div class="sftp-modal-title"><i class="fa fa-folder-o"/> New Folder</div>
+                <input type="text" class="sftp-modal-input" placeholder="Folder name"
+                       t-att-value="state.newFolderName"
+                       t-on-input="onNewFolderInput"
+                       t-on-keydown="onNewFolderKeydown"/>
+                <div class="sftp-modal-buttons">
+                    <button class="btn btn-secondary btn-sm" t-on-click="closeNewFolderDialog">Cancel</button>
+                    <button class="btn btn-primary btn-sm" t-on-click="createFolder">Create</button>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <!-- Rename -->
+    <t t-if="state.showRename">
+        <div class="sftp-modal-bg" t-on-click.self="closeRenameDialog">
+            <div class="sftp-modal">
+                <div class="sftp-modal-title"><i class="fa fa-i-cursor"/> Rename</div>
+                <p class="sftp-modal-sub">Renaming: <strong t-esc="state.renameOldName"/></p>
+                <input type="text" class="sftp-modal-input"
+                       t-att-value="state.renameNewName"
+                       t-on-input="onRenameInput"
+                       t-on-keydown="onRenameKeydown"/>
+                <div class="sftp-modal-buttons">
+                    <button class="btn btn-secondary btn-sm" t-on-click="closeRenameDialog">Cancel</button>
+                    <button class="btn btn-primary btn-sm" t-on-click="doRename">Rename</button>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <!-- Delete confirm -->
+    <t t-if="state.showDelete">
+        <div class="sftp-modal-bg" t-on-click.self="closeDeleteDialog">
+            <div class="sftp-modal">
+                <div class="sftp-modal-title sftp-modal-title-danger"><i class="fa fa-trash"/> Confirm Delete</div>
+                <p>Are you sure you want to delete <strong t-esc="state.deleteTarget and state.deleteTarget.name"/>?</p>
+                <p class="text-muted" style="font-size:12px;color:var(--ssh-text-muted)">This action cannot be undone.</p>
+                <div class="sftp-modal-buttons">
+                    <button class="btn btn-secondary btn-sm" t-on-click="closeDeleteDialog">Cancel</button>
+                    <button class="btn btn-danger btn-sm" t-on-click="doDelete">Delete</button>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <!-- File Editor -->
+    <t t-if="state.showEditor">
+        <div class="sftp-modal-bg sftp-editor-bg" t-on-click.self="closeEditor">
+            <div class="sftp-editor-modal">
+                <div class="sftp-editor-header">
+                    <span class="sftp-editor-title">
+                        <i class="fa fa-pencil-square-o"/>
+                        <t t-esc="getEditorFilename()"/>
+                        <t t-if="state.editorDirty"><span class="sftp-editor-dirty">●</span></t>
+                    </span>
+                    <div class="sftp-editor-actions">
+                        <button class="btn btn-success btn-sm" t-on-click="saveEditorFile"
+                                t-att-disabled="state.editorSaving or !state.editorDirty">
+                            <i t-att-class="state.editorSaving ? 'fa fa-spinner fa-spin' : 'fa fa-save'"/>
+                            Save
+                        </button>
+                        <button class="btn btn-secondary btn-sm" t-on-click="closeEditor">Close</button>
+                    </div>
+                </div>
+                <textarea class="sftp-editor-textarea"
+                          t-att-value="state.editorContent"
+                          t-on-input="onEditorChange"
+                          spellcheck="false"/>
+            </div>
+        </div>
+    </t>
+
+    <!-- ════ FOOTER ═══════════════════════════════════════ -->
+    <div class="sftp-footer">
+        <span><i class="fa fa-lock"/> Encrypted transfers — all operations logged</span>
+        <t t-if="state.connected">
+            <span><t t-esc="state.files.length"/> items in <t t-esc="state.currentPath"/></span>
+        </t>
+    </div>
+</div>
+</t>
+</templates>

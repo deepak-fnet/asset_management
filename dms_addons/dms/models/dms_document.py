@@ -72,10 +72,17 @@ class DmsDocument(models.Model):
         """DEPT-TYPE-NNN (slide 3). Revision is never part of the number."""
         self.ensure_one()
         prefix = f"{self.folder_id._root_code()}-{self.type_id.code}-"
-        last = self.sudo().with_context(active_test=False).search(
-            [('code', '=like', prefix + '%')], order='code desc', limit=1)
-        n = int(last.code[len(prefix):]) + 1 if last and last.code[len(prefix):].isdigit() else 1
-        return f"{prefix}{n:03d}"
+        import re
+        used = 0
+        # numbers of existing documents, and of deleted ones (kept in the audit log): a number is never reused
+        codes = self.sudo().with_context(active_test=False).search([('code', '=like', prefix + '%')]).mapped('code')
+        codes += [r.split(' ', 1)[0] for r in self.env['dms.log'].sudo().search(
+            [('document_ref', '=like', prefix + '%')]).mapped('document_ref')]
+        for code in codes:
+            m = re.match(re.escape(prefix) + r'(\d+)', code or '')
+            if m:
+                used = max(used, int(m.group(1)))
+        return f"{prefix}{used + 1:03d}"
 
     # ------------------------------------------------------------------
     # Access (slide 5)
@@ -354,7 +361,7 @@ class DmsRevision(models.Model):
         self.ensure_one()
         nxt = self.approval_ids.filtered(lambda a: a.state == 'waiting').sorted('sequence')[:1]
         if nxt:
-            self.document_id.sudo().activity_schedule(
+            self.document_id.sudo().with_context(mail_activity_quick_update=True).activity_schedule(
                 'mail.mail_activity_data_todo', user_id=nxt.user_id.id,
                 summary=_("DMS %(lv)s approval: %(rev)s", lv=nxt.level.upper(), rev=self.display_name),
                 note=self.change_note or '')
@@ -404,7 +411,7 @@ class DmsRevision(models.Model):
         doc.message_post(
             body=_("%(rev)s refused at %(lv)s by %(u)s: %(c)s", rev=self.display_name,
                    lv=line.level.upper(), u=self.env.user.name, c=comment),
-            partner_ids=self.author_id.partner_id.ids, subtype_xmlid='mail.mt_comment')
+            subtype_xmlid='mail.mt_note')  # the author gets the DMS email
 
     def _publish(self):
         self.ensure_one()
@@ -421,8 +428,7 @@ class DmsRevision(models.Model):
         })
         doc.write({'state': 'published', 'locked_by_id': False, 'locked_date': False})
         self.env['dms.log'].log('publish', revision=self)
-        doc.message_post(body=_("Rev %s approved and published.", rev_no),
-                         partner_ids=self.author_id.partner_id.ids, subtype_xmlid='mail.mt_comment')
+        doc.message_post(body=_("Rev %s approved and published.", rev_no), subtype_xmlid='mail.mt_note')
 
     def action_set_cutoff(self, date):
         """An approver can bring the cut-off forward for an urgent change (slide 9)."""

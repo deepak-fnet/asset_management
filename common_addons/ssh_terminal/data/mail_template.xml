@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Email to managers when request submitted -->
+    <record id="email_template_access_request" model="mail.template">
+        <field name="name">SSH Access Request Submitted</field>
+        <field name="model_id" ref="model_ssh_access_request"/>
+        <field name="subject">SSH Access Request: {{ object.name }} - {{ object.server_id.name }}</field>
+        <field name="email_from">{{ (object.company_id.email or user.email_formatted) }}</field>
+        <field name="email_to">{{ object.company_id.email }}</field>
+        <field name="body_html"><![CDATA[
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    <h2 style="color: #875A7B;">SSH Access Request Pending Approval</h2>
+
+    <p>A new SSH access request has been submitted and requires your approval:</p>
+
+    <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+        <tr style="background: #f5f5f5;">
+            <td style="padding: 10px; border: 1px solid #ddd;"><strong>Request ID</strong></td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ object.name }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 10px; border: 1px solid #ddd;"><strong>Requested By</strong></td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ object.user_id.name }}</td>
+        </tr>
+        <tr style="background: #f5f5f5;">
+            <td style="padding: 10px; border: 1px solid #ddd;"><strong>Server</strong></td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ object.server_id.name }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 10px; border: 1px solid #ddd;"><strong>Access Level</strong></td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ object.credential_id.name }}</td>
+        </tr>
+        <tr style="background: #f5f5f5;">
+            <td style="padding: 10px; border: 1px solid #ddd;"><strong>Access Period</strong></td>
+            <td style="padding: 10px; border: 1px solid #ddd;">
+                {{ object.access_start }} to {{ object.access_end }}
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 10px; border: 1px solid #ddd;"><strong>Reason</strong></td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ object.reason }}</td>
+        </tr>
+    </table>
+
+    <p>
+        <a href="{{ object.get_base_url() }}/odoo/ssh.access.request/{{ object.id }}"
+           style="background: #875A7B; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">
+            Review Request
+        </a>
+    </p>
+</div>
+        ]]></field>
+    </record>
+
+    <!-- Email to user when approved -->
+    <record id="email_template_access_approved" model="mail.template">
+        <field name="name">SSH Access Request Approved</field>
+        <field name="model_id" ref="model_ssh_access_request"/>
+        <field name="subject">✓ SSH Access Approved: {{ object.server_id.name }}</field>
+        <field name="email_from">{{ (object.company_id.email or user.email_formatted) }}</field>
+        <field name="email_to">{{ object.user_id.email }}</field>
+        <field name="body_html"><![CDATA[
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    <h2 style="color: #28a745;">SSH Access Request Approved</h2>
+
+    <p>Your SSH access request has been approved!</p>
+
+    <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+        <tr style="background: #f5f5f5;">
+            <td style="padding: 10px; border: 1px solid #ddd;"><strong>Server</strong></td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ object.server_id.name }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 10px; border: 1px solid #ddd;"><strong>Access Period</strong></td>
+            <td style="padding: 10px; border: 1px solid #ddd;">
+                {{ object.access_start }} to {{ object.access_end }}
+            </td>
+        </tr>
+        <tr style="background: #f5f5f5;">
+            <td style="padding: 10px; border: 1px solid #ddd;"><strong>Approved By</strong></td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ object.approver_id.name }}</td>
+        </tr>
+    </table>
+
+    <p style="background: #fff3cd; padding: 15px; border-radius: 4px; border-left: 4px solid #ffc107;">
+        <strong>⚠️ Important:</strong> Your access is time-limited.
+        Please complete your work before {{ object.access_end }}.
+    </p>
+
+    <p>
+        <a href="{{ object.get_base_url() }}/odoo/ssh.access.request/{{ object.id }}"
+           style="background: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">
+            Connect Now
+        </a>
+    </p>
+</div>
+        ]]></field>
+    </record>
+
+    <!-- Email to user when rejected -->
+    <record id="email_template_access_rejected" model="mail.template">
+        <field name="name">SSH Access Request Rejected</field>
+        <field name="model_id" ref="model_ssh_access_request"/>
+        <field name="subject">✗ SSH Access Rejected: {{ object.server_id.name }}</field>
+        <field name="email_from">{{ (object.company_id.email or user.email_formatted) }}</field>
+        <field name="email_to">{{ object.user_id.email }}</field>
+        <field name="body_html"><![CDATA[
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    <h2 style="color: #dc3545;">SSH Access Request Rejected</h2>
+
+    <p>Your SSH access request has been rejected.</p>
+
+    <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+        <tr style="background: #f5f5f5;">
+            <td style="padding: 10px; border: 1px solid #ddd;"><strong>Server</strong></td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ object.server_id.name }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 10px; border: 1px solid #ddd;"><strong>Rejected By</strong></td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ object.approver_id.name }}</td>
+        </tr>
+        <tr style="background: #f5f5f5;">
+            <td style="padding: 10px; border: 1px solid #ddd;"><strong>Reason</strong></td>
+            <td style="padding: 10px; border: 1px solid #ddd;">{{ object.rejection_reason }}</td>
+        </tr>
+    </table>
+
+    <p>If you have questions about this decision, please contact your manager.</p>
+</div>
+        ]]></field>
+    </record>
+</odoo>

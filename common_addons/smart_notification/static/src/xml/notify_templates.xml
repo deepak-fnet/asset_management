@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="smart_notification.Systray">
+    <div class="o_sn_systray o-dropdown dropdown">
+        <button class="o_sn_bell" t-att-class="{ring: state.counts.todo, active: state.open and state.anchor === 'systray'}" t-on-click="() => this.sn.toggle('systray')"
+                t-att-title="state.counts.todo ? state.counts.todo + ' waiting for you' : 'Notifications'">
+            <i class="fa fa-bell"/>
+            <span t-if="state.counts.todo" class="o_sn_badge hot" t-esc="state.counts.todo > 99 ? '99+' : state.counts.todo"/>
+            <span t-elif="state.counts.unread" class="o_sn_badge" t-esc="state.counts.unread > 99 ? '99+' : state.counts.unread"/>
+        </button>
+    </div>
+</t>
+
+<t t-name="smart_notification.Card">
+    <t t-set="item" t-value="props.item"/>
+    <t t-set="n" t-value="item.n"/>
+    <t t-set="st" t-value="h.status(item)"/>
+    <div class="o_sn_card" t-att-class="{viewing: state.viewId === item.id and !props.compact, new: item.state === 'new', closed: item.state === 'closed', done: item.state === 'done', high: n.priority === 'high' and n.state === 'open', justdone: state.justDone === item.id, compact: props.compact}"
+         t-on-click="() => props.compact ? this.sn.open(item) : this.sn.show(item)">
+        <div class="o_sn_av">
+            <img t-if="n.sender" t-att-src="h.avatar(n.sender.id)" alt=""/>
+            <span t-else="" class="o_sn_av_sys"><i class="fa fa-cog"/></span>
+            <span class="o_sn_kind" t-attf-style="background: {{n.color}}"><i t-attf-class="fa {{n.icon}}"/></span>
+        </div>
+        <div class="o_sn_main">
+            <div class="o_sn_top">
+                <b t-esc="n.sender ? n.sender.name : 'System'"/>
+                <span class="o_sn_time" t-esc="h.timeAgo(n.date)"/>
+                <span t-if="item.state === 'new'" class="o_sn_dot" title="Unread"/>
+            </div>
+            <div class="o_sn_title" t-esc="n.title"/>
+            <div t-if="n.res_name" class="o_sn_rec"><i class="fa fa-file-text-o"/> <span t-esc="n.model_name"/> · <b t-esc="n.res_name"/></div>
+            <t t-if="n.body and !props.compact">
+                <div class="o_sn_body" t-att-class="{open: state.expanded[item.id]}" t-out="h.html(n.body)"/>
+                <a t-if="n.text.length > 120" class="o_sn_more" t-on-click="toggleBody" t-esc="state.expanded[item.id] ? 'Show less' : 'Show more'"/>
+            </t>
+            <div t-elif="n.text and props.compact" class="o_sn_snip" t-esc="n.text"/>
+            <div t-if="n.policy !== 'info' and n.people.length" class="o_sn_people">
+                <span class="o_sn_rule" t-esc="n.policy === 'any' ? (n.people.length > 1 ? 'Any one of ' + n.people.length : 'Only you') : 'All ' + n.people.length + ' must act'"/>
+                <span t-foreach="n.people" t-as="p" t-key="p.id" class="o_sn_person" t-attf-class="s_{{p.state}}"
+                      t-att-title="p.name + ': ' + ({new: 'not seen yet', seen: 'seen, waiting', done: 'done', closed: 'closed'}[p.state])">
+                    <img t-att-src="h.avatar(p.id)" alt=""/>
+                    <i t-if="p.state === 'done'" class="fa fa-check"/>
+                </span>
+            </div>
+            <div class="o_sn_foot">
+                <span class="o_sn_status" t-attf-class="st_{{st.cls}}"><i t-attf-class="fa {{st.icon}}"/> <t t-esc="st.text"/></span>
+                <span class="o_sn_actions">
+                    <button t-if="!props.compact" class="o_sn_btn o_sn_eye" t-on-click.stop="() => this.sn.show(item)" title="See everything about it"><i class="fa fa-eye"/></button>
+                    <button t-if="h.canAct(item)" class="o_sn_btn primary" t-att-disabled="state.busy === item.id" t-on-click.stop="() => this.sn.act(item)">
+                        <i t-attf-class="fa {{state.busy === item.id ? 'fa-circle-o-notch fa-spin' : 'fa-check'}}"/> <t t-esc="n.action_label || 'Done'"/></button>
+                    <button class="o_sn_btn" t-on-click.stop="() => this.sn.open(item)"><t t-esc="n.res_model or n.url ? 'Open' : 'Mark read'"/> <i class="fa fa-angle-right"/></button>
+                </span>
+            </div>
+        </div>
+        <div t-if="state.justDone === item.id" class="o_sn_burst"><i class="fa fa-check"/></div>
+    </div>
+</t>
+
+<t t-name="smart_notification.Detail">
+    <t t-set="n" t-value="item.n"/>
+    <t t-set="st" t-value="h.status(item)"/>
+    <t t-set="r" t-value="state.resolve"/>
+    <div class="o_sn_hero" t-attf-style="--c: {{n.color}}">
+        <span class="o_sn_hero_ic"><i t-attf-class="fa {{n.icon}}"/></span>
+        <div class="o_sn_hero_txt">
+            <small><t t-esc="h.kindLabel(n.kind)"/><t t-if="n.priority === 'high'"> · <b>High priority</b></t></small>
+            <h2 t-esc="n.title"/>
+        </div>
+    </div>
+    <div class="o_sn_d_body">
+        <div class="o_sn_d_from">
+            <img t-if="n.sender" t-att-src="h.avatar(n.sender.id)" alt=""/>
+            <div><b t-esc="n.sender ? n.sender.name : 'System'"/><small><t t-esc="h.fmt(n.date)"/> · <t t-esc="h.timeAgo(n.date)"/></small></div>
+            <span class="o_sn_status" t-attf-class="st_{{st.cls}}"><i t-attf-class="fa {{st.icon}}"/> <t t-esc="st.text"/></span>
+        </div>
+
+        <a t-if="n.res_name or n.url" class="o_sn_d_rec" t-on-click="() => this.sn.open(item)">
+            <i class="fa fa-file-text-o"/>
+            <div><small t-esc="n.model_name or 'Link'"/><b t-esc="n.res_name or n.url"/></div>
+            <span>Open <i class="fa fa-external-link"/></span>
+        </a>
+
+        <div t-if="n.body" class="o_sn_d_html" t-out="h.html(n.body)"/>
+
+        <div t-if="n.state !== 'open' and n.close_reason" class="o_sn_d_closed" t-att-class="{ok: n.state === 'done'}">
+            <i class="fa" t-att-class="n.state === 'done' ? 'fa-check-circle' : 'fa-ban'"/> <t t-esc="n.close_reason"/>
+            <small t-if="n.done_date"> · <t t-esc="h.fmt(n.done_date)"/></small>
+        </div>
+
+        <div class="o_sn_d_sec">
+            <h4><i class="fa fa-users"/> <t t-esc="n.policy === 'info' ? 'Sent to' : (n.policy === 'any' ? 'Any one of them can act' : 'Everyone must act')"/>
+                <small t-if="n.policy === 'all'"> · <t t-esc="n.people.filter(p => p.state === 'done').length"/> of <t t-esc="n.people.length"/> done</small></h4>
+            <div t-if="n.policy === 'all'" class="o_sn_d_prog"><i t-attf-style="width: {{Math.round(n.people.filter(p => p.state === 'done').length / n.people.length * 100)}}%"/></div>
+            <div t-foreach="n.people" t-as="p" t-key="p.id" class="o_sn_d_person">
+                <t t-set="ps" t-value="h.personState(p)"/>
+                <span class="o_sn_person" t-attf-class="s_{{p.state}}"><img t-att-src="h.avatar(p.id)" alt=""/><i t-if="p.state === 'done'" class="fa" t-att-class="p.outcome === 'rejected' ? 'fa-times' : 'fa-check'"/></span>
+                <div class="o_sn_d_pmain">
+                    <b t-esc="p.name"/>
+                    <small>
+                        <t t-if="p.seen">Seen <t t-esc="h.timeAgo(p.seen)"/></t>
+                        <t t-if="p.opened"> · opened <t t-esc="h.timeAgo(p.opened)"/></t>
+                        <t t-if="p.date"> · acted <t t-esc="h.timeAgo(p.date)"/></t>
+                    </small>
+                    <small t-if="p.note" class="o_sn_d_note">“<t t-esc="p.note"/>”</small>
+                    <small t-elif="p.state === 'closed' and p.closed_reason" class="o_sn_d_note" t-esc="p.closed_reason"/>
+                </div>
+                <span class="o_sn_d_pill" t-attf-class="p_{{ps.cls}}" t-esc="ps.text"/>
+            </div>
+        </div>
+
+        <div class="o_sn_d_sec">
+            <h4><i class="fa fa-history"/> Your trail</h4>
+            <ol class="o_sn_trail">
+                <li class="on"><i class="fa fa-paper-plane"/><b>Sent</b><small t-esc="h.fmt(item.sent_date)"/></li>
+                <li t-att-class="{on: item.seen_date}"><i class="fa fa-eye"/><b>Seen</b><small t-esc="item.seen_date ? h.fmt(item.seen_date) : '—'"/></li>
+                <li t-att-class="{on: item.opened_date}"><i class="fa fa-external-link"/><b>Opened</b><small t-esc="item.opened_date ? h.fmt(item.opened_date) : '—'"/></li>
+                <li t-att-class="{on: item.done_date, rej: item.outcome === 'rejected', closed: item.state === 'closed'}">
+                    <i class="fa" t-att-class="item.state === 'closed' ? 'fa-ban' : (item.outcome === 'rejected' ? 'fa-times' : 'fa-check')"/>
+                    <b t-esc="item.state === 'closed' ? 'Closed' : (item.outcome === 'rejected' ? 'Rejected' : 'Done')"/>
+                    <small t-esc="item.done_date ? h.fmt(item.done_date) : (item.state === 'closed' ? item.closed_reason : '—')"/></li>
+            </ol>
+        </div>
+    </div>
+
+    <div t-if="h.pending(item)" class="o_sn_d_bar">
+        <t t-if="r.mode">
+            <div class="o_sn_reason" t-att-class="{rej: r.mode === 'rejected'}">
+                <label t-esc="r.mode === 'rejected' ? ((n.reject_label || 'Reject') + ': why?') : 'Mark as done: what did you do?'"/>
+                <textarea rows="2" t-model="r.reason" t-att-placeholder="r.mode === 'rejected' ? 'e.g. Signature missing, please upload a signed copy' : 'e.g. Handled by phone with the vendor'"/>
+                <div t-if="r.error" class="o_sn_reason_err" t-esc="r.error"/>
+                <div class="o_sn_reason_btns">
+                    <button class="o_sn_btn" t-on-click="() => this.sn.startResolve(null)">Cancel</button>
+                    <button class="o_sn_btn" t-att-class="r.mode === 'rejected' ? 'danger' : 'primary'" t-att-disabled="state.busy === item.id" t-on-click="() => this.sn.resolve(item)">
+                        <i t-attf-class="fa {{state.busy === item.id ? 'fa-circle-o-notch fa-spin' : (r.mode === 'rejected' ? 'fa-times' : 'fa-check')}}"/>
+                        <t t-esc="r.mode === 'rejected' ? (n.reject_label || 'Reject') : 'Mark as done'"/></button>
+                </div>
+            </div>
+        </t>
+        <t t-else="">
+            <button t-if="h.canAct(item)" class="o_sn_btn primary big" t-att-disabled="state.busy === item.id" t-on-click="() => this.sn.act(item)">
+                <i t-attf-class="fa {{state.busy === item.id ? 'fa-circle-o-notch fa-spin' : 'fa-check'}}"/> <t t-esc="n.action_label || 'Done'"/></button>
+            <button t-if="n.policy !== 'info'" class="o_sn_btn danger_ghost big" t-on-click="() => this.sn.startResolve('rejected')"><i class="fa fa-times"/> <t t-esc="n.reject_label || 'Reject'"/></button>
+            <button class="o_sn_btn big" t-on-click="() => this.sn.startResolve('done')"><i class="fa fa-check-square-o"/> Mark as done</button>
+            <button class="o_sn_btn big o_sn_push" t-on-click="() => this.sn.open(item)"><i class="fa fa-external-link"/> Open</button>
+        </t>
+    </div>
+    <div t-if="state.justDone === item.id" class="o_sn_burst"><i class="fa fa-check"/></div>
+</t>
+
+<t t-name="smart_notification.Layer">
+    <!-- floating bubble: drag it anywhere, it snaps to the nearest side -->
+    <div t-if="state.bubble.visible" class="o_sn_bubble" t-ref="bubble" t-att-style="bubbleStyle"
+         t-att-class="{ring: state.counts.todo, dragging: state.bubble.dragging, active: state.open and state.anchor === 'bubble'}"
+         t-on-pointerdown="onBubbleDown" t-on-pointermove="onBubbleMove" t-on-pointerup="onBubbleUp" title="Notifications (drag to move)">
+        <i class="fa fa-bell"/>
+        <span t-if="state.counts.todo" class="o_sn_badge hot" t-esc="state.counts.todo > 99 ? '99+' : state.counts.todo"/>
+        <span t-elif="state.counts.unread" class="o_sn_badge" t-esc="state.counts.unread"/>
+    </div>
+
+    <t t-if="state.open">
+        <div class="o_sn_scrim" t-on-click="() => this.sn.close()"/>
+        <div class="o_sn_panel" t-att-style="panelStyle" t-att-class="{full: state.full, has_detail: viewItem}" role="dialog" aria-label="Notifications">
+            <div class="o_sn_head">
+                <button t-if="viewItem and !state.full" class="o_sn_icon" t-on-click="() => this.sn.back()" title="Back to the list"><i class="fa fa-arrow-left"/></button>
+                <h3>Notifications</h3>
+                <button class="o_sn_icon" t-on-click="() => this.sn.readAll()" title="Mark all as read"><i class="fa fa-check-square-o"/></button>
+                <button class="o_sn_icon" t-on-click="() => this.sn.setBubbleVisible(!state.bubble.visible)"
+                        t-att-title="state.bubble.visible ? 'Hide the floating bell' : 'Show the floating bell'">
+                    <i class="fa" t-att-class="state.bubble.visible ? 'fa-dot-circle-o' : 'fa-circle-thin'"/></button>
+                <button class="o_sn_icon" t-on-click="() => this.sn.toggleFull()" t-att-title="state.full ? 'Exit full screen' : 'Full screen'">
+                    <i class="fa" t-att-class="state.full ? 'fa-compress' : 'fa-expand'"/></button>
+                <button class="o_sn_icon" t-on-click="() => this.sn.close()" title="Close (Esc)"><i class="fa fa-times"/></button>
+            </div>
+            <div class="o_sn_tabs" t-if="state.full or !viewItem">
+                <a t-foreach="tabs" t-as="tb" t-key="tb.key" t-att-class="{active: state.tab === tb.key}" t-on-click="() => this.sn.load(tb.key)">
+                    <t t-esc="tb.label"/><span t-if="tb.count" class="o_sn_count" t-att-class="{hot: tb.hot}" t-esc="tb.count"/>
+                </a>
+            </div>
+            <div class="o_sn_split">
+                <div class="o_sn_list" t-if="state.full or !viewItem">
+                    <div t-if="state.loading and !state.items.length" class="o_sn_loading"><i class="fa fa-circle-o-notch fa-spin"/></div>
+                    <div t-elif="!state.items.length" class="o_sn_empty" t-att-class="{party: state.tab === 'todo'}">
+                        <t t-if="state.tab === 'todo'">
+                            <div class="o_sn_party"><i class="fa fa-check"/><b/><b/><b/><b/><b/><b/></div>
+                            <h4>All caught up</h4>
+                            <p>Nothing is waiting for you. Nice work.</p>
+                        </t>
+                        <t t-else=""><i class="fa fa-bell-slash-o"/><p>Nothing here yet.</p></t>
+                    </div>
+                    <t t-foreach="groups" t-as="g" t-key="g.label">
+                        <div class="o_sn_day" t-esc="g.label"/>
+                        <t t-foreach="g.items" t-as="it" t-key="it.id"><SmartNotificationCard item="it"/></t>
+                    </t>
+                </div>
+                <div class="o_sn_detail" t-if="viewItem"><t t-call="smart_notification.Detail"><t t-set="item" t-value="viewItem"/></t></div>
+                <div class="o_sn_detail o_sn_detail_empty" t-elif="state.full"><i class="fa fa-hand-pointer-o"/><p>Pick a notification to see everything about it.</p></div>
+            </div>
+        </div>
+    </t>
+
+    <!-- live toasts -->
+    <div t-if="!state.open" class="o_sn_toasts">
+        <div t-foreach="state.toasts" t-as="t" t-key="t.key" class="o_sn_toast" t-att-class="{leaving: t.leaving, sticky: t.item.n.policy !== 'info' or t.item.n.priority === 'high'}">
+            <button class="o_sn_icon o_sn_toast_x" t-on-click="() => this.sn.dismissToast(t.key)" title="Dismiss"><i class="fa fa-times"/></button>
+            <SmartNotificationCard item="t.item" compact="true"/>
+            <i class="o_sn_toast_timer"/>
+        </div>
+    </div>
+</t>
+
+</templates>

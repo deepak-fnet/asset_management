@@ -29,4 +29,20 @@
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
     </record>
+    <record id="cron_dms_alert_digest" model="ir.cron">
+        <field name="name">DMS: mail unusual activity to the Document Controllers</field>
+        <field name="model_id" ref="model_dms_mail"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_alert_digest()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+    </record>
+    <record id="cron_dms_expiry" model="ir.cron">
+        <field name="name">DMS: remind owners of expiry and due dates</field>
+        <field name="model_id" ref="model_dms_document"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_expiry_reminders()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+    </record>
 </odoo>

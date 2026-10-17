@@ -15,8 +15,8 @@
             <!-- Loaded here rather than in an asset bundle so they only ship
                  with the login/signup/reset pages that use this layout.
                  Odoo caches static files for a week: bump ?v= when editing them. -->
-            <link rel="stylesheet" type="text/css" href="/perok_login/static/src/css/login.css?v=19.3.1"/>
-            <script type="text/javascript" src="/perok_login/static/src/js/login.js?v=19.3.1" defer="defer"/>
+            <link rel="stylesheet" type="text/css" href="/perok_login/static/src/css/login.css?v=19.3.2"/>
+            <script type="text/javascript" src="/perok_login/static/src/js/login.js?v=19.3.2" defer="defer"/>
 
             <!-- Settings > Login Page > Animations: the default record picks the mascot and the look -->
             <t t-set="pk_anim" t-value="request.env['perok.login.animation']._get_login_animation() if request and request.env is not None and 'perok.login.animation' in request.env else False"/>
@@ -26,7 +26,7 @@
                 <style id="pk_theme" t-out="pk_anim._login_theme_css()"/>
             </t>
             <!-- Settings > Login Page > Animations: live preview of the form being edited -->
-            <script t-if="request and request.env.context.get('perok_preview_id')" type="text/javascript" src="/perok_login/static/src/js/preview.js?v=19.3.1"/>
+            <script t-if="request and request.env.context.get('perok_preview_id')" type="text/javascript" src="/perok_login/static/src/js/preview.js?v=19.3.2"/>
 
             <!-- full-page background video (Look & colours > Page background video) -->
             <div t-if="pk_anim and pk_anim.page_bg_image" class="pk-page-bg" aria-hidden="true"
@@ -79,16 +79,16 @@
                             <div class="pk-stage__rig">
                                 <div class="pk-stage__enter">
                                     <div class="pk-stage__bird">
-                                        <img class="pk-pose is-on" data-pose="idle" src="/perok_login/static/src/img/parrot/idle.webp?v=19.3.1" alt="" aria-hidden="true" draggable="false" decoding="async" fetchpriority="high"/>
-                                        <img class="pk-pose" data-pose="email" src="/perok_login/static/src/img/parrot/email.webp?v=19.3.1" alt="" aria-hidden="true" draggable="false" decoding="async"/>
-                                        <img class="pk-pose" data-pose="shy" src="/perok_login/static/src/img/parrot/shy.webp?v=19.3.1" alt="" aria-hidden="true" draggable="false" decoding="async"/>
-                                        <img class="pk-pose" data-pose="peek" src="/perok_login/static/src/img/parrot/peek.webp?v=19.3.1" alt="" aria-hidden="true" draggable="false" decoding="async"/>
-                                        <img class="pk-pose" data-pose="success" src="/perok_login/static/src/img/parrot/success.webp?v=19.3.1" alt="" aria-hidden="true" draggable="false" decoding="async"/>
+                                        <img class="pk-pose is-on" data-pose="idle" src="/perok_login/static/src/img/parrot/idle.webp?v=19.3.2" alt="" aria-hidden="true" draggable="false" decoding="async" fetchpriority="high"/>
+                                        <img class="pk-pose" data-pose="email" src="/perok_login/static/src/img/parrot/email.webp?v=19.3.2" alt="" aria-hidden="true" draggable="false" decoding="async"/>
+                                        <img class="pk-pose" data-pose="shy" src="/perok_login/static/src/img/parrot/shy.webp?v=19.3.2" alt="" aria-hidden="true" draggable="false" decoding="async"/>
+                                        <img class="pk-pose" data-pose="peek" src="/perok_login/static/src/img/parrot/peek.webp?v=19.3.2" alt="" aria-hidden="true" draggable="false" decoding="async"/>
+                                        <img class="pk-pose" data-pose="success" src="/perok_login/static/src/img/parrot/success.webp?v=19.3.2" alt="" aria-hidden="true" draggable="false" decoding="async"/>
                                     </div>
                                     <!-- the success pose cut into layers, for the wing beats of the fly-away -->
-                                    <img class="pk-fly" data-part="body" src="/perok_login/static/src/img/parrot/fly_body.webp?v=19.3.1" alt="" aria-hidden="true" draggable="false" decoding="async"/>
-                                    <img class="pk-fly" data-part="wingL" src="/perok_login/static/src/img/parrot/fly_wing_l.webp?v=19.3.1" alt="" aria-hidden="true" draggable="false" decoding="async"/>
-                                    <img class="pk-fly" data-part="wingR" src="/perok_login/static/src/img/parrot/fly_wing_r.webp?v=19.3.1" alt="" aria-hidden="true" draggable="false" decoding="async"/>
+                                    <img class="pk-fly" data-part="body" src="/perok_login/static/src/img/parrot/fly_body.webp?v=19.3.2" alt="" aria-hidden="true" draggable="false" decoding="async"/>
+                                    <img class="pk-fly" data-part="wingL" src="/perok_login/static/src/img/parrot/fly_wing_l.webp?v=19.3.2" alt="" aria-hidden="true" draggable="false" decoding="async"/>
+                                    <img class="pk-fly" data-part="wingR" src="/perok_login/static/src/img/parrot/fly_wing_r.webp?v=19.3.2" alt="" aria-hidden="true" draggable="false" decoding="async"/>
                                 </div>
                             </div>
                         </div>

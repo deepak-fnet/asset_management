@@ -4,15 +4,19 @@
     'category': 'Productivity/Documents',
     'summary': 'Controlled document repository: approved uploads, revisions, cut-off, archive and approved disposal',
     'author': 'Futurenet Technologies India Private Limited',
-    'depends': ['base', 'mail', 'hr', 'web'],
+    'depends': ['smart_notification', 'base', 'mail', 'hr', 'web'],
     'external_dependencies': {'python': ['paramiko']},
     'data': [
         'security/dms_security.xml',
         'security/ir.model.access.csv',
         'data/dms_data.xml',
+        'data/dms_ai_invoice_rules.xml',
         'views/dms_config_views.xml',
         'views/dms_views.xml',
         'views/dms_menus.xml',
+        'data/dms_notify_rules.xml',
+        'views/dms_notify_views.xml',
+        'views/dms_ai_chat_views.xml',
     ],
     'assets': {
         'web.assets_backend': [

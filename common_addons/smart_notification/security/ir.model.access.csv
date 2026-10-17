@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_notification_user,notification user,model_smart_notification,base.group_user,1,0,0,0
+access_notification_line_user,notification line user,model_smart_notification_line,base.group_user,1,0,0,0
+access_notification_admin,notification admin,model_smart_notification,base.group_system,1,1,1,1
+access_notification_line_admin,notification line admin,model_smart_notification_line,base.group_system,1,1,1,1

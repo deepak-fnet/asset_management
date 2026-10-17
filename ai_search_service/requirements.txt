@@ -1,0 +1,5 @@
+# AI Search Service: same stack as the ERP AI chatbot
+flask==3.1.3
+chromadb==1.5.9
+sentence-transformers==5.6.0
+# CPU-only torch is enough (install.sh pulls it from the PyTorch CPU index first)

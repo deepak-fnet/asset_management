@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_ssh_server_admin,ssh.server.admin,model_ssh_server,group_ssh_admin,1,1,1,1
+access_ssh_server_user,ssh.server.user,model_ssh_server,group_ssh_user,1,0,0,0
+access_ssh_credential_admin,ssh.credential.admin,model_ssh_credential,group_ssh_admin,1,1,1,1
+access_ssh_credential_user,ssh.credential.user,model_ssh_credential,group_ssh_user,1,0,0,0
+access_ssh_access_request_user,ssh.access.request.user,model_ssh_access_request,group_ssh_user,1,1,1,0
+access_ssh_access_request_manager,ssh.access.request.manager,model_ssh_access_request,group_ssh_manager,1,1,1,1
+access_ssh_connection_log_user,ssh.connection.log.user,model_ssh_connection_log,group_ssh_user,1,0,0,0
+access_ssh_connection_log_admin,ssh.connection.log.admin,model_ssh_connection_log,group_ssh_admin,1,1,1,1
+access_ssh_encryption_key,ssh.encryption.key,model_ssh_encryption_key,base.group_system,1,1,1,0
+access_ssh_reject_wizard,ssh.reject.wizard,model_ssh_reject_wizard,group_ssh_manager,1,1,1,1

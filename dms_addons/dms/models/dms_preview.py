@@ -49,6 +49,39 @@ CONVERT_TIMEOUT = 180
 PAGE_DPI = 150          # stays sharp when zoomed in
 MAX_TEXT = 2 * 1024 * 1024
 
+OLE_MAGIC = b'\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1'
+
+
+def is_password_protected(data, ext):
+    """True when a file can only be opened with its password (so it cannot be viewed, searched or checked)."""
+    ext = (ext or '').lower()
+    if not data:
+        return False
+    if ext in ('docx', 'xlsx', 'xlsm', 'pptx', 'dotx', 'ppsx'):
+        # a normal Office Open XML file is a zip; a password-protected one is an OLE container
+        return data[:8] == OLE_MAGIC
+    if ext == 'doc' and data[:8] == OLE_MAGIC:
+        # Word 97: the fEncrypted bit in the FIB of the WordDocument stream
+        for off in range(512, len(data) - 12, 512):
+            if data[off:off + 2] == b'\xec\xa5':
+                return bool(int.from_bytes(data[off + 10:off + 12], 'little') & 0x0100)
+        return False
+    if ext in ('xls', 'ppt') and data[:8] == OLE_MAGIC:
+        return b'E\x00n\x00c\x00r\x00y\x00p\x00t\x00i\x00o\x00n\x00I\x00n\x00f\x00o' in data[:65536] \
+            or (ext == 'xls' and b'\x2f\x00\x36\x00' in data[:4096])  # BIFF8 FILEPASS (RC4)
+    if ext == 'pdf' and b'/Encrypt' in data[-4096:] + data[:4096]:
+        tmp = tempfile.mkdtemp(prefix='dms_pw_')
+        try:
+            p = os.path.join(tmp, 'f.pdf')
+            with open(p, 'wb') as f:
+                f.write(data)
+            out = subprocess.run(['pdfinfo', p], capture_output=True, text=True, timeout=30)
+            return 'Incorrect password' in (out.stderr or '')
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+    return False
+
+
 _LOCKS = {}
 _LOCKS_GUARD = threading.Lock()
 
@@ -227,6 +260,36 @@ class DmsRevisionPreview(models.Model):
                 shutil.rmtree(tmp, ignore_errors=True)
         return self._cached('.p%d.%d.png' % (n, PAGE_DPI), build)
 
+    def _thumb_png(self):
+        """A small picture of the first page, for the hover preview in lists. None when there is no page."""
+        kind = self._preview_kind()
+        if kind not in ('pdf', 'doc', 'image', 'image_convert'):
+            return None
+        if kind in ('pdf', 'doc') and is_password_protected(self._read_data(), self._ext()):
+            return None
+
+        def build():
+            if kind in ('pdf', 'doc'):
+                tmp = tempfile.mkdtemp(prefix='dms_thumb_')
+                try:
+                    out = os.path.join(tmp, 't')
+                    subprocess.run(['pdftoppm', '-png', '-f', '1', '-l', '1', '-scale-to', '360', '-singlefile',
+                                    self._pdf_path(), out], check=True, timeout=60, capture_output=True)
+                    with open(out + '.png', 'rb') as f:
+                        return f.read()
+                finally:
+                    shutil.rmtree(tmp, ignore_errors=True)
+            if not Image:
+                raise UserError(_("Image conversion is not available on the server."))
+            img = Image.open(io.BytesIO(self._read_data()))
+            img.seek(0)
+            img = img.convert('RGB')
+            img.thumbnail((360, 360))
+            buf = io.BytesIO()
+            img.save(buf, format='PNG')
+            return buf.getvalue()
+        return self._cached('.thumb.png', build)
+
     def _sheet_html(self):
         def build():
             ext = self._ext()
@@ -268,7 +331,9 @@ class DmsRevisionPreview(models.Model):
 
     def _prepare_preview(self):
         """Do the slow part now (conversion), so viewing is instant later."""
-        from ..controllers.protected_viewer import LO_EXT, build_office_html
+        from ..controllers.protected_viewer import HTML_EXT, LO_EXT, build_office_html, html_to_pdf, pdf_pages_html
+        if self._ext() in HTML_EXT:
+            self._cached('.award.html', lambda: pdf_pages_html(html_to_pdf(self._read_data())).encode())
         if self._ext() in LO_EXT:
             # the protected viewer's page images (the slow part of opening an office file)
             self._cached('.award.html', lambda: build_office_html(self._read_data(), self._ext()).encode())

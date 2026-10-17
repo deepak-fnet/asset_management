@@ -49,7 +49,7 @@ class DmsDisposal(models.Model):
             if not d.dept_head_id:
                 raise UserError(_("Folder %s has no Department Head set.", d.folder_id.complete_name))
             d.state = 'submitted'
-            d.activity_schedule('mail.mail_activity_data_todo', user_id=d.dept_head_id.id,
+            d.with_context(mail_activity_quick_update=True).activity_schedule('mail.mail_activity_data_todo', user_id=d.dept_head_id.id,
                                 summary=_("DMS disposal approval: %s", d.name))
             self.env['dms.log'].log('disposal_request', folder=d.folder_id,
                                     details=f"{d.name}: {len(d.revision_ids)} file(s)")

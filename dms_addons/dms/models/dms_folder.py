@@ -135,7 +135,7 @@ class DmsFolder(models.Model):
         self.env['dms.log'].log('disposal_request', folder=self, details=f"Delete folder: {reason or ''}")
         controllers = self.env.ref('dms.group_dms_controller').user_ids
         for u in controllers:
-            self.activity_schedule('mail.mail_activity_data_todo', user_id=u.id,
+            self.with_context(mail_activity_quick_update=True).activity_schedule('mail.mail_activity_data_todo', user_id=u.id,
                                    summary=_("DMS: delete folder %s?", self.complete_name), note=reason or '')
 
     def _decide_delete(self, user, approve, note=None):
@@ -147,7 +147,7 @@ class DmsFolder(models.Model):
             self.env['dms.log'].log('disposal_refuse', folder=self, details=f"Keep folder: {note or ''}")
             if requester.partner_id:
                 self.message_post(body=_("Deletion of %(f)s refused: %(n)s", f=self.complete_name, n=note or ''),
-                                  partner_ids=requester.partner_id.ids, subtype_xmlid='mail.mt_comment')
+                                  subtype_xmlid='mail.mt_note')
             return
         live = self._live_document_count()
         if live:
@@ -278,8 +278,7 @@ class DmsAccess(models.Model):
                 target.sudo().message_post(
                     body=_("%(user)s was granted %(level)s access to %(target)s.",
                            user=a.user_id.name, level=dict(LINE_LEVELS)[a.level], target=a._target_label()),
-                    partner_ids=a.user_id.partner_id.ids, message_type='notification',
-                    subtype_xmlid='mail.mt_note')
+                    message_type='notification', subtype_xmlid='mail.mt_note')
         return recs
 
     def unlink(self):

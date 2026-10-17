@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dms_ai_session_list" model="ir.ui.view">
+        <field name="name">dms.ai.session.list</field>
+        <field name="model">dms.ai.session</field>
+        <field name="arch" type="xml">
+            <list create="0">
+                <field name="last_at" string="Last message"/>
+                <field name="user_id" widget="many2one_avatar_user"/>
+                <field name="name"/>
+                <field name="first_question" optional="show"/>
+                <field name="message_count"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_dms_ai_session_search" model="ir.ui.view">
+        <field name="name">dms.ai.session.search</field>
+        <field name="model">dms.ai.session</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="user_id"/>
+                <field name="first_question"/>
+                <filter name="today" string="Today" domain="[('last_at', '>=', (context_today()).strftime('%Y-%m-%d'))]"/>
+                <group><filter name="by_user" string="Person" context="{'group_by': 'user_id'}"/></group>
+            </search>
+        </field>
+    </record>
+    <record id="view_dms_ai_session_form" model="ir.ui.view">
+        <field name="name">dms.ai.session.form</field>
+        <field name="model">dms.ai.session</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0">
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <group><field name="user_id" widget="many2one_avatar_user"/><field name="message_count"/></group>
+                        <group><field name="create_date" string="Started"/><field name="last_at"/></group>
+                    </group>
+                    <field name="transcript" nolabel="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_dms_ai_sessions" model="ir.actions.act_window">
+        <field name="name">AI Chat History</field>
+        <field name="res_model">dms.ai.session</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html"><p>Every Ask DMS conversation appears here.</p></field>
+    </record>
+    <menuitem id="menu_dms_ai_sessions" name="AI Chat History" parent="menu_dms_config" action="action_dms_ai_sessions" sequence="5"/>
+</odoo>

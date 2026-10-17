@@ -44,13 +44,21 @@
 <!-- ================================================================ SHELL -->
 <t t-name="dms.Shell">
     <t t-set="boot" t-value="state.boot"/>
-    <div class="o_dms_shell" t-on-dragover="onDragOver" t-on-dragleave="onDragLeave" t-on-drop="onDrop">
+    <div class="o_dms_shell" t-att-class="{o_dms_folded: state.sideFolded}" t-on-dragover="onDragOver" t-on-dragleave="onDragLeave" t-on-drop="onDrop">
         <aside class="o_dms_side">
             <div class="o_dms_side_actions">
-                <button class="o_dms_btn o_dms_btn_ink" t-on-click="() => this.openUpload()" title="Upload (U)"><i class="fa fa-arrow-up"/> Upload</button>
+                <button class="o_dms_btn o_dms_btn_ink" t-on-click="() => this.openUpload()" title="Upload (U)"><i class="fa fa-arrow-up"/> <span class="o_dms_side_txt">Upload</span></button>
+                <button class="o_dms_icon_btn o_dms_fold_btn" t-on-click="toggleSide" t-att-title="state.sideFolded ? 'Open the menu ([)' : 'Fold the menu ([)'">
+                    <i class="fa" t-att-class="state.sideFolded ? 'fa-angle-double-right' : 'fa-angle-double-left'"/></button>
             </div>
             <nav class="o_dms_nav">
                 <t t-call="dms.NavItem"><t t-set="key" t-value="'recent'"/><t t-set="icon" t-value="'fa-home'"/><t t-set="label" t-value="'Home'"/></t>
+                <t t-call="dms.NavItem"><t t-set="key" t-value="'dashboard'"/><t t-set="icon" t-value="'fa-tachometer'"/><t t-set="label" t-value="'Dashboard'"/></t>
+                <t t-call="dms.NavItem"><t t-set="key" t-value="'assistant'"/><t t-set="icon" t-value="'fa-magic'"/><t t-set="label" t-value="'Ask DMS'"/></t>
+                <t t-call="dms.NavItem"><t t-set="key" t-value="'all'"/><t t-set="icon" t-value="'fa-files-o'"/><t t-set="label" t-value="'All documents'"/></t>
+                <t t-if="boot.user.is_controller or boot.counts.access_requests">
+                    <t t-call="dms.NavItem"><t t-set="key" t-value="'accessreq'"/><t t-set="icon" t-value="'fa-key'"/><t t-set="label" t-value="'Access requests'"/><t t-set="count" t-value="boot.counts.access_requests"/><t t-set="hot" t-value="true"/></t>
+                </t>
                 <t t-call="dms.NavItem"><t t-set="key" t-value="'approvals'"/><t t-set="icon" t-value="'fa-gavel'"/><t t-set="label" t-value="'To approve'"/><t t-set="count" t-value="boot.counts.approvals"/><t t-set="hot" t-value="true"/></t>
                 <t t-call="dms.NavItem"><t t-set="key" t-value="'my_uploads'"/><t t-set="icon" t-value="'fa-pencil-square-o'"/><t t-set="label" t-value="'My documents'"/><t t-set="count" t-value="boot.counts.my_uploads"/></t>
                 <t t-call="dms.NavItem"><t t-set="key" t-value="'checked_out'"/><t t-set="icon" t-value="'fa-lock'"/><t t-set="label" t-value="'Checked out'"/><t t-set="count" t-value="boot.counts.checked_out"/></t>
@@ -61,6 +69,7 @@
                 </t>
             </nav>
             <h2 class="o_dms_side_h">Folders</h2>
+            <button class="o_dms_folded_folders o_dms_icon_btn" t-on-click="toggleSide" title="Folders: open the menu"><i class="fa fa-folder-open-o"/></button>
             <div class="o_dms_tree" role="tree">
                 <div t-if="!rootFolders.length" class="o_dms_tree_empty">No folder is shared with you yet. Ask the Document Controller for access.</div>
                 <t t-foreach="rootFolders" t-as="f" t-key="f.id">
@@ -69,10 +78,10 @@
             </div>
             <div class="o_dms_side_foot">
                 <t t-if="boot.user.is_controller">
-                    <a t-on-click="() => this.openBackend('dms.action_dms_folder')"><i class="fa fa-sliders"/> Approvers</a>
-                    <a t-on-click="() => this.openBackend('dms.action_dms_disposal')"><i class="fa fa-trash-o"/> Disposal
+                    <a t-on-click="() => this.openBackend('dms.action_dms_folder')" title="Approvers"><i class="fa fa-sliders"/> <span class="o_dms_side_txt">Approvers</span></a>
+                    <a t-on-click="() => this.openBackend('dms.action_dms_disposal')" title="Disposal"><i class="fa fa-trash-o"/> <span class="o_dms_side_txt">Disposal</span>
                         <span t-if="boot.counts.disposals" class="o_dms_count hot" t-esc="boot.counts.disposals"/></a>
-                    <a t-on-click="() => this.openBackend('dms.action_dms_log')"><i class="fa fa-history"/> Audit log</a>
+                    <a t-on-click="() => this.openBackend('dms.action_dms_log')" title="Audit log"><i class="fa fa-history"/> <span class="o_dms_side_txt">Audit log</span></a>
                 </t>
                 <div class="o_dms_me">
                     <img t-att-src="'/web/image/res.users/' + boot.user.id + '/avatar_128'" alt=""/>
@@ -83,8 +92,11 @@
         </aside>
 
         <main class="o_dms_main">
-            <t t-if="state.view === 'groups'"><t t-call="dms.Groups"/></t>
+            <t t-if="state.view === 'dashboard'"><t t-call="dms.Dashboard"/></t>
+            <t t-elif="state.view === 'assistant'"><t t-call="dms.Ask"/></t>
+            <t t-elif="state.view === 'groups'"><t t-call="dms.Groups"/></t>
             <t t-elif="state.view === 'requests'"><t t-call="dms.Requests"/></t>
+            <t t-elif="state.view === 'accessreq'"><t t-call="dms.AccessRequests"/></t>
             <t t-else="">
             <header class="o_dms_top">
                 <div class="o_dms_path">
@@ -100,7 +112,12 @@
                 </div>
                 <label class="o_dms_search">
                     <i class="fa fa-search"/>
-                    <input t-ref="search" placeholder="Search by number or title" t-att-value="state.search" t-on-input="onSearchInput"/>
+                    <input t-ref="search" t-att-placeholder="boot.ai ? 'Search, or ask: Newgen invoices last month (Enter)' : 'Search by number or title'" t-att-value="state.search" t-on-input="onSearchInput" t-on-keydown="onSearchKey"/>
+                    <button t-if="boot.ai and state.search" class="o_dms_ai_btn" t-on-click="aiSearch" title="Search with AI (Enter)"><i class="fa fa-magic"/> AI</button>
+                    <t t-if="boot.ai">
+                        <button class="o_dms_lang" t-on-click="toggleVoiceLang" t-att-title="state.voiceLang === 'ta-IN' ? 'Speaking Tamil (click for English)' : 'Speaking English (click for Tamil)'" t-esc="state.voiceLang === 'ta-IN' ? 'த' : 'EN'"/>
+                        <button class="o_dms_mic" t-att-class="{listening: state.listening}" t-on-click="voiceSearch" t-att-title="state.listening ? 'Listening… click to stop' : 'Search by voice'"><i class="fa fa-microphone"/></button>
+                    </t>
                     <kbd>/</kbd>
                 </label>
             </header>
@@ -125,16 +142,34 @@
                 </div>
             </div>
 
+            <div t-if="state.aiSearch" class="o_dms_ai_banner">
+                <i class="fa fa-magic"/>
+                <t t-if="state.aiSearch.loading">Understanding “<t t-esc="state.aiSearch.query"/>”…</t>
+                <t t-else="">
+                    <b t-if="state.aiSearch.reply" class="o_dms_ai_reply" t-esc="state.aiSearch.reply"/>
+                    <span t-esc="state.aiSearch.explanation or 'AI search results'"/>
+                    <span class="o_dms_ai_kw" t-foreach="state.aiSearch.keywords" t-as="k" t-key="k_index" t-esc="k"/>
+                    <span t-if="state.aiSearch.type" class="o_dms_ai_kw type" t-esc="state.aiSearch.type"/>
+                </t>
+            </div>
             <section class="o_dms_body o_dms_nav_anim" t-key="state.navKey" t-attf-class="nav_{{state.navDir}}">
                 <t t-if="tiles.length or (canCreateFolderHere and state.view === 'folder')">
                     <h2 class="o_dms_h2"><t t-esc="state.view === 'folder' ? 'Folders' : 'Your folders'"/></h2>
                     <div class="o_dms_tiles">
                         <t t-foreach="tiles" t-as="f" t-key="f.id">
-                            <button class="o_dms_tile" t-att-class="{archive: f.is_archive, doomed: f.delete_requested, opening: state.openingTile === f.id}" t-on-click="(ev) => this.openTile(f, ev)" t-attf-style="--i: {{f_index}}">
+                            <button class="o_dms_tile" t-att-class="{archive: f.is_archive, doomed: f.delete_requested, opening: state.openingTile === f.id, droptarget: state.dropFolder === f.id}" t-on-click="(ev) => this.openTile(f, ev)" t-attf-style="--i: {{f_index}}"
+                                    t-on-dragover="(ev) => this.onFolderDragOver(f, ev)" t-on-dragleave="(ev) => this.onFolderDragLeave(f, ev)" t-on-drop="(ev) => this.onFolderDrop(f, ev)">
                                 <span class="o_dms_tile_back"/>
                                 <span class="o_dms_ripple"/>
-                                <span class="o_dms_tile_papers"><i/><i/></span>
+                                <span class="o_dms_tile_papers" t-att-class="{named: f.latest and f.latest.length}">
+                                    <t t-if="f.latest and f.latest.length"><i t-foreach="f.latest.slice(0, 3)" t-as="nm" t-key="nm_index" t-esc="nm"/></t>
+                                    <t t-else=""><i/><i/></t>
+                                </span>
+                                <span t-if="f.fresh" class="o_dms_tile_new">NEW</span>
+                                <span t-if="state.dropFolder === f.id" class="o_dms_tile_drop"><i class="fa fa-arrow-down"/> Drop to upload here</span>
                                 <span class="o_dms_tile_body">
+                                    <i t-attf-class="fa {{folderIcon(f)}} o_dms_tile_icon"/>
+                                    <span class="o_dms_tile_go"><i class="fa fa-arrow-right"/></span>
                                     <b t-esc="f.name"/>
                                     <small t-if="!f.level">Only files shared with you</small>
                                     <small t-elif="f.is_archive">Read only</small>
@@ -150,7 +185,7 @@
                     </div>
                 </t>
 
-                <div class="o_dms_docs_head" t-if="state.docs.length or state.view !== 'recent' or state.search">
+                <div class="o_dms_docs_head" t-if="state.view !== 'recent' or state.search">
                     <h2 class="o_dms_h2"><t t-esc="state.view === 'recent' and !state.search ? 'Recently changed' : 'Documents'"/>
                         <span class="o_dms_muted" t-if="state.docs.length"> <t t-esc="state.docs.length"/></span></h2>
                     <div class="o_dms_seg" t-if="state.docs.length">
@@ -159,30 +194,36 @@
                     </div>
                 </div>
 
-                <t t-if="state.loading and !state.docs.length">
+                <t t-if="state.view === 'recent' and !state.search"/>
+                <t t-elif="state.loading and !state.docs.length">
                     <div class="o_dms_loading"><i class="fa fa-circle-o-notch fa-spin"/></div>
                 </t>
                 <t t-elif="!state.docs.length"><t t-call="dms.Empty"/></t>
                 <t t-elif="state.layout === 'grid'">
+                    <t t-call="dms.BulkBar"/>
                     <div class="o_dms_grid">
                         <t t-foreach="state.docs" t-as="d" t-key="d.id"><t t-call="dms.Card"/></t>
                     </div>
                 </t>
                 <t t-else="">
+                    <t t-call="dms.BulkBar"/>
                     <table class="o_dms_register">
-                        <thead><tr><th class="w_icon"/><th>Number</th><th>Title</th><th>Rev</th><th>Status</th><th class="hide_sm">Owner</th><th class="hide_sm">Changed</th><th class="w_icon"/></tr></thead>
+                        <thead><tr><th class="w_pick"><input type="checkbox" t-att-checked="state.docs.length and state.docs.filter(x => x.can_see).every(x => state.picked[x.id])" t-on-click="togglePickAll" title="Select all"/></th><th class="w_icon"/><th>Number</th><th>Title</th><th>Rev</th><th>Status</th><th class="hide_sm">Owner</th><th class="hide_sm">Changed</th><th class="o_dms_actions_h"/></tr></thead>
                         <tbody>
                             <t t-foreach="state.docs" t-as="d" t-key="d.id">
                                 <t t-set="k" t-value="helpers.fileKind(d.file_name, d.mimetype)"/>
-                                <tr t-att-class="{selected: state.selectedId === d.id}" t-on-click="() => this.select(d)">
+                                <tr t-att-class="{selected: state.selectedId === d.id, picked: state.picked[d.id]}" t-on-click="() => this.select(d)"
+                                    t-on-mouseenter="(ev) => this.hoverDoc(d, ev)" t-on-mouseleave="unhoverDoc">
+                                    <td class="w_pick"><input t-if="d.can_see" type="checkbox" t-att-checked="state.picked[d.id]" t-on-click="(ev) => this.togglePick(d, ev)"/></td>
                                     <td class="w_icon"><span class="o_dms_ext" t-attf-class="k_{{k.cls}}" t-esc="k.label"/></td>
                                     <td class="o_dms_code" t-esc="d.code"/>
-                                    <td><b t-esc="d.name"/><div t-if="state.view !== 'folder'" class="o_dms_muted small"><i class="fa fa-folder-o"/> <t t-esc="d.folder"/></div></td>
+                                    <td><b t-esc="d.name"/><span t-if="d.by_meaning" class="o_dms_meaning" t-att-title="'Found by meaning (' + Math.round(d.meaning * 100) + '% close)'"><i class="fa fa-magic"/> by meaning</span><div t-if="state.view !== 'folder'" class="o_dms_muted small"><i class="fa fa-folder-o"/> <t t-esc="d.folder"/></div></td>
                                     <td><t t-esc="d.rev === null ? '—' : d.rev"/></td>
                                     <td><t t-call="dms.StateBadge"/><i t-if="d.locked_by" class="fa fa-lock o_dms_lockicon" t-att-title="'Checked out by ' + d.locked_by.name"/></td>
                                     <td class="hide_sm" t-esc="d.owner.name"/>
                                     <td class="hide_sm o_dms_muted" t-esc="helpers.timeAgo(d.updated)"/>
-                                    <td class="w_icon"><button class="o_dms_star" t-att-class="{on: d.starred}" t-on-click="(ev) => this.toggleStar(d, ev)" t-att-title="d.starred ? 'Unstar' : 'Star'"><i class="fa" t-att-class="d.starred ? 'fa-star' : 'fa-star-o'"/></button></td>
+                                    <td class="o_dms_row_actions"><t t-call="dms.RowActions"/>
+                                        <button t-if="d.can_see" class="o_dms_star" t-att-class="{on: d.starred, pop: state.starPop === d.id}" t-on-click="(ev) => this.toggleStar(d, ev)" t-att-title="d.starred ? 'Unstar' : 'Star'"><i class="fa" t-att-class="d.starred ? 'fa-star' : 'fa-star-o'"/></button></td>
                                 </tr>
                             </t>
                         </tbody>
@@ -202,7 +243,7 @@
 
         <aside t-if="state.detail" class="o_dms_detail" t-key="state.detail.id" t-att-class="{closing: state.closing}">
             <div class="o_dms_rod top" aria-hidden="true"><i/></div>
-            <div class="o_dms_paper"><t t-call="dms.Detail"/></div>
+            <div class="o_dms_paper"><t t-if="state.detail.restricted"><t t-call="dms.DetailRestricted"/></t><t t-else=""><t t-call="dms.Detail"/></t></div>
             <div class="o_dms_scroll_roll" aria-hidden="true"><div class="o_dms_rod"><i/></div></div>
         </aside>
     </div>
@@ -217,26 +258,778 @@
     <t t-if="state.modal === 'rename'"><t t-call="dms.RenameModal"/></t>
     <t t-if="state.modal === 'delete'"><t t-call="dms.DeleteModal"/></t>
     <t t-if="state.modal === 'move'"><t t-call="dms.MoveModal"/></t>
+    <t t-if="state.modal === 'accessask'"><t t-call="dms.AccessRequestModal"/></t>
+    <t t-if="state.modal === 'harddelete'"><t t-call="dms.HardDeleteModal"/></t>
     <t t-if="state.modal === 'retire'"><t t-call="dms.RetireModal"/></t>
     <t t-if="state.preview"><t t-call="dms.Preview"/></t>
     <t t-if="state.cine"><t t-call="dms.Cine"/></t>
+    <t t-if="state.palette"><t t-call="dms.Palette"/></t>
+    <t t-if="state.hover"><t t-call="dms.HoverCard"/></t>
     <div t-if="state.flash" class="o_dms_flash" t-key="state.flash.key" t-attf-class="f_{{state.flash.kind}}" aria-live="polite">
         <div class="o_dms_flash_stamp"><t t-esc="state.flash.text"/></div>
         <div t-if="state.flash.sub" class="o_dms_flash_sub" t-esc="state.flash.sub"/>
     </div>
 </t>
 
+<!-- ================================================================ DASHBOARD -->
+<t t-name="dms.Dashboard">
+    <t t-set="D" t-value="state.dash"/>
+    <t t-set="admin" t-value="D and D.scope === 'admin'"/>
+    <header class="o_dms_top">
+        <div class="o_dms_path"><h1>Dashboard</h1></div>
+        <div t-if="state.boot.user.is_controller" class="o_dms_seg">
+            <button t-att-class="{active: state.dashScope === 'me'}" t-on-click="() => this.loadDashboard('me')"><i class="fa fa-user"/> Mine</button>
+            <button t-att-class="{active: state.dashScope === 'admin'}" t-on-click="() => this.loadDashboard('admin')"><i class="fa fa-building-o"/> Organisation</button>
+        </div>
+        <button class="o_dms_icon_btn" t-on-click="() => this.loadDashboard()" title="Refresh"><i class="fa fa-refresh" t-att-class="{'fa-spin': state.loading}"/></button>
+    </header>
+    <nav t-if="D" class="o_dms_dtabs" role="tablist">
+        <t t-foreach="dashTabs" t-as="tb" t-key="tb.key">
+            <a t-att-class="{active: state.dashTab === tb.key}" t-on-click="() => this.setDashTab(tb.key)">
+                <i t-attf-class="fa {{tb.icon}}"/> <t t-esc="tb.label"/>
+                <span t-if="tb.count" class="o_dms_count" t-att-class="{hot: tb.hot}" t-esc="tb.count"/>
+            </a>
+        </t>
+    </nav>
+    <section class="o_dms_body o_dms_dash" t-ref="dash">
+        <div t-if="!D" class="o_dms_loading"><i class="fa fa-circle-o-notch fa-spin"/></div>
+        <t t-elif="state.dashTab === 'activity'"><t t-call="dms.DashTabActivity"/></t>
+        <t t-elif="state.dashTab === 'alerts' and admin"><t t-call="dms.DashTabAlerts"/></t>
+        <t t-elif="state.dashTab === 'attention'"><t t-call="dms.DashTabAttention"/></t>
+        <t t-elif="admin"><t t-call="dms.DashAdminOverview"/></t>
+        <t t-else=""><t t-call="dms.DashMeOverview"/></t>
+    </section>
+</t>
+
+<t t-name="dms.Insights">
+    <t t-set="I" t-value="r.insights"/>
+    <div class="o_dms_insights">
+        <div class="o_dms_insights_h">
+            <i class="fa" t-att-class="I.state === 'pending' ? 'fa-circle-o-notch fa-spin' : 'fa-lightbulb-o'"/>
+            <b t-if="I.state === 'pending'">Reading the file for the approver…</b>
+            <b t-else="">For the approver</b>
+            <a t-if="r.can_rebuild and I.state !== 'pending'" class="o_dms_link small" t-on-click="() => this.rebuildInsights(r)">Read again</a>
+        </div>
+        <p t-if="I.error" class="o_dms_muted small"><i class="fa fa-exclamation-triangle"/> <t t-esc="I.error"/></p>
+        <p t-if="I.review and I.review.summary" class="o_dms_insights_sum" t-esc="I.review.summary"/>
+        <ul t-if="I.review and I.review.risks.length" class="o_dms_risks">
+            <li t-foreach="I.review.risks" t-as="x" t-key="x_index" t-attf-class="lv_{{x.level}}"><i t-attf-class="fa {{riskIcon(x.level)}}"/> <t t-esc="x.point"/></li>
+        </ul>
+        <p t-elif="I.review" class="o_dms_muted small"><i class="fa fa-check-circle o_dms_ok_txt"/> No risk points found.</p>
+        <div t-if="I.changes" class="o_dms_changes">
+            <b><i class="fa fa-exchange"/> Changed since revision <t t-esc="I.changes.against"/></b>
+            <p class="small" t-esc="I.changes.summary"/>
+            <ul t-if="I.changes.items.length"><li t-foreach="I.changes.items" t-as="c" t-key="c_index" t-esc="c"/></ul>
+        </div>
+        <div t-if="I.dates.length" class="o_dms_dates">
+            <span t-foreach="I.dates" t-as="x" t-key="x_index" t-attf-class="k_{{x.kind}}"><i class="fa fa-calendar"/> <t t-esc="x.label || x.kind"/>: <b t-esc="helpers.fmtDate(x.date)"/></span>
+        </div>
+        <div t-if="I.sensitive.length" class="o_dms_upwarn"><i class="fa fa-user-secret"/>
+            <div><b>Personal or bank data</b><small><t t-foreach="I.sensitive" t-as="x" t-key="x.kind"><t t-esc="x.label"/> (<t t-esc="x.samples.join(', ')"/>)<t t-if="!x_last"> · </t></t></small></div></div>
+        <div t-if="I.duplicates.length" class="o_dms_upwarn dup"><i class="fa fa-clone"/>
+            <div><b>Similar documents</b>
+                <t t-foreach="I.duplicates" t-as="x" t-key="x_index">
+                    <small t-if="x.hidden"><t t-esc="x.hidden"/> in folders you cannot open</small>
+                    <small t-else=""><a class="o_dms_link" t-on-click="() => this.select({id: x.doc_id})"><span class="o_dms_code" t-esc="x.code"/> <t t-esc="x.name"/></a> · <t t-esc="Math.round(x.score * 100)"/>% the same</small>
+                </t></div></div>
+    </div>
+</t>
+
+<t t-name="dms.DashKpi">
+    <button class="o_dms_kpi click" t-att-class="{hot: hot}" t-on-click="() => this.dashGo(go)" t-att-title="hint or ''">
+        <i t-attf-class="fa {{icon}}"/>
+        <div><b t-esc="value"/><span t-esc="label"/></div>
+        <i class="fa fa-angle-right o_dms_kpi_go"/>
+    </button>
+</t>
+
+<t t-name="dms.DashSection">
+    <div class="o_dms_dcard" t-att-id="sid" t-att-class="{o_dms_dcard_wide: wide, o_dms_flashsec: state.dashFlash === sid}">
+        <div class="o_dms_dcard_h"><h3><i t-if="icon" t-attf-class="fa {{icon}}"/> <t t-esc="title"/> <small t-if="sub" class="o_dms_muted" t-esc="sub"/></h3>
+            <span t-if="count" class="o_dms_count" t-att-class="{hot: hot}" t-esc="count"/></div>
+        <t t-out="0"/>
+    </div>
+</t>
+
+<t t-name="dms.DashTrend">
+    <t t-set="T" t-value="dashTrend"/>
+    <t t-call="dms.DashSection"><t t-set="sid" t-value="'sec-trend'"/><t t-set="wide" t-value="true"/><t t-set="icon" t-value="'fa-bar-chart'"/>
+        <div class="o_dms_legend o_dms_legend_top">
+            <span><i t-attf-style="background: {{actionColor('upload')}}"/>Uploads <b t-esc="T.sum.up"/></span>
+            <span><i t-attf-style="background: {{actionColor('view')}}"/>Views <b t-esc="T.sum.view"/></span>
+            <span><i t-attf-style="background: {{actionColor('download')}}"/>Downloads <b t-esc="T.sum.down"/></span>
+        </div>
+        <div class="o_dms_bars">
+            <div t-foreach="T.days" t-as="d" t-key="d_index" class="o_dms_bar" t-att-title="d.label + ': ' + d.up + ' uploads, ' + d.view + ' views, ' + d.down + ' downloads'">
+                <div class="o_dms_bar_stack" t-attf-style="height: {{Math.round(d.total / T.max * 100)}}%">
+                    <i t-attf-style="flex: {{d.down}}; background: {{actionColor('download')}}"/><i t-attf-style="flex: {{d.view}}; background: {{actionColor('view')}}"/><i t-attf-style="flex: {{d.up}}; background: {{actionColor('upload')}}"/>
+                </div>
+                <small t-if="d_index % (T.days.length > 14 ? 5 : 2) === 0" t-esc="d.label"/>
+            </div>
+        </div>
+    </t>
+</t>
+
+<t t-name="dms.DashDonut">
+    <t t-set="Q" t-value="donut(list)"/>
+    <t t-call="dms.DashSection">
+        <div t-if="!list.length" class="o_dms_muted small">Nothing yet</div>
+        <div t-else="" class="o_dms_donut_wrap">
+            <div class="o_dms_donut" t-att-style="Q.style"><span><b t-esc="Q.total"/><small>total</small></span></div>
+            <ul class="o_dms_donut_legend">
+                <li t-foreach="list" t-as="x" t-key="x_index"><i t-attf-style="background: {{Q.colors[x_index % Q.colors.length]}}"/><span t-esc="x.label"/><b t-esc="x.count"/></li>
+            </ul>
+        </div>
+    </t>
+</t>
+
+<t t-name="dms.DashHbars">
+    <t t-call="dms.DashSection">
+        <div t-if="!list.length" class="o_dms_dash_none"><i class="fa fa-check-circle"/> <t t-esc="empty or 'Nothing yet'"/></div>
+        <div t-foreach="list" t-as="x" t-key="x_index" class="o_dms_hbar" t-att-title="(x.label || x.rule || x.name) + ': ' + x.count">
+            <div class="o_dms_hbar_l"><span t-esc="x.label || x.rule || x.name"/><b t-esc="x.count"/></div>
+            <div class="o_dms_hbar_t"><i t-att-class="tone" t-attf-style="width: {{pct(x.count, list)}}%"/></div>
+        </div>
+    </t>
+</t>
+
+<t t-name="dms.DashDocs">
+    <t t-call="dms.DashSection"><t t-set="count" t-value="rows.length"/>
+        <div t-if="!rows.length" class="o_dms_dash_none"><i class="fa fa-check-circle"/> <t t-esc="empty"/></div>
+        <a t-foreach="rows" t-as="r" t-key="r_index" class="o_dms_dash_row" t-on-click="() => this.openDashDoc(r.id || r.doc_id)">
+            <div class="o_dms_dash_row_main">
+                <span class="o_dms_code" t-esc="r.code"/> <b t-esc="r.name"/>
+                <div class="o_dms_muted small">
+                    <t t-if="r.rev">Rev <t t-esc="r.rev"/> · </t>
+                    <t t-if="r.level"><t t-esc="r.level"/> · </t>
+                    <t t-if="r.with">with <t t-esc="r.with"/> · </t>
+                    <t t-if="r.by">by <t t-esc="r.by"/> · </t>
+                    <t t-if="r.what"><t t-esc="r.what"/> · </t>
+                    <t t-if="r.found"><span class="o_dms_bad_txt" t-esc="r.found"/> · </t>
+                    <t t-if="r.also"><t t-esc="r.pct"/>% same as <b t-esc="r.also"/> · </t>
+                    <t t-if="r.cutoff">Cut-off <t t-esc="helpers.fmtDate(r.cutoff)"/> · </t>
+                    <t t-if="r.failed"><span class="o_dms_bad_txt" t-esc="r.failed.join(' · ')"/> · </t>
+                    <t t-elif="r.date and r.days === undefined"><t t-esc="helpers.timeAgo(r.date)"/> · </t>
+                    <i class="fa fa-folder-o"/> <t t-esc="r.folder"/>
+                </div>
+            </div>
+            <span t-if="r.pct" class="o_dms_ring" t-attf-style="--p: {{r.pct}}" t-att-title="r.pct + '% the same'"><b t-esc="r.pct"/></span>
+            <span t-if="r.days !== undefined" class="o_dms_age" t-att-class="{late: soon ? r.days &lt;= 7 : r.days >= 3}">
+                <t t-if="soon and r.days &lt; 0"><t t-esc="-r.days"/>d late</t><t t-elif="soon"><t t-esc="r.days"/>d left</t><t t-else=""><t t-esc="r.days"/>d</t></span>
+            <i class="fa fa-angle-right o_dms_muted"/>
+        </a>
+    </t>
+</t>
+
+<!-- activity: who did what, when -->
+<t t-name="dms.DashHeat">
+    <t t-set="H" t-value="D.heatmap"/>
+    <t t-call="dms.DashSection"><t t-set="sid" t-value="'sec-heat'"/><t t-set="wide" t-value="true"/><t t-set="icon" t-value="'fa-th'"/>
+        <t t-set="title" t-value="'When things happen'"/><t t-set="sub" t-value="'last 7 days, by hour'"/>
+        <div class="o_dms_heat">
+            <div class="o_dms_heat_row o_dms_heat_hours"><span/>
+                <i t-foreach="hours24" t-as="h" t-key="h" t-att-class="{off: h &lt; H.work_from or h >= H.work_to}"><t t-if="h % 3 === 0" t-esc="h"/></i></div>
+            <div t-foreach="H.grid" t-as="row" t-key="row_index" class="o_dms_heat_row" t-att-class="{sun: H.sunday[row_index]}">
+                <span t-esc="H.days[row_index]"/>
+                <i t-foreach="row" t-as="n" t-key="n_index" class="o_dms_heat_cell"
+                   t-att-class="{off: n_index &lt; H.work_from or n_index >= H.work_to or H.sunday[row_index]}"
+                   t-attf-style="background: {{heatColor(n, H.max)}}"
+                   t-att-title="heatTitle(H.days[row_index], n_index, n)"/>
+            </div>
+        </div>
+        <div class="o_dms_heat_legend">
+            <span>Less</span><i t-foreach="[0, 0.25, 0.5, 0.75, 1]" t-as="k" t-key="k_index" t-attf-style="background: {{heatColor(k * H.max, H.max)}}"/><span>More</span>
+            <span class="o_dms_heat_offkey"><i class="off"/> Outside working hours (<t t-esc="H.work_from"/>:00 - <t t-esc="H.work_to"/>:00) or Sunday</span>
+        </div>
+    </t>
+</t>
+
+<t t-name="dms.DashMix">
+    <t t-set="tot" t-value="D.mix.reduce((n, x) => n + x.count, 0)"/>
+    <t t-call="dms.DashSection"><t t-set="sid" t-value="'sec-mix'"/><t t-set="icon" t-value="'fa-tasks'"/><t t-set="title" t-value="'What people did'"/><t t-set="sub" t-value="'30 days'"/>
+        <div class="o_dms_mix">
+            <t t-foreach="D.mix" t-as="x" t-key="x.key"><i t-if="x.count" t-attf-style="flex: {{x.count}}; background: {{actionColor(x.key)}}" t-att-title="x.label + ': ' + x.count"/></t>
+            <i t-if="!tot" style="flex: 1; background: var(--rule)"/>
+        </div>
+        <div class="o_dms_mix_legend">
+            <div t-foreach="D.mix" t-as="x" t-key="x.key" t-att-class="{zero: !x.count}">
+                <span class="o_dms_mix_ic" t-attf-style="background: {{actionColor(x.key)}}"><i t-attf-class="fa {{actionIcon(x.key)}}"/></span>
+                <b t-esc="x.count"/><small t-esc="x.label"/>
+            </div>
+        </div>
+    </t>
+</t>
+
+<t t-name="dms.DashPeople">
+    <t t-set="maxp" t-value="Math.max(1, ...D.people.map(p => p.total))"/>
+    <t t-call="dms.DashSection"><t t-set="sid" t-value="'sec-people'"/><t t-set="icon" t-value="'fa-users'"/><t t-set="title" t-value="'Who is busy'"/><t t-set="sub" t-value="'30 days'"/>
+        <div t-foreach="D.people" t-as="p" t-key="p.user_id" class="o_dms_person">
+            <img t-att-src="'/web/image/res.users/' + p.user_id + '/avatar_128'" alt=""/>
+            <div class="o_dms_person_main">
+                <div class="o_dms_hbar_l"><span t-esc="p.name"/><b t-esc="p.total"/></div>
+                <div class="o_dms_stack" t-attf-style="width: {{Math.max(4, Math.round(p.total / maxp * 100))}}%">
+                    <t t-foreach="p.parts" t-as="x" t-key="x.key"><i t-if="x.count" t-attf-style="flex: {{x.count}}; background: {{actionColor(x.key)}}" t-att-title="actionLabel(x.key) + ': ' + x.count"/></t>
+                </div>
+            </div>
+        </div>
+    </t>
+</t>
+
+<t t-name="dms.DashFeed">
+    <t t-call="dms.DashSection"><t t-set="sid" t-value="'sec-feed'"/><t t-set="icon" t-value="'fa-history'"/>
+        <div t-if="!list.length" class="o_dms_dash_none">No activity yet</div>
+        <t t-foreach="feedByDay(list)" t-as="g" t-key="g.day">
+            <div class="o_dms_feed_day"><span t-esc="g.day"/>
+                <span class="o_dms_feed_dots"><i t-foreach="g.dots" t-as="l" t-key="l.id" t-attf-style="background: {{actionColor(actionGroup(l.action))}}"/></span></div>
+            <ul class="o_dms_feed2">
+                <li t-foreach="g.items" t-as="l" t-key="l.id" t-att-class="{click: l.doc_id}" t-on-click="() => this.openDashDoc(l.doc_id)">
+                    <span class="o_dms_feed_ic" t-attf-style="background: {{actionColor(actionGroup(l.action))}}"><i t-attf-class="fa {{actionIcon(actionGroup(l.action), l.action)}}"/></span>
+                    <span class="o_dms_feed_time" t-esc="feedTime(l.date)"/>
+                    <div class="o_dms_feed_txt"><b t-if="showUser" t-esc="l.user"/> <span class="o_dms_muted" t-esc="l.label"/> <span class="o_dms_feed_doc" t-esc="l.doc"/></div>
+                    <span t-if="l.times" class="o_dms_feed_x" t-att-title="l.times + ' times in a row'">×<t t-esc="l.times"/></span>
+                </li>
+            </ul>
+        </t>
+    </t>
+</t>
+
+<t t-name="dms.DashRecent">
+    <t t-call="dms.DashSection"><t t-set="sid" t-value="'sec-recent'"/><t t-set="icon" t-value="'fa-clock-o'"/><t t-set="title" t-value="'Recently changed documents'"/><t t-set="wide" t-value="true"/>
+        <div t-if="!state.dashRecent.length" class="o_dms_dash_none">Nothing changed recently</div>
+        <div class="o_dms_recent_grid">
+            <a t-foreach="state.dashRecent" t-as="d" t-key="d.id" class="o_dms_recent" t-on-click="() => this.select(d)">
+                <t t-set="k" t-value="helpers.fileKind(d.file_name, d.mimetype)"/>
+                <span class="o_dms_ext" t-attf-class="k_{{k.cls}}" t-esc="k.label"/>
+                <div><span class="o_dms_code" t-esc="d.code"/><b t-esc="d.name"/>
+                    <small class="o_dms_muted"><span class="o_dms_badge" t-attf-class="s_{{d.state}}" t-esc="helpers.STATE_LABEL[d.state] || d.state"/> <t t-esc="helpers.timeAgo(d.updated)"/></small></div>
+            </a>
+        </div>
+    </t>
+</t>
+
+<!-- expiry: documents placed on a time line, today in the middle of the overdue / coming split -->
+<t t-name="dms.DashExpiry">
+    <t t-set="W" t-value="D.expiry_window || 30"/>
+    <t t-call="dms.DashSection"><t t-set="sid" t-value="'sec-expiring'"/><t t-set="wide" t-value="true"/><t t-set="icon" t-value="'fa-calendar-times-o'"/>
+        <t t-set="title" t-value="'Expiring or due'"/><t t-set="sub" t-value="'next ' + W + ' days'"/><t t-set="count" t-value="D.expiring.length"/><t t-set="hot" t-value="true"/>
+        <div class="o_dms_tl">
+            <div class="o_dms_tl_late" t-attf-style="width: {{expiryPos(0, W)}}%"><span>Overdue</span></div>
+            <div class="o_dms_tl_axis"/>
+            <div class="o_dms_tl_today" t-attf-style="left: {{expiryPos(0, W)}}%"><span>Today</span></div>
+            <t t-foreach="[7, 14, 21, 30].filter(x => x &lt;= W)" t-as="t" t-key="t">
+                <div class="o_dms_tl_tick" t-attf-style="left: {{expiryPos(t, W)}}%"><span>+<t t-esc="t"/>d</span></div>
+            </t>
+            <a t-foreach="D.expiring" t-as="r" t-key="r.id" class="o_dms_tl_pin" t-att-class="{late: r.days &lt; 0, soon: r.days >= 0 and r.days &lt;= 7, up: r_index % 2}"
+               t-attf-style="left: {{expiryPos(r.days, W)}}%" t-on-click="() => this.openDashDoc(r.id)"
+               t-att-title="r.code + ' ' + r.name + ' - ' + (r.what || 'expires') + ' ' + (r.days &lt; 0 ? (-r.days + ' days ago') : ('in ' + r.days + ' days'))">
+                <i/><span t-esc="r.code"/>
+            </a>
+        </div>
+        <div t-if="!D.expiring.length" class="o_dms_dash_none"><i class="fa fa-check-circle"/> Nothing expiring in the next <t t-esc="W"/> days</div>
+        <a t-foreach="D.expiring" t-as="r" t-key="r.id" class="o_dms_dash_row" t-on-click="() => this.openDashDoc(r.id)">
+            <span class="o_dms_tl_dot" t-att-class="{late: r.days &lt; 0, soon: r.days >= 0 and r.days &lt;= 7}"/>
+            <div class="o_dms_dash_row_main"><span class="o_dms_code" t-esc="r.code"/> <b t-esc="r.name"/>
+                <div class="o_dms_muted small"><t t-esc="r.what || 'Expires'"/> · <i class="fa fa-folder-o"/> <t t-esc="r.folder"/></div></div>
+            <span class="o_dms_age" t-att-class="{late: r.days &lt;= 7}"><t t-if="r.days &lt; 0"><t t-esc="-r.days"/>d late</t><t t-else=""><t t-esc="r.days"/>d left</t></span>
+            <i class="fa fa-angle-right o_dms_muted"/>
+        </a>
+    </t>
+</t>
+
+<!-- ================================================================ dashboard tabs -->
+<t t-name="dms.DashAdminOverview">
+    <div class="o_dms_kpis">
+        <t t-call="dms.DashKpi"><t t-set="icon" t-value="'fa-files-o'"/><t t-set="value" t-value="D.kpis.docs"/><t t-set="label" t-value="'Documents'"/><t t-set="go" t-value="'all'"/></t>
+        <t t-call="dms.DashKpi"><t t-set="icon" t-value="'fa-hourglass-half'"/><t t-set="value" t-value="D.kpis.in_review"/><t t-set="label" t-value="'In review'"/><t t-set="go" t-value="'tab:attention#sec-overdue'"/></t>
+        <t t-call="dms.DashKpi"><t t-set="icon" t-value="'fa-arrow-up'"/><t t-set="value" t-value="D.kpis.uploads_month"/><t t-set="label" t-value="'Uploads this month'"/><t t-set="go" t-value="'tab:activity#sec-trend'"/></t>
+        <t t-call="dms.DashKpi"><t t-set="icon" t-value="'fa-users'"/><t t-set="value" t-value="D.kpis.active_users"/><t t-set="label" t-value="'Active this week'"/><t t-set="go" t-value="'tab:activity#sec-people'"/></t>
+        <t t-call="dms.DashKpi"><t t-set="icon" t-value="'fa-shield'"/><t t-set="value" t-value="D.alerts.length"/><t t-set="label" t-value="'Unusual activity'"/><t t-set="hot" t-value="D.alerts.length"/><t t-set="go" t-value="'tab:alerts'"/></t>
+        <t t-call="dms.DashKpi"><t t-set="icon" t-value="'fa-calendar-times-o'"/><t t-set="value" t-value="D.kpis.expiring"/><t t-set="label" t-value="'Expiring in ' + D.expiry_window + ' days'"/><t t-set="hot" t-value="D.kpis.expiring"/><t t-set="go" t-value="'tab:attention#sec-expiring'"/></t>
+        <t t-call="dms.DashKpi"><t t-set="icon" t-value="'fa-key'"/><t t-set="value" t-value="D.kpis.access_requests"/><t t-set="label" t-value="'Access requests'"/><t t-set="hot" t-value="D.kpis.access_requests"/><t t-set="go" t-value="'accessreq'"/></t>
+        <t t-call="dms.DashKpi"><t t-set="icon" t-value="'fa-user-secret'"/><t t-set="value" t-value="D.kpis.sensitive"/><t t-set="label" t-value="'With personal data'"/><t t-set="go" t-value="'tab:attention#sec-sensitive'"/></t>
+        <t t-call="dms.DashKpi"><t t-set="icon" t-value="'fa-clone'"/><t t-set="value" t-value="D.kpis.dups"/><t t-set="label" t-value="'Possible duplicates'"/><t t-set="go" t-value="'tab:attention#sec-dups'"/></t>
+        <t t-call="dms.DashKpi"><t t-set="icon" t-value="'fa-clock-o'"/><t t-set="value" t-value="D.kpis.avg_approval + ' d'"/><t t-set="label" t-value="'Avg. approval time'"/><t t-set="go" t-value="'tab:attention#sec-overdue'"/></t>
+        <t t-call="dms.DashKpi"><t t-set="icon" t-value="'fa-magic'"/><t t-set="value" t-value="D.kpis.ai_blocked + ' / ' + D.kpis.ai_checked"/><t t-set="label" t-value="'AI blocked / checked'"/><t t-set="go" t-value="'tab:attention#sec-aifails'"/></t>
+        <t t-call="dms.DashKpi"><t t-set="icon" t-value="'fa-hdd-o'"/><t t-set="value" t-value="helpers.humanSize(D.kpis.storage)"/><t t-set="label" t-value="'Stored'"/><t t-set="go" t-value="'tab:overview#sec-dept'"/></t>
+    </div>
+    <div class="o_dms_dgrid">
+        <t t-call="dms.DashTrend"><t t-set="title" t-value="'Activity, last 30 days'"/></t>
+        <t t-call="dms.DashHbars"><t t-set="sid" t-value="'sec-dept'"/><t t-set="icon" t-value="'fa-sitemap'"/><t t-set="title" t-value="'Documents by department'"/><t t-set="list" t-value="D.by_dept"/><t t-set="tone" t-value="'t_ink'"/></t>
+        <t t-call="dms.DashDonut"><t t-set="sid" t-value="'sec-type'"/><t t-set="icon" t-value="'fa-tags'"/><t t-set="title" t-value="'By document type'"/><t t-set="list" t-value="D.by_type"/></t>
+        <t t-call="dms.DashDonut"><t t-set="sid" t-value="'sec-status'"/><t t-set="icon" t-value="'fa-flag-o'"/><t t-set="title" t-value="'By status'"/><t t-set="list" t-value="D.by_state"/></t>
+        <t t-call="dms.DashRecent"/>
+    </div>
+</t>
+
+<t t-name="dms.DashMeOverview">
+    <div class="o_dms_dash_hello">
+        <h2>Hello, <t t-esc="state.boot.user.name"/></h2>
+        <p class="o_dms_muted" t-if="D.kpis.to_approve">You have <b t-esc="D.kpis.to_approve"/> document(s) waiting for your approval.</p>
+        <p class="o_dms_muted" t-elif="D.ai_fixes.length">Some of your uploads did not pass the AI check. Fix them below.</p>
+        <p class="o_dms_muted" t-else="">Nothing is waiting on you.</p>
+    </div>
+    <div class="o_dms_kpis">
+        <t t-call="dms.DashKpi"><t t-set="icon" t-value="'fa-gavel'"/><t t-set="value" t-value="D.kpis.to_approve"/><t t-set="label" t-value="'To approve'"/><t t-set="hot" t-value="D.kpis.to_approve"/><t t-set="go" t-value="'approvals'"/></t>
+        <t t-call="dms.DashKpi"><t t-set="icon" t-value="'fa-file-text-o'"/><t t-set="value" t-value="D.kpis.my_docs"/><t t-set="label" t-value="'My documents'"/><t t-set="go" t-value="'my_uploads'"/></t>
+        <t t-call="dms.DashKpi"><t t-set="icon" t-value="'fa-hourglass-half'"/><t t-set="value" t-value="D.kpis.in_review"/><t t-set="label" t-value="'In review'"/><t t-set="go" t-value="'my_uploads'"/></t>
+        <t t-call="dms.DashKpi"><t t-set="icon" t-value="'fa-times-circle-o'"/><t t-set="value" t-value="D.kpis.rejected"/><t t-set="label" t-value="'Rejected'"/><t t-set="hot" t-value="D.kpis.rejected"/><t t-set="go" t-value="'my_uploads'"/></t>
+        <t t-call="dms.DashKpi"><t t-set="icon" t-value="'fa-calendar-times-o'"/><t t-set="value" t-value="D.expiring.length"/><t t-set="label" t-value="'Expiring soon'"/><t t-set="hot" t-value="D.expiring.length"/><t t-set="go" t-value="'tab:attention#sec-expiring'"/></t>
+        <t t-call="dms.DashKpi"><t t-set="icon" t-value="'fa-lock'"/><t t-set="value" t-value="D.kpis.checked_out"/><t t-set="label" t-value="'Checked out'"/><t t-set="go" t-value="'checked_out'"/></t>
+    </div>
+    <div class="o_dms_dgrid">
+        <t t-call="dms.DashDocs"><t t-set="sid" t-value="'sec-approve'"/><t t-set="title" t-value="'Waiting for my approval'"/><t t-set="icon" t-value="'fa-gavel'"/><t t-set="rows" t-value="D.to_approve"/><t t-set="hot" t-value="true"/><t t-set="empty" t-value="'Nothing to approve'"/></t>
+        <t t-call="dms.DashDocs"><t t-set="sid" t-value="'sec-aifix'"/><t t-set="title" t-value="'Fix before approval (AI check)'"/><t t-set="icon" t-value="'fa-magic'"/><t t-set="rows" t-value="D.ai_fixes"/><t t-set="hot" t-value="true"/><t t-set="empty" t-value="'All your uploads passed'"/></t>
+        <t t-call="dms.DashDonut"><t t-set="sid" t-value="'sec-status'"/><t t-set="icon" t-value="'fa-flag-o'"/><t t-set="title" t-value="'My documents by status'"/><t t-set="list" t-value="D.by_state"/></t>
+        <t t-call="dms.DashRecent"/>
+    </div>
+</t>
+
+<t t-name="dms.DashTabActivity">
+    <div class="o_dms_dgrid">
+        <t t-call="dms.DashHeat"/>
+        <t t-call="dms.DashMix"/>
+        <t t-if="admin"><t t-call="dms.DashPeople"/></t>
+        <t t-else=""><t t-call="dms.DashTrend"><t t-set="title" t-value="'My last 14 days'"/></t></t>
+        <t t-if="admin"><t t-call="dms.DashTrend"><t t-set="title" t-value="'Uploads, views and downloads per day'"/></t></t>
+        <t t-call="dms.DashFeed"><t t-set="title" t-value="admin ? 'Recent activity' : 'My recent activity'"/><t t-set="list" t-value="D.activity"/><t t-set="showUser" t-value="admin"/></t>
+    </div>
+</t>
+
+<t t-name="dms.DashTabAlerts">
+    <t t-set="sev" t-value="alertSeverity"/>
+    <div class="o_dms_sev">
+        <div t-foreach="sev.levels" t-as="lv" t-key="lv.key" class="o_dms_sev_tile" t-attf-class="lv_{{lv.key}}">
+            <i t-attf-class="fa {{lv.icon}}"/><b t-esc="lv.count"/><span t-esc="lv.label"/>
+        </div>
+        <div class="o_dms_sev_people">
+            <h3><i class="fa fa-user-circle-o"/> Who needs a look</h3>
+            <div t-if="!sev.people.length" class="o_dms_dash_none"><i class="fa fa-check-circle"/> Nobody</div>
+            <div t-foreach="sev.people" t-as="p" t-key="p.user_id" class="o_dms_person">
+                <img t-att-src="'/web/image/res.users/' + p.user_id + '/avatar_128'" alt=""/>
+                <div class="o_dms_person_main">
+                    <div class="o_dms_hbar_l"><span t-esc="p.name"/><b><t t-esc="p.total"/> alert(s)</b></div>
+                    <div class="o_dms_stack" t-attf-style="width: {{Math.max(6, Math.round(p.total / sev.max * 100))}}%">
+                        <i t-if="p.high" class="lv_high" t-attf-style="flex: {{p.high}}" t-att-title="p.high + ' high'"/>
+                        <i t-if="p.medium" class="lv_medium" t-attf-style="flex: {{p.medium}}" t-att-title="p.medium + ' medium'"/>
+                        <i t-if="p.low" class="lv_low" t-attf-style="flex: {{p.low}}" t-att-title="p.low + ' low'"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div t-if="!D.alerts.length" class="o_dms_dcard o_dms_dash_none o_dms_all_clear"><i class="fa fa-shield fa-2x"/><div><b>Nothing unusual in the last 7 days</b><div>Downloads, working hours and permission changes look normal.</div></div></div>
+    <div class="o_dms_alert_grid">
+        <div t-foreach="D.alerts" t-as="a" t-key="a_index" class="o_dms_acard" t-attf-class="lv_{{a.level}}">
+            <div class="o_dms_acard_h">
+                <span class="o_dms_acard_ic"><i t-attf-class="fa {{alertIcon(a.kind)}}"/></span>
+                <div><b t-esc="a.title"/><small class="o_dms_muted"><t t-esc="a.day"/> · <t t-esc="helpers.timeAgo(a.date)"/></small></div>
+                <span class="o_dms_pill" t-attf-class="p_{{a.level}}"><i t-attf-class="fa {{ {high: 'fa-exclamation-circle', medium: 'fa-exclamation-triangle', low: 'fa-info-circle'}[a.level] }}"/> <t t-esc="{high: 'High', medium: 'Medium', low: 'Low'}[a.level]"/></span>
+            </div>
+            <div class="o_dms_acard_who"><img t-att-src="'/web/image/res.users/' + a.user_id + '/avatar_128'" alt=""/><b t-esc="a.user"/></div>
+            <!-- count against its limit -->
+            <div t-if="a.limit" class="o_dms_meter" t-att-title="a.count + ' (limit ' + a.limit + ')'">
+                <t t-set="mx" t-value="Math.max(a.count, a.limit) * 1.15"/>
+                <div class="o_dms_meter_t"><i t-attf-style="width: {{Math.round(a.count / mx * 100)}}%"/>
+                    <span class="o_dms_meter_lim" t-attf-style="left: {{Math.round(a.limit / mx * 100)}}%"><em>limit <t t-esc="a.limit"/></em></span></div>
+                <b t-esc="a.count"/>
+            </div>
+            <!-- times on a 24-hour clock line, working hours shaded -->
+            <div t-if="a.kind === 'off_hours'" class="o_dms_clock" t-att-title="a.detail">
+                <div class="o_dms_clock_work" t-attf-style="left: {{a.work_from / 24 * 100}}%; width: {{(a.work_to - a.work_from) / 24 * 100}}%"><span>working hours</span></div>
+                <i t-foreach="a.hours" t-as="h" t-key="h_index" t-attf-style="left: {{h / 24 * 100}}%"/>
+                <div class="o_dms_clock_lbl"><span>0</span><span>6</span><span>12</span><span>18</span><span>24</span></div>
+            </div>
+            <div t-if="a.docs.length" class="o_dms_acard_docs">
+                <span t-foreach="a.docs.slice(0, 3)" t-as="dn" t-key="dn_index" t-esc="dn"/>
+                <span t-if="a.docs.length + a.more > 3" class="more">+<t t-esc="a.docs.length + a.more - 3"/></span>
+            </div>
+        </div>
+    </div>
+</t>
+
+<t t-name="dms.DashTabAttention">
+    <div class="o_dms_dgrid">
+        <t t-call="dms.DashExpiry"/>
+        <t t-if="admin">
+            <t t-call="dms.DashDocs"><t t-set="sid" t-value="'sec-overdue'"/><t t-set="title" t-value="'Approvals running late'"/><t t-set="icon" t-value="'fa-hourglass-end'"/><t t-set="rows" t-value="D.overdue"/><t t-set="hot" t-value="true"/><t t-set="empty" t-value="'Every approval is on time'"/></t>
+            <t t-call="dms.DashDocs"><t t-set="sid" t-value="'sec-sensitive'"/><t t-set="title" t-value="'Personal or bank data'"/><t t-set="icon" t-value="'fa-user-secret'"/><t t-set="rows" t-value="D.sensitive"/><t t-set="hot" t-value="true"/><t t-set="empty" t-value="'No Aadhaar, PAN or bank numbers found'"/></t>
+            <t t-call="dms.DashDocs"><t t-set="sid" t-value="'sec-dups'"/><t t-set="title" t-value="'Possible duplicates'"/><t t-set="icon" t-value="'fa-clone'"/><t t-set="rows" t-value="D.dups"/><t t-set="empty" t-value="'No near-duplicate documents'"/></t>
+            <t t-call="dms.DashHbars"><t t-set="sid" t-value="'sec-aifails'"/><t t-set="icon" t-value="'fa-magic'"/><t t-set="title" t-value="'AI rules failed most (90 days)'"/><t t-set="list" t-value="D.top_fails"/><t t-set="tone" t-value="'t_bad'"/><t t-set="empty" t-value="'No rule failures'"/></t>
+            <t t-call="dms.DashDocs"><t t-set="sid" t-value="'sec-stale'"/><t t-set="title" t-value="'Checked out too long'"/><t t-set="icon" t-value="'fa-lock'"/><t t-set="rows" t-value="D.stale"/><t t-set="empty" t-value="'No forgotten check-outs'"/></t>
+        </t>
+        <t t-else="">
+            <t t-call="dms.DashDocs"><t t-set="sid" t-value="'sec-cutoff'"/><t t-set="title" t-value="'Cut-off in the next 14 days'"/><t t-set="icon" t-value="'fa-scissors'"/><t t-set="rows" t-value="D.cutoff_soon"/><t t-set="empty" t-value="'No cut-off coming up'"/></t>
+            <t t-call="dms.DashDocs"><t t-set="sid" t-value="'sec-fresh'"/><t t-set="title" t-value="'New in my folders'"/><t t-set="icon" t-value="'fa-bolt'"/><t t-set="rows" t-value="D.fresh"/><t t-set="empty" t-value="'Nothing new'"/></t>
+            <t t-call="dms.DashHbars"><t t-set="sid" t-value="'sec-aifails'"/><t t-set="icon" t-value="'fa-magic'"/><t t-set="title" t-value="'Rules I miss most (90 days)'"/><t t-set="list" t-value="D.my_fails"/><t t-set="tone" t-value="'t_bad'"/><t t-set="empty" t-value="'No rule failures. Well done.'"/></t>
+            <t t-call="dms.DashSection"><t t-set="sid" t-value="'sec-requests'"/><t t-set="icon" t-value="'fa-key'"/><t t-set="title" t-value="'My access requests'"/>
+                <div t-if="!D.requests.length" class="o_dms_dash_none"><i class="fa fa-check-circle"/> No requests</div>
+                <a t-foreach="D.requests" t-as="q" t-key="q.id" class="o_dms_dash_row" t-on-click="() => this.openDashDoc(q.doc_id)">
+                    <div class="o_dms_dash_row_main"><b t-esc="q.doc"/><div class="o_dms_muted small"><t t-esc="helpers.LEVEL_LABEL[q.level]"/> · <t t-esc="helpers.timeAgo(q.date)"/></div></div>
+                    <span class="o_dms_pill" t-attf-class="p_{{q.state}}" t-esc="{pending: 'Waiting', approved: 'Approved', refused: 'Refused'}[q.state]"/>
+                </a>
+            </t>
+        </t>
+    </div>
+</t>
+
+<t t-name="dms.BulkBar">
+    <t t-set="pk" t-value="pickedDocs"/>
+    <div t-if="pk.length" class="o_dms_bulk">
+        <b><t t-esc="pk.length"/> selected</b>
+        <button class="o_dms_btn o_dms_btn_sm" t-att-disabled="!bulkCanMove" t-on-click="() => this.openMove(pk)" t-att-title="bulkCanMove ? 'Move to another folder' : 'You need Edit access on every selected document, and none may be in review or checked out'"><i class="fa fa-share"/> Move</button>
+        <button class="o_dms_btn o_dms_btn_sm" t-on-click="bulkStar"><i class="fa fa-star-o"/> Star</button>
+        <button t-if="state.boot.user.is_controller" class="o_dms_btn o_dms_btn_sm o_dms_btn_quiet_bad" t-att-disabled="!bulkCanRetire" t-on-click="() => this.openRetire(pk)"><i class="fa fa-archive"/> Retire</button>
+        <button class="o_dms_icon_btn" t-on-click="() => state.picked = {}" title="Clear the selection"><i class="fa fa-times"/></button>
+    </div>
+</t>
+
+<t t-name="dms.HoverCard">
+    <t t-set="h" t-value="state.hover"/>
+    <t t-set="k" t-value="helpers.fileKind(h.doc.file_name, h.doc.mimetype)"/>
+    <div class="o_dms_hovercard" t-attf-style="left: {{h.left}}px; top: {{h.top}}px">
+        <div class="o_dms_hovercard_img">
+            <img t-if="h.img and !h.failed" t-att-src="h.img" alt="" t-on-error="() => h.failed = true"/>
+            <t t-else=""><t t-call="dms.File3d"><t t-set="big" t-value="true"/></t></t>
+        </div>
+        <div class="o_dms_hovercard_meta">
+            <span class="o_dms_code" t-esc="h.doc.code"/>
+            <b t-esc="h.doc.name"/>
+            <div class="o_dms_muted small"><t t-esc="h.doc.type"/> · <t t-esc="helpers.humanSize(h.doc.size)"/></div>
+            <div class="o_dms_muted small"><i class="fa fa-folder-o"/> <t t-esc="h.doc.folder"/></div>
+            <div class="o_dms_muted small"><i class="fa fa-user-o"/> <t t-esc="h.doc.owner.name"/> · <t t-esc="helpers.timeAgo(h.doc.updated)"/></div>
+        </div>
+    </div>
+</t>
+
+<t t-name="dms.Palette">
+    <t t-set="P" t-value="state.palette"/>
+    <t t-set="items" t-value="paletteItems"/>
+    <div class="o_dms_palette_bg" t-on-click.self="closePalette">
+        <div class="o_dms_palette" role="dialog" aria-label="Command palette">
+            <label class="o_dms_palette_in"><i class="fa" t-att-class="P.searching ? 'fa-circle-o-notch fa-spin' : 'fa-search'"/>
+                <input type="text" t-att-value="P.q" t-on-input="onPaletteInput" t-on-keydown="onPaletteKey" placeholder="Type a document number, a folder or what to do…"/>
+                <kbd>Esc</kbd></label>
+            <ul>
+                <t t-foreach="items" t-as="it" t-key="it_index">
+                    <li t-if="it_index === 0 or items[it_index - 1].section !== it.section" class="o_dms_palette_sec" t-esc="it.section"/>
+                    <li t-att-class="{active: P.idx === it_index}" t-on-mouseenter="() => P.idx = it_index" t-on-click="() => this.runPalette(it)">
+                        <i t-attf-class="fa fa-fw {{it.icon}}"/>
+                        <span class="o_dms_palette_lbl" t-esc="it.label"/>
+                        <small t-if="it.sub" class="o_dms_muted" t-esc="it.sub"/>
+                        <kbd t-if="it.keys" t-esc="it.keys"/>
+                    </li>
+                </t>
+                <li t-if="!items.length" class="o_dms_palette_none">Nothing found<t t-if="P.searching">, still searching…</t></li>
+            </ul>
+            <div class="o_dms_palette_foot"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>Enter</kbd> open</span><span><kbd>Ctrl</kbd><kbd>K</kbd> anywhere</span></div>
+        </div>
+    </div>
+</t>
+
+<t t-name="dms.Timeline">
+    <t t-set="tl" t-value="state.detail.timeline || []"/>
+    <p t-if="!tl.length" class="o_dms_muted small">No steps yet.</p>
+    <ol class="o_dms_road">
+        <li t-foreach="tl" t-as="e" t-key="e_index" t-attf-class="k_{{e.kind}}" t-attf-style="--i: {{e_index}}">
+            <span class="o_dms_road_dot"><i t-attf-class="fa {{ {upload: 'fa-arrow-up', submit: 'fa-paper-plane', approved: 'fa-check', refused: 'fa-times', publish: 'fa-certificate', archive: 'fa-archive', checkout: 'fa-lock'}[e.kind] || 'fa-circle' }}"/></span>
+            <div class="o_dms_road_body">
+                <div><b t-esc="e.label"/> <span t-if="e.rev" class="o_dms_road_rev">Rev <t t-esc="e.rev"/></span></div>
+                <div class="o_dms_road_who">
+                    <img t-if="e.user_id" t-att-src="'/web/image/res.users/' + e.user_id + '/avatar_128'" alt=""/>
+                    <span t-if="e.user" t-esc="e.user"/>
+                    <span class="o_dms_muted" t-esc="helpers.fmtDateTime(e.date)"/>
+                </div>
+            </div>
+        </li>
+    </ol>
+</t>
+
+<!-- ================================================================ ASK DMS -->
+<t t-name="dms.Ask">
+    <t t-set="C" t-value="state.chat"/>
+    <div class="o_dms_ask_wrap">
+    <aside class="o_dms_ask_hist">
+        <button class="o_dms_btn o_dms_btn_ink o_dms_hist_new" t-on-click="newChat"><i class="fa fa-plus"/> New chat</button>
+        <div class="o_dms_hist_list">
+            <div t-if="!C.sessions.length" class="o_dms_muted small o_dms_hist_empty">Your chats will be kept here.</div>
+            <t t-foreach="chatGroups" t-as="g" t-key="g.label">
+                <div class="o_dms_hist_day" t-esc="g.label"/>
+                <div t-foreach="g.items" t-as="sess" t-key="sess.id" class="o_dms_hist_item" t-att-class="{active: C.sessionId === sess.id}" t-on-click="() => this.openSession(sess)">
+                    <i class="fa fa-comment-o"/>
+                    <input t-if="C.renaming === sess.id" class="o_dms_hist_rename" t-model="C.renameText" t-on-click.stop="() => {}" t-on-keydown="(ev) => this.onRenameKey(sess, ev)" t-on-blur="() => this.saveRename(sess)"/>
+                    <span t-else="" class="o_dms_hist_name" t-esc="sess.name" t-att-title="sess.name"/>
+                    <span class="o_dms_hist_acts">
+                        <button class="o_dms_icon_btn" t-on-click="(ev) => this.startRename(sess, ev)" title="Rename"><i class="fa fa-pencil"/></button>
+                        <button class="o_dms_icon_btn" t-on-click="(ev) => this.deleteSession(sess, ev)" title="Delete"><i class="fa fa-trash-o"/></button>
+                    </span>
+                </div>
+            </t>
+        </div>
+    </aside>
+    <div class="o_dms_ask" t-on-paste="onAskPaste" t-on-drop="onAskDrop" t-on-dragover="(ev) => ev.dataTransfer?.types?.includes('Files') and ev.preventDefault()">
+        <header class="o_dms_ask_top">
+            <div class="o_dms_ask_brand"><span class="o_dms_orb sm"><i class="fa fa-magic"/></span><div><h1>Ask DMS</h1><small>Your documents, their status and access, and how the DMS works</small></div></div>
+            <span t-if="C.sessionId" class="o_dms_muted small o_dms_ask_title" t-esc="(C.sessions.find(x => x.id === C.sessionId) || {}).name"/>
+        </header>
+
+        <section class="o_dms_ask_thread">
+            <t t-if="!C.messages.length">
+                <div class="o_dms_ask_hello">
+                    <span class="o_dms_orb"><i class="fa fa-magic"/><b/><b/><b/></span>
+                    <h2>Vanakkam<t t-if="C.name">, <t t-esc="C.name"/></t> 👋</h2>
+                    <p>Ask me about any document: how many, where it is, what it says, who has it. Or <b>paste a screenshot</b> and I will tell you which document it is.</p>
+                    <div class="o_dms_ask_starters">
+                        <button t-foreach="C.starters or []" t-as="s" t-key="s_index" class="o_dms_ask_starter" t-attf-style="--i: {{s_index}}" t-on-click="() => this.ask(s.text)">
+                            <i t-attf-class="fa {{s.icon}}"/><span t-esc="s.text"/></button>
+                        <div class="o_dms_ask_starter shot" t-attf-style="--i: 6"><i class="fa fa-picture-o"/><span>Paste a screenshot with <kbd>Ctrl</kbd> + <kbd>V</kbd></span></div>
+                    </div>
+                </div>
+            </t>
+            <t t-foreach="C.messages" t-as="m" t-key="m_index">
+                <div t-if="m.role === 'user'" class="o_dms_ask_msg me">
+                    <div class="o_dms_ask_bubble">
+                        <img t-if="m.image" t-att-src="m.image" class="o_dms_ask_shot" alt="screenshot"/>
+                        <div t-if="m.text" t-esc="m.text"/>
+                    </div>
+                </div>
+                <div t-else="" class="o_dms_ask_msg bot" t-att-class="{err: m.error}">
+                    <span class="o_dms_orb xs"><i class="fa fa-magic"/></span>
+                    <div class="o_dms_ask_body">
+                        <div class="o_dms_ask_text o_dms_md" t-out="askHtml(m.answer)"/>
+                        <t t-foreach="m.cards or []" t-as="c" t-key="c_index"><t t-call="dms.AskCard"/></t>
+                        <div t-if="m.suggestions and m.suggestions.length and m_last" class="o_dms_ask_chips">
+                            <button t-foreach="m.suggestions" t-as="sg" t-key="sg_index" t-on-click="() => this.ask(sg)"><i class="fa fa-level-up fa-rotate-90"/> <t t-esc="sg"/></button>
+                        </div>
+                    </div>
+                </div>
+            </t>
+            <div t-if="C.busy" class="o_dms_ask_msg bot thinking">
+                <span class="o_dms_orb xs spin"><i class="fa fa-magic"/></span>
+                <div class="o_dms_ask_body">
+                    <ul class="o_dms_ask_steps">
+                        <li t-foreach="askSteps" t-as="st" t-key="st.key" t-att-class="{done: st_index &lt; C.step, now: st_index === C.step}">
+                            <i class="fa" t-att-class="st_index &lt; C.step ? 'fa-check' : (st_index === C.step ? 'fa-circle-o-notch fa-spin' : st.icon)"/> <t t-esc="st.text"/></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <footer class="o_dms_ask_dock">
+            <div t-if="C.image" class="o_dms_ask_attach"><img t-att-src="C.image.url" alt=""/><span t-esc="C.image.name"/>
+                <button class="o_dms_icon_btn" t-on-click="() => C.image = null" title="Remove"><i class="fa fa-times"/></button></div>
+            <div class="o_dms_ask_box" t-att-class="{busy: C.busy}">
+                <label class="o_dms_icon_btn o_dms_ask_clip" title="Attach a screenshot"><i class="fa fa-paperclip"/><input type="file" accept="image/*" hidden="" t-on-change="onAskPick"/></label>
+                <textarea class="o_dms_ask_input" rows="1" t-att-value="C.input" t-on-input="onAskInput" t-on-keydown="onAskKey"
+                          placeholder="Ask anything… or paste a screenshot (Ctrl+V)"/>
+                <button class="o_dms_lang" t-on-click="toggleVoiceLang" t-esc="state.voiceLang === 'ta-IN' ? 'த' : 'EN'" title="Voice language"/>
+                <button class="o_dms_icon_btn o_dms_ask_mic" t-att-class="{listening: C.listening}" t-on-click="askVoice" title="Ask by voice"><i class="fa fa-microphone"/></button>
+                <button class="o_dms_ask_send" t-att-disabled="C.busy or (!C.input.trim() and !C.image)" t-on-click="() => this.ask()" title="Send (Enter)"><i class="fa fa-arrow-up"/></button>
+            </div>
+            <small class="o_dms_ask_note">Ask DMS only shows what you are allowed to open. Answers come from your documents; check important numbers in the file.</small>
+        </footer>
+    </div>
+    </div>
+</t>
+
+<t t-name="dms.AskDocButtons">
+    <div class="o_dms_ask_btns">
+        <t t-if="d.can_see">
+            <button class="o_dms_btn o_dms_btn_sm" t-on-click="() => this.select(d)"><i class="fa fa-folder-open-o"/> Details</button>
+            <button t-if="d.view_rev_id" class="o_dms_btn o_dms_btn_sm" t-on-click="(ev) => this.quickOpen(d, ev)"><i class="fa fa-eye"/> View</button>
+            <button t-if="d.download_rev_id" class="o_dms_btn o_dms_btn_sm" t-on-click="(ev) => this.quickDownload(d, ev)"><i class="fa fa-download"/> Download</button>
+        </t>
+        <span t-elif="d.request and d.request.state === 'pending'" class="o_dms_ask_badge wait"><i class="fa fa-hourglass-half"/> Request waiting</span>
+        <button t-else="" class="o_dms_btn o_dms_btn_ink o_dms_btn_sm" t-on-click="(ev) => this.openAccessRequest(d, ev)"><i class="fa fa-key"/> Request access</button>
+    </div>
+</t>
+
+<t t-name="dms.AskCard">
+    <!-- one document, like its record -->
+    <div t-if="c.kind === 'record'" class="o_dms_ask_card o_dms_rec" t-attf-style="--i: {{c_index}}">
+        <t t-set="d" t-value="c"/>
+        <t t-set="k" t-value="helpers.fileKind(d.file_name, d.mimetype)"/>
+        <div class="o_dms_rec_head">
+            <t t-call="dms.File3d"><t t-set="big" t-value="true"/></t>
+            <div class="o_dms_rec_title">
+                <small t-if="c.confidence" class="o_dms_rec_match"><i class="fa fa-picture-o"/> Your screenshot matches this document · <b><t t-esc="Math.round(c.confidence * 100)"/>%</b></small>
+                <span class="o_dms_code" t-esc="d.code"/>
+                <h3 t-esc="d.name"/>
+                <div class="o_dms_rec_pills">
+                    <span class="o_dms_ask_stage" t-attf-class="s_{{d.state}}" t-esc="c.stage"/>
+                    <span t-if="d.can_see" class="o_dms_ask_badge ok"><i class="fa fa-unlock"/> <t t-esc="c.my_level_label"/></span>
+                    <span t-else="" class="o_dms_ask_badge lock"><i class="fa fa-lock"/> No access</span>
+                    <span t-foreach="c.sensitive or []" t-as="sx" t-key="sx_index" class="o_dms_ask_badge lock"><i class="fa fa-user-secret"/> <t t-esc="sx"/></span>
+                </div>
+            </div>
+            <span t-if="c.confidence" class="o_dms_ring big" t-attf-style="--p: {{Math.round(c.confidence * 100)}}"><b><t t-esc="Math.round(c.confidence * 100)"/>%</b></span>
+        </div>
+        <div class="o_dms_rec_grid">
+            <div t-foreach="c.grid" t-as="g" t-key="g_index" t-att-class="{wide: g[0] === 'Description'}"><label t-esc="g[0]"/><span t-esc="g[1]"/></div>
+        </div>
+        <div t-if="c.summary" class="o_dms_rec_sec"><h4><i class="fa fa-magic"/> Summary</h4><p t-esc="c.summary"/></div>
+        <div class="o_dms_rec_cols">
+            <div t-if="c.fields_table and c.fields_table.length" class="o_dms_rec_sec">
+                <h4><i class="fa fa-list-alt"/> Details read from the file</h4>
+                <table class="o_dms_md_table"><tbody><tr t-foreach="c.fields_table" t-as="f" t-key="f_index"><th t-esc="f[0]"/><td t-esc="f[1]"/></tr></tbody></table>
+            </div>
+            <div class="o_dms_rec_sec">
+                <h4><i class="fa fa-road"/> Approval</h4>
+                <div t-if="c.waiting" class="o_dms_ask_waiting"><i class="fa fa-hourglass-half"/> Waiting for <b t-esc="c.waiting.who"/> (<t t-esc="c.waiting.level"/>)<t t-if="c.waiting.days"> · <t t-esc="c.waiting.days"/> day(s)</t></div>
+                <ol class="o_dms_ask_steps2">
+                    <li t-foreach="c.steps" t-as="st" t-key="st_index" t-attf-class="s_{{st.state}}">
+                        <span><i class="fa" t-att-class="{done: 'fa-check', now: 'fa-hourglass-half', bad: 'fa-times', wait: 'fa-circle-thin', skip: 'fa-minus'}[st.state]"/></span>
+                        <div><b t-esc="st.label"/><small><t t-esc="st.who"/><t t-if="st.who and st.date"> · </t><t t-if="st.date" t-esc="helpers.fmtDateTime(st.date)"/></small></div>
+                    </li>
+                </ol>
+            </div>
+        </div>
+        <div t-if="c.risks and c.risks.length" class="o_dms_rec_sec"><h4><i class="fa fa-exclamation-triangle"/> Worth checking</h4>
+            <ul class="o_dms_risks"><li t-foreach="c.risks" t-as="r" t-key="r_index" t-attf-class="lv_{{r.level}}"><i class="fa" t-att-class="riskIcon(r.level)"/> <t t-esc="r.point"/></li></ul></div>
+        <div t-if="c.revisions and c.revisions.length" class="o_dms_rec_sec"><h4><i class="fa fa-history"/> Revisions</h4>
+            <table class="o_dms_md_table"><thead><tr><th>Rev</th><th>Status</th><th>File</th><th>Author</th><th>Approved</th><th>Note</th></tr></thead>
+                <tbody><tr t-foreach="c.revisions" t-as="r" t-key="r_index"><td t-esc="r.rev"/><td t-esc="r.state"/><td t-esc="r.file"/><td t-esc="r.author"/><td t-esc="r.approved"/><td t-esc="r.note"/></tr></tbody></table></div>
+        <t t-call="dms.AskDocButtons"/>
+    </div>
+
+    <!-- who has access -->
+    <div t-elif="c.kind === 'access'" class="o_dms_ask_card" t-attf-style="--i: {{c_index}}">
+        <div class="o_dms_ask_card_h"><i class="fa fa-users"/> Access to <span class="o_dms_code" t-esc="c.doc.code"/> <t t-esc="c.doc.name"/>
+            <span class="o_dms_count" t-esc="c.rows.length"/></div>
+        <div t-if="c.none_with" class="o_dms_ask_waiting"><i class="fa fa-info-circle"/> Nobody has only <b t-esc="c.none_with"/> access. Everyone who can open it:</div>
+        <table class="o_dms_md_table o_dms_acc_table">
+            <thead><tr><th>Person</th><th>Access</th><th>Why</th></tr></thead>
+            <tbody><tr t-foreach="c.rows" t-as="r" t-key="r.user_id">
+                <td><img class="o_dms_acc_av" t-att-src="'/web/image/res.users/' + r.user_id + '/avatar_128'" alt=""/> <t t-esc="r.name"/><span t-if="r.owner" class="o_dms_ask_badge ok">Owner</span></td>
+                <td><span class="o_dms_lvl" t-att-class="levelClass(r.level)" t-esc="r.level_label"/></td>
+                <td class="o_dms_muted" t-esc="r.how"/></tr></tbody>
+        </table>
+    </div>
+
+    <!-- any read-only list -->
+    <div t-elif="c.kind === 'table'" class="o_dms_ask_card" t-attf-style="--i: {{c_index}}">
+        <div class="o_dms_ask_card_h"><i class="fa fa-table"/> <t t-esc="c.dataset.replace('_', ' ')"/> <span class="o_dms_count" t-esc="c.total"/></div>
+        <div t-if="c.bars and c.bars.length > 1" class="o_dms_ask_hbars">
+            <div t-foreach="c.bars" t-as="b" t-key="b_index"><span t-esc="b.label"/><i t-attf-style="width: {{askBarPct(b, c.bars)}}%"/><b t-esc="b.count"/></div>
+        </div>
+        <div class="o_dms_md_tablewrap"><table class="o_dms_md_table">
+            <thead><tr><th t-foreach="c.columns" t-as="col" t-key="col_index" t-esc="col"/></tr></thead>
+            <tbody><tr t-foreach="c.rows" t-as="row" t-key="row_index" t-att-class="{click: c.ids and c.ids[row_index]}" t-on-click="() => this.openTableRow(c, row_index)">
+                <td t-foreach="row" t-as="cell" t-key="cell_index" t-esc="cell"/></tr></tbody>
+        </table></div>
+        <div t-if="c.grouped" class="o_dms_muted small o_dms_ask_more"><t t-esc="c.total"/> records in <t t-esc="c.rows.length"/> group(s).</div>
+        <div t-elif="c.total > c.rows.length" class="o_dms_muted small o_dms_ask_more">Showing <t t-esc="c.rows.length"/> of <t t-esc="c.total"/>.</div>
+    </div>
+
+    <!-- documents -->
+    <div t-elif="c.kind === 'docs'" class="o_dms_ask_card" t-attf-style="--i: {{c_index}}">
+        <div class="o_dms_ask_card_h"><i t-attf-class="fa {{c.icon or 'fa-files-o'}}"/> <t t-esc="c.title"/> <span class="o_dms_count" t-esc="c.docs.length + (c.more or 0)"/></div>
+        <div t-foreach="c.docs" t-as="d" t-key="d.id" class="o_dms_ask_doc" t-att-class="{locked: !d.can_see}">
+            <t t-set="k" t-value="helpers.fileKind(d.file_name, d.mimetype)"/>
+            <span class="o_dms_ext" t-attf-class="k_{{k.cls}}" t-esc="k.label"/>
+            <div class="o_dms_ask_doc_main">
+                <div><span class="o_dms_code" t-esc="d.code"/> <b t-esc="d.name"/>
+                    <span t-if="d.can_see" class="o_dms_ask_badge ok"><i class="fa fa-unlock"/> You can open</span>
+                    <span t-else="" class="o_dms_ask_badge lock"><i class="fa fa-lock"/> Needs access</span>
+                    <span t-if="d.score" class="o_dms_ask_match" t-att-title="'Meaning match ' + Math.round(d.score * 100) + '%'"><i t-attf-style="width: {{Math.round(d.score * 100)}}%"/></span></div>
+                <div class="o_dms_muted small"><i class="fa fa-folder-o"/> <t t-esc="d.folder"/> · <t t-call="dms.StateBadge"/> · <t t-esc="d.owner.name"/></div>
+                <div t-if="d.facts and d.facts.length" class="o_dms_ask_facts"><span t-foreach="d.facts" t-as="f" t-key="f_index"><em t-esc="f[0]"/> <t t-esc="f[1]"/></span></div>
+                <div t-if="d.snippet" class="o_dms_ask_snip">“<t t-esc="d.snippet"/>”</div>
+                <t t-call="dms.AskDocButtons"/>
+            </div>
+        </div>
+        <div t-if="c.more" class="o_dms_muted small o_dms_ask_more">and <t t-esc="c.more"/> more. Ask with more detail to narrow it down.</div>
+    </div>
+
+    <!-- numbers -->
+    <div t-elif="c.kind === 'stats'" class="o_dms_ask_card" t-attf-style="--i: {{c_index}}">
+        <div class="o_dms_ask_tiles">
+            <div class="t_total"><b t-esc="c.total"/><span>found</span></div>
+            <div class="t_ok"><b t-esc="c.open"/><span>you can open</span></div>
+            <div class="t_lock"><b t-esc="c.listed"/><span>need access</span></div>
+            <div t-if="c.amount" class="t_amt"><b t-esc="money(c.amount, c.currency)"/><span>total of the ones you can open</span></div>
+        </div>
+        <div t-if="c.months.length > 1" class="o_dms_ask_bars">
+            <div t-foreach="c.months" t-as="mo" t-key="mo_index" class="o_dms_ask_bar" t-att-title="mo.label + ': ' + mo.count">
+                <i t-attf-style="height: {{askBarPct(mo, c.months)}}%"/><small t-esc="mo.label"/></div>
+        </div>
+    </div>
+
+    <!-- status / screenshot match -->
+    <div t-elif="c.kind === 'status' or c.kind === 'match'" class="o_dms_ask_card o_dms_ask_status" t-attf-style="--i: {{c_index}}">
+        <t t-set="d" t-value="c"/>
+        <t t-set="k" t-value="helpers.fileKind(d.file_name, d.mimetype)"/>
+        <div class="o_dms_ask_status_h">
+            <span t-if="c.kind === 'match'" class="o_dms_ring big" t-attf-style="--p: {{Math.round((c.confidence or 0) * 100)}}" title="How sure the match is"><b><t t-esc="Math.round((c.confidence or 0) * 100)"/>%</b></span>
+            <span t-else="" class="o_dms_ext" t-attf-class="k_{{k.cls}}" t-esc="k.label"/>
+            <div>
+                <small t-if="c.kind === 'match'" class="o_dms_muted">This screenshot is from</small>
+                <div><span class="o_dms_code" t-esc="d.code"/> <b t-esc="d.name"/></div>
+                <span class="o_dms_ask_stage" t-attf-class="s_{{d.state}}" t-esc="c.stage"/>
+                <span t-if="d.can_see" class="o_dms_ask_badge ok"><i class="fa fa-unlock"/> <t t-esc="c.my_level_label"/></span>
+                <span t-else="" class="o_dms_ask_badge lock"><i class="fa fa-lock"/> No access</span>
+            </div>
+        </div>
+        <div t-if="c.waiting" class="o_dms_ask_waiting"><i class="fa fa-hourglass-half"/> Waiting for <b t-esc="c.waiting.who"/> (<t t-esc="c.waiting.level"/>)<t t-if="c.waiting.days"> · <t t-esc="c.waiting.days"/> day(s)</t></div>
+        <ol class="o_dms_ask_steps2">
+            <li t-foreach="c.steps" t-as="st" t-key="st_index" t-attf-class="s_{{st.state}}">
+                <span><i class="fa" t-att-class="{done: 'fa-check', now: 'fa-hourglass-half', bad: 'fa-times', wait: 'fa-circle-thin', skip: 'fa-minus'}[st.state]"/></span>
+                <div><b t-esc="st.label"/><small><t t-esc="st.who"/><t t-if="st.who and st.date"> · </t><t t-if="st.date" t-esc="helpers.fmtDateTime(st.date)"/></small>
+                    <small t-if="st.comment" class="o_dms_ask_snip">“<t t-esc="st.comment"/>”</small></div>
+            </li>
+        </ol>
+        <div class="o_dms_ask_kv">
+            <span><em>Owner</em> <t t-esc="d.owner.name"/></span>
+            <span><em>Folder</em> <t t-esc="d.folder"/></span>
+            <span t-if="c.ai and c.ai.state"><em>AI check</em> <t t-esc="c.ai.passed"/> / <t t-esc="c.ai.total"/> rules</span>
+            <span t-if="c.locked_by"><em>Checked out by</em> <t t-esc="c.locked_by"/></span>
+            <span t-if="c.expiry"><em t-esc="c.expiry.label or 'Expires'"/> <t t-esc="helpers.fmtDate(c.expiry.date)"/></span>
+        </div>
+        <t t-call="dms.AskDocButtons"/>
+    </div>
+
+    <!-- download password -->
+    <div t-elif="c.kind === 'password'" class="o_dms_ask_card o_dms_ask_pw" t-attf-style="--i: {{c_index}}">
+        <span class="o_dms_ask_pw_ic"><i class="fa" t-att-class="c.shown ? 'fa-unlock-alt' : 'fa-lock'"/></span>
+        <div>
+            <small class="o_dms_muted">Password for files downloaded from the DMS · <t t-esc="c.doc.code"/></small>
+            <div class="o_dms_ask_pw_val" t-att-class="{shown: c.shown}" t-esc="c.shown ? c.password : '••••••••••'"/>
+            <div class="o_dms_ask_btns">
+                <button class="o_dms_btn o_dms_btn_sm" t-on-click="() => this.revealPassword(c)"><i class="fa" t-att-class="c.shown ? 'fa-eye-slash' : 'fa-eye'"/> <t t-esc="c.shown ? 'Hide' : 'Show'"/></button>
+                <button class="o_dms_btn o_dms_btn_sm" t-on-click="() => this.copyPassword(c)"><i class="fa" t-att-class="c.copied ? 'fa-check' : 'fa-clone'"/> <t t-esc="c.copied ? 'Copied' : 'Copy'"/></button>
+            </div>
+            <small class="o_dms_muted">Shown only to people with download access. Opening the file inside the DMS never needs it.</small>
+        </div>
+    </div>
+
+    <!-- access request form -->
+    <div t-elif="c.kind === 'request'" class="o_dms_ask_card o_dms_ask_req" t-att-class="{sent: c.sent}" t-attf-style="--i: {{c_index}}">
+        <t t-if="c.sent">
+            <div class="o_dms_ask_req_done"><i class="fa fa-paper-plane"/><div><b>Request sent</b><small>The Document Controller and the folder's editors were told. You will get an email and a notification.</small></div></div>
+        </t>
+        <t t-else="">
+            <div class="o_dms_ask_card_h"><i class="fa fa-key"/> Request access to <span class="o_dms_code" t-esc="c.doc.code"/> <t t-esc="c.doc.name"/></div>
+            <div class="o_dms_seg o_dms_seg_wide">
+                <button t-foreach="[['view', 'View'], ['download', 'View &amp; Download'], ['edit', 'Edit']]" t-as="lv" t-key="lv[0]" t-att-class="{active: c.level === lv[0]}" t-on-click="() => c.level = lv[0]" t-esc="lv[1]"/>
+            </div>
+            <textarea class="o_dms_field" rows="2" t-model="c.reason" placeholder="Why do you need it? e.g. For the audit on Monday"/>
+            <div t-if="c.error" class="o_dms_ask_err" t-esc="c.error"/>
+            <div class="o_dms_ask_btns"><button class="o_dms_btn o_dms_btn_ink o_dms_btn_sm" t-att-disabled="c.sending" t-on-click="() => this.sendAskRequest(c)"><i t-attf-class="fa {{c.sending ? 'fa-circle-o-notch fa-spin' : 'fa-paper-plane'}}"/> Send request</button></div>
+        </t>
+    </div>
+</t>
+
 <t t-name="dms.NavItem">
-    <a class="o_dms_nav_item" t-att-class="{active: state.view === key}" t-on-click="() => this.openView(key)">
-        <i t-attf-class="fa fa-fw {{icon}}"/> <span t-esc="label"/>
+    <a class="o_dms_nav_item" t-att-class="{active: state.view === key}" t-on-click="() => this.openView(key)" t-att-title="label">
+        <i t-attf-class="fa fa-fw {{icon}}"/> <span class="o_dms_side_txt" t-esc="label"/>
         <span t-if="count" class="o_dms_count" t-att-class="{hot: hot}" t-esc="count"/>
     </a>
 </t>
 
 <t t-name="dms.FolderNode">
     <t t-set="kids" t-value="children(f.id)"/>
-    <div class="o_dms_node" role="treeitem" t-att-class="{active: state.view === 'folder' and state.folderId === f.id, archive: f.is_archive}"
-         t-attf-style="padding-left: {{6 + depth * 16}}px" t-on-click="() => this.openFolder(f)">
+    <div class="o_dms_node" role="treeitem" t-att-class="{active: state.view === 'folder' and state.folderId === f.id, archive: f.is_archive, droptarget: state.dropFolder === f.id}"
+         t-attf-style="padding-left: {{6 + depth * 16}}px" t-on-click="() => this.openFolder(f)"
+         t-on-dragover="(ev) => this.onFolderDragOver(f, ev)" t-on-dragleave="(ev) => this.onFolderDragLeave(f, ev)" t-on-drop="(ev) => this.onFolderDrop(f, ev)">
         <i class="fa fa-fw o_dms_caret" t-att-class="kids.length ? (state.expanded[f.id] ? 'fa-angle-down' : 'fa-angle-right') : ''" t-on-click="(ev) => this.toggleExpand(f, ev)"/>
         <i class="fa fa-fw o_dms_node_icon" t-att-class="f.is_archive ? 'fa-archive' : (state.view === 'folder' and state.folderId === f.id ? 'fa-folder-open' : 'fa-folder')"/>
         <span class="o_dms_node_name" t-esc="f.name"/>
@@ -266,7 +1059,9 @@
 
 <t t-name="dms.Card">
     <t t-set="k" t-value="helpers.fileKind(d.file_name, d.mimetype)"/>
-    <div class="o_dms_card" t-att-class="{selected: state.selectedId === d.id}" t-on-click="() => this.select(d)">
+    <div class="o_dms_card" t-att-class="{selected: state.selectedId === d.id, picked: state.picked[d.id]}" t-on-click="() => this.select(d)"
+         t-on-mouseenter="(ev) => this.hoverDoc(d, ev)" t-on-mouseleave="unhoverDoc">
+        <input t-if="d.can_see" class="o_dms_card_pick" type="checkbox" t-att-checked="state.picked[d.id]" t-on-click="(ev) => this.togglePick(d, ev)"/>
         <div class="o_dms_card_top">
             <t t-call="dms.File3d"/>
             <button class="o_dms_star" t-att-class="{on: d.starred}" t-on-click="(ev) => this.toggleStar(d, ev)"><i class="fa" t-att-class="d.starred ? 'fa-star' : 'fa-star-o'"/></button>
@@ -275,6 +1070,7 @@
         <div class="o_dms_card_title" t-esc="d.name" t-att-title="d.name"/>
         <div t-if="state.view !== 'folder'" class="o_dms_muted small"><i class="fa fa-folder-o"/> <t t-esc="d.folder"/></div>
         <t t-call="dms.Stamp"/>
+        <div class="o_dms_card_actions"><t t-call="dms.RowActions"/></div>
         <div class="o_dms_card_foot">
             <span><t t-esc="d.owner.name"/> · <t t-esc="helpers.timeAgo(d.updated)"/></span>
             <i t-if="d.locked_by" class="fa fa-lock o_dms_lockicon" t-att-title="'Checked out by ' + d.locked_by.name"/>
@@ -284,7 +1080,7 @@
 
 <t t-name="dms.Empty">
     <div class="o_dms_empty">
-        <t t-if="state.search"><h3>No document matches “<t t-esc="state.search"/>”</h3><p>Search by the full number, for example ACC-INV-004, or by a word in the title.</p></t>
+        <t t-if="state.search"><h3>No document matches “<t t-esc="state.search"/>”</h3><p t-if="state.aiSearch">The AI could not find it either. Try other words, or the document number.</p><p t-else="">Search by the full number, for example ACC-INV-004, or by a word in the title. Press Enter to let the AI search the contents.</p></t>
         <t t-elif="state.view === 'approvals'"><h3>Nothing waits for your approval</h3><p>When someone sends you a document to approve, it shows up here.</p></t>
         <t t-elif="state.view === 'checked_out'"><h3>You have nothing checked out</h3><p>Check out a document to edit it. Readers keep the approved version meanwhile.</p></t>
         <t t-elif="state.view === 'starred'"><h3>No starred documents</h3><p>Star the documents you open often to keep them here.</p></t>
@@ -315,6 +1111,9 @@
         <div class="o_dms_jacket_meta"><t t-esc="d.type"/> in <t t-esc="d.folder"/></div>
         <t t-call="dms.Stamp"/>
         <div t-if="d.origin_folder" class="o_dms_note"><i class="fa fa-archive"/> Retired from <b t-esc="d.origin_folder"/>. Read only; it can be disposed of after its retention period.</div>
+        <div t-if="d.expiry" class="o_dms_note" t-att-class="{warn: d.expiry.days &lt;= 30}"><i class="fa fa-calendar-times-o"/> <t t-esc="expiryText(d.expiry)"/> (<t t-esc="helpers.fmtDate(d.expiry.date)"/>)</div>
+        <t t-set="sens" t-value="(d.revisions[0] and d.revisions[0].insights and d.revisions[0].insights.sensitive) || []"/>
+        <div t-if="sens.length" class="o_dms_note warn"><i class="fa fa-user-secret"/> Contains <t t-esc="sens.map(x => x.label).join(', ')"/>. Share carefully.</div>
         <div t-if="d.locked_by" class="o_dms_note warn"><i class="fa fa-lock"/> Checked out by <b t-esc="d.locked_by.name"/>. Readers still see the approved revision.</div>
         <div t-if="cur and !cur.can_download and cur.can_preview" class="o_dms_note"><i class="fa fa-eye"/> You can read this inside Odoo. Downloading needs more access.</div>
 
@@ -333,6 +1132,7 @@
             <button t-if="d.can_checkin" class="o_dms_btn o_dms_btn_ink" t-on-click="() => this.openCheckin()"><i class="fa fa-arrow-up"/> Check in new version</button>
             <button t-if="d.can_move" class="o_dms_btn" t-on-click="openMove" title="Move to another folder"><i class="fa fa-share"/> Move</button>
             <button t-if="d.can_retire" class="o_dms_btn o_dms_btn_quiet_bad" t-on-click="openRetire" title="Send to the Archive"><i class="fa fa-archive"/> Retire</button>
+            <button t-if="d.can_delete_hard" class="o_dms_btn o_dms_btn_quiet_bad o_dms_btn_trash" t-on-click="openHardDelete" title="Delete permanently"><i class="fa fa-trash"/></button>
             <button t-if="d.can_unlock" class="o_dms_btn" t-on-click="unlock" t-att-disabled="state.busy"><i class="fa fa-unlock"/> <t t-esc="d.locked_by and d.locked_by.id === state.boot.user.id ? 'Cancel check-out' : 'Force unlock'"/></button>
             <button class="o_dms_icon_btn" t-on-click="() => this.toggleStar(d)" t-att-title="d.starred ? 'Unstar' : 'Star'"><i class="fa" t-att-class="d.starred ? 'fa-star o_dms_gold' : 'fa-star-o'"/></button>
             <button t-if="d.can_manage_access" class="o_dms_icon_btn" t-on-click="() => this.openShare('doc')" title="Share this file only"><i class="fa fa-user-plus"/></button>
@@ -342,6 +1142,7 @@
     <div class="o_dms_tabs" role="tablist">
         <a t-att-class="{active: state.detailTab === 'revisions'}" t-on-click="() => this.openTab('revisions')">Revisions</a>
         <a t-att-class="{active: state.detailTab === 'approvals'}" t-on-click="() => this.openTab('approvals')">Approval</a>
+        <a t-att-class="{active: state.detailTab === 'timeline'}" t-on-click="() => this.openTab('timeline')">Timeline</a>
         <a t-att-class="{active: state.detailTab === 'info'}" t-on-click="() => this.openTab('info')">Details</a>
         <a t-if="d.can_manage_access" t-att-class="{active: state.detailTab === 'access'}" t-on-click="() => this.openTab('access')">Access</a>
         <a t-if="d.log.length" t-att-class="{active: state.detailTab === 'log'}" t-on-click="() => this.openTab('log')">History</a>
@@ -366,7 +1167,9 @@
                                 <a t-if="r.can_download" t-on-click="() => this.download(r)">Download</a>
                                 <a t-if="r.can_cutoff" t-on-click="() => this.openCutoff(r)">Bring cut-off forward</a>
                             </div>
-                            <div t-if="r.can_submit" class="o_dms_ask">
+                            <t t-if="r.ai and r.ai.enabled and r.ai.state"><t t-call="dms.AiCheck"/></t>
+                            <t t-if="r.insights and r.insights.state and r.insights.state !== 'none'"><t t-call="dms.Insights"/></t>
+                            <div t-if="r.can_submit and !(r.ai and r.ai.blocked) and !(r.ai and r.ai.state === 'pending')" class="o_dms_ask">
                                 <span>Not sent yet. It goes to <t t-esc="d.approvers.l1"/>, then <t t-esc="d.approvers.l2"/><t t-if="d.approvers.l3">, then <t t-esc="d.approvers.l3"/></t>.</span>
                                 <button class="o_dms_btn o_dms_btn_ink o_dms_btn_sm" t-on-click="() => this.submitRev(r)" t-att-disabled="state.busy">Send for approval</button>
                             </div>
@@ -408,14 +1211,30 @@
                 </ol>
             </t>
         </t>
+        <t t-elif="state.detailTab === 'timeline'">
+            <t t-call="dms.Timeline"/>
+        </t>
         <t t-elif="state.detailTab === 'info'">
             <dl class="o_dms_info">
                 <dt>Folder</dt><dd t-esc="d.folder"/>
                 <dt>Type</dt><dd t-esc="d.type"/>
+                <dt>File type</dt><dd><t t-esc="d.meta.file_type || '—'"/><span t-if="d.meta.mimetype" class="o_dms_muted small"> (<t t-esc="d.meta.mimetype"/>)</span></dd>
+                <dt>Size</dt><dd t-esc="helpers.humanSize(d.meta.size) || '—'"/>
+                <dt>Created by</dt><dd t-esc="d.meta.created_by"/>
+                <dt>Created on</dt><dd t-esc="helpers.fmtDateTime(d.meta.created_on)"/>
+                <dt>Last edited</dt><dd><t t-esc="helpers.fmtDateTime(d.meta.edited_on)"/><span class="o_dms_muted small"> by <t t-esc="d.meta.edited_by"/></span></dd>
                 <dt>Owner</dt><dd t-esc="d.owner.name"/>
                 <dt>Current since</dt><dd t-esc="helpers.fmtDate(d.approved_date)"/>
                 <dt>Description</dt><dd t-esc="d.description || '—'"/>
             </dl>
+            <t t-if="d.fields and Object.keys(d.fields).length">
+                <h3 class="o_dms_h3"><i class="fa fa-magic"/> Details read by the AI</h3>
+                <table class="o_dms_aicheck_fields">
+                    <tr t-foreach="Object.entries(d.fields)" t-as="kv" t-key="kv[0]">
+                        <th t-esc="kv[0].replaceAll('_', ' ')"/><td t-esc="kv[1] === null or kv[1] === undefined or kv[1] === '' ? '—' : kv[1]"/>
+                    </tr>
+                </table>
+            </t>
 
         </t>
         <t t-elif="state.detailTab === 'access'">
@@ -564,10 +1383,11 @@
 
 <t t-name="dms.UploadModal">
     <t t-set="u" t-value="state.upload"/>
-    <t t-call="dms.ModalShell"><t t-set="title" t-value="'Upload a document'"/>
+    <t t-set="needs" t-value="uploadNeedsCheck"/>
+    <t t-call="dms.ModalShell"><t t-set="title" t-value="'Upload a document'"/><t t-set="size" t-value="needs ? 'lg' : ''"/>
         <div class="o_dms_modal_body">
-            <label class="o_dms_pick" t-att-class="{has: u.file}">
-                <input type="file" t-ref="file" t-on-change="onPickFile" hidden=""/>
+            <label class="o_dms_pick" t-att-class="{has: u.file, o_dms_locked: uploadLocked}">
+                <input type="file" t-ref="file" t-on-change="onPickFile" hidden="" t-att-disabled="uploadLocked"/>
                 <t t-if="u.file">
                     <t t-set="k" t-value="helpers.fileKind(u.file.name, u.file.type)"/>
                     <span class="o_dms_ext" t-attf-class="k_{{k.cls}}" t-esc="k.label"/>
@@ -576,28 +1396,98 @@
                 </t>
                 <t t-else=""><i class="fa fa-arrow-up"/><span class="o_dms_pick_text"><b>Choose a file</b><small>or drop it anywhere on the page</small></span></t>
             </label>
-            <div class="o_dms_row2">
-                <div><label>Folder</label>
-                    <select class="o_dms_field" t-model.number="u.folderId">
+            <div t-if="u.ai" class="o_dms_aifill" t-attf-class="s_{{u.ai.state}}">
+                <i class="fa" t-att-class="u.ai.state === 'reading' ? 'fa-circle-o-notch fa-spin' : 'fa-magic'"/>
+                <div t-if="u.ai.state === 'reading'"><b>Reading the file to fill the form…</b><small>Type, folder, title and description</small></div>
+                <div t-elif="u.ai.state === 'done'">
+                    <b>Filled by AI<t t-if="u.ai.confidence"> · <t t-esc="Math.round(u.ai.confidence * 100)"/>% sure</t></b>
+                    <small><t t-esc="u.ai.reason"/> Check it and change anything that is wrong.</small>
+                    <div t-if="Object.keys(u.ai.fields || {}).length" class="o_dms_aifill_fields">
+                        <span t-foreach="Object.entries(u.ai.fields)" t-as="kv" t-key="kv[0]"><em t-esc="kv[0].replaceAll('_', ' ')"/> <t t-esc="kv[1]"/></span>
+                    </div>
+                </div>
+                <div t-else=""><b>Fill the form yourself</b><small t-esc="u.ai.reason"/></div>
+            </div>
+            <div t-if="u.ai and u.ai.sensitive and u.ai.sensitive.length" class="o_dms_upwarn">
+                <i class="fa fa-user-secret"/>
+                <div><b>Personal or bank data in this file</b>
+                    <small><t t-foreach="u.ai.sensitive" t-as="x" t-key="x.kind"><t t-esc="x.label"/> (<t t-esc="x.samples.join(', ')"/>)<t t-if="!x_last"> · </t></t></small>
+                    <small>Put it in a folder only the right people can open.</small></div>
+            </div>
+            <div t-if="u.ai and u.ai.duplicates and u.ai.duplicates.length" class="o_dms_upwarn dup">
+                <i class="fa fa-clone"/>
+                <div><b t-esc="u.ai.duplicates.some(x => x.same) ? 'This file is already in the DMS' : 'A very similar document is already in the DMS'"/>
+                    <t t-foreach="u.ai.duplicates" t-as="x" t-key="x_index">
+                        <small t-if="x.hidden"><t t-esc="x.hidden"/> similar document(s) in folders you cannot open</small>
+                        <small t-else=""><span class="o_dms_code" t-esc="x.code"/> <t t-esc="x.name"/> · <t t-esc="Math.round(x.score * 100)"/>% the same · <t t-esc="x.folder"/></small>
+                    </t>
+                    <small>Check in a new revision of that document instead of uploading a copy.</small></div>
+            </div>
+            <div class="o_dms_row2" t-att-class="{o_dms_locked: uploadLocked}">
+                <div><label>Folder <span t-if="u.ai and u.ai.filled and u.ai.filled.includes('folder') and !u.touched.folderId" class="o_dms_aitag">AI</span></label>
+                    <select class="o_dms_field" t-model.number="u.folderId" t-on-change="() => this.touchUpload('folderId')" t-att-disabled="uploadLocked">
                         <t t-foreach="editableFolders" t-as="f" t-key="f.id"><option t-att-value="f.id" t-esc="folderLabel(f)"/></t>
                     </select></div>
-                <div><label>Document type</label>
-                    <select class="o_dms_field" t-model.number="u.typeId">
+                <div><label>Document type <span t-if="u.ai and u.ai.filled and u.ai.filled.includes('type') and !u.touched.typeId" class="o_dms_aitag">AI</span></label>
+                    <select class="o_dms_field" t-model.number="u.typeId" t-on-change="onUploadTypeChange" t-att-disabled="uploadLocked">
                         <t t-foreach="state.boot.types" t-as="t" t-key="t.id"><option t-att-value="t.id" t-esc="t.name"/></t>
                     </select></div>
             </div>
-            <label>Title</label>
-            <input class="o_dms_field" t-model="u.title" placeholder="e.g. Vendor payment policy"/>
+            <label>Title <span t-if="u.ai and u.ai.filled and u.ai.filled.includes('title') and !u.touched.title" class="o_dms_aitag">AI</span></label>
+            <input class="o_dms_field" t-att-class="{o_dms_locked: uploadLocked}" t-model="u.title" t-on-input="() => this.touchUpload('title')" placeholder="e.g. Vendor payment policy" t-att-disabled="uploadLocked"/>
             <p class="o_dms_hint">Numbered <b class="o_dms_code" t-esc="uploadPreviewCode"/> and published as revision 0 once approved.</p>
-            <label>Short description</label>
-            <textarea class="o_dms_field" rows="2" t-model="u.description"/>
-            <label class="o_dms_switch"><input type="checkbox" t-model="u.submit"/><span/>
+
+            <t t-if="needs">
+                <div class="o_dms_precheck" t-att-class="{checking: u.checking, blocked: u.check and u.check.blocked, ok: u.check and !u.check.blocked}">
+                    <div class="o_dms_precheck_head">
+                        <i class="fa fa-magic"/>
+                        <t t-if="u.checking"><b>The AI is reading <t t-esc="u.file.name"/>…</b><small>This takes up to a minute. Nothing is uploaded yet.</small></t>
+                        <t t-elif="u.check and u.check.blocked"><b><t t-esc="u.check.total - u.check.passed"/> of <t t-esc="u.check.total"/> rules not passed</b><small>Fix the file, choose the corrected one, and check again. Nothing was uploaded.</small></t>
+                        <t t-elif="u.check"><b>All required rules passed (<t t-esc="u.check.passed"/> of <t t-esc="u.check.total"/>)</b><small>You can upload it now.</small></t>
+                        <t t-else=""><b>This file is checked before it is uploaded</b><small>Choose the file, then press Check document. It is uploaded only when every required rule passes.</small></t>
+                    </div>
+                    <p t-if="u.error" class="o_dms_precheck_error"><i class="fa fa-exclamation-triangle"/> <t t-esc="u.error"/></p>
+                    <p t-if="u.check and u.check.summary" class="o_dms_aicheck_sum" t-esc="u.check.summary"/>
+                    <ul class="o_dms_aicheck_rules o_dms_precheck_list">
+                        <t t-if="u.check">
+                            <li t-foreach="u.check.results" t-as="x" t-key="x_index" t-att-class="x.passed ? 'pass' : (x.blocking ? 'fail' : 'warn')">
+                                <i class="fa" t-att-class="x.passed ? 'fa-check-circle' : (x.blocking ? 'fa-times-circle' : 'fa-exclamation-circle')"/>
+                                <div>
+                                    <b t-esc="x.rule"/><span t-if="!x.blocking" class="o_dms_muted small"> (advice only)</span>
+                                    <div t-if="x.reason" class="small" t-esc="x.reason"/>
+                                    <div t-if="!x.passed and x.hint" class="small o_dms_aicheck_hint"><i class="fa fa-lightbulb-o"/> <t t-esc="x.hint"/></div>
+                                </div>
+                            </li>
+                        </t>
+                        <t t-else="">
+                            <li t-foreach="uploadType.rules" t-as="ru" t-key="ru_index" class="todo">
+                                <i class="fa" t-att-class="u.checking ? 'fa-circle-o-notch fa-spin' : 'fa-circle-thin'"/>
+                                <div><b t-esc="ru.name"/><span t-if="!ru.blocking" class="o_dms_muted small"> (advice only)</span></div>
+                            </li>
+                        </t>
+                    </ul>
+                    <table t-if="u.check and Object.keys(u.check.fields).length" class="o_dms_aicheck_fields">
+                        <tr t-foreach="Object.entries(u.check.fields)" t-as="kv" t-key="kv[0]">
+                            <th t-esc="kv[0].replaceAll('_', ' ')"/><td t-esc="kv[1] === null or kv[1] === undefined or kv[1] === '' ? '—' : kv[1]"/>
+                        </tr>
+                    </table>
+                </div>
+            </t>
+
+            <label>Short description <span t-if="u.ai and u.ai.filled and u.ai.filled.includes('description') and !u.touched.description" class="o_dms_aitag">AI</span></label>
+            <textarea class="o_dms_field" t-att-class="{o_dms_locked: uploadLocked}" rows="2" t-model="u.description" t-on-input="() => this.touchUpload('description')" t-att-disabled="uploadLocked"/>
+            <label class="o_dms_switch" t-att-class="{o_dms_locked: uploadLocked}"><input type="checkbox" t-model="u.submit" t-att-disabled="uploadLocked"/><span/>
                 Send for approval now<small class="o_dms_muted"> (<t t-esc="uploadType and uploadType.l3 ? 'L1, L2 and L3' : 'L1 and L2'"/>)</small></label>
         </div>
         <div class="o_dms_modal_foot">
             <button class="o_dms_btn" t-on-click="() => state.modal = null">Cancel</button>
-            <button class="o_dms_btn o_dms_btn_ink" t-on-click="doUpload" t-att-disabled="state.busy or !u.file">
-                <i t-if="state.busy" class="fa fa-circle-o-notch fa-spin"/> <t t-esc="u.submit ? 'Upload and send' : 'Upload as draft'"/></button>
+            <t t-if="needs and (!u.check or u.check.blocked)">
+                <button t-if="u.check and u.check.blocked" class="o_dms_btn" t-on-click="chooseCorrected" t-att-disabled="uploadLocked"><i class="fa fa-folder-open-o"/> Choose corrected file</button>
+                <button class="o_dms_btn o_dms_btn_ink" t-on-click="runPrecheck" t-att-disabled="uploadLocked or !u.file or (u.check and u.check.blocked)">
+                    <i class="fa" t-att-class="uploadLocked ? 'fa-circle-o-notch fa-spin' : 'fa-magic'"/> <t t-esc="u.ai and u.ai.state === 'reading' ? 'Choosing type…' : (u.checking ? 'Checking…' : 'Check document')"/></button>
+            </t>
+            <button t-else="" class="o_dms_btn o_dms_btn_ink" t-on-click="doUpload" t-att-disabled="state.busy or !u.file or uploadLocked">
+                <i t-if="state.busy or uploadLocked" class="fa fa-circle-o-notch fa-spin"/> <t t-esc="uploadLocked ? 'Choosing type…' : (u.submit ? 'Upload and send' : 'Upload as draft')"/></button>
         </div>
     </t>
 </t>
@@ -808,7 +1698,7 @@
 </t>
 
 <t t-name="dms.RetireModal">
-    <t t-call="dms.ModalShell"><t t-set="title" t-value="'Retire ' + state.detail.code"/><t t-set="size" t-value="'sm'"/>
+    <t t-call="dms.ModalShell"><t t-set="title" t-value="'Retire ' + state.retireForm.title"/><t t-set="size" t-value="'sm'"/>
         <div class="o_dms_modal_body">
             <p class="o_dms_muted">The document and all its revisions go to the Archive, read only. After the retention period you can dispose of it from Disposal.</p>
             <label for="dms_rr">Reason</label>
@@ -844,6 +1734,143 @@
             <div class="o_dms_cine_sparks"><i/><i/><i/><i/><i/><i/><i/><i/></div>
         </div>
     </div>
+</t>
+
+<t t-name="dms.AiCheck">
+    <div class="o_dms_aicheck" t-att-class="{blocked: r.ai.blocked, ok: r.ai.state === 'done' and !r.ai.blocked, pending: r.ai.state === 'pending'}">
+        <div class="o_dms_aicheck_head">
+            <i class="fa fa-magic"/>
+            <t t-if="r.ai.state === 'pending'"><b>AI is checking this file…</b> <i class="fa fa-circle-o-notch fa-spin"/></t>
+            <t t-elif="r.ai.state === 'error'"><b>Not checked</b></t>
+            <t t-else=""><b><t t-esc="aiPassCount(r)"/> of <t t-esc="r.ai.results.length"/> rules passed</b></t>
+            <a t-if="r.can_recheck" class="o_dms_aicheck_re" t-on-click="() => this.recheck(r)">Check again</a>
+        </div>
+        <p t-if="r.ai.state === 'pending' and r.ai.waiting_to_send" class="o_dms_aicheck_note">It goes for approval by itself once the required rules pass.</p>
+        <p t-if="r.ai.state === 'error'" class="o_dms_aicheck_note" t-esc="r.ai.error"/>
+        <t t-if="r.ai.state === 'done'">
+            <p t-if="r.ai.summary" class="o_dms_aicheck_sum" t-esc="r.ai.summary"/>
+            <ul class="o_dms_aicheck_rules">
+                <li t-foreach="r.ai.results" t-as="x" t-key="x_index" t-att-class="x.passed ? 'pass' : (x.blocking ? 'fail' : 'warn')">
+                    <i class="fa" t-att-class="x.passed ? 'fa-check-circle' : (x.blocking ? 'fa-times-circle' : 'fa-exclamation-circle')"/>
+                    <div>
+                        <b t-esc="x.rule"/>
+                        <span t-if="!x.passed and !x.blocking" class="o_dms_muted small"> (advice only)</span>
+                        <div t-if="x.reason" class="small" t-esc="x.reason"/>
+                        <div t-if="!x.passed and x.hint" class="small o_dms_aicheck_hint"><i class="fa fa-lightbulb-o"/> <t t-esc="x.hint"/></div>
+                    </div>
+                </li>
+            </ul>
+            <table t-if="Object.keys(r.ai.fields).length" class="o_dms_aicheck_fields">
+                <tr t-foreach="Object.entries(r.ai.fields)" t-as="kv" t-key="kv[0]">
+                    <th t-esc="kv[0].replaceAll('_', ' ')"/><td t-esc="kv[1] === null or kv[1] === undefined or kv[1] === '' ? '—' : kv[1]"/>
+                </tr>
+            </table>
+        </t>
+        <div t-if="r.ai.blocked and r.can_replace" class="o_dms_aicheck_fix">
+            <span>Fix what did not pass, then upload the corrected file. It is checked again automatically.</span>
+            <button class="o_dms_btn o_dms_btn_ink o_dms_btn_sm" t-on-click="() => this.pickCorrected(r)"><i class="fa fa-upload"/> Upload corrected file</button>
+        </div>
+    </div>
+</t>
+
+<t t-name="dms.RowActions">
+    <span class="o_dms_quick" t-on-click.stop="">
+        <button t-if="d.view_rev_id" class="o_dms_qbtn" t-on-click="(ev) => this.quickOpen(d, ev)" title="Open"><i class="fa fa-eye"/> Open</button>
+        <button t-if="d.download_rev_id" class="o_dms_qbtn icon" t-on-click="(ev) => this.quickDownload(d, ev)" title="Download"><i class="fa fa-download"/></button>
+        <t t-if="!d.can_see">
+            <span t-if="d.request and d.request.state === 'pending'" class="o_dms_badge s_in_review">Requested</span>
+            <button t-else="" class="o_dms_qbtn ask" t-on-click="(ev) => this.openAccessRequest(d, ev)"><i class="fa fa-key"/> Request access</button>
+        </t>
+    </span>
+</t>
+
+<t t-name="dms.DetailRestricted">
+    <t t-set="d" t-value="state.detail"/>
+    <t t-set="k" t-value="helpers.fileKind(d.file_name, d.mimetype)"/>
+    <div class="o_dms_jacket">
+        <button class="o_dms_icon_btn o_dms_close" t-on-click="rollUpDetail" title="Close (Esc)"><i class="fa fa-times"/></button>
+        <div class="o_dms_jacket_top">
+            <t t-call="dms.File3d"><t t-set="big" t-value="true"/></t>
+            <div><div class="o_dms_code" t-esc="d.code"/><h2 t-esc="d.name"/></div>
+        </div>
+        <div class="o_dms_jacket_meta"><t t-esc="d.type"/> in <t t-esc="d.folder"/></div>
+        <div class="o_dms_note warn"><i class="fa fa-lock"/> You do not have access to this document yet.</div>
+    </div>
+    <div class="o_dms_detail_body">
+        <dl class="o_dms_info">
+            <dt>Owner</dt><dd t-esc="d.owner.name"/>
+            <dt>Revision</dt><dd t-esc="d.rev === null ? '—' : d.rev"/>
+            <dt>Status</dt><dd t-esc="helpers.STATE_LABEL[d.state]"/>
+        </dl>
+        <div t-if="d.request and d.request.state === 'pending'" class="o_dms_ask">
+            <span><i class="fa fa-clock-o"/> You asked for <b t-esc="helpers.LEVEL_LABEL[d.request.level]"/> access. Waiting for a decision.</span>
+            <button class="o_dms_btn o_dms_btn_sm" t-on-click="() => this.openAccessRequest(d)">Change request</button>
+        </div>
+        <div t-else="" class="o_dms_ask">
+            <span t-if="d.request and d.request.state === 'refused'">Your last request was refused. You can ask again.</span>
+            <span t-else="">Ask the Document Controller for access.</span>
+            <button class="o_dms_btn o_dms_btn_ink o_dms_btn_sm" t-on-click="() => this.openAccessRequest(d)"><i class="fa fa-key"/> Request access</button>
+        </div>
+    </div>
+</t>
+
+<t t-name="dms.AccessRequestModal">
+    <t t-set="r" t-value="state.accessForm"/>
+    <t t-call="dms.ModalShell"><t t-set="title" t-value="'Request access to ' + r.code"/><t t-set="size" t-value="'sm'"/>
+        <div class="o_dms_modal_body">
+            <p class="o_dms_muted"><b t-esc="r.name"/></p>
+            <label>Access you need</label>
+            <div class="o_dms_seg o_dms_seg_wide">
+                <t t-foreach="state.boot.levels" t-as="lv" t-key="lv[0]">
+                    <button t-att-class="{active: r.level === lv[0]}" t-on-click="() => r.level = lv[0]" t-esc="lv[1]"/>
+                </t>
+            </div>
+            <label for="dms_ar">Why do you need it?</label>
+            <textarea id="dms_ar" class="o_dms_field" rows="3" t-model="r.reason" placeholder="e.g. Needed for the October vendor payment review"/>
+            <p class="o_dms_hint">The Document Controller, or someone with Edit on this folder, approves or refuses it. You are told either way.</p>
+        </div>
+        <div class="o_dms_modal_foot">
+            <button class="o_dms_btn" t-on-click="() => state.modal = null">Cancel</button>
+            <button class="o_dms_btn o_dms_btn_ink" t-on-click="sendAccessRequest" t-att-disabled="state.busy">Send request</button>
+        </div>
+    </t>
+</t>
+
+<t t-name="dms.HardDeleteModal">
+    <t t-set="x" t-value="state.hardDelete"/>
+    <t t-call="dms.ModalShell"><t t-set="title" t-value="'Delete ' + x.code + ' permanently'"/><t t-set="size" t-value="'sm'"/>
+        <div class="o_dms_modal_body">
+            <p class="o_dms_note warn"><i class="fa fa-exclamation-triangle"/> This removes <b t-esc="x.name"/>, every revision, its approvals and access, and all its files on the DMS server. It cannot be undone. The audit log keeps a record that it was deleted.</p>
+            <label for="dms_hd">Type <b t-esc="x.code"/> to confirm</label>
+            <input id="dms_hd" class="o_dms_field" t-model="x.confirm" autocomplete="off"/>
+        </div>
+        <div class="o_dms_modal_foot">
+            <button class="o_dms_btn" t-on-click="() => state.modal = null">Cancel</button>
+            <button class="o_dms_btn o_dms_btn_bad" t-on-click="doHardDelete" t-att-disabled="state.busy or (x.confirm || '').trim().toUpperCase() !== x.code.toUpperCase()"><i class="fa fa-trash"/> Delete permanently</button>
+        </div>
+    </t>
+</t>
+
+<t t-name="dms.AccessRequests">
+    <header class="o_dms_top"><div class="o_dms_path"><h1>Access requests</h1></div></header>
+    <section class="o_dms_body">
+        <div t-if="!state.accessRequests.length and !state.loading" class="o_dms_empty"><h3>No access requests waiting</h3><p>When someone asks for access to a document, the request appears here.</p></div>
+        <div t-foreach="state.accessRequests" t-as="q" t-key="q.id" class="o_dms_request">
+            <div class="o_dms_request_main">
+                <b><t t-esc="q.user"/></b> <span class="o_dms_muted">asks for</span> <b t-esc="helpers.LEVEL_LABEL[q.level]"/> <span class="o_dms_muted">on</span>
+                <div><span class="o_dms_code" t-esc="q.code"/> <t t-esc="q.name"/> <span class="o_dms_muted small"><i class="fa fa-folder-o"/> <t t-esc="q.folder"/></span></div>
+                <blockquote t-if="q.reason" t-esc="q.reason"/>
+                <div class="o_dms_muted small"><t t-esc="helpers.timeAgo(q.date)"/></div>
+            </div>
+            <div class="o_dms_request_actions">
+                <select class="o_dms_field o_dms_req_level" t-model="q.level">
+                    <t t-foreach="state.boot.levels" t-as="lv" t-key="lv[0]"><option t-att-value="lv[0]" t-esc="lv[1]"/></t>
+                </select>
+                <button class="o_dms_btn o_dms_btn_sm" t-on-click="() => this.decideAccess(q, false)">Refuse</button>
+                <button class="o_dms_btn o_dms_btn_ok o_dms_btn_sm" t-on-click="() => this.decideAccess(q, true)"><i class="fa fa-check"/> Give access</button>
+            </div>
+        </div>
+    </section>
 </t>
 
 <t t-name="dms.File3d">

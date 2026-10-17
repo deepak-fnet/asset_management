@@ -209,6 +209,28 @@
                                         </group>
                                     </div>
                                     <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-arrows"/>Mascot position &amp; size</div>
+                                        <div class="pk-sec__hint">Moves and resizes the character (video, parrot or 3D) inside its panel. Use the desktop view of the preview.</div>
+                                        <group>
+                                            <field name="mascot_offset_x" widget="pk_range" options="{'min': -100, 'max': 100, 'step': 1, 'unit': '%'}"/>
+                                            <field name="mascot_offset_y" widget="pk_range" options="{'min': -100, 'max': 100, 'step': 1, 'unit': '%'}"/>
+                                            <field name="mascot_scale" widget="pk_range" options="{'min': 20, 'max': 300, 'step': 1, 'unit': '%'}"/>
+                                            <field name="mascot_width" widget="pk_range" options="{'min': 20, 'max': 300, 'step': 1, 'unit': '%'}"/>
+                                            <field name="mascot_height" widget="pk_range" options="{'min': 20, 'max': 300, 'step': 1, 'unit': '%'}"/>
+                                        </group>
+                                    </div>
+                                    <div class="pk-sec">
+                                        <div class="pk-sec__title"><i class="fa fa-mobile"/>Phones</div>
+                                        <div class="pk-sec__hint">On phones the card is one column: the character on top, the form below. Use the mobile view of the preview.</div>
+                                        <group>
+                                            <field name="mobile_mascot" widget="radio" options="{'horizontal': true}"/>
+                                            <field name="mobile_banner_height" widget="pk_range" options="{'min': 80, 'max': 600, 'step': 1, 'unit': 'px'}" invisible="mobile_mascot == 'hide'"/>
+                                            <field name="mobile_offset_x" widget="pk_range" options="{'min': -100, 'max': 100, 'step': 1, 'unit': '%'}" invisible="mobile_mascot == 'hide'"/>
+                                            <field name="mobile_offset_y" widget="pk_range" options="{'min': -100, 'max': 100, 'step': 1, 'unit': '%'}" invisible="mobile_mascot == 'hide'"/>
+                                            <field name="mobile_scale" widget="pk_range" options="{'min': 20, 'max': 300, 'step': 1, 'unit': '%'}" invisible="mobile_mascot == 'hide'"/>
+                                        </group>
+                                    </div>
+                                    <div class="pk-sec">
                                         <div class="pk-sec__title"><i class="fa fa-clone"/>Layers</div>
                                         <div class="pk-sec__hint">A higher number is drawn on top. Defaults: page 0, card 1, card video 0, panel 2, form 3.</div>
                                         <group>

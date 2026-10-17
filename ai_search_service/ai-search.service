@@ -1,0 +1,16 @@
+[Unit]
+Description=AI Search Service (vector search for Odoo modules)
+After=network-online.target
+
+[Service]
+WorkingDirectory=__DIR__
+ExecStart=__DIR__/venv/bin/python __DIR__/app.py
+Environment=AI_SEARCH_PORT=9010
+Environment=AI_SEARCH_THREADS=4
+Restart=always
+RestartSec=5
+StandardOutput=append:__DIR__/ai_search.log
+StandardError=append:__DIR__/ai_search.log
+
+[Install]
+WantedBy=default.target

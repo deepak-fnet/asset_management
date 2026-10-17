@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Security Groups -->
+    <record id="module_category_ssh" model="ir.module.category">
+        <field name="name">SSH Terminal</field>
+        <field name="sequence">50</field>
+    </record>
+    <record id="res_groups_privilege_ssh" model="res.groups.privilege">
+        <field name="name">SSH Terminal</field>
+        <field name="sequence">50</field>
+        <field name="category_id" ref="module_category_ssh"/>
+    </record>
+
+    <!-- Basic User - Can only request access -->
+    <record id="group_ssh_user" model="res.groups">
+        <field name="name">SSH User</field>
+        <field name="privilege_id" ref="res_groups_privilege_ssh"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">Can request SSH access to servers</field>
+    </record>
+
+    <!-- Manager - Can approve/reject requests -->
+    <record id="group_ssh_manager" model="res.groups">
+        <field name="name">SSH Manager</field>
+        <field name="privilege_id" ref="res_groups_privilege_ssh"/>
+        <field name="implied_ids" eval="[(4, ref('group_ssh_user'))]"/>
+        <field name="comment">Can approve/reject SSH access requests</field>
+    </record>
+
+    <!-- Admin - Can manage servers and credentials -->
+    <record id="group_ssh_admin" model="res.groups">
+        <field name="name">SSH Administrator</field>
+        <field name="privilege_id" ref="res_groups_privilege_ssh"/>
+        <field name="implied_ids" eval="[(4, ref('group_ssh_manager'))]"/>
+        <field name="comment">Can manage SSH servers and credentials</field>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <!-- Record Rules -->
+
+    <!-- SSH Server: Only admins can see full details -->
+    <record id="rule_ssh_server_admin" model="ir.rule">
+        <field name="name">SSH Server: Admin Full Access</field>
+        <field name="model_id" ref="model_ssh_server"/>
+        <field name="groups" eval="[(4, ref('group_ssh_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- SSH Server: Users can only see server names (for request form) -->
+    <record id="rule_ssh_server_user" model="ir.rule">
+        <field name="name">SSH Server: User Limited View</field>
+        <field name="model_id" ref="model_ssh_server"/>
+        <field name="groups" eval="[(4, ref('group_ssh_user'))]"/>
+        <field name="domain_force">[('active', '=', True)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- SSH Credential: Only admins -->
+    <record id="rule_ssh_credential_admin" model="ir.rule">
+        <field name="name">SSH Credential: Admin Only</field>
+        <field name="model_id" ref="model_ssh_credential"/>
+        <field name="groups" eval="[(4, ref('group_ssh_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- SSH Credential: Users can see credential names only -->
+    <record id="rule_ssh_credential_user" model="ir.rule">
+        <field name="name">SSH Credential: User Limited View</field>
+        <field name="model_id" ref="model_ssh_credential"/>
+        <field name="groups" eval="[(4, ref('group_ssh_user'))]"/>
+        <field name="domain_force">[('active', '=', True)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- Access Request: Users see only their own -->
+    <record id="rule_ssh_request_user" model="ir.rule">
+        <field name="name">SSH Request: User Own Requests</field>
+        <field name="model_id" ref="model_ssh_access_request"/>
+        <field name="groups" eval="[(4, ref('group_ssh_user'))]"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- Access Request: Managers see all -->
+    <record id="rule_ssh_request_manager" model="ir.rule">
+        <field name="name">SSH Request: Manager Full Access</field>
+        <field name="model_id" ref="model_ssh_access_request"/>
+        <field name="groups" eval="[(4, ref('group_ssh_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- Connection Log: Users see only their own -->
+    <record id="rule_ssh_log_user" model="ir.rule">
+        <field name="name">SSH Log: User Own Logs</field>
+        <field name="model_id" ref="model_ssh_connection_log"/>
+        <field name="groups" eval="[(4, ref('group_ssh_user'))]"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <!-- Connection Log: Admins see all -->
+    <record id="rule_ssh_log_admin" model="ir.rule">
+        <field name="name">SSH Log: Admin Full Access</field>
+        <field name="model_id" ref="model_ssh_connection_log"/>
+        <field name="groups" eval="[(4, ref('group_ssh_admin'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- Encryption Key: System only (no user access) -->
+    <record id="rule_ssh_encryption_key" model="ir.rule">
+        <field name="name">SSH Encryption Key: No Access</field>
+        <field name="model_id" ref="model_ssh_encryption_key"/>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">0</field>
+    </record>
+</odoo>

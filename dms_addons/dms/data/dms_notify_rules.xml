@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- noupdate: what the Controller changes is kept on upgrade -->
+    <data noupdate="1">
+        <record id="notify_approval_needed" model="dms.notify.rule">
+            <field name="sequence">10</field><field name="kind">approval_needed</field><field name="name">Approval needed</field>
+            <field name="category">approval</field><field name="audience">The approver of this step</field><field name="description">A document is sent for approval, or moves to the next step</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_submitted" model="dms.notify.rule">
+            <field name="sequence">20</field><field name="kind">submitted</field><field name="name">Sent for approval</field>
+            <field name="category">approval</field><field name="audience">The author</field><field name="description">The author sends a document for approval</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_step_approved" model="dms.notify.rule">
+            <field name="sequence">30</field><field name="kind">step_approved</field><field name="name">Approved, next step</field>
+            <field name="category">approval</field><field name="audience">The author</field><field name="description">One approver says yes and it moves on</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_published" model="dms.notify.rule">
+            <field name="sequence">40</field><field name="kind">published</field><field name="name">Published</field>
+            <field name="category">approval</field><field name="audience">Author and owner</field><field name="description">The last approver says yes</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_refused" model="dms.notify.rule">
+            <field name="sequence">50</field><field name="kind">refused</field><field name="name">Refused</field>
+            <field name="category">approval</field><field name="audience">The author</field><field name="description">An approver refuses, with the reason</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_ai_failed" model="dms.notify.rule">
+            <field name="sequence">60</field><field name="kind">ai_failed</field><field name="name">AI check failed</field>
+            <field name="category">approval</field><field name="audience">The author</field><field name="description">Required AI rules did not pass</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_approval_reminder" model="dms.notify.rule">
+            <field name="sequence">70</field><field name="kind">approval_reminder</field><field name="name">Approval reminder</field>
+            <field name="category">reminder</field><field name="audience">The approver</field><field name="description">An approval waits longer than the set days (daily)</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_approval_escalation" model="dms.notify.rule">
+            <field name="sequence">80</field><field name="kind">approval_escalation</field><field name="name">Approval escalation</field>
+            <field name="category">reminder</field><field name="audience">Document Controllers</field><field name="description">An approval waits twice the set days</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_access_request" model="dms.notify.rule">
+            <field name="sequence">90</field><field name="kind">access_request</field><field name="name">Access requested</field>
+            <field name="category">access</field><field name="audience">Controllers and folder editors</field><field name="description">Someone asks for access to a document</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_access_granted" model="dms.notify.rule">
+            <field name="sequence">100</field><field name="kind">access_granted</field><field name="name">Access granted</field>
+            <field name="category">access</field><field name="audience">The person who asked</field><field name="description">The request is approved</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_access_refused" model="dms.notify.rule">
+            <field name="sequence">110</field><field name="kind">access_refused</field><field name="name">Access refused</field>
+            <field name="category">access</field><field name="audience">The person who asked</field><field name="description">The request is refused</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_shared" model="dms.notify.rule">
+            <field name="sequence">120</field><field name="kind">shared</field><field name="name">Shared with you</field>
+            <field name="category">access</field><field name="audience">The person or group</field><field name="description">A folder or document is shared</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_access_removed" model="dms.notify.rule">
+            <field name="sequence">130</field><field name="kind">access_removed</field><field name="name">Access removed</field>
+            <field name="category">access</field><field name="audience">The person or group</field><field name="description">Access is taken away</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_group_added" model="dms.notify.rule">
+            <field name="sequence">140</field><field name="kind">group_added</field><field name="name">Added to a group</field>
+            <field name="category">access</field><field name="audience">The new member</field><field name="description">Someone is added to a DMS group</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_group_removed" model="dms.notify.rule">
+            <field name="sequence">150</field><field name="kind">group_removed</field><field name="name">Removed from a group</field>
+            <field name="category">access</field><field name="audience">The member</field><field name="description">Someone is removed from a DMS group</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_new_version" model="dms.notify.rule">
+            <field name="sequence">160</field><field name="kind">new_version</field><field name="name">New version</field>
+            <field name="category">document</field><field name="audience">People who starred it</field><field name="description">A starred document gets a new published version</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_new_document" model="dms.notify.rule">
+            <field name="sequence">170</field><field name="kind">new_document</field><field name="name">New document in my folder</field>
+            <field name="category">document</field><field name="audience">Everyone with access to the folder</field><field name="description">A new document is published (can be many people)</field>
+            <field name="email" eval="False"/><field name="app" eval="False"/>
+        </record>
+        <record id="notify_checked_out" model="dms.notify.rule">
+            <field name="sequence">180</field><field name="kind">checked_out</field><field name="name">Checked out</field>
+            <field name="category">document</field><field name="audience">The owner</field><field name="description">Someone else checks out your document</field>
+            <field name="email" eval="False"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_force_unlock" model="dms.notify.rule">
+            <field name="sequence">190</field><field name="kind">force_unlock</field><field name="name">Check-out cancelled</field>
+            <field name="category">document</field><field name="audience">The one who checked it out</field><field name="description">The Controller force-unlocks it</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_moved" model="dms.notify.rule">
+            <field name="sequence">200</field><field name="kind">moved</field><field name="name">Moved</field>
+            <field name="category">document</field><field name="audience">The owner</field><field name="description">Your document is moved to another folder</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_retired" model="dms.notify.rule">
+            <field name="sequence">210</field><field name="kind">retired</field><field name="name">Retired</field>
+            <field name="category">document</field><field name="audience">The owner</field><field name="description">Your document is retired to the Archive</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_deleted" model="dms.notify.rule">
+            <field name="sequence">220</field><field name="kind">deleted</field><field name="name">Deleted permanently</field>
+            <field name="category">document</field><field name="audience">The owner</field><field name="description">The Controller deletes your document</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_cutoff_changed" model="dms.notify.rule">
+            <field name="sequence">230</field><field name="kind">cutoff_changed</field><field name="name">Cut-off changed</field>
+            <field name="category">document</field><field name="audience">Owner and author</field><field name="description">An approver brings the cut-off forward</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_revision_archived" model="dms.notify.rule">
+            <field name="sequence">240</field><field name="kind">revision_archived</field><field name="name">Old revision archived</field>
+            <field name="category">document</field><field name="audience">The owner</field><field name="description">A superseded revision passes its cut-off</field>
+            <field name="email" eval="False"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_expiry" model="dms.notify.rule">
+            <field name="sequence">250</field><field name="kind">expiry</field><field name="name">Expiring or due</field>
+            <field name="category">reminder</field><field name="audience">The owner</field><field name="description">A date found in the document is coming up (daily)</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_checkout_reminder" model="dms.notify.rule">
+            <field name="sequence">260</field><field name="kind">checkout_reminder</field><field name="name">Check-out reminder</field>
+            <field name="category">reminder</field><field name="audience">The one who checked it out</field><field name="description">Checked out longer than the set days (weekly)</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_retention_due" model="dms.notify.rule">
+            <field name="sequence">270</field><field name="kind">retention_due</field><field name="name">Retention ended</field>
+            <field name="category">reminder</field><field name="audience">Document Controllers</field><field name="description">Archived files pass their retention period</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_folder_delete_request" model="dms.notify.rule">
+            <field name="sequence">280</field><field name="kind">folder_delete_request</field><field name="name">Folder deletion requested</field>
+            <field name="category">folder</field><field name="audience">Document Controllers</field><field name="description">Someone asks to delete a folder</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_folder_delete_done" model="dms.notify.rule">
+            <field name="sequence">290</field><field name="kind">folder_delete_done</field><field name="name">Folder deleted</field>
+            <field name="category">folder</field><field name="audience">The person who asked</field><field name="description">The deletion is approved</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_folder_delete_refused" model="dms.notify.rule">
+            <field name="sequence">300</field><field name="kind">folder_delete_refused</field><field name="name">Folder kept</field>
+            <field name="category">folder</field><field name="audience">The person who asked</field><field name="description">The deletion is refused</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_disposal_request" model="dms.notify.rule">
+            <field name="sequence">310</field><field name="kind">disposal_request</field><field name="name">Disposal approval needed</field>
+            <field name="category">folder</field><field name="audience">Department Head and Controllers</field><field name="description">A disposal request is submitted</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_disposal_done" model="dms.notify.rule">
+            <field name="sequence">320</field><field name="kind">disposal_done</field><field name="name">Files disposed of</field>
+            <field name="category">folder</field><field name="audience">Requester and Department Head</field><field name="description">Both approvals are in</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_disposal_refused" model="dms.notify.rule">
+            <field name="sequence">330</field><field name="kind">disposal_refused</field><field name="name">Disposal refused</field>
+            <field name="category">folder</field><field name="audience">The requester</field><field name="description">A disposal is refused</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+        <record id="notify_alert_digest" model="dms.notify.rule">
+            <field name="sequence">340</field><field name="kind">alert_digest</field><field name="name">Unusual activity</field>
+            <field name="category">security</field><field name="audience">Document Controllers</field><field name="description">Each morning, if the audit log shows something unusual</field>
+            <field name="email" eval="True"/><field name="app" eval="True"/>
+        </record>
+    </data>
+    <record id="cron_dms_reminders" model="ir.cron">
+        <field name="name">DMS: reminders (approvals waiting, check-outs, retention)</field>
+        <field name="model_id" ref="model_dms_mail"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_reminders()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+    </record>
+</odoo>

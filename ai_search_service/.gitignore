@@ -1,0 +1,4 @@
+venv/
+data/
+ai_search.log
+__pycache__/

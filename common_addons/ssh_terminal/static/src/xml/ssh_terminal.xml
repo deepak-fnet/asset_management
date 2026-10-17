@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ssh_terminal.SecureTerminalWidget">
+        <div t-ref="root" t-attf-class="sshx sshx-theme-#{state.theme} #{state.fullscreen ? 'sshx-full' : ''}">
+            <div class="sshx-bar">
+                <div class="sshx-lights">
+                    <span class="sshx-light sshx-red" title="Disconnect" t-on-click="onDisconnect"/>
+                    <span class="sshx-light sshx-yellow" title="Clear screen" t-on-click="clearScreen"/>
+                    <span class="sshx-light sshx-green" title="Full screen" t-on-click="toggleFullscreen"/>
+                </div>
+                <div class="sshx-title">
+                    <i class="fa fa-terminal"/>
+                    <span class="sshx-host" t-esc="state.serverName or 'SSH Terminal'"/>
+                    <span t-attf-class="sshx-pill sshx-#{state.status}">
+                        <span class="sshx-dot"/>
+                        <t t-esc="statusLabel"/>
+                    </span>
+                    <span t-if="state.status == 'live'" class="sshx-meta">
+                        <i class="fa fa-clock-o"/> <t t-esc="state.elapsed"/>
+                    </span>
+                    <span t-if="state.status == 'live' and state.latency !== null" t-attf-class="sshx-meta sshx-lat-#{latencyClass}">
+                        <i class="fa fa-signal"/> <t t-esc="state.latency"/> ms
+                    </span>
+                    <span t-if="state.size" class="sshx-meta sshx-hide-sm"><t t-esc="state.size"/></span>
+                </div>
+                <div class="sshx-tools">
+                    <button class="sshx-btn" title="Copy selection (Ctrl+Shift+C)" t-on-click="copySelection"><i class="fa fa-clone"/></button>
+                    <button class="sshx-btn" title="Paste (Ctrl+V, Ctrl+Shift+V or right click)" t-on-click="pasteFromClipboard"><i class="fa fa-clipboard"/></button>
+                    <span class="sshx-sep"/>
+                    <button class="sshx-btn" title="Smaller text (Ctrl -)" t-on-click="zoomOut"><i class="fa fa-minus"/></button>
+                    <span class="sshx-font" t-esc="state.fontSize"/>
+                    <button class="sshx-btn" title="Bigger text (Ctrl +)" t-on-click="zoomIn"><i class="fa fa-plus"/></button>
+                    <span class="sshx-sep"/>
+                    <div class="sshx-themes-wrap">
+                        <button class="sshx-btn" title="Theme" t-on-click="toggleThemes"><i class="fa fa-paint-brush"/></button>
+                        <div t-if="state.showThemes" class="sshx-themes">
+                            <t t-foreach="themes" t-as="t" t-key="t.key">
+                                <button t-attf-class="sshx-theme #{state.theme == t.key ? 'active' : ''}" t-att-data-theme="t.key" t-on-click="setTheme">
+                                    <span class="sshx-swatch" t-attf-style="background: #{t.bg}; box-shadow: inset 0 0 0 3px #{t.bg}, inset 0 0 0 9px #{t.fg};"/>
+                                    <t t-esc="t.label"/>
+                                </button>
+                            </t>
+                        </div>
+                    </div>
+                    <button class="sshx-btn" title="Full screen" t-on-click="toggleFullscreen">
+                        <i t-attf-class="fa #{state.fullscreen ? 'fa-compress' : 'fa-expand'}"/>
+                    </button>
+                    <button class="sshx-btn sshx-files" title="File manager" t-on-click="openFiles"><i class="fa fa-folder-open"/><span class="sshx-hide-sm"> Files</span></button>
+                    <button t-if="state.status == 'live'" class="sshx-btn sshx-danger" title="Disconnect" t-on-click="onDisconnect"><i class="fa fa-power-off"/></button>
+                    <button t-if="state.status == 'closed' or state.status == 'error'" class="sshx-btn sshx-go" t-on-click="onReconnect"><i class="fa fa-refresh"/> Reconnect</button>
+                </div>
+            </div>
+
+            <div class="sshx-body" t-on-click="focusTerm">
+                <div class="sshx-term" t-ref="terminal"/>
+                <div t-if="state.status == 'connecting'" class="sshx-overlay">
+                    <div class="sshx-spinner"/>
+                    <div>Opening a secure session…</div>
+                </div>
+                <div t-if="state.toast" class="sshx-toast" t-esc="state.toast"/>
+            </div>
+
+            <div class="sshx-foot">
+                <span><i class="fa fa-shield"/> Encrypted session · commands are logged for audit</span>
+                <span class="sshx-keys sshx-hide-sm">
+                    <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd> copy
+                    <kbd>Ctrl</kbd>+<kbd>V</kbd> paste
+                    <kbd>Right click</kbd> paste
+                    <kbd>Ctrl</kbd>+<kbd>±</kbd> zoom
+                </span>
+            </div>
+        </div>
+    </t>
+</templates>

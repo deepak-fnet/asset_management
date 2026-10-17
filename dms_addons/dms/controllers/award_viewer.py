@@ -435,8 +435,10 @@ class AwardStyleDocumentViewer(http.Controller):
                 '  <div id="pdf-loading" style="color:#aaa;text-align:center;'
                 '    padding:80px;font-size:15px;">Loading PDF...</div>'
                 '</div>'
-                '<script src="/web/static/lib/pdfjs/build/pdf.js"></script>'
-                '<script>'
+                # Odoo 19 ships pdf.js as an ES module (Odoo 17 had a classic script): import it
+                '<script type="module">'
+                'import * as pdfjsLib from "/web/static/lib/pdfjs/build/pdf.js";'
+                'window.pdfjsLib = pdfjsLib;'
                 '(function(){'
                 '  var url="' + content_url + '";'
                                               '  var pdfDoc=null,currentScale=1.5;'

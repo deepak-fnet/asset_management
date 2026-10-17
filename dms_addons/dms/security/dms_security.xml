@@ -24,4 +24,31 @@
         <field name="comment">Edit on all folders, grants access, force-unlocks, raises disposal requests.</field>
         <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
+    <!-- Ask DMS chats: your own; Document Controllers read everyone's -->
+    <record id="rule_ai_session_own" model="ir.rule">
+        <field name="name">Ask DMS: own chats</field>
+        <field name="model_id" ref="model_dms_ai_session"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_dms_user'))]"/>
+    </record>
+    <record id="rule_ai_message_own" model="ir.rule">
+        <field name="name">Ask DMS: own messages</field>
+        <field name="model_id" ref="model_dms_ai_message"/>
+        <field name="domain_force">[('session_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_dms_user'))]"/>
+    </record>
+    <record id="rule_ai_session_ctrl" model="ir.rule">
+        <field name="name">Ask DMS: Controllers read all chats</field>
+        <field name="model_id" ref="model_dms_ai_session"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_dms_controller'))]"/>
+        <field name="perm_write" eval="False"/><field name="perm_create" eval="False"/><field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_ai_message_ctrl" model="ir.rule">
+        <field name="name">Ask DMS: Controllers read all messages</field>
+        <field name="model_id" ref="model_dms_ai_message"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_dms_controller'))]"/>
+        <field name="perm_write" eval="False"/><field name="perm_create" eval="False"/><field name="perm_unlink" eval="False"/>
+    </record>
 </odoo>

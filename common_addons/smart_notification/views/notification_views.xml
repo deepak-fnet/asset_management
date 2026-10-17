@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_notification_line_list" model="ir.ui.view">
+        <field name="name">smart.notification.line.list</field>
+        <field name="model">smart.notification.line</field>
+        <field name="arch" type="xml">
+            <list create="0" decoration-info="state == 'new'" decoration-success="state == 'done'" decoration-muted="state == 'closed'">
+                <field name="create_date" string="Sent"/>
+                <field name="name" string="Notification"/>
+                <field name="sender_id" widget="many2one_avatar_user"/>
+                <field name="user_id" widget="many2one_avatar_user"/>
+                <field name="res_model"/>
+                <field name="policy"/>
+                <field name="state" widget="badge" decoration-info="state == 'new'" decoration-warning="state == 'seen'"
+                       decoration-success="state == 'done'"/>
+                <field name="seen_date"/>
+                <field name="opened_date"/>
+                <field name="done_date"/>
+                <field name="outcome" optional="show"/>
+                <field name="note" optional="show"/>
+                <field name="closed_reason" optional="show"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_notification_line_search" model="ir.ui.view">
+        <field name="name">smart.notification.line.search</field>
+        <field name="model">smart.notification.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="user_id"/>
+                <field name="sender_id"/>
+                <field name="res_model"/>
+                <filter name="pending" string="Waiting for action" domain="[('state', 'in', ('new', 'seen')), ('policy', '!=', 'info')]"/>
+                <filter name="unread" string="Unread" domain="[('state', '=', 'new')]"/>
+                <filter name="done" string="Done" domain="[('state', '=', 'done')]"/>
+                <filter name="closed" string="Closed by someone else" domain="[('state', '=', 'closed')]"/>
+                <group>
+                    <filter name="by_user" string="Recipient" context="{'group_by': 'user_id'}"/>
+                    <filter name="by_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="by_model" string="Model" context="{'group_by': 'res_model'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="view_notification_form" model="ir.ui.view">
+        <field name="name">smart.notification.form</field>
+        <field name="model">smart.notification</field>
+        <field name="arch" type="xml">
+            <form create="0">
+                <header><field name="state" widget="statusbar"/></header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="sender_id" widget="many2one_avatar_user"/>
+                            <field name="kind"/>
+                            <field name="priority"/>
+                            <field name="policy"/>
+                            <field name="action_method"/>
+                            <field name="close_methods"/>
+                            <field name="notify_sender"/>
+                        </group>
+                        <group>
+                            <field name="res_model"/>
+                            <field name="res_id"/>
+                            <field name="res_name"/>
+                            <field name="view_id"/>
+                            <field name="action_id"/>
+                            <field name="url" widget="url"/>
+                            <field name="done_by_id" widget="many2one_avatar_user"/>
+                            <field name="done_date"/>
+                            <field name="close_reason"/>
+                        </group>
+                    </group>
+                    <field name="body" readonly="1"/>
+                    <field name="line_ids" readonly="1">
+                        <list decoration-success="state == 'done'" decoration-muted="state == 'closed'">
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="state" widget="badge"/>
+                            <field name="seen_date"/>
+                            <field name="opened_date"/>
+                            <field name="done_date"/>
+                            <field name="outcome"/>
+                            <field name="note"/>
+                            <field name="closed_reason"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_notification_list" model="ir.ui.view">
+        <field name="name">smart.notification.list</field>
+        <field name="model">smart.notification</field>
+        <field name="arch" type="xml">
+            <list create="0" decoration-success="state == 'done'" decoration-muted="state == 'closed'">
+                <field name="create_date" string="Sent"/>
+                <field name="name"/>
+                <field name="sender_id" widget="many2one_avatar_user"/>
+                <field name="res_model"/>
+                <field name="res_name"/>
+                <field name="policy"/>
+                <field name="done_count" string="Done"/>
+                <field name="line_count" string="Recipients"/>
+                <field name="state" widget="badge" decoration-warning="state == 'open'" decoration-success="state == 'done'"/>
+                <field name="done_by_id" widget="many2one_avatar_user"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_notification_lines" model="ir.actions.act_window">
+        <field name="name">Notification tracking</field>
+        <field name="res_model">smart.notification.line</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'search_default_pending': 1}</field>
+    </record>
+    <record id="action_notifications" model="ir.actions.act_window">
+        <field name="name">Notifications</field>
+        <field name="res_model">smart.notification</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <menuitem id="menu_notification_root" name="Notifications" parent="base.menu_custom" sequence="5"/>
+    <menuitem id="menu_notifications" name="Notifications" parent="menu_notification_root" action="action_notifications" sequence="1"/>
+    <menuitem id="menu_notification_lines" name="Tracking per person" parent="menu_notification_root" action="action_notification_lines" sequence="2"/>
+</odoo>

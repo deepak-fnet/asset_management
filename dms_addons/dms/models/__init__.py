@@ -5,3 +5,13 @@ from . import dms_document
 from . import dms_disposal
 from . import hr_department
 from . import dms_preview
+from . import dms_ai
+from . import dms_crypto
+from . import dms_ai_precheck
+from . import dms_access_request
+from . import dms_dashboard
+from . import dms_insights
+from . import dms_mail
+from . import dms_notify_rules
+from . import dms_vector
+from . import dms_ai_chat

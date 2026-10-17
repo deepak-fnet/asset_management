@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Invoice: AI upload rules (1-15 must pass, 16-25 advice, 26 duplicate check against saved invoices) -->
+    <data noupdate="1">
+        <record id="type_invoice" model="dms.document.type">
+            <field name="ai_enabled" eval="True"/>
+            <field name="ai_fields">vendor, vendor_gstin, invoice_number, invoice_date, buyer, buyer_gstin, total_amount, currency, po_number, due_date</field>
+        </record>
+        <record id="invoice_rule_01" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">1</field>
+            <field name="name">The invoice contains the vendor's legal name</field>
+            <field name="hint">Please upload an invoice that clearly shows the vendor's legal name.</field>
+            <field name="blocking" eval="True"/>
+        </record>
+        <record id="invoice_rule_02" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">2</field>
+            <field name="name">The invoice contains the vendor's GSTIN, if the vendor is GST-registered and the document requires a GSTIN</field>
+            <field name="hint">Please upload an invoice showing the vendor's GSTIN.</field>
+            <field name="blocking" eval="True"/>
+        </record>
+        <record id="invoice_rule_03" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">3</field>
+            <field name="name">The invoice contains a unique invoice number</field>
+            <field name="hint">Please upload an invoice with a valid invoice number.</field>
+            <field name="blocking" eval="True"/>
+        </record>
+        <record id="invoice_rule_04" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">4</field>
+            <field name="name">The invoice contains the invoice date</field>
+            <field name="hint">Please upload an invoice that clearly shows the invoice date.</field>
+            <field name="blocking" eval="True"/>
+        </record>
+        <record id="invoice_rule_05" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">5</field>
+            <field name="name">The invoice contains the buyer's legal name</field>
+            <field name="hint">Please upload an invoice showing the buyer's legal name.</field>
+            <field name="blocking" eval="True"/>
+        </record>
+        <record id="invoice_rule_06" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">6</field>
+            <field name="name">The invoice contains the buyer's billing address</field>
+            <field name="hint">Please upload an invoice showing the buyer's billing address.</field>
+            <field name="blocking" eval="True"/>
+        </record>
+        <record id="invoice_rule_07" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">7</field>
+            <field name="name">The invoice contains the supplier's billing details and address</field>
+            <field name="hint">Please upload an invoice showing the supplier's address and contact details.</field>
+            <field name="blocking" eval="True"/>
+        </record>
+        <record id="invoice_rule_08" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">8</field>
+            <field name="name">The invoice contains a description of the goods or services supplied</field>
+            <field name="hint">Please upload an invoice that clearly describes the goods or services.</field>
+            <field name="blocking" eval="True"/>
+        </record>
+        <record id="invoice_rule_09" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">9</field>
+            <field name="name">The invoice contains the quantity and unit price for each line item, where applicable</field>
+            <field name="hint">Please upload an invoice showing the quantity and unit price of the supplied items.</field>
+            <field name="blocking" eval="True"/>
+        </record>
+        <record id="invoice_rule_10" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">10</field>
+            <field name="name">The invoice shows the taxable value and applicable GST rate for each taxable line item (exempt or non-taxable lines need no GST)</field>
+            <field name="hint">Please upload an invoice showing the taxable value and applicable GST rate.</field>
+            <field name="blocking" eval="True"/>
+        </record>
+        <record id="invoice_rule_11" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">11</field>
+            <field name="name">The invoice shows the applicable GST breakup: CGST + SGST for an intra-state supply, or IGST for an inter-state supply. A legitimately exempt or non-taxable invoice passes without GST amounts</field>
+            <field name="hint">Please upload an invoice showing the applicable GST breakup.</field>
+            <field name="blocking" eval="True"/>
+        </record>
+        <record id="invoice_rule_12" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">12</field>
+            <field name="name">The invoice shows the total invoice amount</field>
+            <field name="hint">Please upload an invoice that clearly displays the total amount payable.</field>
+            <field name="blocking" eval="True"/>
+        </record>
+        <record id="invoice_rule_13" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">13</field>
+            <field name="kind">calculation</field>
+            <field name="name">The invoice total matches the sum of line-item values, taxes, discounts, and other applicable charges</field>
+            <field name="hint">Please verify the calculations and upload a corrected invoice.</field>
+            <field name="blocking" eval="True"/>
+        </record>
+        <record id="invoice_rule_14" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">14</field>
+            <field name="name">The invoice is readable and all important details are visible</field>
+            <field name="hint">Please upload a clear, readable PDF without missing or obscured information.</field>
+            <field name="blocking" eval="True"/>
+        </record>
+        <record id="invoice_rule_15" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">15</field>
+            <field name="name">The uploaded document is an invoice and not an unrelated document</field>
+            <field name="hint">Please upload a valid supplier invoice.</field>
+            <field name="blocking" eval="True"/>
+        </record>
+        <record id="invoice_rule_16" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">16</field>
+            <field name="name">The invoice includes the supplier's authorised signature, where applicable</field>
+            <field name="hint">Please verify whether the invoice requires an authorised signature.</field>
+            <field name="blocking" eval="False"/>
+        </record>
+        <record id="invoice_rule_17" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">17</field>
+            <field name="name">The invoice includes the applicable purchase order number, if required by company policy</field>
+            <field name="hint">Please verify that the invoice references the correct purchase order.</field>
+            <field name="blocking" eval="False"/>
+        </record>
+        <record id="invoice_rule_18" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">18</field>
+            <field name="name">The invoice includes payment terms, where applicable</field>
+            <field name="hint">Please verify the payment terms with the supplier.</field>
+            <field name="blocking" eval="False"/>
+        </record>
+        <record id="invoice_rule_19" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">19</field>
+            <field name="name">The invoice includes the due date, where applicable</field>
+            <field name="hint">Please verify the payment due date with the supplier.</field>
+            <field name="blocking" eval="False"/>
+        </record>
+        <record id="invoice_rule_20" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">20</field>
+            <field name="name">The invoice includes the supplier's bank details, if required by company policy</field>
+            <field name="hint">Please verify the supplier's bank details before processing payment.</field>
+            <field name="blocking" eval="False"/>
+        </record>
+        <record id="invoice_rule_21" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">21</field>
+            <field name="name">The invoice includes the applicable discount details</field>
+            <field name="hint">Please verify the discount amount and calculation.</field>
+            <field name="blocking" eval="False"/>
+        </record>
+        <record id="invoice_rule_22" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">22</field>
+            <field name="name">The invoice includes freight, handling, and other additional charges, where applicable</field>
+            <field name="hint">Please verify the additional charges against the purchase order.</field>
+            <field name="blocking" eval="False"/>
+        </record>
+        <record id="invoice_rule_23" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">23</field>
+            <field name="name">The invoice currency is clearly mentioned, where applicable</field>
+            <field name="hint">Please confirm the invoice currency.</field>
+            <field name="blocking" eval="False"/>
+        </record>
+        <record id="invoice_rule_24" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">24</field>
+            <field name="name">The invoice includes the applicable reverse charge declaration, where required</field>
+            <field name="hint">Please verify whether reverse charge provisions apply to this transaction.</field>
+            <field name="blocking" eval="False"/>
+        </record>
+        <record id="invoice_rule_25" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">25</field>
+            <field name="name">The invoice includes the applicable IRN and QR code for an e-invoice, where required</field>
+            <field name="hint">Please verify the IRN and QR code against the applicable e-invoicing requirements.</field>
+            <field name="blocking" eval="False"/>
+        </record>
+        <record id="invoice_rule_26" model="dms.ai.rule">
+            <field name="type_id" ref="type_invoice"/><field name="sequence">26</field>
+            <field name="name">The invoice number, vendor GSTIN, invoice date and total do not match an invoice already in the DMS</field>
+            <field name="hint">An invoice with the same details already exists. Please verify the invoice before uploading it again.</field>
+            <field name="blocking" eval="True"/>
+            <field name="kind">duplicate</field>
+            <field name="match_fields">vendor_gstin, invoice_number, invoice_date, total_amount</field>
+        </record>
+    </data>
+</odoo>
