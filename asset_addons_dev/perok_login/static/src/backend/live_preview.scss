@@ -1,0 +1,164 @@
+/* Settings > Login Page > Animations form */
+.o_pk_anim_form {
+    .o_form_sheet_bg > .o_form_sheet,
+    .o_form_sheet {
+        max-width: 1720px !important;
+    }
+    .pk-cfg {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+        gap: 28px;
+        align-items: start;
+    }
+    .pk-cfg__preview {
+        position: sticky;
+        top: 12px;
+    }
+    @media (max-width: 1200px) {
+        .pk-cfg { grid-template-columns: 1fr; }
+        .pk-cfg__preview { position: static; order: -1; }
+    }
+    .pk-cfg__head {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+        padding: 14px 18px;
+        margin-bottom: 18px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(113, 75, 103, 0.08), rgba(1, 126, 132, 0.08));
+    }
+    .pk-sec {
+        border: 1px solid var(--border-color, #e5e7eb);
+        border-radius: 14px;
+        padding: 14px 18px 6px;
+        margin-bottom: 16px;
+        background: var(--o-view-background-color, #fff);
+        > .o_horizontal_separator,
+        .pk-sec__title {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            color: var(--o-main-text-color, #374151);
+            margin: 0 0 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            i { color: #714B67; }
+        }
+        .pk-sec__hint {
+            font-size: 12px;
+            color: #6b7280;
+            margin: -4px 0 10px;
+        }
+        .o_inner_group { margin-bottom: 0; }
+    }
+    .pk-sec-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0 16px;
+        @media (max-width: 1500px) { grid-template-columns: 1fr; }
+    }
+    .o_field_color .o_field_color_input,
+    .o_field_color input { cursor: pointer; }
+}
+
+/* slider field */
+.pk-range {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    .pk-range__slider {
+        flex: 1;
+        appearance: none;
+        height: 6px;
+        border-radius: 6px;
+        background: linear-gradient(90deg, #714B67 var(--pk-fill, 0%), #e5e7eb var(--pk-fill, 0%));
+        cursor: pointer;
+        &::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px; height: 16px; border-radius: 50%;
+            background: #fff; border: 2px solid #714B67;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .2);
+        }
+        &::-moz-range-thumb {
+            width: 14px; height: 14px; border-radius: 50%;
+            background: #fff; border: 2px solid #714B67;
+        }
+    }
+    .pk-range__val {
+        display: flex;
+        align-items: center;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 0 8px;
+        min-width: 84px;
+    }
+    .pk-range__num {
+        width: 48px;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        text-align: right;
+        -moz-appearance: textfield;
+        &::-webkit-inner-spin-button { display: none; }
+    }
+    .pk-range__unit { color: #9ca3af; font-size: 12px; margin-left: 2px; }
+}
+
+/* live preview */
+.pk-prev {
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #f8f9fb;
+    box-shadow: 0 8px 30px rgba(17, 24, 39, .08);
+    .pk-prev__bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        background: #fff;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .pk-prev__title { font-weight: 600; }
+    .pk-prev__dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: #017e84;
+        animation: pkPrevPulse .8s ease-in-out infinite alternate;
+    }
+    .pk-prev__box {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        min-height: 200px;
+    }
+    .pk-prev__frame {
+        position: absolute;
+        top: 0;
+        border: 0;
+        background: #fff;
+        transform-origin: top center;
+    }
+    .pk-prev__frame--mobile {
+        border-radius: 28px;
+        box-shadow: 0 0 0 10px #111827;
+    }
+    .pk-prev__empty {
+        align-self: center;
+        text-align: center;
+        color: #9ca3af;
+        padding: 40px;
+    }
+    .pk-prev__hint {
+        font-size: 12px;
+        color: #6b7280;
+        padding: 8px 12px;
+        background: #fff;
+        border-top: 1px solid #e5e7eb;
+    }
+}
+@keyframes pkPrevPulse { to { opacity: .25; } }

@@ -1542,7 +1542,7 @@
             if (pw && (a === pw || (a && a.classList && a.classList.contains("pk-fld__eye")))) {
                 return "shy";
             }
-            if (a && a.id === "login") {
+            if (a && (a.id === "login" || a.id === "totp_token")) {
                 return "email";
             }
             return "idle";
@@ -1781,7 +1781,7 @@
         var busy = false;
 
         function button(form, on) {
-            var b = form.querySelector(".pk-btn--dark");
+            var b = form.querySelector(".pk-btn--dark") || form.querySelector('button[type="submit"]');
             if (b) {
                 b.classList.toggle("is-loading", on);
                 b.disabled = on;
@@ -1797,6 +1797,24 @@
                 mine.value = token.value;
             }
             var alert = form.querySelector(".pk-alert--err");
+            var code = form.querySelector('input[name="totp_token"]');
+            if (!alert && code) {
+                // 2FA step: an alert above the code field
+                var old = form.querySelector(".alert-danger");
+                if (old) {
+                    old.remove();
+                }
+                alert = document.createElement("div");
+                alert.className = "pk-alert pk-alert--err";
+                alert.setAttribute("role", "alert");
+                alert.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+                    '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><span></span>';
+                code.parentNode.insertBefore(alert, code.parentNode.firstChild);
+            }
+            if (code) {
+                code.value = "";
+                code.focus();
+            }
             if (!alert) {
                 var tpl = document.createElement("div");
                 tpl.innerHTML = '<div class="pk-alert pk-alert--err" role="alert">' +
@@ -2311,7 +2329,7 @@
                 done();
                 var doc = new DOMParser().parseFromString(out.html || "", "text/html");
                 if (doc.querySelector(".oe_login_form")) {
-                    showError(form, doc);
+                    showError(form, doc, isTotp(form) ? "Invalid authentication code" : null);
                 } else {
                     // not the login page (e.g. an expired session): no message to reuse
                     showError(form, null, "Something went wrong (" + out.status + "). Please reload the page and try again.");
@@ -2324,9 +2342,14 @@
 
         // capture phase: runs before Odoo's own submit handler, which then sees
         // the event as handled and skips its button spinner
+        // the 2FA step (/web/login/totp): its code form is posted the same way
+        function isTotp(form) {
+            return !!form.querySelector('input[name="totp_token"]');
+        }
         document.addEventListener("submit", function (e) {
             var form = e.target;
-            if (!form || !form.closest || !form.closest(".pk-form-box") || !form.classList.contains("pk-form")) {
+            if (!form || !form.closest || !form.closest(".pk-form-box") ||
+                    !(form.classList.contains("pk-form") || isTotp(form))) {
                 return;
             }
             e.preventDefault();

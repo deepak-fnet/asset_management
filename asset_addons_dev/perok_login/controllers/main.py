@@ -20,3 +20,19 @@ class PerokLoginAnimationController(http.Controller):
             rec, field, filename=rec[field + '_name'] if field + '_name' in rec else field,
             mimetype='model/gltf-binary' if field == 'model_file' else None)
         return stream.get_response(max_age=86400 * 7)
+
+    # Settings > Login Page > Animations: the login page of one animation, shown in the
+    # live preview of its form (the form's unsaved values are posted to it, see preview.js)
+    @http.route('/perok_login/preview/<int:anim_id>', type='http', auth='user', website=True, sitemap=False)
+    def animation_preview(self, anim_id, **kw):
+        if not request.env.user.has_group('base.group_system'):
+            raise request.not_found()
+        request.update_context(perok_preview_id=anim_id)
+        response = request.render('web.login', {
+            'databases': None,
+            'disable_database_manager': False,
+            'reset_password_enabled': True,
+        })
+        response.headers['Cache-Control'] = 'no-store'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        return response

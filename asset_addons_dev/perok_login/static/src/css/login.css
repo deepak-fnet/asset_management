@@ -23,6 +23,36 @@ body.pk-body {
     --pk-panel-radius: 20px;
     --pk-btn-radius: 24px;
     --pk-font: 'Plus Jakarta Sans';
+    --pk-form-w: 340px;
+    --pk-align: left;
+    --pk-logo-h: 36px;
+    --pk-logo-gap: 28px;
+    --pk-h1-size: 26px;
+    --pk-h1-weight: 800;
+    --pk-sub-size: 14px;
+    --pk-sub-gap: 28px;
+    --pk-label-size: 12px;
+    --pk-label-weight: 500;
+    --pk-link-size: 11px;
+    --pk-input-h: 44px;
+    --pk-input-size: 14px;
+    --pk-input-text: #1C1917;
+    --pk-placeholder: #D6D3D1;
+    --pk-input-bg: transparent;
+    --pk-line-w: 1.5px;
+    --pk-focus-w: 1.5px;
+    --pk-input-radius: 0px;
+    --pk-field-gap: 16px;
+    --pk-eye: #A8A29E;
+    --pk-btn-h: 46px;
+    --pk-btn-size: 14px;
+    --pk-btn-weight: 600;
+    --pk-btn-border: #1C1917;
+    --pk-btn-border-w: 0px;
+    --pk-btn-gap: 22px;
+    --pk-foot: #A8A29E;
+    --pk-foot-size: 12px;
+    --pk-reset-size: 13px;
 }
 
 /* === BASE === */
@@ -433,30 +463,36 @@ body.pk-body footer#bottom {
 
 .pk-form-box {
     width: 100%;
-    max-width: 340px;
+    max-width: var(--pk-form-w);
+}
+.pk-logo, .pk-h1, .pk-sub, .pk-foot {
+    text-align: var(--pk-align);
+}
+.pk-h1:empty, .pk-sub:empty {
+    display: none;
 }
 
 .pk-logo {
-    margin-bottom: 28px;
+    margin-bottom: var(--pk-logo-gap);
 }
 .pk-logo img {
-    max-height: 36px;
+    max-height: var(--pk-logo-h);
     width: auto;
 }
 
 .pk-h1 {
     font-family: var(--pk-font), 'Plus Jakarta Sans', sans-serif;
-    font-size: 26px;
-    font-weight: 800;
+    font-size: var(--pk-h1-size);
+    font-weight: var(--pk-h1-weight);
     color: var(--pk-heading);
     letter-spacing: -0.03em;
     margin: 0 0 4px 0;
     line-height: 1.2;
 }
 .pk-sub {
-    font-size: 14px;
+    font-size: var(--pk-sub-size);
     color: var(--pk-subtext);
-    margin: 0 0 28px 0;
+    margin: 0 0 var(--pk-sub-gap) 0;
     font-weight: 400;
 }
 
@@ -495,12 +531,12 @@ body.pk-body footer#bottom {
 
 /* === FORM FIELDS === */
 .pk-fld {
-    margin-bottom: 16px;
+    margin-bottom: var(--pk-field-gap);
 }
 .pk-fld__lbl {
     display: block;
-    font-size: 12px;
-    font-weight: 500;
+    font-size: var(--pk-label-size);
+    font-weight: var(--pk-label-weight);
     color: var(--pk-label);
     margin-bottom: 6px;
     letter-spacing: 0.01em;
@@ -516,7 +552,7 @@ body.pk-body footer#bottom {
     margin-bottom: 0;
 }
 .pk-fld__forgot {
-    font-size: 11px;
+    font-size: var(--pk-link-size);
     color: var(--pk-link);
     text-decoration: none;
     font-weight: 500;
@@ -532,15 +568,15 @@ body.pk-body footer#bottom {
 
 .pk-fld__input {
     width: 100% !important;
-    height: 44px !important;
+    height: var(--pk-input-h) !important;
     padding: 0 14px !important;
-    background: transparent !important;
+    background: var(--pk-input-bg) !important;
     border: none !important;
-    border-bottom: 1.5px solid var(--pk-input-line) !important;
+    border-bottom: var(--pk-line-w) solid var(--pk-input-line) !important;
     border-radius: 0 !important;
-    color: #1C1917 !important;
+    color: var(--pk-input-text) !important;
     font-family: var(--pk-font), 'Plus Jakarta Sans', sans-serif !important;
-    font-size: 14px !important;
+    font-size: var(--pk-input-size) !important;
     font-weight: 400 !important;
     transition: border-color 0.25s ease !important;
     outline: none !important;
@@ -550,11 +586,12 @@ body.pk-body footer#bottom {
     box-shadow: none !important;
 }
 .pk-fld__input::placeholder {
-    color: #D6D3D1 !important;
+    color: var(--pk-placeholder) !important;
     font-weight: 400 !important;
 }
 .pk-fld__input:focus {
     border-bottom-color: var(--pk-input-focus) !important;
+    border-bottom-width: var(--pk-focus-w) !important;
     box-shadow: none !important;
 }
 
@@ -565,7 +602,7 @@ body.pk-body footer#bottom {
     transform: translateY(-50%);
     background: none;
     border: none;
-    color: #A8A29E;
+    color: var(--pk-eye);
     cursor: pointer;
     padding: 4px;
     display: flex;
@@ -574,7 +611,8 @@ body.pk-body footer#bottom {
     transition: color 0.2s;
 }
 .pk-fld__eye:hover {
-    color: #78716C;
+    color: var(--pk-eye);
+    filter: brightness(0.75);
 }
 
 /* === ALERTS === */
@@ -606,7 +644,7 @@ body.pk-body footer#bottom {
 
 /* === BUTTONS === */
 .pk-acts {
-    margin-top: 22px;
+    margin-top: var(--pk-btn-gap);
 }
 
 .pk-btn {
@@ -614,11 +652,11 @@ body.pk-body footer#bottom {
     align-items: center !important;
     justify-content: center !important;
     width: 100% !important;
-    height: 46px !important;
+    height: var(--pk-btn-h) !important;
     border-radius: var(--pk-btn-radius) !important;
     font-family: var(--pk-font), 'Plus Jakarta Sans', sans-serif !important;
-    font-size: 14px !important;
-    font-weight: 600 !important;
+    font-size: var(--pk-btn-size) !important;
+    font-weight: var(--pk-btn-weight) !important;
     cursor: pointer !important;
     transition: all 0.3s ease !important;
     border: none !important;
@@ -628,13 +666,14 @@ body.pk-body footer#bottom {
     box-shadow: none !important;
     margin: 0 !important;
     padding: 0 !important;
-    line-height: 46px !important;
+    line-height: var(--pk-btn-h) !important;
     text-align: center !important;
 }
 
 .pk-btn--dark {
     background: var(--pk-btn-bg) !important;
     color: var(--pk-btn-text) !important;
+    border: var(--pk-btn-border-w) solid var(--pk-btn-border) !important;
 }
 .pk-btn--dark:hover {
     background: var(--pk-btn-bg) !important;
@@ -715,16 +754,20 @@ body.pk-body footer#bottom {
 .pk-foot {
     text-align: center;
     margin-top: 28px;
-    font-size: 12px;
-    color: #D6D3D1;
+    font-size: var(--pk-foot-size);
+    color: var(--pk-foot);
     font-family: var(--pk-font), 'Plus Jakarta Sans', sans-serif;
 }
 .pk-foot a {
-    color: #A8A29E;
+    color: var(--pk-foot);
     text-decoration: none;
 }
 .pk-foot a:hover {
-    color: #78716C;
+    color: var(--pk-foot);
+    filter: brightness(0.75);
+}
+.pk-foot--reset a {
+    font-size: var(--pk-reset-size) !important;
 }
 .pk-foot b {
     font-weight: 600;
@@ -814,4 +857,76 @@ body.pk-body footer#bottom {
     .pk-flyer {
         display: none !important;
     }
+}
+
+/* === 2FA STEP (/web/login/totp): Odoo's code form in the same look === */
+.pk-form-box .oe_login_form:not(.pk-form) {
+    font-family: var(--pk-font), 'Plus Jakarta Sans', sans-serif;
+    color: var(--pk-label);
+    font-size: var(--pk-sub-size);
+}
+.pk-form-box .oe_login_form:not(.pk-form) .card-title {
+    color: var(--pk-heading);
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+.pk-form-box .oe_login_form:not(.pk-form) .text-muted {
+    color: var(--pk-subtext) !important;
+}
+.pk-form-box .oe_login_form:not(.pk-form) a {
+    color: var(--pk-link);
+}
+.pk-form-box .oe_login_form:not(.pk-form) label {
+    color: var(--pk-label);
+    font-size: var(--pk-label-size);
+    font-weight: var(--pk-label-weight) !important;
+}
+.pk-form-box .oe_login_form:not(.pk-form) .form-control {
+    height: var(--pk-input-h);
+    padding: 0 14px;
+    background: var(--pk-input-bg);
+    border: none;
+    border-bottom: var(--pk-line-w) solid var(--pk-input-line);
+    border-radius: 0;
+    box-shadow: none;
+    color: var(--pk-input-text);
+    font-size: calc(var(--pk-input-size) + 4px);
+    letter-spacing: 0.3em;
+}
+.pk-form-box .oe_login_form:not(.pk-form) .form-control::placeholder {
+    color: var(--pk-placeholder);
+    letter-spacing: normal;
+}
+.pk-form-box .oe_login_form:not(.pk-form) .form-control:focus {
+    border-bottom: var(--pk-focus-w) solid var(--pk-input-focus);
+}
+.pk-form-box .oe_login_form:not(.pk-form) .border-top {
+    border-top: none !important;
+}
+.pk-form-box .oe_login_form:not(.pk-form) .btn-primary {
+    height: var(--pk-btn-h);
+    border-radius: var(--pk-btn-radius);
+    background: var(--pk-btn-bg);
+    color: var(--pk-btn-text);
+    border: var(--pk-btn-border-w) solid var(--pk-btn-border);
+    font-size: var(--pk-btn-size);
+    font-weight: var(--pk-btn-weight);
+    text-transform: none;
+}
+.pk-form-box .oe_login_form:not(.pk-form) .btn-primary.is-loading::after {
+    content: "";
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-left: 10px;
+    vertical-align: -2px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #FFFFFF;
+    border-radius: 50%;
+    animation: pkSpin 0.7s linear infinite;
+}
+.pk-form-box .oe_login_form:not(.pk-form) .btn-secondary,
+.pk-form-box .oe_login_form:not(.pk-form) .btn-link {
+    border-radius: var(--pk-btn-radius);
+    color: var(--pk-subtext);
 }

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="cron_expire_ssh_requests" model="ir.cron">
+        <field name="name">SSH: Expire Access Requests</field>
+        <field name="model_id" ref="model_ssh_access_request"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_expire_requests()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="cron_close_orphaned_sessions" model="ir.cron">
+        <field name="name">SSH: Close Orphaned Sessions</field>
+        <field name="model_id" ref="model_ssh_connection_log"/>
+        <field name="state">code</field>
+        <field name="code">model._close_orphaned_sessions()</field>
+        <field name="interval_number">30</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+</odoo>

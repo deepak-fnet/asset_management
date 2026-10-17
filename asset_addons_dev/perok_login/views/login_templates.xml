@@ -15,15 +15,18 @@
             <!-- Loaded here rather than in an asset bundle so they only ship
                  with the login/signup/reset pages that use this layout.
                  Odoo caches static files for a week: bump ?v= when editing them. -->
-            <link rel="stylesheet" type="text/css" href="/perok_login/static/src/css/login.css?v=19.2.0"/>
-            <script type="text/javascript" src="/perok_login/static/src/js/login.js?v=19.2.0" defer="defer"/>
+            <link rel="stylesheet" type="text/css" href="/perok_login/static/src/css/login.css?v=19.3.2"/>
+            <script type="text/javascript" src="/perok_login/static/src/js/login.js?v=19.3.2" defer="defer"/>
 
             <!-- Settings > Login Page > Animations: the default record picks the mascot and the look -->
             <t t-set="pk_anim" t-value="request.env['perok.login.animation']._get_login_animation() if request and request.env is not None and 'perok.login.animation' in request.env else False"/>
+            <t t-set="pk_txt" t-value="pk_anim._login_texts() if pk_anim else (request.env['perok.login.animation']._login_texts() if request and request.env is not None and 'perok.login.animation' in request.env else {})"/>
             <t t-if="pk_anim">
-                <link t-if="pk_anim._login_font_url()" rel="stylesheet" t-att-href="pk_anim._login_font_url()"/>
-                <style t-out="pk_anim._login_theme_css()"/>
+                <link id="pk_font" t-if="pk_anim._login_font_url()" rel="stylesheet" t-att-href="pk_anim._login_font_url()"/>
+                <style id="pk_theme" t-out="pk_anim._login_theme_css()"/>
             </t>
+            <!-- Settings > Login Page > Animations: live preview of the form being edited -->
+            <script t-if="request and request.env.context.get('perok_preview_id')" type="text/javascript" src="/perok_login/static/src/js/preview.js?v=19.3.2"/>
 
             <!-- full-page background video (Look & colours > Page background video) -->
             <div t-if="pk_anim and pk_anim.page_bg_image" class="pk-page-bg" aria-hidden="true"
@@ -76,16 +79,16 @@
                             <div class="pk-stage__rig">
                                 <div class="pk-stage__enter">
                                     <div class="pk-stage__bird">
-                                        <img class="pk-pose is-on" data-pose="idle" src="/perok_login/static/src/img/parrot/idle.webp?v=19.2.0" alt="" aria-hidden="true" draggable="false" decoding="async" fetchpriority="high"/>
-                                        <img class="pk-pose" data-pose="email" src="/perok_login/static/src/img/parrot/email.webp?v=19.2.0" alt="" aria-hidden="true" draggable="false" decoding="async"/>
-                                        <img class="pk-pose" data-pose="shy" src="/perok_login/static/src/img/parrot/shy.webp?v=19.2.0" alt="" aria-hidden="true" draggable="false" decoding="async"/>
-                                        <img class="pk-pose" data-pose="peek" src="/perok_login/static/src/img/parrot/peek.webp?v=19.2.0" alt="" aria-hidden="true" draggable="false" decoding="async"/>
-                                        <img class="pk-pose" data-pose="success" src="/perok_login/static/src/img/parrot/success.webp?v=19.2.0" alt="" aria-hidden="true" draggable="false" decoding="async"/>
+                                        <img class="pk-pose is-on" data-pose="idle" src="/perok_login/static/src/img/parrot/idle.webp?v=19.3.2" alt="" aria-hidden="true" draggable="false" decoding="async" fetchpriority="high"/>
+                                        <img class="pk-pose" data-pose="email" src="/perok_login/static/src/img/parrot/email.webp?v=19.3.2" alt="" aria-hidden="true" draggable="false" decoding="async"/>
+                                        <img class="pk-pose" data-pose="shy" src="/perok_login/static/src/img/parrot/shy.webp?v=19.3.2" alt="" aria-hidden="true" draggable="false" decoding="async"/>
+                                        <img class="pk-pose" data-pose="peek" src="/perok_login/static/src/img/parrot/peek.webp?v=19.3.2" alt="" aria-hidden="true" draggable="false" decoding="async"/>
+                                        <img class="pk-pose" data-pose="success" src="/perok_login/static/src/img/parrot/success.webp?v=19.3.2" alt="" aria-hidden="true" draggable="false" decoding="async"/>
                                     </div>
                                     <!-- the success pose cut into layers, for the wing beats of the fly-away -->
-                                    <img class="pk-fly" data-part="body" src="/perok_login/static/src/img/parrot/fly_body.webp?v=19.2.0" alt="" aria-hidden="true" draggable="false" decoding="async"/>
-                                    <img class="pk-fly" data-part="wingL" src="/perok_login/static/src/img/parrot/fly_wing_l.webp?v=19.2.0" alt="" aria-hidden="true" draggable="false" decoding="async"/>
-                                    <img class="pk-fly" data-part="wingR" src="/perok_login/static/src/img/parrot/fly_wing_r.webp?v=19.2.0" alt="" aria-hidden="true" draggable="false" decoding="async"/>
+                                    <img class="pk-fly" data-part="body" src="/perok_login/static/src/img/parrot/fly_body.webp?v=19.3.2" alt="" aria-hidden="true" draggable="false" decoding="async"/>
+                                    <img class="pk-fly" data-part="wingL" src="/perok_login/static/src/img/parrot/fly_wing_l.webp?v=19.3.2" alt="" aria-hidden="true" draggable="false" decoding="async"/>
+                                    <img class="pk-fly" data-part="wingR" src="/perok_login/static/src/img/parrot/fly_wing_r.webp?v=19.3.2" alt="" aria-hidden="true" draggable="false" decoding="async"/>
                                 </div>
                             </div>
                         </div>
@@ -97,20 +100,20 @@
                             <div class="pk-logo pk-an pk-an1">
                                 <img t-attf-src="/web/binary/company_logo{{ '?dbname='+db if db else '' }}" alt="Logo"/>
                             </div>
-                            <h1 class="pk-h1 pk-an pk-an2" t-out="pk_anim.heading_text if pk_anim and pk_anim.heading_text else 'Welcome back'"/>
-                            <p class="pk-sub pk-an pk-an3" t-if="not pk_anim or pk_anim.subheading_text" t-out="pk_anim.subheading_text if pk_anim else 'What are you selling today ?'"/>
+                            <h1 class="pk-h1 pk-an pk-an2" data-pk-text="heading_text" t-out="pk_txt.get('heading_text', 'Welcome back')"/>
+                            <p class="pk-sub pk-an pk-an3" data-pk-text="subheading_text" t-out="pk_txt.get('subheading_text', '')"/>
                             <div class="pk-an pk-an4">
                                 <t t-out="0"/>
                             </div>
-                            <div class="pk-foot pk-an pk-an5" t-if="not disable_footer and reset_password_enabled and (not pk_anim or pk_anim.show_reset_link)">
+                            <div class="pk-foot pk-foot--reset pk-an pk-an5" t-if="not disable_footer and reset_password_enabled">
                                 <div style="text-align:center;margin-top:18px;padding-top:14px;border-top:1px solid rgba(0,0,0,.08);">
                                     <a href="/web/reset_password"
-                                       style="font-size:13px;color:var(--pk-link, #cc1a00);text-decoration:none;letter-spacing:.5px;font-weight:600;">
-                                        🔑 &amp;nbsp; Reset My Password
+                                       style="color:var(--pk-link, #cc1a00);text-decoration:none;letter-spacing:.5px;font-weight:600;">
+                                        🔑 &amp;nbsp; <span data-pk-text="reset_text" t-out="pk_txt.get('reset_text', 'Reset My Password')"/>
                                     </a>
                                 </div>
                             </div>
-                            <div class="pk-foot pk-an pk-an5" t-if="not disable_footer and (not pk_anim or pk_anim.show_footer)">
+                            <div class="pk-foot pk-foot--db pk-an pk-an5" t-if="not disable_footer">
                                 <t t-if="not disable_database_manager">
                                     <a href="/web/database/manager">Manage Databases</a>
                                     <span> · </span>
@@ -136,6 +139,7 @@
                   t-attf-action="/web/login" method="post"
                   onsubmit="this.action = '/web/login' + location.hash">
                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <t t-set="pk_txt" t-value="request.env['perok.login.animation']._get_login_animation()._login_texts() if request and request.env is not None and 'perok.login.animation' in request.env else {}"/>
 
                 <div class="pk-alert pk-alert--err" t-if="error" role="alert">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
@@ -154,16 +158,16 @@
                 </div>
 
                 <div class="pk-fld">
-                    <label class="pk-fld__lbl" for="login">Email</label>
+                    <label class="pk-fld__lbl" for="login" data-pk-text="email_label" t-out="pk_txt.get('email_label', 'Email')"/>
                     <div class="pk-fld__wrap">
-                        <input type="text" name="login" t-att-value="login" id="login" class="pk-fld__input" placeholder="yourjohn@mail.com" required="required" autocomplete="username" autofocus="autofocus" autocapitalize="off"/>
+                        <input type="text" name="login" t-att-value="login" id="login" class="pk-fld__input" t-att-placeholder="pk_txt.get('email_placeholder', 'yourjohn@mail.com')" data-pk-ph="email_placeholder" required="required" autocomplete="username" autofocus="autofocus" autocapitalize="off"/>
                     </div>
                 </div>
 
                 <div class="pk-fld">
                     <div class="pk-fld__lbl-row">
-                        <label class="pk-fld__lbl" for="password">Password</label>
-                        <a href="#" class="pk-fld__forgot">My password ?</a>
+                        <label class="pk-fld__lbl" for="password" data-pk-text="password_label" t-out="pk_txt.get('password_label', 'Password')"/>
+                        <a href="#" class="pk-fld__forgot" data-pk-text="forgot_text" t-out="pk_txt.get('forgot_text', 'My password ?')"/>
                     </div>
                     <div class="pk-fld__wrap">
                         <input type="password" name="password" id="pk_password" class="pk-fld__input" placeholder="••••••••" required="required" autocomplete="current-password" t-att-autofocus="'autofocus' if login else None" maxlength="4096" style="padding-right: 40px !important;"/>
@@ -175,7 +179,7 @@
                 </div>
 
                 <div class="pk-acts">
-                    <button type="submit" class="pk-btn pk-btn--dark">Log in</button>
+                    <button type="submit" class="pk-btn pk-btn--dark" data-pk-text="button_label" t-out="pk_txt.get('button_label', 'Log in')"/>
                     <t t-if="debug">
                         <button type="submit" name="redirect" value="/web/become" class="pk-btn pk-btn--ghost">Log in as superuser</button>
                     </t>

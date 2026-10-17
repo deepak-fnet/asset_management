@@ -25,7 +25,7 @@ class IrHttp(models.AbstractModel):
         super()._post_dispatch(response)
         httprequest = request.httprequest
         if (httprequest.method == 'POST'
-                and httprequest.path == '/web/login'
+                and httprequest.path in ('/web/login', '/web/login/totp')
                 and httprequest.headers.get(LOGIN_HEADER) == '1'
                 and 300 <= getattr(response, 'status_code', 0) < 400):
             location = response.headers.get('Location')

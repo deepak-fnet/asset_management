@@ -1,0 +1,158 @@
+/* SSH terminal (Odoo 19) */
+.sshx {
+    --sx-bg: #0b1020;
+    --sx-bar: #121a30;
+    --sx-line: rgba(255, 255, 255, .07);
+    --sx-text: #cdd6f4;
+    --sx-dim: #7f8bab;
+    --sx-accent: #7fdbca;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    padding: 14px;
+    background: radial-gradient(1200px 600px at 10% -10%, #1b2a55 0%, transparent 60%),
+                radial-gradient(900px 500px at 110% 120%, #1a3b3a 0%, transparent 55%), #070b16;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.sshx-theme-dracula { --sx-bg: #1e1f29; --sx-bar: #272936; --sx-accent: #ff79c6; }
+.sshx-theme-matrix { --sx-bg: #020a04; --sx-bar: #06170b; --sx-accent: #33ff66; --sx-text: #b9ffcb; --sx-dim: #3f9a5a; }
+.sshx-theme-paper {
+    --sx-bg: #fbfaf7; --sx-bar: #f0eee8; --sx-line: rgba(0, 0, 0, .08); --sx-text: #2b2b2b; --sx-dim: #8a8780;
+    --sx-accent: #2563eb;
+    background: linear-gradient(135deg, #e9edf5, #f6f1e7);
+}
+.sshx-full {
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    padding: 0;
+}
+.sshx-full .sshx-bar, .sshx-full .sshx-foot { border-radius: 0; }
+
+/* ---- window bar */
+.sshx-bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 9px 14px;
+    background: var(--sx-bar);
+    color: var(--sx-text);
+    border: 1px solid var(--sx-line);
+    border-bottom: 0;
+    border-radius: 14px 14px 0 0;
+    box-shadow: 0 -1px 0 rgba(255, 255, 255, .04) inset;
+}
+.sshx-lights { display: flex; gap: 7px; }
+.sshx-light {
+    width: 12px; height: 12px; border-radius: 50%; cursor: pointer;
+    transition: transform .15s, filter .15s;
+}
+.sshx-light:hover { transform: scale(1.2); filter: brightness(1.15); }
+.sshx-red { background: #ff5f57; }
+.sshx-yellow { background: #febc2e; }
+.sshx-green { background: #28c840; }
+.sshx-title {
+    display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;
+    font-size: 13px;
+}
+.sshx-title > .fa { color: var(--sx-accent); }
+.sshx-host { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sshx-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 2px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; letter-spacing: .02em;
+    background: rgba(127, 139, 171, .15); color: var(--sx-dim);
+}
+.sshx-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.sshx-live { background: rgba(34, 218, 110, .14); color: #22da6e; }
+.sshx-live .sshx-dot { animation: sshx-pulse 1.8s infinite; }
+.sshx-connecting { background: rgba(255, 203, 107, .14); color: #ffcb6b; }
+.sshx-connecting .sshx-dot { animation: sshx-blink .8s infinite alternate; }
+.sshx-closed, .sshx-error { background: rgba(239, 83, 80, .14); color: #ef5350; }
+@keyframes sshx-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(34, 218, 110, .6); }
+    70% { box-shadow: 0 0 0 7px rgba(34, 218, 110, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 218, 110, 0); }
+}
+@keyframes sshx-blink { from { opacity: .3; } to { opacity: 1; } }
+.sshx-meta { color: var(--sx-dim); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sshx-lat-good { color: #22da6e; }
+.sshx-lat-ok { color: #ffcb6b; }
+.sshx-lat-slow { color: #ef5350; }
+
+.sshx-tools { display: flex; align-items: center; gap: 4px; }
+.sshx-btn {
+    border: 0; background: transparent; color: var(--sx-text);
+    height: 30px; min-width: 30px; padding: 0 8px; border-radius: 8px;
+    font-size: 13px; cursor: pointer; transition: background .15s, color .15s, transform .1s;
+}
+.sshx-btn:hover { background: rgba(127, 139, 171, .18); color: var(--sx-accent); }
+.sshx-btn:active { transform: scale(.94); }
+.sshx-files { background: rgba(127, 139, 171, .12); }
+.sshx-danger:hover { background: rgba(239, 83, 80, .2); color: #ef5350; }
+.sshx-go { background: var(--sx-accent); color: #0b1020; font-weight: 600; }
+.sshx-go:hover { background: var(--sx-accent); color: #0b1020; filter: brightness(1.1); }
+.sshx-sep { width: 1px; height: 18px; background: var(--sx-line); margin: 0 4px; }
+.sshx-font { font-size: 12px; color: var(--sx-dim); min-width: 18px; text-align: center; font-variant-numeric: tabular-nums; }
+
+.sshx-themes-wrap { position: relative; }
+.sshx-themes {
+    position: absolute; right: 0; top: 36px; z-index: 20; min-width: 160px; padding: 6px;
+    background: var(--sx-bar); border: 1px solid var(--sx-line); border-radius: 12px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, .45);
+    animation: sshx-pop .14s ease-out;
+}
+@keyframes sshx-pop { from { opacity: 0; transform: translateY(-4px) scale(.98); } to { opacity: 1; transform: none; } }
+.sshx-theme {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    border: 0; background: transparent; color: var(--sx-text);
+    padding: 7px 8px; border-radius: 8px; font-size: 13px; text-align: left; cursor: pointer;
+}
+.sshx-theme:hover, .sshx-theme.active { background: rgba(127, 139, 171, .18); }
+.sshx-swatch { width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--sx-line); }
+
+/* ---- terminal */
+.sshx-body {
+    position: relative; flex: 1; min-height: 0;
+    background: var(--sx-bg);
+    border-left: 1px solid var(--sx-line); border-right: 1px solid var(--sx-line);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, .45);
+}
+.sshx-term { position: absolute; inset: 0; padding: 10px 4px 6px 14px; }
+.sshx-term .xterm { height: 100%; }
+.sshx-term .xterm-viewport { background-color: transparent !important; }
+.sshx-term .xterm-viewport::-webkit-scrollbar { width: 10px; }
+.sshx-term .xterm-viewport::-webkit-scrollbar-thumb { background: rgba(127, 139, 171, .3); border-radius: 10px; border: 2px solid transparent; background-clip: padding-box; }
+.sshx-overlay {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+    color: var(--sx-dim); font-size: 13px; background: color-mix(in srgb, var(--sx-bg) 82%, transparent);
+    backdrop-filter: blur(2px);
+}
+.sshx-spinner {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 3px solid rgba(127, 139, 171, .25); border-top-color: var(--sx-accent);
+    animation: sshx-spin .8s linear infinite;
+}
+@keyframes sshx-spin { to { transform: rotate(360deg); } }
+.sshx-toast {
+    position: absolute; right: 18px; bottom: 14px; padding: 6px 14px; border-radius: 99px;
+    background: var(--sx-accent); color: #0b1020; font-size: 12px; font-weight: 600;
+    animation: sshx-pop .14s ease-out; pointer-events: none;
+}
+
+/* ---- footer */
+.sshx-foot {
+    display: flex; justify-content: space-between; gap: 12px;
+    padding: 7px 14px; font-size: 11.5px; color: var(--sx-dim);
+    background: var(--sx-bar); border: 1px solid var(--sx-line); border-top: 0; border-radius: 0 0 14px 14px;
+}
+.sshx-foot .fa-shield { color: #22da6e; }
+.sshx-keys kbd {
+    background: rgba(127, 139, 171, .16); color: var(--sx-text); border: 0; border-radius: 4px;
+    padding: 1px 5px; font-size: 10.5px; box-shadow: none; margin-left: 4px;
+}
+@media (max-width: 760px) {
+    .sshx { padding: 6px; }
+    .sshx-hide-sm, .sshx-lights { display: none; }
+    .sshx-bar { flex-wrap: wrap; gap: 8px; }
+}

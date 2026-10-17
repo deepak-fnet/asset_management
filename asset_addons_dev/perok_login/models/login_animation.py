@@ -19,6 +19,48 @@ def _hex_rgb(value):
     return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
 
 
+_WEIGHTS = [('300', 'Light'), ('400', 'Regular'), ('500', 'Medium'), ('600', 'Semi-bold'),
+            ('700', 'Bold'), ('800', 'Extra-bold')]
+
+# texts shown on the form (data-pk-text / data-pk-ph in the template)
+TEXT_FIELDS = ['heading_text', 'subheading_text', 'email_label', 'email_placeholder', 'password_label',
+               'forgot_text', 'button_label', 'reset_text']
+
+# field -> CSS variable, kind, min, max (written on body.pk-body)
+STYLE_VARS = [
+    ('form_width', '--pk-form-w', 'px', 240, 600),
+    ('logo_height', '--pk-logo-h', 'px', 12, 160),
+    ('logo_gap', '--pk-logo-gap', 'px', 0, 120),
+    ('heading_size', '--pk-h1-size', 'px', 12, 72),
+    ('heading_weight', '--pk-h1-weight', 'weight', 0, 0),
+    ('subheading_size', '--pk-sub-size', 'px', 8, 40),
+    ('subheading_gap', '--pk-sub-gap', 'px', 0, 120),
+    ('label_size', '--pk-label-size', 'px', 8, 30),
+    ('label_weight', '--pk-label-weight', 'weight', 0, 0),
+    ('link_size', '--pk-link-size', 'px', 8, 30),
+    ('input_height', '--pk-input-h', 'px', 28, 80),
+    ('input_size', '--pk-input-size', 'px', 10, 30),
+    ('input_text_color', '--pk-input-text', 'color', 0, 0),
+    ('placeholder_color', '--pk-placeholder', 'color', 0, 0),
+    ('input_line_width', '--pk-line-w', 'px', 0, 8),
+    ('input_focus_width', '--pk-focus-w', 'px', 0, 8),
+    ('input_radius', '--pk-input-radius', 'px', 0, 40),
+    ('field_gap', '--pk-field-gap', 'px', 0, 80),
+    ('eye_color', '--pk-eye', 'color', 0, 0),
+    ('button_height', '--pk-btn-h', 'px', 28, 90),
+    ('button_font_size', '--pk-btn-size', 'px', 10, 32),
+    ('button_weight', '--pk-btn-weight', 'weight', 0, 0),
+    ('button_border_color', '--pk-btn-border', 'color', 0, 0),
+    ('button_border_width', '--pk-btn-border-w', 'px', 0, 8),
+    ('button_gap', '--pk-btn-gap', 'px', 0, 120),
+    ('footer_color', '--pk-foot', 'color', 0, 0),
+    ('footer_size', '--pk-foot-size', 'px', 8, 24),
+    ('reset_size', '--pk-reset-size', 'px', 8, 30),
+]
+
+_COLOR_RE = r'#[0-9A-Fa-f]{3,8}|rgba?\([0-9.,\s%]+\)'
+
+
 class PerokLoginAnimation(models.Model):
     _name = 'perok.login.animation'
     _description = 'Login Page Animation'
@@ -111,6 +153,54 @@ class PerokLoginAnimation(models.Model):
     show_reset_link = fields.Boolean('Show "Reset My Password"', default=True)
     show_footer = fields.Boolean('Show "Manage Databases / Powered by"', default=True)
 
+    # ---------- every text, size and colour of the form ----------
+    text_align = fields.Selection([('left', 'Left'), ('center', 'Centre')], string='Text alignment',
+                                  default='left', required=True)
+    form_width = fields.Integer('Form width (px)', default=340)
+    show_logo = fields.Boolean('Show logo', default=True)
+    logo_height = fields.Integer('Logo height (px)', default=36)
+    logo_gap = fields.Integer('Space under the logo (px)', default=28)
+    heading_size = fields.Integer('Heading size (px)', default=26)
+    heading_weight = fields.Selection(_WEIGHTS, string='Heading weight', default='800', required=True)
+    subheading_size = fields.Integer('Sub-heading size (px)', default=14)
+    subheading_gap = fields.Integer('Space under the sub-heading (px)', default=28)
+    # field labels and texts
+    email_label = fields.Char('Email label', default='Email', translate=True)
+    email_placeholder = fields.Char('Email placeholder', default='yourjohn@mail.com', translate=True)
+    password_label = fields.Char('Password label', default='Password', translate=True)
+    forgot_text = fields.Char('"Forgot" link text', default='My password ?', translate=True)
+    show_forgot = fields.Boolean('Show the "forgot" link', default=True)
+    button_label = fields.Char('Button text', default='Log in', translate=True)
+    reset_text = fields.Char('Reset link text', default='Reset My Password', translate=True)
+    label_size = fields.Integer('Label size (px)', default=12)
+    label_weight = fields.Selection(_WEIGHTS, string='Label weight', default='500', required=True)
+    link_size = fields.Integer('Link size (px)', default=11)
+    # inputs
+    input_style = fields.Selection([('underline', 'Underline'), ('box', 'Box (outlined)')], string='Input style',
+                                   default='underline', required=True)
+    input_height = fields.Integer('Input height (px)', default=44)
+    input_size = fields.Integer('Input text size (px)', default=14)
+    input_text_color = fields.Char('Input text', default='#1C1917')
+    placeholder_color = fields.Char('Placeholder text', default='#D6D3D1')
+    input_bg = fields.Char('Input background', default='#FFFFFF')
+    input_bg_transparent = fields.Boolean('Transparent input', default=True)
+    input_line_width = fields.Float('Underline / border size (px)', default=1.5)
+    input_focus_width = fields.Float('Focused underline size (px)', default=1.5)
+    input_radius = fields.Integer('Input corners (px)', default=0)
+    field_gap = fields.Integer('Space between fields (px)', default=16)
+    eye_color = fields.Char('Eye icon', default='#A8A29E')
+    # button
+    button_height = fields.Integer('Button height (px)', default=46)
+    button_font_size = fields.Integer('Button text size (px)', default=14)
+    button_weight = fields.Selection(_WEIGHTS, string='Button text weight', default='600', required=True)
+    button_border_color = fields.Char('Button border', default='#1C1917')
+    button_border_width = fields.Integer('Button border size (px)', default=0)
+    button_gap = fields.Integer('Space above the button (px)', default=22)
+    # footer
+    footer_color = fields.Char('Footer links', default='#A8A29E')
+    footer_size = fields.Integer('Footer size (px)', default=12)
+    reset_size = fields.Integer('Reset link size (px)', default=13)
+
     _THEME_VARS = [
         ('page_bg', '--pk-page-bg'), ('card_bg', '--pk-card-bg'), ('panel_bg', '--pk-panel-bg'),
         ('heading_color', '--pk-heading'), ('subtext_color', '--pk-subtext'), ('label_color', '--pk-label'),
@@ -132,6 +222,12 @@ class PerokLoginAnimation(models.Model):
         defaults.update({'card_bg_video': False, 'card_bg_video_name': False,
                          'panel_bg_video': False, 'panel_bg_video_name': False, 'keep_in_panel': False})
         defaults.update({'card_bg_image': False, 'card_opacity': 100, 'card_blur': 0, 'panel_opacity': 100})
+        defaults.update(self.default_get(['mascot_offset_x', 'mascot_offset_y', 'mascot_scale', 'mascot_width',
+                                          'mascot_height', 'mobile_mascot', 'mobile_banner_height',
+                                          'mobile_offset_x', 'mobile_offset_y', 'mobile_scale']))
+        defaults.update(self.default_get([f for f, *_r in STYLE_VARS] + TEXT_FIELDS + [
+            'text_align', 'show_logo', 'show_forgot', 'input_style', 'input_bg', 'input_bg_transparent',
+            'heading_text', 'subheading_text', 'show_reset_link', 'show_footer']))
         self.write(defaults)
         return True
 
@@ -166,6 +262,19 @@ class PerokLoginAnimation(models.Model):
     z_card_video = fields.Integer('Card video layer', default=0)
     z_panel = fields.Integer('Panel & mascot layer', default=2)
     z_form = fields.Integer('Form & texts layer', default=3)
+
+    # mascot position / size inside its panel (desktop) and on phones
+    mascot_offset_x = fields.Integer('Move left / right (%)', default=0, help='Negative = left, positive = right.')
+    mascot_offset_y = fields.Integer('Move up / down (%)', default=0, help='Negative = up, positive = down.')
+    mascot_scale = fields.Integer('Size (%)', default=100)
+    mascot_width = fields.Integer('Width (%)', default=100, help='Stretches the mascot sideways only.')
+    mascot_height = fields.Integer('Height (%)', default=100, help='Stretches the mascot up and down only.')
+    mobile_mascot = fields.Selection([('banner', 'Banner above the form'), ('hide', 'Hidden')],
+                                     string='Mascot on phones', default='banner', required=True)
+    mobile_banner_height = fields.Integer('Banner height (px)', default=230)
+    mobile_offset_x = fields.Integer('Move left / right (%)', default=0)
+    mobile_offset_y = fields.Integer('Move up / down (%)', default=0)
+    mobile_scale = fields.Integer('Size (%)', default=100)
 
     keep_in_panel = fields.Boolean('Keep the mascot inside the panel',
                                    help='Centres the mascot in its panel and cuts it at the panel edges, so wide '
@@ -223,13 +332,13 @@ class PerokLoginAnimation(models.Model):
             # unquoted: the <style> body is HTML-escaped, quotes would break it
             decls.append('--pk-font: %s;' % re.sub(r'[^A-Za-z ]', '', self.font_family))
         css = 'body.pk-body { %s }' % ' '.join(decls)
-        version = int(self.write_date.timestamp()) if self.write_date else 0
+        version = int(self._origin.write_date.timestamp()) if self._origin.write_date else 0
         for fname, rule, clear in self._BG_IMAGES:
             if self[fname]:
                 # unquoted url(): the <style> body is HTML-escaped
                 css += ' %s { background-image: url(/perok_login/animation/%d/%s?v=%d) !important; ' \
                        'background-size: cover !important; background-position: center !important; ' \
-                       'background-repeat: no-repeat !important; }' % (rule, self.id, fname, version)
+                       'background-repeat: no-repeat !important; }' % (rule, self._origin.id, fname, version)
                 for other in clear:
                     css += ' %s { background: transparent !important; }' % other
         if self.page_bg_video or self.page_bg_image:
@@ -252,11 +361,13 @@ class PerokLoginAnimation(models.Model):
             css += ' backdrop-filter: blur(%dpx); -webkit-backdrop-filter: blur(%dpx);' % (blur, blur)
         if self.card_bg_image:
             css += ' --pk-card-img: url(/perok_login/animation/%d/card_bg_image?v=%d); --pk-card-img-opacity: %.2f;' % (
-                self.id, version, alpha)
+                self._origin.id, version, alpha)
         css += ' }'
         # the card's children above its picture layer
         css += ' body.pk-body .pk-card > :not(.pk-card-video) { position: relative; }'
         clamp = lambda v, lo, hi, d: max(lo, min(int(v if v not in (False, None) else d), hi))
+        # sizes, split and fit: desktop only, phones stack the card (login.css)
+        desk_from = len(css)
         # card size and column split
         split = clamp(self.card_split, 20, 80, 48)
         css += ' body.pk-body .pk-card { max-width: %dpx; min-height: %dpx; grid-template-columns: %d%% %d%%; }' % (
@@ -279,6 +390,8 @@ class PerokLoginAnimation(models.Model):
             css += ' body.pk-body .pk-vid--human video, body.pk-body .pk-vid--human img { object-fit: %s; object-position: 50%% %s; }' % (
                 fit, '50%' if fit == 'cover' else '100%')
             css += ' body.pk-body .pk-stage__shadow { display: none; }'
+        css = css[:desk_from] + ' @media (min-width: 769px) {%s }' % css[desk_from:]
+        css += self._login_mascot_css()
         # layers
         css += ' body.pk-body .pk-card-video { z-index: %d; }' % clamp(self.z_card_video, -10, 50, 0)
         css += ' body.pk-body .pk-left { z-index: %d; }' % clamp(self.z_panel, -10, 50, 2)
@@ -292,20 +405,89 @@ class PerokLoginAnimation(models.Model):
         panel = max(0, min(self.panel_opacity if self.panel_opacity is not False else 100, 100)) / 100.0
         if panel < 1:
             css += ' body.pk-body .pk-stage__bg { opacity: %.2f !important; }' % panel
+        return css + self._login_form_css()
+
+    def _login_mascot_css(self):
+        """Mascot position and size: desktop and phone values."""
+        clamp = lambda v, lo, hi, d: max(lo, min(int(v if v not in (False, None) else d), hi))
+        rule = ' body.pk-body .pk-stage__rig { transform-origin: 50%% 100%%; translate: %d%% %d%%; scale: %.3f %.3f; }'
+        size = clamp(self.mascot_scale, 20, 300, 100) / 100.0
+        css = ' @media (min-width: 769px) {%s }' % (rule % (
+            clamp(self.mascot_offset_x, -100, 100, 0), clamp(self.mascot_offset_y, -100, 100, 0),
+            size * clamp(self.mascot_width, 20, 300, 100) / 100.0, size * clamp(self.mascot_height, 20, 300, 100) / 100.0))
+        if self.mobile_mascot == 'hide':
+            mobile = ' body.pk-body .pk-left { display: none !important; }'
+        else:
+            msize = clamp(self.mobile_scale, 20, 300, 100) / 100.0
+            mobile = ' body.pk-body .pk-left { min-height: %dpx; height: %dpx; }' % ((clamp(self.mobile_banner_height, 80, 600, 230),) * 2)
+            mobile += rule % (clamp(self.mobile_offset_x, -100, 100, 0), clamp(self.mobile_offset_y, -100, 100, 0), msize, msize)
+        return css + ' @media (max-width: 768px) {%s }' % mobile
+
+    def _login_form_css(self):
+        """Texts, fields and button: CSS variables and show / hide rules."""
+        decls = []
+        for fname, var, kind, lo, hi in STYLE_VARS:
+            val = self[fname]
+            if kind == 'color':
+                val = (val or '').strip()
+                if re.fullmatch(_COLOR_RE, val):
+                    decls.append('%s: %s;' % (var, val))
+            elif kind == 'weight':
+                if val in dict(_WEIGHTS):
+                    decls.append('%s: %s;' % (var, val))
+            elif val is not False and val is not None:
+                decls.append('%s: %spx;' % (var, ('%.2f' % max(lo, min(float(val), hi))).rstrip('0').rstrip('.')))
+        bg = (self.input_bg or '').strip()
+        decls.append('--pk-input-bg: %s;' % ('transparent' if self.input_bg_transparent or not re.fullmatch(_COLOR_RE, bg) else bg))
+        decls.append('--pk-align: %s;' % ('center' if self.text_align == 'center' else 'left'))
+        css = ' body.pk-body { %s }' % ' '.join(decls)
+        if self.input_style == 'box':
+            css += ' body.pk-body .pk-fld__input { border: var(--pk-line-w) solid var(--pk-input-line) !important;' \
+                   ' border-radius: var(--pk-input-radius) !important; }' \
+                   ' body.pk-body .pk-fld__input:focus { border-color: var(--pk-input-focus) !important;' \
+                   ' box-shadow: 0 0 0 calc(var(--pk-focus-w) - var(--pk-line-w)) var(--pk-input-focus) !important; }'
+        hide = []
+        if not self.show_logo:
+            hide.append('.pk-logo')
+        if not self.show_forgot:
+            hide.append('.pk-fld__forgot')
+        if not self.show_reset_link:
+            hide.append('.pk-foot--reset')
+        if not self.show_footer:
+            hide.append('.pk-foot--db')
+        if hide:
+            css += ' %s { display: none !important; }' % ', '.join('body.pk-body ' + h for h in hide)
         return css
+
+    def _login_texts(self):
+        """Texts of the form (the field defaults when no animation is the default)."""
+        rec = self[:1]
+        if rec:
+            return {f: rec[f] or '' for f in TEXT_FIELDS}
+        defaults = self.default_get(TEXT_FIELDS)
+        return {f: defaults.get(f) or '' for f in TEXT_FIELDS}
+
+    def perok_preview_payload(self, vals):
+        """Live preview: the page CSS, font and texts for the unsaved form values."""
+        self.check_access('write' if self else 'create')
+        safe = {k: v for k, v in (vals or {}).items()
+                if k in self._fields and self._fields[k].type in ('char', 'integer', 'float', 'boolean', 'selection')
+                and k not in ('is_system', 'is_default')}
+        rec = self.new(safe, origin=self[:1]) if self else self.new(safe)
+        return {'css': rec._login_theme_css(), 'font': rec._login_font_url() or '', 'texts': rec._login_texts()}
 
     def _login_page_video_url(self):
         self.ensure_one()
         if not self.page_bg_video:
             return False
-        version = int(self.write_date.timestamp()) if self.write_date else 0
+        version = int(self._origin.write_date.timestamp()) if self._origin.write_date else 0
         return '/perok_login/animation/%d/page_bg_video?v=%d' % (self.id, version)
 
     def _login_video_url(self, field):
         self.ensure_one()
         if not self[field]:
             return False
-        version = int(self.write_date.timestamp()) if self.write_date else 0
+        version = int(self._origin.write_date.timestamp()) if self._origin.write_date else 0
         return '/perok_login/animation/%d/%s?v=%d' % (self.id, field, version)
 
     def _login_font_url(self):
@@ -348,7 +530,9 @@ class PerokLoginAnimation(models.Model):
     @api.model
     def _get_login_animation(self):
         """The default animation, falling back to the built-in parrot."""
-        rec = self.sudo().search([('is_default', '=', True)], limit=1)
+        preview = self.env.context.get('perok_preview_id')
+        rec = self.sudo().browse(preview).exists() if preview else \
+            self.sudo().search([('is_default', '=', True)], limit=1)
         if not rec or (rec.mascot_type == 'model3d' and not (rec.model_file or rec.model_path)):
             return self.sudo().browse()
         return rec
@@ -356,14 +540,14 @@ class PerokLoginAnimation(models.Model):
     def _login_model_url(self):
         self.ensure_one()
         if self.model_file:
-            version = int(self.write_date.timestamp()) if self.write_date else 0
+            version = int(self._origin.write_date.timestamp()) if self._origin.write_date else 0
             return '/perok_login/animation/%d/model_file?v=%d' % (self.id, version)
         return self.model_path
 
     def _login_clips_json(self):
         """URLs of the uploaded clips for login.js (only the clips that exist)."""
         self.ensure_one()
-        version = int(self.write_date.timestamp()) if self.write_date else 0
+        version = int(self._origin.write_date.timestamp()) if self._origin.write_date else 0
         clips, images = {}, []
         mimetypes = {
             att.res_field: att.mimetype

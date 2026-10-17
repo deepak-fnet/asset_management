@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="perok_login.LivePreview">
+        <div class="pk-prev">
+            <div class="pk-prev__bar">
+                <span class="pk-prev__title"><i class="fa fa-eye me-2"/>Live preview</span>
+                <span t-if="state.busy" class="pk-prev__dot" title="Updating"/>
+                <div class="btn-group btn-group-sm ms-auto">
+                    <button type="button" t-attf-class="btn {{ state.device === 'desktop' ? 'btn-primary' : 'btn-light' }}"
+                            t-on-click="() => this.setDevice('desktop')" title="Desktop"><i class="fa fa-desktop"/></button>
+                    <button type="button" t-attf-class="btn {{ state.device === 'mobile' ? 'btn-primary' : 'btn-light' }}"
+                            t-on-click="() => this.setDevice('mobile')" title="Mobile"><i class="fa fa-mobile fa-lg"/></button>
+                </div>
+                <button type="button" class="btn btn-sm btn-light ms-1" t-on-click="refresh" title="Reload (shows newly saved images and videos)">
+                    <i class="fa fa-refresh"/>
+                </button>
+            </div>
+            <div class="pk-prev__box" t-ref="box" t-att-style="boxStyle">
+                <t t-if="resId">
+                    <iframe t-ref="frame" t-att-src="src" t-att-style="frameStyle"
+                            t-attf-class="pk-prev__frame pk-prev__frame--{{ state.device }}"/>
+                </t>
+                <div t-else="" class="pk-prev__empty">
+                    <i class="fa fa-floppy-o fa-2x mb-2"/>
+                    <div>Save once to see the live preview.</div>
+                </div>
+            </div>
+            <div class="pk-prev__hint">Colours, sizes and texts update as you type. Images and videos appear after <b>Save</b>.</div>
+        </div>
+    </t>
+
+    <t t-name="perok_login.RangeField">
+        <div class="pk-range">
+            <input type="range" class="pk-range__slider" t-att-min="props.min" t-att-max="props.max" t-att-step="props.step"
+                   t-att-value="value" t-att-disabled="props.readonly" t-on-input="onInput"
+                   t-attf-style="--pk-fill: {{ percent }}%"/>
+            <div class="pk-range__val">
+                <input type="number" class="pk-range__num" t-att-min="props.min" t-att-max="props.max" t-att-step="props.step"
+                       t-att-value="value" t-att-readonly="props.readonly" t-on-change="onInput"/>
+                <span t-if="props.unit" class="pk-range__unit" t-out="props.unit"/>
+            </div>
+        </div>
+    </t>
+</templates>
