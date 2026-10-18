@@ -106,6 +106,7 @@ class RemoteBrowser(http.Controller):
         def pack(jpeg):
             return len(jpeg).to_bytes(4, 'big') + jpeg
 
+        engine.activate(port, tid)  # the shown tab must be the visible one
         engine.freeze_others(port, tid)
 
         def frames():

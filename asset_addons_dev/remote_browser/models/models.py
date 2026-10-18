@@ -95,7 +95,10 @@ class RbEngine(models.AbstractModel):
                                   "in Network Browser > Settings."))
             if len([k for k in reg if k.startswith(self.env.cr.dbname + ':')]) >= s['max']:
                 raise UserError(_("All %s browser sessions are in use. Try again in a few minutes.", s['max']))
-            entry = engine.launch(key, s['chrome'], s['patterns'], s['allow_all'], width, height)
+            try:
+                entry = engine.launch(key, s['chrome'], s['patterns'], s['allow_all'], width, height)
+            except RuntimeError as e:
+                raise UserError(str(e)) from e
             reg[key] = entry
             return entry
 

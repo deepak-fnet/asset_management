@@ -26,7 +26,10 @@ import urllib.parse
 import urllib.request
 from contextlib import contextmanager
 
-import websocket
+try:
+    import websocket  # pip package "websocket-client"
+except ImportError:  # the module still installs; opening the browser says what is missing
+    websocket = None
 
 from odoo.tools import config
 
@@ -134,6 +137,9 @@ def _lift_memory_limit():
 
 def launch(key, chrome, patterns, allow_all, width=1280, height=800):
     """Start a fresh Chrome for this user; returns the registry entry."""
+    if websocket is None:
+        raise RuntimeError("The Python package websocket-client is missing on this server: "
+                           "pip install websocket-client, then restart Odoo.")
     profile = os.path.join(BASE, 'profile_' + safe(key))
     shutil.rmtree(profile, ignore_errors=True)
     os.makedirs(os.path.join(profile, 'Default'), exist_ok=True)
@@ -281,11 +287,18 @@ def activate(port, tid):
 
 
 def set_size(port, tid, width, height):
+    """Make the page area exactly width x height (what the user sees, so clicks land right)."""
     if (port, tid) in _zoom:
         set_zoom(port, tid, _zoom[(port, tid)], width, height)
+    width, height = int(width), int(height)
     bws = browser_ws(port)
     win = call(bws, 'Browser.getWindowForTarget', targetId=tid)['windowId']
-    call(bws, 'Browser.setWindowBounds', windowId=win, bounds={'width': int(width), 'height': int(height)})
+    call(bws, 'Browser.setWindowBounds', windowId=win, bounds={'width': width, 'height': height})
+    # headless Chrome keeps an invisible window frame inside those bounds: measure it and add it back
+    inner = evaluate(port, tid, '[innerWidth, innerHeight]') or [width, height]
+    if (port, tid) not in _zoom and (inner[0] != width or inner[1] != height):
+        call(bws, 'Browser.setWindowBounds', windowId=win,
+             bounds={'width': width + width - inner[0], 'height': height + height - inner[1]})
 
 
 def screenshot(port, tid, quality=62):

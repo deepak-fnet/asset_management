@@ -18,7 +18,6 @@
             'remote_browser/static/src/js/browser.js',
         ],
     },
-    'external_dependencies': {'python': ['websocket-client']},
     'application': True,
     'installable': True,
     'license': 'LGPL-3',
