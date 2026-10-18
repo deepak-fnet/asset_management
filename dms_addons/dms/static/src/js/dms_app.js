@@ -860,10 +860,9 @@ export class DmsApp extends Component {
     }
     async openTile(f, ev) {
         if (this.state.cine) return;
-        const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
         const tile = ev?.currentTarget;
         const root = this.rootRef.el;
-        if (reduce || !tile || !root) {
+        if (!tile || !root) {
             sfx.play("open");
             return this.openFolder(f);
         }

@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="remote_browser.App">
+        <div t-ref="root" t-attf-class="rb #{state.fullscreen ? 'rb-full' : ''}" t-on-keydown="onRootKeyDown">
+
+            <!-- tab strip -->
+            <div class="rb-strip">
+                <div class="rb-tabs">
+                    <t t-foreach="state.tabs" t-as="t" t-key="t.id">
+                        <div t-attf-class="rb-tab #{t.id == state.active ? 'active' : ''} #{t.id == state.dragId ? 'dragging' : ''}"
+                             t-att-data-id="t.id" t-att-title="t.url" draggable="true"
+                             t-on-click="onTabClick" t-on-auxclick="onTabAux" t-on-contextmenu="onTabContext"
+                             t-on-dragstart="onTabDragStart" t-on-dragover="onTabDragOver" t-on-dragend="onTabDragEnd">
+                            <span t-if="t.id == state.active and state.loading" class="rb-tab-spin"/>
+                            <span t-else="" class="rb-tab-ico" t-attf-style="background: #{tabColor(t)}" t-esc="tabLetter(t)"/>
+                            <span class="rb-tab-title" t-esc="tabLabel(t)"/>
+                            <button class="rb-tab-x" title="Close tab (Alt+W)" t-on-click="onTabClose"><i class="fa fa-times"/></button>
+                        </div>
+                    </t>
+                    <button class="rb-newtab" title="New tab (Alt+T)" t-on-click="newTab"><i class="fa fa-plus"/></button>
+                </div>
+                <div class="rb-strip-end">
+                    <span class="rb-via" t-if="state.server" title="Every page opens from this server's network">
+                        <span class="rb-via-dot"/> via <b t-esc="state.server"/>
+                        <t t-if="state.fps"> · <t t-esc="state.fps"/> fps</t>
+                    </span>
+                </div>
+            </div>
+
+            <!-- toolbar -->
+            <div class="rb-bar">
+                <button class="rb-ib" title="Back (Alt+←)" t-att-disabled="!state.canBack" t-on-click="back"><i class="fa fa-arrow-left"/></button>
+                <button class="rb-ib" title="Forward (Alt+→)" t-att-disabled="!state.canForward" t-on-click="forward"><i class="fa fa-arrow-right"/></button>
+                <button class="rb-ib" t-att-title="state.loading ? 'Stop' : 'Reload (F5)'" t-on-click="reload">
+                    <i t-attf-class="fa #{state.loading ? 'fa-times' : 'fa-repeat'}"/>
+                </button>
+
+                <div class="rb-omni">
+                    <span t-attf-class="rb-omni-lock #{isSecure ? 'secure' : ''}" t-att-title="isSecure ? 'Encrypted connection' : 'Internal network page'">
+                        <i t-attf-class="fa #{isSecure ? 'fa-lock' : 'fa-sitemap'}"/>
+                    </span>
+                    <input t-ref="omni" class="rb-omni-input" t-att-value="state.omni" spellcheck="false"
+                           placeholder="Type an internal address, e.g. 192.168.105.110:8069"
+                           t-on-focus="onOmniFocus" t-on-blur="onOmniBlur" t-on-input="onOmniInput" t-on-keydown="onOmniKeyDown"/>
+                    <button t-if="zoom !== 1 and !isStart" class="rb-zoom-chip" title="Back to 100% (Ctrl+0)" t-on-click="zoomReset">
+                        <i t-attf-class="fa #{zoom > 1 ? 'fa-search-plus' : 'fa-search-minus'}"/> <t t-esc="zoomLabel"/>
+                    </button>
+                    <button t-if="state.url and !isStart" class="rb-star" t-att-title="currentMark ? 'Remove bookmark' : 'Bookmark this page'" t-on-click="toggleBookmark">
+                        <i t-attf-class="fa #{currentMark ? 'fa-star' : 'fa-star-o'}"/>
+                    </button>
+                    <div t-if="state.loading" class="rb-progress"/>
+                    <div t-if="state.suggest.length and state.editing and !isStart" class="rb-suggest">
+                        <t t-foreach="state.suggest" t-as="s" t-key="s.id">
+                            <div t-attf-class="rb-suggest-row #{s_index == state.suggestIndex ? 'active' : ''}" t-att-data-url="s.url" t-on-mousedown="pickSuggest">
+                                <i class="fa fa-star-o"/> <b t-esc="s.name"/> <span t-esc="s.url"/>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+
+                <button class="rb-ib" title="Duplicate tab (Alt+D)" t-on-click="() => this.duplicateTab(state.active)"><i class="fa fa-clone"/></button>
+                <button class="rb-ib rb-dl-btn" title="Downloads" t-on-click="toggleDownloads">
+                    <i class="fa fa-download"/>
+                    <span t-if="state.newDownloads" class="rb-badge" t-esc="state.newDownloads"/>
+                </button>
+                <button class="rb-ib" t-att-title="state.fullscreen ? 'Leave full screen (F11)' : 'Full screen (F11)'" t-on-click="toggleFullscreen">
+                    <i t-attf-class="fa #{state.fullscreen ? 'fa-compress' : 'fa-expand'}"/>
+                </button>
+                <button class="rb-ib rb-menu-btn" title="Menu" t-on-click="toggleMenu"><i class="fa fa-ellipsis-v"/></button>
+
+                <div t-if="state.menu" class="rb-menu">
+                    <button data-action="new" t-on-click="menuAction"><i class="fa fa-plus"/> New tab<kbd>Alt+T</kbd></button>
+                    <button data-action="duplicate" t-on-click="menuAction"><i class="fa fa-clone"/> Duplicate tab<kbd>Alt+D</kbd></button>
+                    <button data-action="copy" t-on-click="menuAction"><i class="fa fa-link"/> Copy page address</button>
+                    <hr/>
+                    <div class="rb-zoom-row">
+                        <span><i class="fa fa-search"/> Zoom</span>
+                        <div class="rb-zoom-ctl">
+                            <button class="rb-zb" title="Zoom out (Ctrl -)" t-on-click="zoomOut"><i class="fa fa-minus"/></button>
+                            <button class="rb-zv" title="Back to 100% (Ctrl 0)" t-on-click="zoomReset" t-esc="zoomLabel"/>
+                            <button class="rb-zb" title="Zoom in (Ctrl +)" t-on-click="zoomIn"><i class="fa fa-plus"/></button>
+                        </div>
+                    </div>
+                    <hr/>
+                    <div class="rb-menu-label">Picture</div>
+                    <div class="rb-seg">
+                        <button data-quality="auto" t-att-class="{active: state.quality == 'auto'}" t-on-click="setQuality">Auto</button>
+                        <button data-quality="sharp" t-att-class="{active: state.quality == 'sharp'}" t-on-click="setQuality">Sharp</button>
+                        <button data-quality="fast" t-att-class="{active: state.quality == 'fast'}" t-on-click="setQuality">Fast</button>
+                    </div>
+                    <hr/>
+                    <button data-action="downloads" t-on-click="menuAction"><i class="fa fa-download"/> Downloads</button>
+                    <button data-action="fullscreen" t-on-click="menuAction"><i class="fa fa-expand"/> Full screen<kbd>F11</kbd></button>
+                    <hr/>
+                    <button data-action="close" class="danger" t-on-click="menuAction"><i class="fa fa-power-off"/> Close browser session</button>
+                </div>
+
+                <div t-if="state.showDownloads" class="rb-dl-panel">
+                    <div class="rb-dl-head">Downloads</div>
+                    <div t-if="!state.downloads.length" class="rb-dl-empty">Files you download appear here.</div>
+                    <t t-foreach="state.downloads" t-as="d" t-key="d.name">
+                        <div class="rb-dl-row">
+                            <i t-attf-class="fa #{d.done ? 'fa-file-o' : 'fa-spinner fa-spin'}"/>
+                            <div class="rb-dl-name"><span t-esc="d.name"/><small t-esc="d.done ? humanSize(d.size) : 'Downloading…'"/></div>
+                            <button t-if="d.done" class="rb-ib" title="Save to this computer" t-att-data-name="d.name" t-on-click="saveDownload"><i class="fa fa-arrow-down"/></button>
+                        </div>
+                    </t>
+                </div>
+            </div>
+
+            <!-- page -->
+            <div class="rb-view" t-ref="view">
+                <canvas t-ref="img" class="rb-screen"
+                     t-attf-style="width: #{state.vw}px; height: #{state.vh}px;"
+                     t-on-mousedown="onMouseDown" t-on-mouseup="onMouseUp" t-on-mousemove="onMouseMove"
+                     t-on-wheel="onWheel" t-on-contextmenu.prevent="() => {}"/>
+                <textarea t-ref="kbd" class="rb-kbd" autocomplete="off" autocorrect="off" spellcheck="false"
+                          t-on-keydown="onKeyDown" t-on-paste="onPaste" t-on-compositionend="onCompositionEnd" t-on-input="onKbdInput"/>
+
+                <!-- start page for a new tab -->
+                <div t-if="state.status == 'ready' and isStart" class="rb-start">
+                    <div class="rb-start-inner">
+                        <div class="rb-start-logo"><i class="fa fa-globe"/></div>
+                        <h1><t t-esc="greeting"/>.</h1>
+                        <p>Pages open from <b t-esc="state.server"/>'s network, so internal addresses work from anywhere.</p>
+                        <div class="rb-start-search">
+                            <i class="fa fa-search"/>
+                            <input t-ref="start" t-att-value="state.omni" spellcheck="false" placeholder="Internal address or IP, e.g. 192.168.105.110:9191"
+                                   t-on-focus="onOmniFocus" t-on-blur="onOmniBlur" t-on-input="onOmniInput" t-on-keydown="onOmniKeyDown"/>
+                            <div t-if="state.suggest.length and state.editing" class="rb-suggest">
+                                <t t-foreach="state.suggest" t-as="s" t-key="s.id">
+                                    <div t-attf-class="rb-suggest-row #{s_index == state.suggestIndex ? 'active' : ''}" t-att-data-url="s.url" t-on-mousedown="pickSuggest">
+                                        <i class="fa fa-star-o"/> <b t-esc="s.name"/> <span t-esc="s.url"/>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                        <div t-if="state.bookmarks.length" class="rb-marks">
+                            <t t-foreach="state.bookmarks" t-as="b" t-key="b.id">
+                                <button class="rb-mark" t-att-data-url="b.url" t-att-title="b.url" t-on-click="openBookmark">
+                                    <span class="rb-mark-ico" t-attf-style="background: #{b.color}" t-esc="markLetter(b)"/>
+                                    <span class="rb-mark-name" t-esc="b.name"/>
+                                </button>
+                            </t>
+                        </div>
+                        <div class="rb-allowed">
+                            <i class="fa fa-shield"/>
+                            <t t-if="state.allowAll">Every address is allowed.</t>
+                            <t t-else="">Allowed: <t t-foreach="state.patterns" t-as="p" t-key="p_index"><code t-esc="p"/></t></t>
+                        </div>
+                    </div>
+                </div>
+
+                <div t-if="state.status == 'starting'" class="rb-overlay">
+                    <div class="rb-orb"><i class="fa fa-globe"/></div>
+                    <div class="rb-overlay-title">Starting your browser…</div>
+                    <div class="rb-overlay-sub">A private Chrome is opening on the server</div>
+                </div>
+                <div t-if="state.status == 'error'" class="rb-overlay">
+                    <div class="rb-orb rb-orb-bad"><i class="fa fa-plug"/></div>
+                    <div class="rb-overlay-title" t-esc="state.error"/>
+                    <button class="rb-primary" t-on-click="retry"><i class="fa fa-refresh"/> Open the browser again</button>
+                </div>
+
+                <div t-if="state.toast" class="rb-toast" t-esc="state.toast"/>
+            </div>
+
+            <!-- tab context menu -->
+            <div t-if="state.tabMenu" class="rb-tabmenu" t-attf-style="left: #{state.tabMenu.x}px; top: #{state.tabMenu.y}px;">
+                <button data-action="reload" t-on-click="tabMenuAction"><i class="fa fa-repeat"/> Reload</button>
+                <button data-action="duplicate" t-on-click="tabMenuAction"><i class="fa fa-clone"/> Duplicate</button>
+                <button data-action="copy" t-on-click="tabMenuAction"><i class="fa fa-link"/> Copy address</button>
+                <hr/>
+                <button data-action="close" t-on-click="tabMenuAction"><i class="fa fa-times"/> Close</button>
+                <button data-action="others" t-on-click="tabMenuAction"><i class="fa fa-times-circle-o"/> Close other tabs</button>
+            </div>
+        </div>
+    </t>
+</templates>

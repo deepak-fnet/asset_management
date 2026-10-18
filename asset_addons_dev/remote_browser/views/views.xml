@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_rb_app" model="ir.actions.client">
+        <field name="name">Network Browser</field>
+        <field name="tag">remote_browser.app</field>
+    </record>
+
+    <!-- allowed hosts -->
+    <record id="view_rb_host_list" model="ir.ui.view">
+        <field name="name">rb.allowed.host.list</field>
+        <field name="model">rb.allowed.host</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="note"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_rb_hosts" model="ir.actions.act_window">
+        <field name="name">Allowed hosts</field>
+        <field name="res_model">rb.allowed.host</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'active_test': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add the hosts the browser may open</p>
+            <p>Use * as a wildcard: 192.168.105.*, *.local. Changes apply to browsers started afterwards.</p>
+        </field>
+    </record>
+
+    <!-- bookmarks -->
+    <record id="view_rb_bookmark_list" model="ir.ui.view">
+        <field name="name">rb.bookmark.list</field>
+        <field name="model">rb.bookmark</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="url"/>
+                <field name="color" widget="color"/>
+                <field name="user_id"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_rb_bookmarks" model="ir.actions.act_window">
+        <field name="name">Bookmarks</field>
+        <field name="res_model">rb.bookmark</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <!-- history -->
+    <record id="view_rb_visit_list" model="ir.ui.view">
+        <field name="name">rb.visit.list</field>
+        <field name="model">rb.visit</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false">
+                <field name="create_date" string="When"/>
+                <field name="user_id" widget="many2one_avatar_user"/>
+                <field name="host"/>
+                <field name="title"/>
+                <field name="url"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_rb_visit_search" model="ir.ui.view">
+        <field name="name">rb.visit.search</field>
+        <field name="model">rb.visit</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="url"/>
+                <field name="host"/>
+                <field name="user_id"/>
+                <filter name="today" string="Today" domain="[('create_date', '>=', (context_today()).strftime('%Y-%m-%d'))]"/>
+                <filter name="by_user" string="Person" context="{'group_by': 'user_id'}"/>
+                <filter name="by_host" string="Host" context="{'group_by': 'host'}"/>
+            </search>
+        </field>
+    </record>
+    <record id="action_rb_visits" model="ir.actions.act_window">
+        <field name="name">History</field>
+        <field name="res_model">rb.visit</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <!-- settings -->
+    <record id="res_config_settings_view_form_rb" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.rb</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority">95</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Network Browser" string="Network Browser" name="remote_browser" groups="remote_browser.group_rb_admin">
+                    <block title="Browser" name="rb_browser">
+                        <setting string="Chrome" help="Chrome runs on this server without a window. Empty path: found automatically.">
+                            <field name="rb_chrome_path" placeholder="/usr/bin/google-chrome"/>
+                        </setting>
+                        <setting string="Sessions" help="Browsers running at the same time, and when an unused one is closed.">
+                            <div class="d-flex gap-2 align-items-center">
+                                <field name="rb_max_sessions" class="o_light_label" style="width: 4rem"/> at once, closed after
+                                <field name="rb_idle_minutes" class="o_light_label" style="width: 4rem"/> idle minutes
+                            </div>
+                        </setting>
+                        <setting string="Allow every address" help="Off (recommended): only the Allowed hosts open, for pages, links and images alike.">
+                            <field name="rb_allow_all"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+    <record id="action_rb_settings" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'module': 'remote_browser', 'bin_size': False}</field>
+    </record>
+
+    <!-- menus -->
+    <menuitem id="menu_rb_root" name="Network Browser" action="action_rb_app" sequence="105"
+              web_icon="remote_browser,static/description/icon.png" groups="group_rb_user"/>
+    <menuitem id="menu_rb_browser" name="Browser" parent="menu_rb_root" action="action_rb_app" sequence="1"/>
+    <menuitem id="menu_rb_history" name="History" parent="menu_rb_root" action="action_rb_visits" sequence="10"/>
+    <menuitem id="menu_rb_config" name="Configuration" parent="menu_rb_root" sequence="50" groups="group_rb_admin"/>
+    <menuitem id="menu_rb_hosts" name="Allowed hosts" parent="menu_rb_config" action="action_rb_hosts" sequence="1"/>
+    <menuitem id="menu_rb_bookmarks" name="Bookmarks" parent="menu_rb_config" action="action_rb_bookmarks" sequence="2"/>
+    <menuitem id="menu_rb_settings" name="Settings" parent="menu_rb_config" action="action_rb_settings" sequence="3"/>
+</odoo>

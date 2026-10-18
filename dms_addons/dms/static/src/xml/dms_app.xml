@@ -766,7 +766,7 @@
             </t>
         </div>
     </aside>
-    <div class="o_dms_ask" t-on-paste="onAskPaste" t-on-drop="onAskDrop" t-on-dragover="(ev) => ev.dataTransfer?.types?.includes('Files') and ev.preventDefault()">
+    <div class="o_dms_askpage" t-on-paste="onAskPaste" t-on-drop="onAskDrop" t-on-dragover="(ev) => ev.dataTransfer?.types?.includes('Files') and ev.preventDefault()">
         <header class="o_dms_ask_top">
             <div class="o_dms_ask_brand"><span class="o_dms_orb sm"><i class="fa fa-magic"/></span><div><h1>Ask DMS</h1><small>Your documents, their status and access, and how the DMS works</small></div></div>
             <span t-if="C.sessionId" class="o_dms_muted small o_dms_ask_title" t-esc="(C.sessions.find(x => x.id === C.sessionId) || {}).name"/>
@@ -1124,6 +1124,11 @@
                 <button class="o_dms_btn o_dms_btn_ok o_dms_btn_sm" t-on-click="() => this.openDecision(mine, 'approve')">Approve</button>
                 <button class="o_dms_btn o_dms_btn_bad o_dms_btn_sm" t-on-click="() => this.openDecision(mine, 'refuse')">Refuse</button>
             </div>
+        </div>
+        <t t-set="toSend" t-value="d.revisions.find(r => r.can_submit and !(r.ai and r.ai.blocked) and !(r.ai and r.ai.state === 'pending'))"/>
+        <div t-if="toSend" class="o_dms_ask o_dms_ask_jacket o_dms_ask_send">
+            <span>Not sent for approval yet. It goes to <t t-esc="d.approvers.l1 || '…'"/>, then <t t-esc="d.approvers.l2 || '…'"/><t t-if="d.approvers.l3">, then <t t-esc="d.approvers.l3"/></t>.</span>
+            <button class="o_dms_btn o_dms_btn_ink o_dms_btn_sm" t-on-click="() => this.submitRev(toSend)" t-att-disabled="state.busy"><i class="fa fa-paper-plane"/> Send for approval</button>
         </div>
         <div class="o_dms_jacket_actions">
             <button t-if="cur and cur.can_preview" class="o_dms_btn o_dms_btn_ink" t-on-click="() => this.openPreview(cur)" title="Enter"><i class="fa fa-eye"/> Open</button>

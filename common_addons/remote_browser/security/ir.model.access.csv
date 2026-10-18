@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_rb_host_user,rb.allowed.host user,model_rb_allowed_host,group_rb_user,1,0,0,0
+access_rb_host_admin,rb.allowed.host admin,model_rb_allowed_host,group_rb_admin,1,1,1,1
+access_rb_bookmark_user,rb.bookmark user,model_rb_bookmark,group_rb_user,1,1,1,1
+access_rb_visit_user,rb.visit user,model_rb_visit,group_rb_user,1,0,0,0
+access_rb_visit_admin,rb.visit admin,model_rb_visit,group_rb_admin,1,0,0,1
