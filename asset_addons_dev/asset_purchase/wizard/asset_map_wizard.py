@@ -34,8 +34,9 @@ class AssetMapWizard(models.TransientModel):
         rows get the request's employee, their department and that
         department's asset location; common rows get the department and
         location only."""
+        # Asset / IT users have no HR rights to read the employee's department.
         employee = joining.employee_id
-        department = employee.department_id
+        department = employee.sudo().department_id
         vals = {'assign_type': assign_type,
                 'department_id': department.id or False,
                 'location_id': department.location_id.id or False,
@@ -72,10 +73,11 @@ class AssetMapWizard(models.TransientModel):
                               cat=req.category_id.name, prod=req.product_id.display_name,
                               assets=", ".join(wrong.mapped('display_name'))))
         for line in lines:
-            if line.assign_type == 'employee' and line.department_id != line.employee_id.department_id:
+            emp_dept = line.employee_id.sudo().department_id
+            if line.assign_type == 'employee' and line.department_id != emp_dept:
                 raise UserError(_("%(emp)s belongs to %(dept)s - the department must match the employee's.",
                                   emp=line.employee_id.name,
-                                  dept=line.employee_id.department_id.name or _("no department")))
+                                  dept=emp_dept.name or _("no department")))
             if line.assign_type == 'common':
                 line.employee_id = False
             line.asset_id._assign_to_target(
@@ -129,7 +131,7 @@ class AssetMapWizardLine(models.TransientModel):
     def _onchange_employee_id(self):
         # Employee rows take the employee's own department.
         if self.assign_type == 'employee':
-            self.department_id = self.employee_id.department_id
+            self.department_id = self.employee_id.sudo().department_id
 
 
 class AssetAssetMappable(models.Model):

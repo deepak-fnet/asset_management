@@ -24,7 +24,7 @@ class AssetDirectAssignWizard(models.TransientModel):
     @api.onchange('employee_id')
     def _onchange_employee_id(self):
         if self.employee_id and self.assign_type == 'employee':
-            self.department_id = self.employee_id.department_id
+            self.department_id = self.employee_id.sudo().department_id
 
     def action_assign(self):
         self.ensure_one()

@@ -16,7 +16,7 @@ class AssetAssetAssignTarget(models.Model):
         if assign_type == 'employee':
             if not employee:
                 raise UserError(_("Select the employee."))
-            department = department or employee.department_id
+            department = department or employee.sudo().department_id
             if not department or not location:
                 raise UserError(_("Assigning to an employee needs the employee, "
                                   "their department and a location."))
