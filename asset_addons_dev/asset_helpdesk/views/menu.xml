@@ -62,4 +62,16 @@
             action="action_product_asset"
             parent="menu_asset_helpdesk_configuration"
             sequence="10"/>
+    <!-- Moved here from helpdesk_raise_views.xml: the parent menu must exist first (fresh install). -->
+    <menuitem id="menu_asset_helpdesk_raise"
+              name="Raise Ticket"
+              parent="menu_asset_helpdesk_main"
+              action="action_asset_helpdesk_raise"
+              sequence="1"/>
+    <menuitem id="menu_asset_helpdesk_all_mails"
+              name="All Mails"
+              parent="menu_asset_helpdesk_main"
+              action="action_asset_helpdesk_all_mails"
+              groups="asset_management.group_asset_user_it,asset_management.group_asset_manager"
+              sequence="2"/>
 </odoo>
