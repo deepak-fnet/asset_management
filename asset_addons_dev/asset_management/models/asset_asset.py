@@ -1931,12 +1931,12 @@ class AssetAsset(models.Model):
 
             # Initial logs
             if asset.assigned_employee_id:
-                self.env['asset.assignment.history'].create({
+                self.env['asset.assignment.history'].sudo().create({
                     'asset_id': asset.id,
                     'employee_id': asset.assigned_employee_id.id,
                     'action': 'assign',
                 })
-                self.env['asset.audit.log'].create({
+                self.env['asset.audit.log'].sudo().create({
                     'asset_id': asset.id,
                     'log_type': 'assignment',
                     'new_value': asset.assigned_employee_id.name,
@@ -1944,18 +1944,18 @@ class AssetAsset(models.Model):
                 })
 
             if asset.location_id:
-                self.env['asset.location.history'].create({
+                self.env['asset.location.history'].sudo().create({
                     'asset_id': asset.id,
                     'location_id': asset.location_id.id,
                 })
-                self.env['asset.audit.log'].create({
+                self.env['asset.audit.log'].sudo().create({
                     'asset_id': asset.id,
                     'log_type': 'location',
                     'new_value': asset.location_id.complete_name,
                     'description': f"Asset location set to {asset.location_id.complete_name} on creation"
                 })
 
-            self.env['asset.audit.log'].create({
+            self.env['asset.audit.log'].sudo().create({
                 'asset_id': asset.id,
                 'log_type': 'status',
                 'new_value': asset.state,
@@ -2065,19 +2065,19 @@ class AssetAsset(models.Model):
                 new_employee_id = vals.get('assigned_employee_id')
                 if new_employee_id != (old_employee.id if old_employee else False):
                     if old_employee:
-                        self.env['asset.assignment.history'].create({
+                        self.env['asset.assignment.history'].sudo().create({
                             'asset_id': asset.id,
                             'employee_id': old_employee.id,
                             'action': 'unassign',
                         })
                     if new_employee_id:
                         new_employee = self.env['hr.employee'].browse(new_employee_id)
-                        self.env['asset.assignment.history'].create({
+                        self.env['asset.assignment.history'].sudo().create({
                             'asset_id': asset.id,
                             'employee_id': new_employee_id,
                             'action': 'assign',
                         })
-                        self.env['asset.audit.log'].create({
+                        self.env['asset.audit.log'].sudo().create({
                             'asset_id': asset.id,
                             'log_type': 'assignment',
                             'old_value': old_employee.name if old_employee else 'None',
@@ -2091,11 +2091,11 @@ class AssetAsset(models.Model):
                 if new_location_id != (old_location.id if old_location else False):
                     if new_location_id:
                         new_location = self.env['asset.location'].browse(new_location_id)
-                        self.env['asset.location.history'].create({
+                        self.env['asset.location.history'].sudo().create({
                             'asset_id': asset.id,
                             'location_id': new_location_id,
                         })
-                        self.env['asset.audit.log'].create({
+                        self.env['asset.audit.log'].sudo().create({
                             'asset_id': asset.id,
                             'log_type': 'location',
                             'old_value': old_location.complete_name if old_location else 'None',
@@ -2107,7 +2107,7 @@ class AssetAsset(models.Model):
                 old_state = asset.state
                 new_state = vals.get('state')
                 if new_state != old_state:
-                    self.env['asset.audit.log'].create({
+                    self.env['asset.audit.log'].sudo().create({
                         'asset_id': asset.id,
                         'log_type': 'status',
                         'old_value': old_state,
@@ -2117,7 +2117,7 @@ class AssetAsset(models.Model):
 
         res = super().write(vals)
         if before:
-            History = self.env['asset.assignment.history']
+            History = self.env['asset.assignment.history'].sudo()
             for asset in self:
                 old_state, old_employee, old_target = before[asset.id]
                 new_state = asset.state
