@@ -16,9 +16,10 @@
             </div>
 
             <xpath expr="//field[@name='order_line']/list/field[@name='product_qty']" position="after">
-                <field name="is_fixed_asset" optional="show"/>
+                <field name="is_fixed_asset" optional="hide"/>
                 <field name="include_gst_in_asset_cost" optional="show" widget="boolean_toggle"
-                       string="Include GST in Asset Cost"/>
+                       string="Include GST in Asset Cost"
+                       readonly="not is_fixed_asset"/>
             </xpath>
 
             <!-- Once a receipt has been generated (incoming_picking_count

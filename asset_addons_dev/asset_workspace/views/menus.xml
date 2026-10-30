@@ -210,7 +210,7 @@
                   web_icon="asset_workspace,static/description/request_icon.png"
                   sequence="12"/>
         <menuitem id="menu_ws_req_asset"
-                  name="Asset Request"
+                  name="Request"
                   parent="menu_ws_req_root"
                   action="asset_management.action_asset_request"
                   sequence="10"/>
@@ -230,7 +230,7 @@
              instead of reusing it with a menu-level domain override, which
              act_window menuitems do not support. -->
         <record id="action_asset_request_approved" model="ir.actions.act_window">
-            <field name="name">Asset Requests</field>
+            <field name="name">Requests</field>
             <field name="res_model">asset.request</field>
             <field name="view_mode">list,form</field>
             <field name="domain">[('state', '=', 'approved')]</field>
@@ -238,7 +238,7 @@
         </record>
 
         <menuitem id="menu_purchase_asset_requests"
-                  name="Asset Requests"
+                  name="Requests"
                   parent="purchase.menu_purchase_root"
                   action="action_asset_request_approved"
                   sequence="15"/>
