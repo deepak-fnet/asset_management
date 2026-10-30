@@ -34,12 +34,23 @@ class AssetRequest(models.Model):
         tracking=True,
     )
     notes = fields.Text(string="Notes")
+    store_notes = fields.Text(
+        string="Store Notes", tracking=True,
+        help="Why the request was closed without buying (e.g. issued from "
+             "stock). Required for Mark Done.")
+    can_approve = fields.Boolean(compute="_compute_can_approve")
 
     # ----------------------------------------------------------------
     # Workflow
     # ----------------------------------------------------------------
     # STATE FLOW:
     #   draft → submitted → approved → rfq → po_created → done
+    #   (or approved → done by the store, with Store Notes)
+    #
+    # The requester describes the need and submits; the requester's manager
+    # approves; the store then sets the product on each line (category
+    # follows the product), checks availability and either raises an RFQ or
+    # closes the request with notes.
     #
     # po_created → done is AUTOMATIC: once every committed PO of the request
     #   has been fully received. The receipt itself already created one
@@ -184,6 +195,19 @@ class AssetRequest(models.Model):
     # ----------------------------------------------------------------
     # Workflow actions
     # ----------------------------------------------------------------
+    def _requester_manager_user(self):
+        self.ensure_one()
+        employee = self.requested_by.sudo().employee_id
+        return employee.parent_id.user_id
+
+    @api.depends_context("uid")
+    @api.depends("requested_by")
+    def _compute_can_approve(self):
+        # The requester's manager approves; an Asset Manager can stand in.
+        is_asset_manager = self.env.user.has_group("asset_management.group_asset_manager")
+        for rec in self:
+            rec.can_approve = is_asset_manager or rec._requester_manager_user() == self.env.user
+
     def action_submit(self):
         for rec in self:
             if rec.state != "draft":
@@ -191,16 +215,59 @@ class AssetRequest(models.Model):
             if not rec.line_ids:
                 raise UserError(_("Add at least one request line before submitting."))
             rec.state = "submitted"
+            manager = rec._requester_manager_user()
+            if manager:
+                rec.message_post(
+                    body=_("%(user)s submitted this asset request. Waiting for your approval.",
+                           user=rec.requested_by.name),
+                    partner_ids=manager.partner_id.ids,
+                    message_type="comment", subtype_xmlid="mail.mt_comment")
 
     def action_approve(self):
         for rec in self:
             if rec.state != "submitted":
                 raise UserError(_("Only Submitted requests can be approved."))
-            missing = rec.line_ids.filtered(lambda l: not l.asset_category_id or not l.product_id)
-            if missing:
-                raise UserError(_("Set the category and product on: %s",
-                                  ", ".join(missing.mapped("description"))))
-            rec.state = "approved"
+            if not rec.can_approve:
+                raise UserError(_("Only %s (the requester's manager) can approve this request.",
+                                  rec._requester_manager_user().name or _("the requester's manager")))
+            # Checked just above; a manager may have no write right on requests.
+            rec.sudo().state = "approved"
+
+    def _check_products_set(self):
+        missing = self.line_ids.filtered(lambda l: not l.product_id)
+        if missing:
+            raise UserError(_("Set the product on: %s", ", ".join(missing.mapped("description"))))
+
+    def action_check_availability(self):
+        """Free units per line: Submitted assets of that product, not in repair."""
+        self.ensure_one()
+        self._check_products_set()
+        rows, short = [], False
+        for line in self.line_ids:
+            free = line.available_qty
+            short = short or free < line.quantity
+            rows.append(_("• %(prod)s: need %(need)s, free %(free)s",
+                          prod=line.product_id.display_name, need=line.quantity, free=free))
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Availability"),
+                "message": "\n".join(rows),
+                "type": "warning" if short else "success",
+                "sticky": short,
+            },
+        }
+
+    def action_store_done(self):
+        """Close the request without buying (e.g. issued from stock)."""
+        for rec in self:
+            if rec.state != "approved":
+                raise UserError(_("Only an Approved request can be marked done."))
+            if not (rec.store_notes or "").strip():
+                raise UserError(_("Enter the Store Notes first (why no purchase is needed)."))
+            rec.state = "done"
+            rec.message_post(body=_("Closed by the store: %s", rec.store_notes))
 
     def action_reject(self):
         for rec in self:
@@ -244,6 +311,7 @@ class AssetRequest(models.Model):
                 "An RFQ can only be raised from an Approved request."))
         if not self.line_ids:
             raise UserError(_("This request has no lines to quote."))
+        self._check_products_set()
 
         if self.state == "approved":
             self.state = "rfq"
@@ -496,12 +564,16 @@ class AssetRequestLine(models.Model):
         ondelete="cascade",
         index=True,
     )
-    # Filled by the approver once the request is submitted; the requester
-    # only describes the need (as on the Asset Assign Process).
+    # The requester only describes the need; the store sets the product once
+    # the request is approved, and the category follows the product.
     asset_category_id = fields.Many2one(
         "product.category",
         string="Asset Category",
+        compute="_compute_asset_category_id", store=True, readonly=False,
     )
+    available_qty = fields.Integer(
+        string="Free in Stock", compute="_compute_available_qty",
+        help="Submitted assets of this product that are not under repair.")
     product_id = fields.Many2one(
         "product.product",
         string="Product",
@@ -528,21 +600,21 @@ class AssetRequestLine(models.Model):
             if rec.quantity <= 0:
                 raise ValidationError(_("Quantity must be greater than zero."))
 
-    @api.onchange("asset_category_id")
-    def _onchange_asset_category_id(self):
-        """Narrow the Product picker to the chosen category (and its
-        sub-categories), plus any product category mapped onto it by
-        asset.category.mapping (asset_purchase, optional)."""
-        for rec in self:
-            if not rec.asset_category_id:
-                continue
-            domain = [("categ_id", "child_of", rec.asset_category_id.id)]
-            if "asset.category.mapping" in self.env:
-                mapped = self.env["asset.category.mapping"].sudo().search(
-                    [("category_id", "=", rec.asset_category_id.id)]).product_category_id
-                if mapped:
-                    domain = ["|", ("categ_id", "child_of", mapped.ids)] + domain
-            return {"domain": {"product_id": domain}}
+    @api.depends("product_id")
+    def _compute_asset_category_id(self):
+        for line in self:
+            if line.product_id:
+                line.asset_category_id = line.product_id.categ_id
+
+    @api.depends("product_id")
+    def _compute_available_qty(self):
+        Asset = self.env["asset.asset"].sudo()
+        # asset.asset.product_id comes from general_asset (optional here).
+        has_product = "product_id" in Asset._fields
+        for line in self:
+            line.available_qty = Asset.search_count([
+                ("product_id", "=", line.product_id.id), ("state", "=", "submit"),
+                ("in_repair", "=", False)]) if has_product and line.product_id else 0
 
 class AssetAssetWindowsUpdate(models.Model):
     _inherit = 'asset.asset'

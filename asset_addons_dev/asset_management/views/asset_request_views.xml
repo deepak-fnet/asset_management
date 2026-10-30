@@ -37,22 +37,34 @@
         <field name="arch" type="xml">
             <form string="Asset Request">
                 <header>
+                    <field name="can_approve" invisible="1"/>
                     <button name="action_submit"
                             type="object"
                             string="Submit"
                             class="btn-primary"
-                            groups="asset_management.group_asset_user_it"
                             invisible="state != 'draft'"/>
+                    <!-- The requester's manager (or an Asset Manager) -->
                     <button name="action_approve"
                             type="object"
                             string="Approve"
-                            groups="asset_management.group_asset_manager"
                             class="btn-primary"
-                            invisible="state != 'submitted'"/>
+                            invisible="state != 'submitted' or not can_approve"/>
+                    <!-- Store: set the products, check stock, then RFQ or Mark Done -->
+                    <button name="action_check_availability"
+                            type="object"
+                            string="Check Availability"
+                            groups="asset_management.group_asset_user"
+                            invisible="state != 'approved'"/>
+                    <button name="action_store_done"
+                            type="object"
+                            string="Mark Done"
+                            groups="asset_management.group_asset_user"
+                            confirm="Close this request without buying? The Store Notes are kept as the reason."
+                            invisible="state != 'approved'"/>
                     <button name="action_reject"
                             type="object"
                             string="Reject"
-                            invisible="state not in ('submitted', 'approved')"/>
+                            invisible="state not in ('submitted', 'approved') or (state == 'submitted' and not can_approve)"/>
                     <button name="action_create_rfq"
                             groups="purchase.group_purchase_user"
                             type="object"
@@ -132,19 +144,20 @@
 
                     <notebook>
                         <page string="Request Lines" name="lines">
-                            <!-- Draft: the requester describes the need. Submitted: the
-                                 approver sets category and product, then approves. -->
+                            <!-- Draft: the requester describes the need. Approved: the
+                                 store sets the product; the category follows it. -->
                             <field name="line_ids"
-                                   readonly="state not in ('draft', 'submitted')">
+                                   readonly="state not in ('draft', 'approved')">
                                 <list editable="bottom" create="parent.state == 'draft'" delete="parent.state == 'draft'">
                                     <field name="description" readonly="parent.state != 'draft'"/>
                                     <field name="quantity" readonly="parent.state != 'draft'"/>
-                                    <field name="asset_category_id" column_invisible="parent.state == 'draft'"
-                                           required="parent.state == 'submitted'"
+                                    <field name="product_id" column_invisible="parent.state in ('draft', 'submitted')"
+                                           readonly="parent.state != 'approved'"
                                            options="{'no_create': True, 'no_create_edit':True}"/>
-                                    <field name="product_id" column_invisible="parent.state == 'draft'"
-                                           required="parent.state == 'submitted'"
+                                    <field name="asset_category_id" column_invisible="parent.state in ('draft', 'submitted')"
+                                           readonly="parent.state != 'approved'"
                                            options="{'no_create': True, 'no_create_edit':True}"/>
+                                    <field name="available_qty" column_invisible="parent.state != 'approved'"/>
                                     <field name="joining_requirement_id" readonly="1" optional="hide"/>
                                 </list>
                             </field>
@@ -152,6 +165,10 @@
 
                         <page string="Notes" name="notes">
                             <field name="notes" placeholder="Internal notes about this request..."/>
+                        </page>
+                        <page string="Store Notes" name="store_notes" invisible="state not in ('approved', 'done')">
+                            <field name="store_notes" readonly="state != 'approved'"
+                                   placeholder="If no purchase is needed, say why (e.g. issued from stock)..."/>
                         </page>
                     </notebook>
                 </sheet>
