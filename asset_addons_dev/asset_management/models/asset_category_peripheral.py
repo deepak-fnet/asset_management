@@ -30,7 +30,7 @@ from odoo import models, fields, api
 
 
 class AssetCategoryPeripheral(models.Model):
-    _inherit = "asset.category"
+    _inherit = "product.category"
 
     is_peripheral = fields.Boolean(
         string="Is Peripheral",
@@ -88,7 +88,7 @@ class AssetAssetPeripheralCreate(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        Category = self.env["asset.category"]
+        Category = self.env["product.category"]
         for vals in vals_list:
             category_id = vals.get("category_id")
             if not category_id or vals.get("asset_code"):

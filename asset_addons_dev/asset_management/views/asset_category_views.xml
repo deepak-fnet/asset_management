@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
 
-    <!-- ACTION -->
-    <record id="action_asset_category" model="ir.actions.act_window">
-        <field name="name">Categories</field>
-        <field name="res_model">asset.category</field>
-        <field name="view_mode">kanban,list,form</field>
-    </record>
 
     
      -->
@@ -14,7 +8,8 @@
     <!-- KANBAN VIEW (PROFESSIONAL CARDS) -->
     <record id="view_asset_category_kanban" model="ir.ui.view">
         <field name="name">asset.category.kanban</field>
-        <field name="model">asset.category</field>
+        <field name="model">product.category</field>
+        <field name="priority">20</field>
         <field name="arch" type="xml">
             <kanban class="o_category_kanban">
                 <field name="id"/>
@@ -32,7 +27,7 @@
                                 <!-- Icon Badge -->
                                 <div class="category_icon_badge">
                                     <t t-if="record.image_128.raw_value">
-                                        <img t-att-src="'/web/image/asset.category/' + record.id.raw_value + '/image_128'"
+                                        <img t-att-src="'/web/image/product.category/' + record.id.raw_value + '/image_128'"
                                              alt="Category"
                                              class="category_image"/>
                                     </t>
@@ -74,13 +69,13 @@
     <!-- LIST VIEW (ENHANCED) -->
     <record id="view_asset_category_list" model="ir.ui.view">
         <field name="name">asset.category.list</field>
-        <field name="model">asset.category</field>
+        <field name="model">product.category</field>
+        <field name="priority">20</field>
         <field name="arch" type="xml">
             <list string="Asset Categories" sample="1" delete="1">
-                <field name="name" decoration-bf="1"/>
+                <field name="complete_name" decoration-bf="1"/>
                 <field name="description" optional="show"/>
                 <field name="asset_count" sum="Total Assets"/>
-                <field name="active" widget="boolean_toggle"/>
             </list>
         </field>
     </record>
@@ -88,7 +83,8 @@
     <!-- FORM VIEW (PROFESSIONAL) -->
     <record id="view_asset_category_form" model="ir.ui.view">
         <field name="name">asset.category.form</field>
-        <field name="model">asset.category</field>
+        <field name="model">product.category</field>
+        <field name="priority">20</field>
         <field name="arch" type="xml">
             <form string="Asset Category" delete="1">
                 <sheet>
@@ -112,7 +108,7 @@
 
                     <group>
                         <group string="Configuration" name="config_group">
-                            <field name="active" widget="boolean_toggle"/>
+                            <field name="parent_id"/>
                             <field name="color" widget="color_picker"/>
                             <field name="icon" placeholder="e.g. fa-laptop"/>
                         </group>
@@ -144,6 +140,17 @@
                 </sheet>
             </form>
         </field>
+    </record>
+
+    <!-- ACTION -->
+    <record id="action_asset_category" model="ir.actions.act_window">
+        <field name="name">Categories</field>
+        <field name="res_model">product.category</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_asset_category_kanban')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_asset_category_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_asset_category_form')})]"/>
     </record>
 
 </odoo>

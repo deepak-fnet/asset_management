@@ -66,7 +66,7 @@ class AssetNetworkDevice(models.Model):
              "asset or mobile device with a matching IP or MAC was found. "
              "This is the field to filter on to find laptops/phones on the "
              "network that do not have the agent installed.")
-    category_id = fields.Many2one('asset.category', string="Category", tracking=True)
+    category_id = fields.Many2one('product.category', string="Category", tracking=True)
     location = fields.Char(string="Physical Location", tracking=True)
 
     # HR / Assignment

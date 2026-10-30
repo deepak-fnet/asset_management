@@ -314,7 +314,7 @@ class AssetJoiningRequirement(models.Model):
         required=True, ondelete='cascade',
     )
     category_id = fields.Many2one(
-        'asset.category', string='Asset Category', required=True,
+        'product.category', string='Asset Category', required=True,
     )
     quantity = fields.Integer(string='Quantity', default=1)
     notes = fields.Char(string='Notes')

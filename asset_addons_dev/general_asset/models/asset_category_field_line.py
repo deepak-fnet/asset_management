@@ -63,7 +63,7 @@ class AssetCategoryFieldLineLeft(models.Model):
     _description = "General Asset Form Field - Left Column"
 
     category_id = fields.Many2one(
-        "asset.category", required=True, ondelete="cascade", index=True)
+        "product.category", required=True, ondelete="cascade", index=True)
 
     # Picking the same field twice in one column isn't just redundant - the
     # dynamic-fields widget keys its t-foreach by field_name, and OWL hard
@@ -80,7 +80,7 @@ class AssetCategoryFieldLineRight(models.Model):
     _description = "General Asset Form Field - Right Column"
 
     category_id = fields.Many2one(
-        "asset.category", required=True, ondelete="cascade", index=True)
+        "product.category", required=True, ondelete="cascade", index=True)
 
     _field_uniq = models.Constraint(
         "unique (category_id, field_id)",

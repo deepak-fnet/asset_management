@@ -12,8 +12,8 @@ Key decisions:
   licences and the procurement chain all work on general assets
   for free instead of needing a parallel implementation.
 
-* asset.category is NOT redefined here. asset_management already owns it;
-  this only extends it. The incoming module's own asset_count compute and
+* Asset categories are product categories (product.category, extended by
+  asset_management); this only adds the general-asset fields. The incoming module's own asset_count compute and
   action_view_assets are dropped rather than merged, since two computes on
   one field silently overwrite each other.
 
@@ -46,7 +46,7 @@ class AssetSubCategory(models.Model):
 
     name = fields.Char("Sub Category", required=True)
     category_id = fields.Many2one(
-        "asset.category", "Category", required=True,
+        "product.category", "Category", required=True,
         ondelete="cascade", index=True)
     active = fields.Boolean(default=True)
 
@@ -62,7 +62,7 @@ class AssetSubCategory(models.Model):
 
 
 class AssetCategoryGeneral(models.Model):
-    _inherit = "asset.category"
+    _inherit = "product.category"
 
     is_general = fields.Boolean(
         string="Is General Asset",
@@ -172,7 +172,7 @@ class ProductCategoryMapping(models.Model):
         "product.category", string="Product Category",
         required=True, ondelete="cascade", index=True)
     asset_category_id = fields.Many2one(
-        "asset.category", string="Asset Category",
+        "product.category", string="Asset Category",
         required=True, ondelete="cascade")
     asset_sub_category_id = fields.Many2one(
         "asset.sub.category", string="Asset Sub Category",

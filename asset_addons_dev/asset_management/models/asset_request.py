@@ -494,7 +494,7 @@ class AssetRequestLine(models.Model):
     # Filled by the approver once the request is submitted; the requester
     # only describes the need (as on the Asset Assign Process).
     asset_category_id = fields.Many2one(
-        "asset.category",
+        "product.category",
         string="Asset Category",
     )
     product_id = fields.Many2one(
@@ -525,29 +525,19 @@ class AssetRequestLine(models.Model):
 
     @api.onchange("asset_category_id")
     def _onchange_asset_category_id(self):
-        """Narrow the Product picker to products mapped to this category.
-
-        asset.category.mapping (asset_purchase) already records which
-        product category maps to which asset category for received goods -
-        reused here in reverse so the buyer isn't picking from every
-        product in the database.
-        """
-        # asset.category.mapping lives in the optional asset_purchase module,
-        # which depends on asset_management (not the reverse) - it may not be
-        # installed, so this narrows the domain only when it is, and leaves
-        # the picker open to every product otherwise.
-        if "asset.category.mapping" not in self.env:
-            return
+        """Narrow the Product picker to the chosen category (and its
+        sub-categories), plus any product category mapped onto it by
+        asset.category.mapping (asset_purchase, optional)."""
         for rec in self:
             if not rec.asset_category_id:
                 continue
-            mappings = self.env["asset.category.mapping"].sudo().search(
-                [("category_id", "=", rec.asset_category_id.id)])
-            product_categ_ids = mappings.mapped("product_category_id").ids
-            if product_categ_ids:
-                return {"domain": {
-                    "product_id": [("categ_id", "in", product_categ_ids)]}}
-
+            domain = [("categ_id", "child_of", rec.asset_category_id.id)]
+            if "asset.category.mapping" in self.env:
+                mapped = self.env["asset.category.mapping"].sudo().search(
+                    [("category_id", "=", rec.asset_category_id.id)]).product_category_id
+                if mapped:
+                    domain = ["|", ("categ_id", "child_of", mapped.ids)] + domain
+            return {"domain": {"product_id": domain}}
 
 class AssetAssetWindowsUpdate(models.Model):
     _inherit = 'asset.asset'

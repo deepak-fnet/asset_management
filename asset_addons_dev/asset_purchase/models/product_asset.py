@@ -15,10 +15,10 @@ class ProductTemplate(models.Model):
              "asset-tracked while a spare keyboard in it is not, and the "
              "mapping alone cannot express that.")
     asset_category_id = fields.Many2one(
-        "asset.category", string="Asset Category",
-        help="Category given to fixed assets created from this product. "
-             "Overrides whatever the product-category mapping would have "
-             "chosen - the product knows better than its category does.")
+        "product.category", string="Asset Category",
+        help="Category given to fixed assets created from this product, when "
+             "it should differ from the product's own category. Overrides "
+             "the product-category mapping too.")
 
     @api.onchange("is_fixed_asset")
     def _onchange_is_fixed_asset(self):
@@ -31,8 +31,7 @@ class ProductTemplate(models.Model):
         if self.is_fixed_asset and not self.asset_category_id:
             mapping = self.env["asset.category.mapping"].search(
                 [("product_category_id", "=", self.categ_id.id)], limit=1)
-            if mapping:
-                self.asset_category_id = mapping.category_id
+            self.asset_category_id = mapping.category_id if mapping and mapping.category_id else self.categ_id
 
 
 class ProductProduct(models.Model):
@@ -44,7 +43,8 @@ class ProductProduct(models.Model):
         Resolution order, most specific first:
           1. the product's own asset_category_id
           2. the product category's mapping row
-          3. nothing - the caller decides what to do
+          3. the product's own category (asset categories are product
+             categories)
 
         Kept here rather than inline at each call site so the receipt flow,
         the PO line and any future caller all resolve it the same way.
@@ -54,7 +54,7 @@ class ProductProduct(models.Model):
             return self.asset_category_id
         mapping = self.env["asset.category.mapping"].search(
             [("product_category_id", "=", self.categ_id.id)], limit=1)
-        return mapping.category_id if mapping else self.env["asset.category"]
+        return mapping.category_id if mapping and mapping.category_id else self.categ_id
 
     def _is_fixed_asset_product(self):
         """True when receiving this product should create fixed assets.

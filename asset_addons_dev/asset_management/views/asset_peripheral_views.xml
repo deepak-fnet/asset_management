@@ -7,7 +7,7 @@
          ══════════════════════════════════════════════════════════════════ -->
     <record id="view_asset_category_form_peripheral" model="ir.ui.view">
         <field name="name">asset.category.form.peripheral</field>
-        <field name="model">asset.category</field>
+        <field name="model">product.category</field>
         <field name="inherit_id" ref="asset_management.view_asset_category_form"/>
         <field name="arch" type="xml">
             <group name="config_group" position="inside">

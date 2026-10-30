@@ -88,18 +88,20 @@ class StockMove(models.Model):
         produces something reachable.
         """
         self.ensure_one()
-        Category = self.env['asset.category']
+        Category = self.env['product.category']
 
         # Product-level asset_category_id wins over the product-category
         # mapping - the product is the more specific statement of intent, and
         # it is what the buyer set on the product form. The mapping remains
         # the fallback so mapping-only setups keep working.
-        category = self.product_id.asset_category_id or mapping.category_id
+        # Asset categories are product categories, so the product's own
+        # category is the natural last fallback.
+        category = (self.product_id.asset_category_id or mapping.category_id
+                    or self.product_id.categ_id)
         if not category:
-            name = self.product_id.categ_id.name or 'Uncategorised Assets'
-            category = Category.search([('name', '=', name)], limit=1)
+            category = Category.search([('name', '=', 'Uncategorised Assets')], limit=1)
             if not category:
-                category = Category.create({'name': name, 'is_general': True})
+                category = Category.create({'name': 'Uncategorised Assets', 'is_general': True})
 
         # Whatever we ended up with, it has to be general or the asset is
         # invisible in the only menu that lists these.

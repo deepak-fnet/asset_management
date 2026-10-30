@@ -114,7 +114,7 @@ class AssetAsset(models.Model):
     )
 
     category_id = fields.Many2one(
-        "asset.category",
+        "product.category",
         string="Category",
         ondelete="restrict",
         tracking=True

@@ -330,7 +330,7 @@ class AssetCategoryDepreciation(models.Model):
     depreciation_method_from_category / _compute_salvage_value_percent_
     from_category above) - so a "Laptop" category can standardise on e.g.
     Declining Method + 5% salvage without every asset re-entering it."""
-    _inherit = "asset.category"
+    _inherit = "product.category"
 
     depreciation_method = fields.Selection(
         [("slm", "Straight Line Method"),

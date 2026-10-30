@@ -189,7 +189,7 @@ class JoiningAvailabilityWizardLine(models.TransientModel):
     # 'Category'". The fields are made readonly in the VIEW instead, which
     # stops the user editing them without stopping the round trip.
     requirement_id = fields.Many2one("asset.joining.requirement")
-    category_id = fields.Many2one("asset.category", required=True)
+    category_id = fields.Many2one("product.category", required=True)
     requested_qty = fields.Integer()
     available_qty = fields.Integer()
     asset_ids = fields.Many2many("asset.asset", string="Available Units")

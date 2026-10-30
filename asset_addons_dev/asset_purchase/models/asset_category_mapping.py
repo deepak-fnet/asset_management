@@ -20,7 +20,7 @@ class AssetCategoryMapping(models.Model):
         help="Products in this category are treated as fixed assets: the flag is "
              "pre-ticked on purchase order lines and receipt lines.")
     category_id = fields.Many2one(
-        'asset.category', string="Asset Category",
+        'product.category', string="Asset Category",
         help="Category given to every asset created from this product category. "
              "Restricted to general-asset categories: an asset created under a "
              "non-general category would exist but never appear under "

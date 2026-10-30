@@ -32,7 +32,7 @@ class AssetBulkOperations(models.TransientModel):
     ], string="Target State")
 
     # Category fields
-    category_id = fields.Many2one('asset.category', string="Category")
+    category_id = fields.Many2one('product.category', string="Category")
 
     # Maintenance fields
     maintenance_date = fields.Date(string="Maintenance Date")

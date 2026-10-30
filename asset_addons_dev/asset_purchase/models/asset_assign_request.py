@@ -41,7 +41,7 @@ class AssetJoiningRequestLine(models.Model):
         'product.product', string="Product",
         domain="[('is_asset', '=', True)]")
     category_id = fields.Many2one(
-        'asset.category', string="Category",
+        'product.category', string="Category",
         compute='_compute_category_id', store=True, readonly=False)
     allocation_ids = fields.One2many('asset.joining.allocation', 'request_line_id', string="Mappings")
     assigned_qty = fields.Integer(string="Assigned", compute='_compute_assign_status', store=True)

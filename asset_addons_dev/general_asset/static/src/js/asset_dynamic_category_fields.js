@@ -52,7 +52,7 @@ class AssetDynamicCategoryFields extends Component {
             return;
         }
         const result = await this.orm.call(
-            "asset.category", "get_dynamic_field_lines", [categoryId]
+            "product.category", "get_dynamic_field_lines", [categoryId]
         );
         this.state.left = result.left;
         this.state.right = result.right;

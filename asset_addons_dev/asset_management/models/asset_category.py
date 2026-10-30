@@ -3,14 +3,13 @@ from odoo.exceptions import UserError
 
 
 class AssetCategory(models.Model):
-    _name = "asset.category"
-    _description = "Asset Category"
-    _order = "name"
+    """Asset categories are product categories: one tree for what is bought
+    and what is tracked. (Replaces the former asset.category model; its
+    records were merged into product.category by the 19.0.1.4.0 migration.)"""
+    _inherit = "product.category"
 
-    name = fields.Char(string="Category Name", required=True)
     code = fields.Char(string="Category Code", size=5)
     description = fields.Text(string="Description")
-    active = fields.Boolean(string="Active", default=True)
     color = fields.Integer(string="Color Index", default=1)
     icon = fields.Char(string="Icon", default="fa-laptop")
     image_128 = fields.Image(string="Image", max_width=128, max_height=128)
@@ -34,4 +33,4 @@ class AssetCategory(models.Model):
                     f"{category.asset_count} asset(s) linked to it.\n\n"
                     f"Please reassign or remove these assets before deleting the category."
                 )
-        return super(AssetCategory, self).unlink()
+        return super().unlink()
