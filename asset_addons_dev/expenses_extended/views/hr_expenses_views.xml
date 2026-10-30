@@ -1,0 +1,599 @@
+<odoo>
+    <data>
+
+        <!-- ============================================================ -->
+        <!--  REMOVE "My Reports" and "Expense Reports" submenus          -->
+        <!-- ============================================================ -->
+        <!--        <record id="hr_expense.menu_hr_expense_my_reports" model="ir.ui.menu">-->
+        <!--            <field name="active" eval="False"/>-->
+        <!--        </record>-->
+
+
+        <!-- ============================================================ -->
+        <!--  MENU REORDER: Expenses Dashboard(1), My Expenses(2),        -->
+        <!--  Advance Payment(5), Reporting(10), Configuration(20)        -->
+        <!-- ============================================================ -->
+        <record id="hr_expense.menu_hr_expense_my_expenses" model="ir.ui.menu">
+            <field name="sequence">2</field>
+        </record>
+
+        <record id="hr_expense.menu_hr_expense_reports" model="ir.ui.menu">
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="hr_expense.menu_hr_expense_configuration" model="ir.ui.menu">
+            <field name="sequence">20</field>
+        </record>
+
+        <!--  HR Expense form inheritance  -->
+        <record id="hr_expense_view_form_custom" model="ir.ui.view">
+            <field name="name">hr.expense.form.custom</field>
+            <field name="model">hr.expense</field>
+            <field name="inherit_id" ref="hr_expense.hr_expense_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='name']" position="replace"/>
+                <xpath expr="//label[@for='name']" position="replace"/>
+
+                <xpath expr="//field[@name='employee_id']" position="after">
+                    <field name="name"/>
+                </xpath>
+                <xpath expr="//button[@name='action_split_wizard']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+
+                <xpath expr="//sheet" position="inside">
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_expense_summary"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-calculator">
+                            <span class="o_stat_text">Summary</span>
+                        </button>
+                        <!--                        <button name="action_open_advance"-->
+                        <!--                                type="object"-->
+                        <!--                                class="oe_stat_button"-->
+                        <!--                                invisible="not advance_id"-->
+                        <!--                                icon="fa-advance">-->
+                        <!--                            <span class="o_stat_text">Advance Requests</span>-->
+                        <!--                        </button>-->
+                    </div>
+                </xpath>
+                <!--                <xpath expr="//header" position="inside">-->
+                <!--                    <button name="action_create_advance" string="Create Advance"-->
+                <!--                            type="object">-->
+                <!--                    </button>-->
+
+                <!--                </xpath>-->
+
+                <!-- Add invisible field for color computation -->
+                <xpath expr="//sheet" position="attributes">
+                    <attribute name="class" add="expense_form_colored" separator=" "/>
+                </xpath>
+
+                <!-- Add field before sheet to track color and account team -->
+                <xpath expr="//sheet" position="before">
+                    <field name="line_color" invisible="1"/>
+                    <field name="advance_id" invisible="1"/>
+                    <field name="is_account_team" invisible="1"/>
+                </xpath>
+
+                <!-- Replace the entire group section with custom layout -->
+                <xpath expr="//group" position="replace">
+                    <group>
+                        <!-- Left Column -->
+                        <group>
+                            <!-- Employee Field -->
+                            <t groups="hr_expense.group_hr_expense_team_approver">
+                                <field name="employee_id"
+                                       groups="!hr.group_hr_user"
+                                       context="{'default_company_id': company_id}"
+                                       widget="many2one_avatar_employee"
+                                       options="{'relation': 'hr.employee.public', 'no_create': True}"
+                                       readonly="not is_editable or state not in 'draft'"/>
+                                <field name="employee_id"
+                                       groups="hr.group_hr_user"
+                                       context="{'default_company_id': company_id}"
+                                       widget="many2one_avatar_employee"
+                                       options="{'relation': 'hr.employee', 'no_create': True}"
+                                       readonly="not is_editable or state not in 'draft'"/>
+                            </t>
+
+                            <!-- employee_no after Employee -->
+                            <field name="employee_no"
+                                   readonly="not is_editable or state not in 'draft'"
+                                   invisible=""/>
+
+                            <!-- Grade Date -->
+                            <field name="grade_id"
+                                   string="Grade"
+                                   readonly="not is_editable or state not in 'draft'"/>
+
+                            <!-- Department -->
+                            <field name="department_id"
+                                   readonly="not is_editable or state not in 'draft'"
+                                   options="{'no_create': True}"/>
+
+                            <field name="description"
+                                   placeholder="Description..."
+                                   readonly="not is_editable or state not in 'draft'"
+                                   invisible="1"/>
+
+                            <field name="name"
+                                   placeholder="Description..."
+                                   readonly="not is_editable or state not in 'draft'"
+                                   invisible="0"
+                                   class="o_field_widget o_field_char"/>
+
+                            <field name="remarks"
+                                   placeholder="Remarks..."
+                                   groups="account.group_account_invoice"
+                                   readonly="not is_editable or state not in 'draft'"
+                                   invisible="0"
+                                   class="o_field_widget o_field_char"/>
+
+                            <!-- Purpose of Visit -->
+                            <field name="purpose"
+                                   placeholder="Purpose of visit..."
+                                   readonly="not is_editable or state not in 'draft'" invisible="1"/>
+
+
+                            <!-- Hidden fields from left group -->
+                            <field name="product_has_cost" invisible="1"/>
+                            <field name="product_has_tax" invisible="1"/>
+                            <field name="is_multiple_currency" invisible="1"/>
+                            <field name="is_editable" invisible="1"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="company_id" invisible="1"/>
+                            <field name="company_currency_id" invisible="1"/>
+                            <field name="tax_amount" invisible="1"/>
+                            <field name="price_unit" invisible="1"/>
+                            <field name="nb_attachment" invisible="1"/>
+                            <field name="total_amount" invisible="1"/>
+                            <field name="duplicate_expense_ids" invisible="1"/>
+                            <field name="currency_rate" invisible="1"/>
+                        </group>
+
+                        <!-- Right Column -->
+                        <group>
+
+                            <!-- From Date -->
+                            <field name="from_date"
+                                   readonly="not is_editable or state not in 'draft'"/>
+                            <!-- To Date -->
+                            <field name="to_date"
+                                   readonly="not is_editable or state not in 'draft'"/>
+                            <!-- Expense Date -->
+                            <field name="date"
+                                   string="Expense Date"
+                                   readonly="1"/>
+
+
+                            <!-- Total Expenses -->
+                            <label for="total_amount_currency"
+                                   string="Total"
+                                   readonly="not is_editable or state not in 'draft'"/>
+                            <div class="o_row">
+                                <field name="total_amount_currency"
+                                       widget="monetary"
+                                       options="{'currency_field': 'currency_id'}"
+                                       readonly="not is_editable"
+                                       class="oe_inline mw-50 me-0"/>
+                                <field name="currency_id"
+                                       class="mw-25 ms-0"
+                                       groups="base.group_multi_currency"
+                                       options="{'no_create': True}"
+                                       readonly="not is_editable"
+                                       invisible="1"/>
+                            </div>
+
+                            <!--                            &lt;!&ndash; Paid By &ndash;&gt;-->
+                            <!--                            <label for="payment_mode" string="Paid By"/>-->
+
+                            <!--                                                        <div>-->
+                            <!--                                <field name="payment_mode"-->
+                            <!--                                       readonly="sheet_id"/>-->
+                            <!--                            </div>-->
+                            <field name="voucher" groups="account.group_account_invoice"
+                                   readonly="not is_editable"/>
+
+                            <!-- CASE: product has a cost defined (hidden if needed) -->
+                            <field name="price_unit"
+                                   required="1"
+                                   widget="monetary"
+                                   options="{'currency_field': 'currency_id', 'field_digits': True}"
+                                   invisible="not product_has_cost"
+                                   readonly="True"/>
+
+                            <label for="quantity"
+                                   invisible="not product_has_cost"/>
+                            <div invisible="not product_has_cost">
+                                <div class="o_row">
+                                    <field name="quantity"
+                                           class="oe_inline"
+                                           readonly="not is_editable"/>
+                                    <field name="product_uom_id"
+                                           required="1"
+                                           force_save="1"
+                                           options="{'no_open': True, 'no_create': True}"
+                                           groups="uom.group_uom"
+                                           readonly="not is_editable"/>
+                                </div>
+                            </div>
+
+                            <!-- Currency converter -->
+                            <label for="total_amount"
+                                   string=""
+                                   invisible="not is_multiple_currency and not product_has_cost"/>
+                            <div class="o_row"
+                                 invisible="not is_multiple_currency and not product_has_cost">
+                                <field name="total_amount"
+                                       widget="monetary"
+                                       options="{'currency_field': 'company_currency_id'}"
+                                       force_save="1"
+                                       readonly="not is_editable or product_has_cost"
+                                       class="oe_inline"/>
+                                <field name="label_currency_rate"
+                                       class="ps-0"/>
+                            </div>
+
+                            <!-- Accounting fields -->
+                            <field name="account_id"
+                                   options="{'no_create': True}"
+                                   domain="[('account_type', 'not in', ('asset_receivable','liability_payable','asset_cash','liability_credit_card')), ('active', '=', True)]"
+                                   groups="account.group_account_readonly"
+                                   readonly="not is_editable"
+                                   context="{'default_company_id': company_id}"/>
+                            <field name="analytic_distribution" invisible="1"
+                                   widget="analytic_distribution"
+                                   groups="analytic.group_analytic_accounting"
+                                   options="{'product_field': 'product_id', 'account_field': 'account_id', 'business_domain': 'expense'}"
+                                   readonly="not is_editable"/>
+                            <field name="company_id" invisible="1"
+                                   groups="base.group_multi_company"
+                                   readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+                </xpath>
+
+
+                <!-- Remove the description div at the bottom since we moved it to left column -->
+                <xpath expr="//div[field[@name='description']]" position="replace"/>
+
+                <!-- Add Expense Lines Notebook inside sheet -->
+                <xpath expr="//sheet" position="inside">
+                    <notebook>
+                        <page string="Expense Lines">
+                            <div class="d-flex justify-content-end mb-2">
+                                <a role="button"
+                                   class="btn btn-sm btn-secondary me-2"
+                                   onclick="document.querySelector('.o_list_table').parentElement.scrollBy({left: -300, behavior: 'smooth'})">
+                                    <i class="fa fa-arrow-left"/>
+                                    Scroll Left
+                                </a>
+                                <a role="button"
+                                   class="btn btn-sm btn-secondary"
+                                   onclick="document.querySelector('.o_list_table').parentElement.scrollBy({left: 300, behavior: 'smooth'})">
+                                    Scroll Right
+                                    <i class="fa fa-arrow-right"/>
+                                </a>
+                            </div>
+                            <field name="expense_line_ids"  invisible="state in 'draft'" readonly="state in 'done'">
+                                <list editable="bottom" decoration-danger="is_exceeded" create="0"
+          delete="0">
+                                    <field name="category_ids" widget="many2many_tags" column_invisible="1"/>
+                                    <field name="is_readonly_line" column_invisible="1"/>
+                                    <field name="is_account_user" column_invisible="1"/>
+                                    <field name="is_flight_category" column_invisible="1"/>
+                                    <field name="category_id" width="150px"
+                                           readonly="is_readonly_line or parent.state not in 'draft'"/>
+                                    <field name="grade_id" optional="hide" readonly="1" column_invisible="1"/>
+                                    <field name="is_exceeded" column_invisible="1"/>
+                                    <!-- Sub Category hidden -->
+                                    <field name="internal_id" width="150px" string="Sub Category" column_invisible="1"/>
+                                    <!-- Self/Company selection: only for flight category -->
+                                    <field name="flight_paid_by" string="Company" width="100px"/>
+                                    <field name="mode" width="100px" column_invisible="1"/>
+                                    <field name="date_from" width="150px"
+                                           readonly="is_readonly_line"/>
+                                    <field name="from_location" width="150px"
+                                           readonly="is_readonly_line"/>
+                                    <field name="date_to" width="150px"
+                                           readonly="is_readonly_line"/>
+                                    <field name="to_location" width="150px"
+                                           readonly="is_readonly_line"/>
+                                    <field name="description" width="200px" string="Purpose of Visit"
+                                           readonly="is_readonly_line"/>
+                                    <field name="tax_ids" widget="many2many_tags" width="150px" column_invisible="1"/>
+                                    <!-- Gross Amount: readonly if company selected and not account user -->
+                                    <field name="eligible_amount" optional="show" force_save="1" readonly="1"/>
+                                    <field name="claimed_amount" width="130px" string="Claimed Amount" optional="show"
+                                           readonly="parent.state not in 'draft'"/>
+                                    <field name="amount" column_invisible="1"/>
+                                    <field name="amount" width="130px" string="Paid Amount"
+                                           groups="account.group_account_invoice" optional="show"
+                                           readonly="is_readonly_line or (flight_paid_by == 'company' and not is_account_user)"/>
+                                    <field name="tax_amount" readonly="1" width="130px" string="Tax Amount"
+                                           groups="account.group_account_invoice" optional="hide"/>
+                                    <field name="total_with_tax" readonly="1" width="130px" string="Net Amount"
+                                           groups="account.group_account_invoice" optional="hide"/>
+                                    <field name="store_file" filename="name" width="100px"/>
+                                    <field name="name" column_invisible="1"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                            <field name="expense_line_ids"  invisible="state not in 'draft'" readonly="state in 'done'">
+                                <list editable="bottom" decoration-danger="is_exceeded">
+                                    <field name="category_ids" widget="many2many_tags" column_invisible="1"/>
+                                    <field name="is_readonly_line" column_invisible="1"/>
+                                    <field name="is_account_user" column_invisible="1"/>
+                                    <field name="is_flight_category" column_invisible="1"/>
+                                    <field name="category_id" width="150px"
+                                           readonly="is_readonly_line or parent.state in 'done'"/>
+                                    <field name="grade_id" optional="hide" readonly="1" column_invisible="1"/>
+                                    <field name="is_exceeded" column_invisible="1"/>
+                                    <!-- Sub Category hidden -->
+                                    <field name="internal_id" width="150px" string="Sub Category" column_invisible="1"/>
+                                    <!-- Self/Company selection: only for flight category -->
+                                    <field name="flight_paid_by" string="Company" width="100px"/>
+                                    <field name="mode" width="100px" column_invisible="1"/>
+                                    <field name="date_from" width="150px"
+                                           readonly="is_readonly_line"/>
+                                    <field name="from_location" width="150px"
+                                           readonly="is_readonly_line"/>
+                                    <field name="date_to" width="150px"
+                                           readonly="is_readonly_line"/>
+                                    <field name="to_location" width="150px"
+                                           readonly="is_readonly_line"/>
+                                    <field name="description" width="200px" string="Purpose of Visit"
+                                           readonly="is_readonly_line"/>
+                                    <field name="tax_ids" widget="many2many_tags" width="150px" column_invisible="1"/>
+                                    <!-- Gross Amount: readonly if company selected and not account user -->
+                                    <field name="eligible_amount" optional="show" force_save="1" readonly="1"/>
+                                    <field name="claimed_amount" width="130px" string="Claimed Amount" optional="show"
+                                           readonly="parent.state not in 'draft'"/>
+                                    <field name="amount" string="Paid Amount" readonly="1 " column_invisible="parent.state not in 'accountant'"/>
+                                    <field name="amount" width="130px" string="Paid Amount" column_invisible="parent.state in 'accountant'"
+                                           groups="account.group_account_invoice" optional="show"
+                                           readonly="is_readonly_line or (flight_paid_by == 'company' and not is_account_user)"/>
+                                    <field name="tax_amount" readonly="1" width="130px" string="Tax Amount"
+                                           groups="account.group_account_invoice" optional="hide"/>
+                                    <field name="total_with_tax" readonly="1" width="130px" string="Net Amount"
+                                           groups="account.group_account_invoice" optional="hide"/>
+                                    <field name="store_file" filename="name" width="100px"/>
+                                    <field name="name" column_invisible="1"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- Tab: Available Advances (to adjust) -->
+                        <!-- (counts / totals moved here from the Odoo 17 expense report form) -->
+                        <page string="Available Advances">
+                            <field name="available_advance_line_ids" nolabel="1" readonly="1">
+                                <list string="Available Advance Lines"
+                                      create="false" delete="false" edit="false"
+                                      decoration-success="line_state == 'confirmed'">
+                                    <field name="date"/>
+                                    <field name="user_id"/>
+                                    <field name="amount" widget="monetary"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="remark"/>
+                                    <field name="line_state" string="Status" widget="badge"
+                                           decoration-success="line_state == 'confirmed'"/>
+                                    <button name="%(expenses_extended.action_adjust_advance_wizard)d"
+                                            type="action"
+                                            string="Adjust"
+                                            class="btn-primary btn-sm"
+                                            icon="fa-check"
+                                            context="{'default_advance_line_id': id, 'default_expense_id': parent.id}"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- Tab: Adjusted Advances (already linked) -->
+                        <page string="Adjusted Advances">
+                            <field name="advance_payment_line_ids" nolabel="1" readonly="1">
+                                <list string="Adjusted Advance Lines"
+                                      create="false" delete="false" edit="false"
+                                      decoration-warning="is_adjusted == True">
+                                    <field name="date"/>
+                                    <field name="user_id"/>
+                                    <field name="amount" widget="monetary"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="remark"/>
+                                    <field name="is_adjusted" column_invisible="1"/>
+                                    <button name="%(expenses_extended.action_remove_advance_wizard)d"
+                                            type="action"
+                                            string="Remove"
+                                            class="btn-danger btn-sm"
+                                            icon="fa-times"
+                                            context="{'default_advance_line_id': id, 'default_expense_id': parent.id}"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </xpath>
+
+                <!-- Add Totals Section at the bottom of sheet -->
+                <xpath expr="//sheet" position="inside">
+                    <div class="oe_subtotal_footer oe_right" invisible="state not in 'draft'">
+                        <table class="table table-sm">
+                            <tbody>
+                                <tr>
+                                    <td class="text-end fw-bold">
+                                        <label for="custom_total"/>
+                                        <label for="total_amount_currency" invisible="1"/>
+                                    </td>
+                                    <td class="text-end">
+                                        <field name="custom_total" readonly="1" nolabel="1"/>
+                                        <field name="total_amount_currency" readonly="1" nolabel="1" invisible="1"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-end fw-bold">
+                                        <label for="advance_pay"/>
+                                    </td>
+                                    <td class="text-end">
+                                        <field name="advance_pay" nolabel="1" readonly="1"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-end fw-bold">
+                                        <label for="employee_pay"/>
+                                    </td>
+                                    <td class="text-end">
+                                        <field name="employee_pay" nolabel="1"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-end fw-bold">
+                                        <label for="company_pay"/>
+                                    </td>
+                                    <td class="text-end">
+                                        <field name="company_pay" nolabel="1"/>
+                                    </td>
+                                </tr>
+                                <tr invisible="not flight_amount">
+                                    <td class="text-end fw-bold">
+                                        <label for="flight_amount"/>
+                                    </td>
+                                    <td class="text-end">
+                                        <field name="flight_amount" force_save="1" nolabel="1"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-end fw-bold">
+                                        <label for="balance_amount"/>
+                                    </td>
+                                    <td class="text-end">
+                                        <field name="balance_amount" readonly="1" nolabel="1"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </xpath>
+                <xpath expr="//group" position="after">
+                    <div class="oe_top_summary row mt-2" invisible="state in 'draft'">
+
+                        <!-- LEFT COLUMN -->
+                        <div class="col-6">
+                            <table class="table table-sm">
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold">
+                                            <label for="custom_total"/>
+                                        </td>
+                                        <td class="text-end">
+                                            <field name="custom_total" readonly="1" nolabel="1"/>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="fw-bold">
+                                            <label for="advance_pay"/>
+                                        </td>
+                                        <td class="text-end">
+                                            <field name="advance_pay" readonly="1" nolabel="1"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">
+                                            <label for="balance_amount"/>
+                                        </td>
+                                        <td class="text-end">
+                                            <field name="balance_amount" readonly="1" nolabel="1"/>
+                                        </td>
+                                    </tr>
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- RIGHT COLUMN -->
+                        <div class="col-6">
+                            <table class="table table-sm">
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold">
+                                            <label for="company_pay"/>
+                                        </td>
+                                        <td class="text-end">
+                                            <field name="company_pay" nolabel="1"/>
+                                        </td>
+                                    </tr>
+
+                                    <tr invisible="not flight_amount">
+                                        <td class="fw-bold">
+                                            <label for="flight_amount"/>
+                                        </td>
+                                        <td class="text-end">
+                                            <field name="flight_amount" force_save="1" nolabel="1"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">
+                                            <label for="employee_pay"/>
+                                        </td>
+                                        <td class="text-end">
+                                            <field name="employee_pay" nolabel="1"/>
+                                        </td>
+                                    </tr>
+
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </xpath>
+                <xpath expr="//header" position="inside">
+                    <field name="can_approve" invisible="1"/>
+                    <button name="action_paid" type="object" string="Paid" invisible="state not in ['approved','accountant']"
+                            groups="account.group_account_invoice"/>
+                    <button name="action_accountant" type="object" string="Accountant" invisible="state not in 'approved'"
+                            groups="account.group_account_invoice"/>
+                </xpath>
+            </field>
+        </record>
+
+
+
+        <record id="product_product_expense_view_form_inherit" model="ir.ui.view">
+            <field name="name">product.template.expense</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="hr_expense.product_product_expense_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='default_code']" position="attributes">
+                    <attribute name="string">Sub Category</attribute>
+                </xpath>
+                <xpath expr="//field[@name='categ_id']" position="after">
+                    <field name="expense_type"/>
+                </xpath>
+
+                <xpath expr="//field[@name='supplier_taxes_id']" position="after">
+                    <field name="travel_line_ids">
+                        <list editable="bottom">
+                            <field name="grade_categ_id"/>
+                            <field name="max_amount"/>
+                        </list>
+                    </field>
+
+                </xpath>
+            </field>
+        </record>
+
+        <record id="product_expense_view_tree_inherit" model="ir.ui.view">
+            <field name="name">product.tree.expense</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="hr_expense.product_product_expense_categories_tree_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='default_code']" position="attributes">
+                    <attribute name="string">Sub Category</attribute>
+                </xpath>
+
+            </field>
+        </record>
+    </data>
+</odoo>

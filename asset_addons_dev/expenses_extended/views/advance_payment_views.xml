@@ -1,0 +1,590 @@
+<odoo>
+    <data>
+
+        <!-- ============================================================ -->
+        <!--  Sequence for Advance Payment Reference                      -->
+        <!-- ============================================================ -->
+        <record id="seq_advance_payment" model="ir.sequence">
+            <field name="name">Advance Payment</field>
+            <field name="code">advance.payment</field>
+            <field name="prefix">ADV/%(year)s/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- ============================================================ -->
+        <!--  Advance Payment: Form View                                  -->
+        <!-- ============================================================ -->
+        <record id="advance_payment_view_form" model="ir.ui.view">
+            <field name="name">advance.payment.form</field>
+            <field name="model">advance.payment</field>
+            <field name="arch" type="xml">
+                <form string="Advance Payment">
+                    <header>
+                        <button name="action_request"
+                                type="object"
+                                string="Request"
+                                class="btn-primary"
+                                invisible="state != 'draft' or not is_created_by_user"/>
+                        <button name="action_confirm"
+                                type="object"
+                                string="Confirm"
+                                class="btn-primary"
+                                groups="account.group_account_invoice"
+                                invisible="state != 'draft' or is_created_by_user"/>
+                        <button name="action_confirm"
+                                type="object"
+                                string="Confirm"
+                                class="btn-primary"
+                                groups="account.group_account_invoice"
+                                invisible="state != 'request' or not is_manager_user"/>
+                        <button name="action_reset_draft"
+                                type="object"
+                                string="Reset to Draft"
+                                class="btn-secondary"
+                                groups="account.group_account_invoice"
+                                invisible="state != 'confirmed'"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="draft,confirmed"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+                        <!-- Pending Advance Info Section -->
+                        <div invisible="state in ['draft','confirmed'] or not pending_advance_line_ids">
+                            <div class="alert alert-warning mb-0">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <strong>
+                                        <i class="fa fa-exclamation-triangle me-1"/>
+                                        Pending Advance Lines (Confirmed, Not Yet Adjusted)
+                                    </strong>
+                                    <span class="d-flex gap-3">
+                                        <span>
+                                            <strong>Records:</strong>
+                                            <field name="pending_advance_count" class="oe_inline" readonly="1"/>
+                                        </span>
+                                        <span class="ms-3">
+                                            <strong>Total Amount:</strong>
+                                            <field name="pending_advance_total" class="oe_inline" readonly="1"
+                                                   widget="monetary"/>
+                                        </span>
+                                    </span>
+                                </div>
+                                <field name="pending_advance_line_ids" readonly="1" nolabel="1">
+                                    <list create="false" delete="false"
+                                          decoration-danger="amount > 0">
+                                        <field name="employee_id" readonly="1"/>
+                                        <field name="department_id" readonly="1"/>
+                                        <field name="date" readonly="1"/>
+                                        <field name="amount" widget="monetary" readonly="1"/>
+                                        <field name="currency_id" column_invisible="1"/>
+                                        <field name="remark" readonly="1"/>
+                                    </list>
+                                </field>
+                            </div>
+                        </div>
+
+                        <!-- No Pending Advances - green confirmation -->
+                        <div class="alert alert-success"
+                             invisible="state in ['draft','confirmed'] or pending_advance_line_ids">
+                            <i class="fa fa-check-circle me-1"/>
+                            <strong>No pending advance lines</strong>
+                            found for the selected employee(s).
+                        </div>
+
+                        <group>
+                            <group>
+                                <field name="date"
+                                       readonly="state == 'confirmed'"/>
+                                <field name="user_id"
+                                       widget="many2one_avatar_user"/>
+                            </group>
+                            <group>
+                                <field name="employee_id" options="{'no_open': True, 'no_create': True}"
+                                       invisible="not is_created_by_user" required="is_created_by_user"
+                                       readonly="state not in 'draft'"/>
+                                <field name="total_amount" widget="monetary"/>
+                                <field name="currency_id" invisible="1"/>
+                                <field name="pending_advance_line_ids" invisible="1"/>
+                                <field name="expense_id" invisible="1"/>
+                                <field name="is_manager_user" invisible="1"/>
+                                <field name="company_id" invisible="1"/>
+                                <field name="is_created_by_user" invisible="1"/>
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page string="Advance Lines">
+                                <field name="line_ids"
+                                       readonly="state == 'confirmed'">
+                                    <list editable="bottom">
+                                        <field name="line_state" column_invisible="1"/>
+                                        <field name="employee_id"
+                                               options="{'no_create': True}"
+                                               domain="[('user_id', '=', uid)]"
+                                               column_invisible="not parent.is_created_by_user"
+                                               readonly="line_state == 'confirmed'"/>
+                                        <field name="employee_id"
+                                               options="{'no_create': True}"
+                                               column_invisible="parent.is_created_by_user"
+                                               readonly="line_state == 'confirmed'"/>
+                                        <field name="department_id" readonly="1"/>
+                                        <field name="date"
+                                               readonly="line_state == 'confirmed'"/>
+                                        <field name="user_id" readonly="1"/>
+                                        <field name="amount"
+                                               readonly="line_state == 'confirmed'"/>
+                                        <field name="remark"
+                                               readonly="line_state == 'confirmed'"/>
+                                        <field name="currency_id" column_invisible="1"/>
+                                        <field name="expense_id" readonly="1"
+                                               optional="hide"/>
+                                        <field name="is_adjusted" column_invisible="1"/>
+                                        <field name="line_state" column_invisible="1"/>
+                                    </list>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <!-- Chatter -->
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- ============================================================ -->
+        <!--  Advance Payment: Tree View                                  -->
+        <!-- ============================================================ -->
+        <record id="advance_payment_view_tree" model="ir.ui.view">
+            <field name="name">advance.payment.tree</field>
+            <field name="model">advance.payment</field>
+            <field name="arch" type="xml">
+                <list string="Advance Payments">
+                    <field name="name"/>
+                    <field name="date"/>
+                    <field name="user_id" widget="many2one_avatar_user"/>
+                    <field name="total_amount" widget="monetary" sum="Total"/>
+                    <field name="state" widget="badge"
+                           decoration-info="state == 'draft'"
+                           decoration-success="state == 'confirmed'"/>
+                    <field name="currency_id" column_invisible="1"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- ============================================================ -->
+        <!--  Advance Payment: Search View                                -->
+        <!-- ============================================================ -->
+        <record id="advance_payment_view_search" model="ir.ui.view">
+            <field name="name">advance.payment.search</field>
+            <field name="model">advance.payment</field>
+            <field name="arch" type="xml">
+                <search string="Search Advance Payments">
+                    <field name="name"/>
+                    <field name="user_id"/>
+                    <filter name="filter_draft" string="Draft"
+                            domain="[('state', '=', 'draft')]"/>
+                    <filter name="filter_confirmed" string="Confirmed"
+                            domain="[('state', '=', 'confirmed')]"/>
+                    <group>
+                        <filter name="group_date" string="Date"
+                                context="{'group_by': 'date'}"/>
+                        <filter name="group_user" string="Created By"
+                                context="{'group_by': 'user_id'}"/>
+                        <filter name="group_state" string="Status"
+                                context="{'group_by': 'state'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- ============================================================ -->
+        <!--  Advance Payment: Action                                     -->
+        <!-- ============================================================ -->
+        <record id="action_advance_payment" model="ir.actions.act_window">
+            <field name="name">Advance Payments</field>
+            <field name="res_model">advance.payment</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="advance_payment_view_search"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create your first advance payment
+                </p>
+                <p>
+                    Enter the date, then add lines with employee, amount, and reason.
+                    Confirm when ready so they can be adjusted against expenses.
+                </p>
+            </field>
+        </record>
+        <record id="action_advance_payment_request" model="ir.actions.act_window">
+            <field name="name">Advance Payments Request</field>
+            <field name="res_model">advance.payment</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="advance_payment_view_search"/>
+            <field name="domain">
+                [('user_id', '=', uid), ('is_created_by_user', '=', True)]
+            </field>
+            <field name="context">
+                {'default_is_created_by_user': True}
+            </field>
+            <field name="view_ids" eval="[(5, 0, 0),
+        (0, 0, {'view_mode': 'list', 'view_id': ref('expenses_extended.advance_payment_view_tree')}),
+        (0, 0, {'view_mode': 'form', 'view_id': ref('expenses_extended.advance_payment_view_form')})]"/>
+
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create your first advance payment
+                </p>
+                <p>
+                    Enter the date, then add lines with employee, amount, and reason.
+                    Confirm when ready so they can be adjusted against expenses.
+                </p>
+            </field>
+        </record>
+        <!--                  groups="account.group_account_invoice"-->
+
+        <record id="advance_payment_view_user_tree" model="ir.ui.view">
+            <field name="name">advance.payment.tree</field>
+            <field name="model">advance.payment</field>
+            <field name="arch" type="xml">
+                <list string="Advance Payments" editable="top">
+                    <field name="name" optional="show"/>
+                    <field name="employee_id" optional="show" required="1" readonly="1"
+                           options="{'no_create': True, 'no_create_edit':True}"/>
+                    <field name="employee_no" optional="show"/>
+                    <field name="department_id" optional="show" options="{'no_create': True, 'no_create_edit':True}"/>
+                    <field name="date" optional="show" readonly="1"/>
+                    <field name="description" optional="show" readonly="state not in 'draft'"/>
+                    <field name="remarks" optional="show" readonly="state not in 'approved'"
+                           groups="account.group_account_invoice"/>
+                    <field name="user_id" widget="many2one_avatar_user" optional="hide"/>
+                    <field name="amount" widget="monetary" sum="Amount" readonly="state not in 'draft'"/>
+                    <field name="total_amount" widget="monetary" sum="Total" optional="hide"/>
+                    <field name="state" widget="badge"
+                           decoration-info="state == 'draft'"
+                           decoration-success="state == 'confirmed'"/>
+                    <field name="currency_id" column_invisible="1"/>
+                    <field name="is_created_by_user" column_invisible="1"/>
+                    <field name="is_manager_user" column_invisible="1"/>
+                    <button name="action_request"
+                            type="object"
+                            string="Request"
+                            class="btn-primary"
+                            invisible="state != 'draft' or not is_created_by_user"/>
+                    <button name="action_confirm"
+                            type="object"
+                            string="Confirm"
+                            class="btn-primary"
+                            groups="account.group_account_invoice"
+                            invisible="state != 'draft' or is_created_by_user"/>
+                    <button name="action_manager_approve"
+                            type="object"
+                            string="Approve"
+                            class="btn-primary"
+                            invisible="state != 'request' or not is_manager_user"/>
+
+                    <button name="action_confirm"
+                            type="object"
+                            string="Confirm"
+                            class="btn-primary"
+                            groups="account.group_account_invoice"
+                            invisible="state != 'approved'"/>
+
+                    <button name="action_reset_draft"
+                            type="object"
+                            string="Reset to Draft"
+                            class="btn-secondary"
+                            groups="account.group_account_invoice"
+                            invisible="state != 'confirmed'"/>
+                    <button name="action_view_form"
+                            type="object"
+                            string="👁"
+                            class="btn-secondary"/>
+                </list>
+            </field>
+        </record>
+        <record id="advance_payment_user_view_form" model="ir.ui.view">
+            <field name="name">advance.payment.form</field>
+            <field name="model">advance.payment</field>
+            <field name="arch" type="xml">
+                <form string="Advance Payment">
+                    <header>
+                        <button name="action_request"
+                                type="object"
+                                string="Request"
+                                class="btn-primary"
+                                invisible="state != 'draft' or not is_created_by_user"/>
+                        <button name="action_confirm"
+                                type="object"
+                                string="Confirm"
+                                class="btn-primary"
+                                groups="account.group_account_invoice"
+                                invisible="state != 'draft' or is_created_by_user"/>
+                        <button name="action_confirm"
+                                type="object"
+                                string="Confirm"
+                                class="btn-primary"
+                                groups="account.group_account_invoice"
+                                invisible="state != 'request' or not is_manager_user"/>
+                        <button name="action_reset_draft"
+                                type="object"
+                                string="Reset to Draft"
+                                class="btn-secondary"
+                                groups="account.group_account_invoice"
+                                invisible="state != 'confirmed'"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="draft,confirmed"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+                        <!-- Pending Advance Info Section -->
+                        <div invisible="state in ['draft','confirmed'] or not pending_advance_line_ids">
+                            <div class="alert alert-warning mb-0">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <strong>
+                                        <i class="fa fa-exclamation-triangle me-1"/>
+                                        Pending Advance Lines (Confirmed, Not Yet Adjusted)
+                                    </strong>
+                                    <span class="d-flex gap-3">
+                                        <span>
+                                            <strong>Records:</strong>
+                                            <field name="pending_advance_count" class="oe_inline" readonly="1"/>
+                                        </span>
+                                        <span class="ms-3">
+                                            <strong>Total Amount:</strong>
+                                            <field name="pending_advance_total" class="oe_inline" readonly="1"
+                                                   widget="monetary"/>
+                                        </span>
+                                    </span>
+                                </div>
+                                <field name="pending_advance_line_ids" readonly="1" nolabel="1">
+                                    <list create="false" delete="false"
+                                          decoration-danger="amount > 0">
+                                        <field name="employee_id" readonly="1"/>
+                                        <field name="department_id" readonly="1"/>
+                                        <field name="date" readonly="1"/>
+                                        <field name="amount" widget="monetary" readonly="1"/>
+                                        <field name="currency_id" column_invisible="1"/>
+                                        <field name="remark" readonly="1"/>
+                                    </list>
+                                </field>
+                            </div>
+                        </div>
+
+                        <!-- No Pending Advances - green confirmation -->
+                        <div class="alert alert-success"
+                             invisible="state in ['draft','confirmed'] or pending_advance_line_ids">
+                            <i class="fa fa-check-circle me-1"/>
+                            <strong>No pending advance lines</strong>
+                            found for the selected employee(s).
+                        </div>
+                        <!--                        <div>-->
+                        <!--                            <h1>-->
+                        <!--                                <field name="name" readonly="1"/>-->
+                        <!--                            </h1>-->
+                        <!--                            <br/>-->
+                        <!--                        </div>-->
+                        <group>
+                            <group>
+                                <field name="employee_id" options="{'no_open': True, 'no_create': True}"
+                                       invisible="not is_created_by_user" required="is_created_by_user"
+                                       readonly="state not in 'draft'"/>
+                                <field name="employee_no"/>
+                                <field name="date"
+                                       readonly="state == 'confirmed'"/>
+                                <field name="user_id"
+                                       widget="many2one_avatar_user"/>
+                            </group>
+                            <group>
+                                <field name="department_id" optional="show"
+                                       options="{'no_create': True, 'no_create_edit':True}"/>
+                                <field name="description"/>
+                                <field name="total_amount" widget="monetary"/>
+                                <field name="currency_id" invisible="1"/>
+                                <field name="pending_advance_line_ids" invisible="1"/>
+                                <field name="expense_id" invisible="1"/>
+                                <field name="is_manager_user" invisible="1"/>
+                                <field name="company_id" invisible="1"/>
+                                <field name="is_created_by_user" invisible="1"/>
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page string="Advance Lines">
+                                <field name="line_ids"
+                                       readonly="state == 'confirmed'">
+                                    <list editable="bottom">
+                                        <field name="line_state" column_invisible="1"/>
+                                        <field name="employee_id"
+                                               options="{'no_create': True}"
+                                               domain="[('user_id', '=', uid)]"
+                                               column_invisible="not parent.is_created_by_user"
+                                               readonly="line_state == 'confirmed'"/>
+                                        <field name="employee_id"
+                                               options="{'no_create': True}"
+                                               column_invisible="parent.is_created_by_user"
+                                               readonly="line_state == 'confirmed'"/>
+                                        <field name="department_id" readonly="1"/>
+                                        <field name="date"
+                                               readonly="line_state == 'confirmed'"/>
+                                        <field name="user_id" readonly="1"/>
+                                        <field name="amount"
+                                               readonly="line_state == 'confirmed'"/>
+                                        <field name="remark"
+                                               readonly="line_state == 'confirmed'"/>
+                                        <field name="currency_id" column_invisible="1"/>
+                                        <field name="expense_id" readonly="1"
+                                               optional="hide"/>
+                                        <field name="is_adjusted" column_invisible="1"/>
+                                        <field name="line_state" column_invisible="1"/>
+                                    </list>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <!-- Chatter -->
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_advance_payment_user_request" model="ir.actions.act_window">
+            <field name="name">Advance Payments Request</field>
+            <field name="res_model">advance.payment</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="advance_payment_view_search"/>
+            <field name="domain">
+                []
+            </field>
+            <field name="context">
+                {'default_is_created_by_user': True,
+                'default_is_expense_user': True,
+                }
+            </field>
+
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create your first advance payment
+                </p>
+                <p>
+                    Enter the date, then add lines with employee, amount, and reason.
+                    Confirm when ready so they can be adjusted against expenses.
+                </p>
+            </field>
+            <field name="view_ids" eval="[(5, 0, 0),
+        (0, 0, {'view_mode': 'list', 'view_id': ref('expenses_extended.advance_payment_view_user_tree')}),
+        (0, 0, {'view_mode': 'form', 'view_id': ref('expenses_extended.advance_payment_user_view_form')})]"/>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <!-- Tree View -->
+        <record id="view_advance_payment_line_tree" model="ir.ui.view">
+            <field name="name">advance.payment.line.tree</field>
+            <field name="model">advance.payment.line</field>
+            <field name="arch" type="xml">
+                <list string="Advance Payment Lines"
+                      decoration-success="line_state == 'confirmed'"
+                      decoration-muted="is_adjusted == True">
+                    <field name="date"/>
+                    <field name="employee_id"/>
+                    <field name="department_id"/>
+                    <field name="amount" sum="Total Amount"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="remark"/>
+                    <field name="expense_id"/>
+                    <field name="is_adjusted"/>
+                    <field name="line_state"
+                           widget="badge"
+                           decoration-success="line_state == 'confirmed'"
+                           decoration-warning="line_state == 'draft'"/>
+                    <field name="user_id"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Form View -->
+        <record id="view_advance_payment_line_form" model="ir.ui.view">
+            <field name="name">advance.payment.line.form</field>
+            <field name="model">advance.payment.line</field>
+            <field name="arch" type="xml">
+                <form string="Advance Payment Line" create="0" edit="0" delete="0">
+                    <sheet>
+                        <div class="oe_button_box" name="button_box" invisible="not advance_id">
+                            <button name="action_open_advance"
+                                    type="object"
+                                    class="oe_stat_button"
+                                    string="Advance"
+                                    icon="fa-list-alt">Advance Payment
+                            </button>
+                        </div>
+                        <group>
+                            <group string="Employee Details">
+                                <field name="employee_id"/>
+                                <field name="department_id"/>
+                                <field name="user_id"/>
+                            </group>
+                            <group string="Payment Details">
+                                <field name="advance_id"/>
+                                <field name="date"/>
+                                <field name="currency_id" invisible="1"/>
+                                <field name="amount"/>
+                            </group>
+                        </group>
+                        <group string="Adjustment Info">
+                            <field name="expense_id"/>
+                            <field name="is_adjusted"/>
+                            <field name="is_readonly" invisible="1"/>
+                        </group>
+                        <group string="Remarks">
+                            <field name="remark"
+                                   nolabel="1"
+                                   placeholder="Enter reason for advance payment..."/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Action -->
+        <record id="action_advance_payment_line" model="ir.actions.act_window">
+            <field name="name">Advance Payment Lines</field>
+            <field name="res_model">advance.payment.line</field>
+            <field name="view_mode">list,form</field>
+            <field name="view_ids" eval="[
+        (5, 0, 0),
+        (0, 0, {'view_mode': 'list', 'view_id': ref('view_advance_payment_line_tree')}),
+        (0, 0, {'view_mode': 'form', 'view_id': ref('view_advance_payment_line_form')}),
+    ]"/>
+        </record>
+
+        <!--        <menuitem id="menu_advance_payment_request"-->
+        <!--                  name="Advance Payment Request"-->
+        <!--                  parent="hr_expense.menu_hr_expense_my_expenses"-->
+        <!--                  action="action_advance_payment_user_request"-->
+        <!--                  sequence="50"/>-->
+
+        <!-- ============================================================ -->
+        <!--  Menu Item under Expenses                                    -->
+        <!-- ============================================================ -->
+        <menuitem id="menu_advance_payment_root"
+                  name="Advance Payments"
+                  parent="hr_expense.menu_hr_expense_root"
+                  action="action_advance_payment_user_request"
+                  sequence="5"/>
+    </data>
+</odoo>

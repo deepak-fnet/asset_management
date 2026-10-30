@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Include CSS -->
+    <template id="assets_backend" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <link rel="stylesheet" type="text/css" href="/hr_expense_custom/static/src/css/expense_form.css"/>
+            <script type="text/javascript" src="/hr_expense_custom/static/src/js/expense_form.js"/>
+        </xpath>
+    </template>
+</odoo>

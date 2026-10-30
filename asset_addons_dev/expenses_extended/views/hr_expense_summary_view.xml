@@ -1,0 +1,30 @@
+<odoo>
+    <data>
+        <record id="hr_expense_summary_form_view" model="ir.ui.view">
+    <field name="name">hr.expense.summary.form</field>
+    <field name="model">hr.expense.summary</field>
+    <field name="arch" type="xml">
+        <form string="Expense Summary" class="o_dialog_large">
+            <sheet>
+                <group col="3">
+                    <field name="total_amount" readonly="1"/>
+                    <field name="advance_amount" readonly="1"/>
+                    <field name="balance_amount" readonly="1"/>
+                </group>
+
+                <separator string="Summary Lines"/>
+
+                <field name="summary_line_ids" readonly="1">
+                    <list>
+                        <field name="description"/>
+                        <field name="category_id"/>
+                        <field name="amount"/>
+                    </list>
+                </field>
+            </sheet>
+        </form>
+    </field>
+</record>
+
+    </data>
+</odoo>

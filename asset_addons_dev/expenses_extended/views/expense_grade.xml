@@ -1,0 +1,50 @@
+<odoo>
+    <record id="view_employee_form_inherit_travel_grade" model="ir.ui.view">
+    <field name="name">hr.employee.form.travel.grade.category</field>
+    <field name="model">hr.employee</field>
+    <field name="inherit_id" ref="hr.view_employee_form"/>
+    <field name="arch" type="xml">
+
+        <!-- Add after job position -->
+        <xpath expr="//field[@name='job_id']" position="after">
+            <field name="grade_id"/>
+        </xpath>
+
+    </field>
+</record>
+    <record id="view_travel_grade_tree" model="ir.ui.view">
+    <field name="name">travel.grade.category.tree</field>
+    <field name="model">travel.grade.category</field>
+    <field name="arch" type="xml">
+        <list>
+            <field name="name"/>
+<!--            <field name="max_amount"/>-->
+        </list>
+    </field>
+</record>
+    <record id="view_travel_grade_form" model="ir.ui.view">
+    <field name="name">travel.grade.category.form</field>
+    <field name="model">travel.grade.category</field>
+    <field name="arch" type="xml">
+        <form string="Travel Grade">
+            <sheet>
+                <group>
+                    <field name="name"/>
+<!--                    <field name="max_amount"/>-->
+                </group>
+            </sheet>
+        </form>
+    </field>
+</record>
+    <record id="action_travel_grade" model="ir.actions.act_window">
+    <field name="name">Travel Grades</field>
+    <field name="res_model">travel.grade.category</field>
+    <field name="view_mode">list,form</field>
+</record>
+    <menuitem id="menu_travel_root"
+          name="Grade"
+          parent="hr_expense.menu_hr_expense_configuration"
+              groups="hr_expense.group_hr_expense_manager"
+          action="action_travel_grade"
+          sequence="10"/>
+</odoo>

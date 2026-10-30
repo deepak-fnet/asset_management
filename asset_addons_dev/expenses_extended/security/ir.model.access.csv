@@ -1,0 +1,13 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_hr_expenses_line,hr_expenses_line,model_hr_expense_line,,1,1,1,1
+access_hr_expenses_line2,hr_expenses_line2,model_hr_expense_line,,1,1,1,1
+access_hr_expense_summary_line,hr_expense_summary_line,model_hr_expense_summary_line,,1,1,1,1
+access_hr_expense_summary,hr_expense_summary,model_hr_expense_summary,,1,1,1,1
+access_hr_expense_dashboard_user,hr.expense.dashboard.user,model_hr_expense_dashboard,base.group_user,1,0,0,0
+access_hr_expense_dashboard_manager,hr.expense.dashboard.manager,model_hr_expense_dashboard,hr_expense.group_hr_expense_manager,1,1,1,1
+access_advance_payment_user,advance.payment.user,model_advance_payment,base.group_user,1,1,1,1
+access_advance_payment_line_user,advance.payment.line.user,model_advance_payment_line,base.group_user,1,1,1,1
+access_advance_adjust_wizard,advance.adjust.wizard,model_advance_adjust_wizard,base.group_user,1,1,1,1
+access_advance_remove_wizard,advance.remove.wizard,model_advance_remove_wizard,base.group_user,1,1,1,1
+access_travel_grade,travel_grade,model_travel_grade,,1,1,1,1
+access_travel_grade_category,travel_grade_category,model_travel_grade_category,,1,1,1,1

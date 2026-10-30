@@ -1,0 +1,293 @@
+/* HR Expense Form Dynamic Coloring */
+
+/* Green - Fully Paid */
+.o_form_sheet.expense_color_green {
+    background: linear-gradient(135deg, #d4edda 0%, #e8f5e9 100%) !important;
+    border: 3px solid #28a745 !important;
+    box-shadow: 0 0 15px rgba(40, 167, 69, 0.3) !important;
+    transition: all 0.3s ease;
+}
+
+/* Yellow - Partially Paid */
+.o_form_sheet.expense_color_yellow {
+    background: linear-gradient(135deg, #fff3cd 0%, #fffbea 100%) !important;
+    border: 3px solid #ffc107 !important;
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.3) !important;
+    transition: all 0.3s ease;
+}
+
+/* Red - Balance Due */
+.o_form_sheet.expense_color_red {
+    background: linear-gradient(135deg, #f8d7da 0%, #ffebee 100%) !important;
+    border: 3px solid #dc3545 !important;
+    box-shadow: 0 0 15px rgba(220, 53, 69, 0.3) !important;
+    transition: all 0.3s ease;
+}
+
+/* Ensure labels remain visible and readable */
+.expense_color_green label,
+.expense_color_yellow label,
+.expense_color_red label {
+    color: #212529 !important;
+    font-weight: 500 !important;
+}
+
+/* CRITICAL: Preserve Odoo's default field styling */
+.expense_color_green .o_field_widget input,
+.expense_color_green .o_field_widget textarea,
+.expense_color_green .o_field_widget select,
+.expense_color_yellow .o_field_widget input,
+.expense_color_yellow .o_field_widget textarea,
+.expense_color_yellow .o_field_widget select,
+.expense_color_red .o_field_widget input,
+.expense_color_red .o_field_widget textarea,
+.expense_color_red .o_field_widget select {
+    background-color: #ffffff !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 4px !important;
+    padding: 4px 8px !important;
+    color: #212529 !important;
+}
+
+/* Field widget containers */
+.expense_color_green .o_field_widget,
+.expense_color_yellow .o_field_widget,
+.expense_color_red .o_field_widget {
+    background-color: transparent !important;
+}
+
+/* Input fields on focus */
+.expense_color_green .o_field_widget input:focus,
+.expense_color_green .o_field_widget textarea:focus,
+.expense_color_yellow .o_field_widget input:focus,
+.expense_color_yellow .o_field_widget textarea:focus,
+.expense_color_red .o_field_widget input:focus,
+.expense_color_red .o_field_widget textarea:focus {
+    border-color: #80bdff !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+    outline: 0 !important;
+}
+
+/* Readonly fields */
+.expense_color_green .o_field_widget.o_readonly_modifier,
+.expense_color_yellow .o_field_widget.o_readonly_modifier,
+.expense_color_red .o_field_widget.o_readonly_modifier {
+    background-color: #e9ecef !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 4px !important;
+    padding: 4px 8px !important;
+}
+
+/* Many2many tags */
+.expense_color_green .o_field_many2many_tags .badge,
+.expense_color_yellow .o_field_many2many_tags .badge,
+.expense_color_red .o_field_many2many_tags .badge {
+    background-color: #007bff !important;
+    color: white !important;
+}
+
+/* Date picker inputs */
+.expense_color_green .o_field_date input,
+.expense_color_yellow .o_field_date input,
+.expense_color_red .o_field_date input {
+    background-color: #ffffff !important;
+    border: 1px solid #ced4da !important;
+}
+
+/* Monetary fields */
+.expense_color_green .o_field_monetary input,
+.expense_color_yellow .o_field_monetary input,
+.expense_color_red .o_field_monetary input {
+    background-color: #ffffff !important;
+    border: 1px solid #ced4da !important;
+    text-align: right !important;
+}
+
+/* Status Badge Indicator */
+.expense_status_indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 8px 20px;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 0.9em;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    text-transform: uppercase;
+}
+
+.expense_status_indicator.paid {
+    background-color: #28a745;
+    color: white;
+}
+
+.expense_status_indicator.partial {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.expense_status_indicator.pending {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Balance Amount Highlighting */
+.balance_amount_highlight {
+    font-size: 1.3em !important;
+    font-weight: bold !important;
+    padding: 8px 12px !important;
+    border-radius: 5px !important;
+    display: inline-block !important;
+}
+
+.balance_amount_highlight.positive {
+    background-color: rgba(40, 167, 69, 0.15) !important;
+    color: #155724 !important;
+    border: 2px solid #28a745 !important;
+}
+
+.balance_amount_highlight.partial {
+    background-color: rgba(255, 193, 7, 0.15) !important;
+    color: #856404 !important;
+    border: 2px solid #ffc107 !important;
+}
+
+.balance_amount_highlight.negative {
+    background-color: rgba(220, 53, 69, 0.15) !important;
+    color: #721c24 !important;
+    border: 2px solid #dc3545 !important;
+}
+
+/* Ensure buttons remain visible and clickable */
+.expense_color_green .btn,
+.expense_color_yellow .btn,
+.expense_color_red .btn {
+    opacity: 1 !important;
+    pointer-events: all !important;
+}
+
+/* Notebook tabs styling on colored background */
+.expense_color_green .nav-tabs,
+.expense_color_yellow .nav-tabs,
+.expense_color_red .nav-tabs {
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 5px 5px 0 0;
+    padding: 5px;
+}
+
+/* One2many tree view inside colored forms */
+.expense_color_green .o_list_table,
+.expense_color_yellow .o_list_table,
+.expense_color_red .o_list_table {
+    background-color: white !important;
+}
+
+.expense_color_green .o_list_table td,
+.expense_color_yellow .o_list_table td,
+.expense_color_red .o_list_table td {
+    background-color: white !important;
+}
+
+/* Selection fields (dropdowns) */
+.expense_color_green .o_field_widget select,
+.expense_color_yellow .o_field_widget select,
+.expense_color_red .o_field_widget select {
+    background-color: #ffffff !important;
+    border: 1px solid #ced4da !important;
+    padding: 4px 8px !important;
+}
+
+/* Radio buttons and checkboxes */
+.expense_color_green .o_radio_input,
+.expense_color_green .o_checkbox,
+.expense_color_yellow .o_radio_input,
+.expense_color_yellow .o_checkbox,
+.expense_color_red .o_radio_input,
+.expense_color_red .o_checkbox {
+    background-color: white !important;
+    border: 1px solid #ced4da !important;
+}
+
+/* Preserve field spacing and layout */
+.expense_color_green .o_group .o_td_label,
+.expense_color_yellow .o_group .o_td_label,
+.expense_color_red .o_group .o_td_label {
+    padding: 4px 8px !important;
+    vertical-align: middle !important;
+}
+
+/* Text color for all elements except buttons and badges */
+.expense_color_green *:not(.btn):not(.badge):not(input):not(textarea):not(select),
+.expense_color_yellow *:not(.btn):not(.badge):not(input):not(textarea):not(select),
+.expense_color_red *:not(.btn):not(.badge):not(input):not(textarea):not(select) {
+    color: #212529 !important;
+}
+
+/* Ensure proper spacing for form groups */
+.expense_color_green .o_group,
+.expense_color_yellow .o_group,
+.expense_color_red .o_group {
+    margin-bottom: 8px;
+}
+
+/* Placeholder text visibility */
+.expense_color_green input::placeholder,
+.expense_color_yellow input::placeholder,
+.expense_color_red input::placeholder {
+    color: #6c757d !important;
+    opacity: 1 !important;
+}
+
+/* ============================================================ */
+/*  Amount Column Alignment in One2many Tree                     */
+/* ============================================================ */
+.o_list_table .o_data_cell[name="amount"],
+.o_list_table .o_data_cell[name="tax_amount"],
+.o_list_table .o_data_cell[name="total_with_tax"] {
+    text-align: right !important;
+    min-width: 130px !important;
+}
+
+.o_list_table th[data-name="amount"],
+.o_list_table th[data-name="tax_amount"],
+.o_list_table th[data-name="total_with_tax"] {
+    text-align: right !important;
+    min-width: 130px !important;
+}
+
+/* Ensure consistent column widths for amount fields */
+.o_list_table .o_field_monetary,
+.o_list_table .o_field_float {
+    text-align: right !important;
+}
+
+/* Company boolean styling for flight */
+.o_list_table .o_data_cell[name="is_company_flight"] {
+    text-align: center !important;
+}
+
+/* ============================================================ */
+/*  Boolean Toggle: Green when ON                                */
+/* ============================================================ */
+.o_boolean_toggle input:checked + .slider {
+    background-color: #28a745 !important;
+}
+
+.o_boolean_toggle input:checked + .slider:before {
+    background-color: #ffffff !important;
+}
+.o_expense_dashboard {
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+/*
+.o_field_one2many[name="expense_line_ids"] .o_list_view .text-danger {
+    font-weight: bold;
+}*/
+.o_field_one2many[name="expense_line_ids"] .o_list_view tr.text-danger > td {
+    color:red !important;
+}

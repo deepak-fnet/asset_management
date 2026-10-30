@@ -1,0 +1,886 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="hr_expense_dashboard.Dashboard" owl="1">
+        <div class="o_expense_dashboard">
+
+            <!-- ═══════════════════════════════════════
+                 CUSTOM CSS (scoped)
+                 ═══════════════════════════════════════ -->
+            <style>
+                .o_expense_dashboard {
+                    padding: 1.25rem;
+                    background: #f8fafc;
+                    min-height: 100vh;
+                    height: 100vh;
+                    overflow-y: auto;
+                    display: flex;
+                    flex-direction: column;
+                }
+                .dash-header {
+                    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+                    color: #fff;
+                    border-radius: 12px;
+                    padding: 1.5rem 2rem;
+                    margin-bottom: 1.25rem;
+                }
+                .dash-header h2 { margin: 0; font-weight: 700; }
+                .dash-header p  { margin: 0; opacity: .75; font-size: .9rem; }
+
+                /* ── Filter bar ── */
+                .filter-bar {
+                    background: #fff;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 10px;
+                    padding: 1rem 1.25rem;
+                    margin-bottom: 1.25rem;
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: .75rem;
+                    align-items: flex-end;
+                }
+                .filter-bar label {
+                    font-size: .75rem;
+                    font-weight: 600;
+                    color: #64748b;
+                    text-transform: uppercase;
+                    letter-spacing: .4px;
+                    margin-bottom: 2px;
+                }
+                .filter-bar select,
+                .filter-bar input {
+                    font-size: .875rem;
+                    border-radius: 6px;
+                    border: 1px solid #cbd5e1;
+                    padding: .35rem .5rem;
+                    min-width: 140px;
+                }
+                .filter-bar .btn { font-size: .875rem; border-radius: 6px; }
+
+                /* ── KPI cards ── */
+                .kpi-card {
+                    background: #fff;
+                    border-radius: 10px;
+                    border: 1px solid #e2e8f0;
+                    padding: 1.25rem;
+                    transition: transform .2s, box-shadow .2s;
+                    cursor: pointer;
+                    height: 100%;
+                }
+                .kpi-card:hover {
+                    transform: translateY(-4px);
+                    box-shadow: 0 8px 25px rgba(0,0,0,.08);
+                }
+                .kpi-icon {
+                    width: 48px; height: 48px; border-radius: 10px;
+                    display: flex; align-items: center; justify-content: center;
+                    font-size: 1.25rem;
+                }
+                .kpi-value { font-size: 1.5rem; font-weight: 700; margin: 0; }
+                .kpi-label { font-size: .8rem; color: #64748b; margin: 0; }
+                .kpi-sub   { font-size: .75rem; color: #94a3b8; }
+
+                /* ── Section headers ── */
+                .section-header {
+                    font-size: .85rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: .5px;
+                    padding: .5rem .75rem;
+                    border-radius: 8px;
+                    margin-bottom: .75rem;
+                    display: flex;
+                    align-items: center;
+                    gap: .5rem;
+                }
+                .section-header.my-advance {
+                    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+                    color: #1e40af;
+                    border-left: 4px solid #3b82f6;
+                }
+                .section-header.all-advance {
+                    background: linear-gradient(135deg, #fef3c7, #fde68a);
+                    color: #92400e;
+                    border-left: 4px solid #f59e0b;
+                }
+                .section-header.manager-pending {
+                    background: linear-gradient(135deg, #fce7f3, #fbcfe8);
+                    color: #9d174d;
+                    border-left: 4px solid #ec4899;
+                }
+
+                /* ── Chart panels ── */
+                .chart-panel {
+                    background: #fff;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 10px;
+                    padding: 1.25rem;
+                    margin-bottom: 1.25rem;
+                }
+
+                /* ── Tabs ── */
+                .dash-tabs .nav-link {
+                    font-weight: 600; font-size: .875rem;
+                    color: #64748b; border: none; padding: .6rem 1.25rem;
+                }
+                .dash-tabs .nav-link.active {
+                    color: #2563eb;
+                    border-bottom: 3px solid #2563eb;
+                    background: transparent;
+                }
+
+                /* ── Employee bar ── */
+                .emp-bar {
+                    height: 8px; border-radius: 4px; background: #e2e8f0;
+                    overflow: hidden;
+                }
+                .emp-bar-fill { height: 100%; border-radius: 4px; transition: width .4s; }
+
+                /* ── Status badge ── */
+                .status-badge {
+                    display: inline-block;
+                    padding: 2px 10px;
+                    border-radius: 20px;
+                    font-size: .75rem;
+                    font-weight: 600;
+                    color: #fff;
+                }
+
+                /* ── Table ── */
+                .dash-table { font-size: .875rem; }
+                .dash-table thead th {
+                    background: #f1f5f9;
+                    font-weight: 600;
+                    font-size: .8rem;
+                    text-transform: uppercase;
+                    letter-spacing: .3px;
+                    color: #475569;
+                    border-bottom: 2px solid #e2e8f0;
+                }
+                .dash-table tbody tr { cursor: pointer; transition: background .15s; }
+                .dash-table tbody tr:hover { background: #f8fafc; }
+
+                .period-badge {
+                    display: inline-block;
+                    background: rgba(255,255,255,.2);
+                    padding: 4px 14px;
+                    border-radius: 20px;
+                    font-size: .85rem;
+                    font-weight: 500;
+                }
+            </style>
+
+            <!-- ═══════════════════════════════════════
+                 HEADER
+                 ═══════════════════════════════════════ -->
+            <div class="dash-header d-flex justify-content-between align-items-center flex-wrap gap-2 text-white">
+                <div>
+                    <h2 class="text-white">
+                        <i class="fa fa-pie-chart me-2"/>Traveling Expenses Dashboard
+                    </h2>
+                    <p class="text-white mb-0">
+                        Monitor, analyze, and drill into employee expenses
+                    </p>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-light btn-sm fw-semibold" t-on-click="onCreateExpense"
+                            style="border-radius:8px;padding:.45rem 1.25rem;">
+                        <i class="fa fa-plus me-1"/> Create Expense
+                    </button>
+                    <div class="period-badge text-white">
+                        <i class="fa fa-calendar me-1"/>
+                        <t t-esc="filterSummary"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════
+                 FILTER BAR
+                 ═══════════════════════════════════════ -->
+            <div class="filter-bar">
+                <div>
+                    <label>Filter By</label><br/>
+                    <select t-on-change="onFilterTypeChange" t-att-value="state.filterType" class="form-select form-select-sm">
+                        <option value="date_range">Quick Range</option>
+                        <option value="month">Month</option>
+                        <option value="year">Year</option>
+                        <option value="custom">Custom Dates</option>
+                    </select>
+                </div>
+
+                <div t-if="state.filterType === 'date_range'">
+                    <label>Period</label><br/>
+                    <select t-on-change="onDateRangeChange" class="form-select form-select-sm">
+                        <option value="week" t-att-selected="state.dateRange === 'week'">This Week</option>
+                        <option value="month" t-att-selected="state.dateRange === 'month'">This Month</option>
+                        <option value="quarter" t-att-selected="state.dateRange === 'quarter'">This Quarter</option>
+                        <option value="year" t-att-selected="state.dateRange === 'year'">This Year</option>
+                    </select>
+                </div>
+
+                <div t-if="state.filterType === 'month'">
+                    <label>Month</label><br/>
+                    <select t-on-change="onMonthChange" class="form-select form-select-sm">
+                        <t t-foreach="monthNames" t-as="m" t-key="m.value">
+                            <option t-att-value="m.value" t-att-selected="m.value === state.selectedMonth">
+                                <t t-esc="m.label"/>
+                            </option>
+                        </t>
+                    </select>
+                </div>
+
+                <div t-if="state.filterType === 'month' || state.filterType === 'year'">
+                    <label>Year</label><br/>
+                    <select t-on-change="onYearChange" class="form-select form-select-sm">
+                        <t t-foreach="state.availableYears" t-as="y" t-key="y">
+                            <option t-att-value="y" t-att-selected="y === state.selectedYear">
+                                <t t-esc="y"/>
+                            </option>
+                        </t>
+                    </select>
+                </div>
+
+                <div t-if="state.filterType === 'custom'">
+                    <label>From</label><br/>
+                    <input type="date" t-on-change="onDateFromChange" t-att-value="state.dateFrom"
+                           class="form-control form-control-sm"/>
+                </div>
+                <div t-if="state.filterType === 'custom'">
+                    <label>To</label><br/>
+                    <input type="date" t-on-change="onDateToChange" t-att-value="state.dateTo"
+                           class="form-control form-control-sm"/>
+                </div>
+
+                <div>
+                    <label>Employee</label><br/>
+                    <select t-on-change="onEmployeeChange" class="form-select form-select-sm">
+                        <option value="">All Employees</option>
+                        <t t-foreach="state.availableEmployees" t-as="emp" t-key="emp.id">
+                            <option t-att-value="emp.id" t-att-selected="emp.id === state.employeeId">
+                                <t t-esc="emp.name"/>
+                            </option>
+                        </t>
+                    </select>
+                </div>
+
+                <div class="d-flex gap-2 ms-auto align-self-end">
+                    <button class="btn btn-primary btn-sm" t-on-click="onApplyFilters">
+                        🔍︎ Apply
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" t-on-click="onResetFilters">
+                        <i class="fa fa-refresh me-1"/> Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════
+                 LOADING
+                 ═══════════════════════════════════════ -->
+            <div t-if="state.loading" class="text-center py-5">
+                <i class="fa fa-spinner fa-spin fa-3x text-primary"/>
+                <p class="mt-3 text-muted">Loading dashboard…</p>
+            </div>
+
+            <!-- ═══════════════════════════════════════
+                 DASHBOARD CONTENT
+                 ═══════════════════════════════════════ -->
+            <div t-else="">
+
+                <!-- ══════════════════════════════════════
+                     ROW 1: EXPENSE KPI CARDS
+                     ══════════════════════════════════════ -->
+                <div class="row g-3 mb-4">
+                    <!-- Total -->
+                    <div class="col-xl-2 col-lg-4 col-sm-6">
+                        <div class="kpi-card" t-on-click="onTotalExpensesClick">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="kpi-label">Total Expenses</p>
+                                    <p class="kpi-value text-primary"><t t-esc="formatCurrency(state.kpiData.total_expenses)"/></p>
+                                    <span class="kpi-sub"><t t-esc="state.kpiData.total_count || 0"/> records</span>
+                                </div>
+                                <div class="kpi-icon" style="background:#dbeafe;color:#2563eb;">
+                                    <i class="fa fa-dollar"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Pending -->
+                    <div class="col-xl-2 col-lg-4 col-sm-6">
+                        <div class="kpi-card" t-on-click="onPendingClick">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="kpi-label">Pending</p>
+                                    <p class="kpi-value" style="color:#f59e0b;"><t t-esc="formatCurrency(state.kpiData.pending_approval)"/></p>
+                                    <span class="kpi-sub"><t t-esc="state.kpiData.pending_count || 0"/> awaiting</span>
+                                </div>
+                                <div class="kpi-icon" style="background:#fef3c7;color:#f59e0b;">
+                                    <i class="fa fa-clock-o"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Approved -->
+                    <div class="col-xl-2 col-lg-4 col-sm-6">
+                        <div class="kpi-card" t-on-click="onApprovedClick">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="kpi-label">Approved</p>
+                                    <p class="kpi-value" style="color:#10b981;"><t t-esc="formatCurrency(state.kpiData.approved_amount)"/></p>
+                                    <span class="kpi-sub"><t t-esc="state.kpiData.approved_count || 0"/> posted</span>
+                                </div>
+                                <div class="kpi-icon" style="background:#d1fae5;color:#10b981;">
+                                    <i class="fa fa-check-circle"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Rejected -->
+                    <div class="col-xl-2 col-lg-4 col-sm-6">
+                        <div class="kpi-card" t-on-click="onRejectedClick">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="kpi-label">Rejected</p>
+                                    <p class="kpi-value" style="color:#ef4444;"><t t-esc="formatCurrency(state.kpiData.rejected_amount)"/></p>
+                                    <span class="kpi-sub"><t t-esc="state.kpiData.rejected_count || 0"/> refused</span>
+                                </div>
+                                <div class="kpi-icon" style="background:#fee2e2;color:#ef4444;">
+                                    <i class="fa fa-times-circle"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Avg Processing -->
+                    <div class="col-xl-2 col-lg-4 col-sm-6">
+                        <div class="kpi-card" style="cursor:default;">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="kpi-label">Avg Processing</p>
+                                    <p class="kpi-value" style="color:#06b6d4;"><t t-esc="state.kpiData.avg_processing_time || 0"/> <small>days</small></p>
+                                    <span class="kpi-sub">Submit → Post</span>
+                                </div>
+                                <div class="kpi-icon" style="background:#cffafe;color:#06b6d4;">
+                                    <i class="fa fa-hourglass-half"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Approval Rate -->
+                    <div class="col-xl-2 col-lg-4 col-sm-6">
+                        <div class="kpi-card" style="cursor:default;">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="kpi-label">Approval Rate</p>
+                                    <p class="kpi-value" style="color:#8b5cf6;"><t t-esc="state.kpiData.approval_rate || 0"/>%</p>
+                                    <span class="kpi-sub"><t t-esc="state.kpiData.active_employees || 0"/> employees</span>
+                                </div>
+                                <div class="kpi-icon" style="background:#ede9fe;color:#8b5cf6;">
+                                    <i class="fa fa-line-chart"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════════════════════════════════════
+                     ROW 2: MY ADVANCE PAYMENTS
+                     7 cards: Total | Draft | Requested | Approved | Confirmed | Tallied | Not Tallied
+                     ══════════════════════════════════════ -->
+                <div t-if="state.currentEmployeeId">
+                    <div class="section-header my-advance">
+                        <i class="fa fa-credit-card"/>
+                        My Advance Payment Requests
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <!-- Total -->
+                        <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+                            <div class="kpi-card" t-on-click="onMyAdvanceTotalClick">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <p class="kpi-label">Total Advances</p>
+                                        <p class="kpi-value text-primary">
+                                            <t t-esc="formatCurrency(state.myAdvanceData.total_amount)"/>
+                                        </p>
+                                        <span class="kpi-sub">
+                                            <t t-esc="state.myAdvanceData.total_count || 0"/> requests
+                                        </span>
+                                    </div>
+                                    <div class="kpi-icon" style="background:#dbeafe;color:#2563eb;">
+                                        <i class="fa fa-credit-card"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Draft -->
+                        <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+                            <div class="kpi-card" t-on-click="onMyAdvanceDraftClick">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <p class="kpi-label">Draft</p>
+                                        <p class="kpi-value" style="color:#6b7280;">
+                                            <t t-esc="formatCurrency(state.myAdvanceData.draft_amount)"/>
+                                        </p>
+                                        <span class="kpi-sub">
+                                            <t t-esc="state.myAdvanceData.draft_count || 0"/> draft
+                                        </span>
+                                    </div>
+                                    <div class="kpi-icon" style="background:#f3f4f6;color:#6b7280;">
+                                        <i class="fa fa-pencil"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Requested -->
+                        <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+                            <div class="kpi-card" t-on-click="onMyAdvanceRequestClick">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <p class="kpi-label">Requested</p>
+                                        <p class="kpi-value" style="color:#f59e0b;">
+                                            <t t-esc="formatCurrency(state.myAdvanceData.request_amount)"/>
+                                        </p>
+                                        <span class="kpi-sub">
+                                            <t t-esc="state.myAdvanceData.request_count || 0"/> pending
+                                        </span>
+                                    </div>
+                                    <div class="kpi-icon" style="background:#fef3c7;color:#f59e0b;">
+                                        <i class="fa fa-paper-plane"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Approved (NEW state) -->
+                        <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+                            <div class="kpi-card" t-on-click="onMyAdvanceApprovedClick">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <p class="kpi-label">Approved</p>
+                                        <p class="kpi-value" style="color:#8b5cf6;">
+                                            <t t-esc="formatCurrency(state.myAdvanceData.approved_amount)"/>
+                                        </p>
+                                        <span class="kpi-sub">
+                                            <t t-esc="state.myAdvanceData.approved_count || 0"/> approved
+                                        </span>
+                                    </div>
+                                    <div class="kpi-icon" style="background:#ede9fe;color:#8b5cf6;">
+                                        <i class="fa fa-thumbs-up"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Confirmed -->
+                        <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+                            <div class="kpi-card" t-on-click="onMyAdvanceConfirmedClick">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <p class="kpi-label">Confirmed</p>
+                                        <p class="kpi-value" style="color:#10b981;">
+                                            <t t-esc="formatCurrency(state.myAdvanceData.confirmed_amount)"/>
+                                        </p>
+                                        <span class="kpi-sub">
+                                            <t t-esc="state.myAdvanceData.confirmed_count || 0"/> confirmed
+                                        </span>
+                                    </div>
+                                    <div class="kpi-icon" style="background:#d1fae5;color:#10b981;">
+                                        <i class="fa fa-check-circle"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Tallied (NEW: line adjusted to expense) -->
+                        <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+                            <div class="kpi-card" t-on-click="onMyTalliedClick">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <p class="kpi-label">Adjusted</p>
+                                        <p class="kpi-value" style="color:#059669;">
+                                            <t t-esc="formatCurrency(state.myAdvanceData.tallied_amount)"/>
+                                        </p>
+                                        <span class="kpi-sub">
+                                            <t t-esc="state.myAdvanceData.tallied_count || 0"/> settled
+                                        </span>
+                                    </div>
+                                    <div class="kpi-icon" style="background:#a7f3d0;color:#059669;">
+                                        <i class="fa fa-balance-scale"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Not Tallied (NEW: confirmed but no expense adjustment yet) -->
+                        <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+                            <div class="kpi-card" t-on-click="onMyNotTalliedClick">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <p class="kpi-label">Not Adjusted</p>
+                                        <p class="kpi-value" style="color:#dc2626;">
+                                            <t t-esc="formatCurrency(state.myAdvanceData.not_tallied_amount)"/>
+                                        </p>
+                                        <span class="kpi-sub">
+                                            <t t-esc="state.myAdvanceData.not_tallied_count || 0"/> outstanding
+                                        </span>
+                                    </div>
+                                    <div class="kpi-icon" style="background:#fee2e2;color:#dc2626;">
+                                        <i class="fa fa-exclamation-circle"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════════════════════════════════════
+                     ROW 3: ALL ADVANCE PAYMENTS (Billing access only)
+                     Same 7-card structure for the whole company
+                     ══════════════════════════════════════ -->
+                <div t-if="state.isBillingUser">
+                    <div class="section-header all-advance">
+                        <i class="fa fa-building"/>
+                        All Employee Advance Payments
+                        <small style="opacity:.7;font-weight:400;font-size:.75rem;margin-left:auto;">(Billing Access)</small>
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <!-- Total -->
+                        <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+                            <div class="kpi-card" t-on-click="onAllAdvanceTotalClick">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <p class="kpi-label">Total (All Employees)</p>
+                                        <p class="kpi-value text-primary">
+                                            <t t-esc="formatCurrency(state.allAdvanceData.total_amount)"/>
+                                        </p>
+                                        <span class="kpi-sub">
+                                            <t t-esc="state.allAdvanceData.total_count || 0"/> requests
+                                        </span>
+                                    </div>
+                                    <div class="kpi-icon" style="background:#dbeafe;color:#2563eb;">
+                                        <i class="fa fa-bank"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Draft -->
+                        <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+                            <div class="kpi-card" t-on-click="onAllAdvanceDraftClick">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <p class="kpi-label">Draft</p>
+                                        <p class="kpi-value" style="color:#6b7280;">
+                                            <t t-esc="formatCurrency(state.allAdvanceData.draft_amount)"/>
+                                        </p>
+                                        <span class="kpi-sub">
+                                            <t t-esc="state.allAdvanceData.draft_count || 0"/> draft
+                                        </span>
+                                    </div>
+                                    <div class="kpi-icon" style="background:#f3f4f6;color:#6b7280;">
+                                        <i class="fa fa-pencil"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Requested -->
+                        <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+                            <div class="kpi-card" t-on-click="onAllAdvanceRequestClick">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <p class="kpi-label">Requested</p>
+                                        <p class="kpi-value" style="color:#f59e0b;">
+                                            <t t-esc="formatCurrency(state.allAdvanceData.request_amount)"/>
+                                        </p>
+                                        <span class="kpi-sub">
+                                            <t t-esc="state.allAdvanceData.request_count || 0"/> pending
+                                        </span>
+                                    </div>
+                                    <div class="kpi-icon" style="background:#fef3c7;color:#f59e0b;">
+                                        <i class="fa fa-paper-plane"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Approved (NEW state) -->
+                        <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+                            <div class="kpi-card" t-on-click="onAllAdvanceApprovedClick">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <p class="kpi-label">Approved</p>
+                                        <p class="kpi-value" style="color:#8b5cf6;">
+                                            <t t-esc="formatCurrency(state.allAdvanceData.approved_amount)"/>
+                                        </p>
+                                        <span class="kpi-sub">
+                                            <t t-esc="state.allAdvanceData.approved_count || 0"/> approved
+                                        </span>
+                                    </div>
+                                    <div class="kpi-icon" style="background:#ede9fe;color:#8b5cf6;">
+                                        <i class="fa fa-thumbs-up"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Confirmed -->
+                        <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+                            <div class="kpi-card" t-on-click="onAllAdvanceConfirmedClick">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <p class="kpi-label">Confirmed</p>
+                                        <p class="kpi-value" style="color:#10b981;">
+                                            <t t-esc="formatCurrency(state.allAdvanceData.confirmed_amount)"/>
+                                        </p>
+                                        <span class="kpi-sub">
+                                            <t t-esc="state.allAdvanceData.confirmed_count || 0"/> confirmed
+                                        </span>
+                                    </div>
+                                    <div class="kpi-icon" style="background:#d1fae5;color:#10b981;">
+                                        <i class="fa fa-check-circle"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Tallied -->
+                        <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+                            <div class="kpi-card" t-on-click="onAllTalliedClick">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <p class="kpi-label">Adjusted</p>
+                                        <p class="kpi-value" style="color:#059669;">
+                                            <t t-esc="formatCurrency(state.allAdvanceData.tallied_amount)"/>
+                                        </p>
+                                        <span class="kpi-sub">
+                                            <t t-esc="state.allAdvanceData.tallied_count || 0"/> settled
+                                        </span>
+                                    </div>
+                                    <div class="kpi-icon" style="background:#a7f3d0;color:#059669;">
+                                        <i class="fa fa-balance-scale"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Not Tallied -->
+                        <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+                            <div class="kpi-card" t-on-click="onAllNotTalliedClick">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <p class="kpi-label">Not Adjusted</p>
+                                        <p class="kpi-value" style="color:#dc2626;">
+                                            <t t-esc="formatCurrency(state.allAdvanceData.not_tallied_amount)"/>
+                                        </p>
+                                        <span class="kpi-sub">
+                                            <t t-esc="state.allAdvanceData.not_tallied_count || 0"/> outstanding
+                                        </span>
+                                    </div>
+                                    <div class="kpi-icon" style="background:#fee2e2;color:#dc2626;">
+                                        <i class="fa fa-exclamation-circle"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════════════════════════════════════
+                     ROW 4: MANAGER — PENDING FOR APPROVAL
+                     ══════════════════════════════════════ -->
+                <div t-if="state.isManager">
+                    <div class="section-header manager-pending">
+                        <i class="fa fa-gavel"/>
+                        Pending for Your Approval
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-xl-4 col-lg-6 col-sm-6">
+                            <div class="kpi-card" t-on-click="onPendingApprovalClick">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <p class="kpi-label">Total Pending</p>
+                                        <p class="kpi-value" style="color:#ec4899;">
+                                            <t t-esc="formatCurrency(state.pendingApprovalData.pending_amount)"/>
+                                        </p>
+                                        <span class="kpi-sub">
+                                            <t t-esc="state.pendingApprovalData.pending_count || 0"/> expenses awaiting action
+                                        </span>
+                                    </div>
+                                    <div class="kpi-icon" style="background:#fce7f3;color:#ec4899;">
+                                        <i class="fa fa-exclamation-triangle"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-4 col-lg-6 col-sm-6">
+                            <div class="kpi-card" t-on-click="onPendingSubmittedClick">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <p class="kpi-label">Submitted</p>
+                                        <p class="kpi-value" style="color:#f59e0b;">
+                                            <t t-esc="formatCurrency(state.pendingApprovalData.submitted_amount)"/>
+                                        </p>
+                                        <span class="kpi-sub">
+                                            <t t-esc="state.pendingApprovalData.submitted_count || 0"/> awaiting approval
+                                        </span>
+                                    </div>
+                                    <div class="kpi-icon" style="background:#fef3c7;color:#f59e0b;">
+                                        <i class="fa fa-inbox"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-4 col-lg-6 col-sm-6">
+                            <div class="kpi-card" t-on-click="onPendingApprovedClick">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <p class="kpi-label">Approved (Awaiting Post)</p>
+                                        <p class="kpi-value" style="color:#8b5cf6;">
+                                            <t t-esc="formatCurrency(state.pendingApprovalData.approved_amount)"/>
+                                        </p>
+                                        <span class="kpi-sub">
+                                            <t t-esc="state.pendingApprovalData.approved_count || 0"/> awaiting posting
+                                        </span>
+                                    </div>
+                                    <div class="kpi-icon" style="background:#ede9fe;color:#8b5cf6;">
+                                        <i class="fa fa-check-square-o"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── TABS ── -->
+                <ul class="nav dash-tabs mb-3">
+                    <li class="nav-item">
+                        <a class="nav-link" t-att-class="{ active: state.activeTab === 'overview' }"
+                           href="#" t-on-click.prevent="() => this.onTabChange('overview')">
+                            <i class="fa fa-bar-chart me-1"/> Charts &amp; Overview
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" t-att-class="{ active: state.activeTab === 'employees' }"
+                           href="#" t-on-click.prevent="() => this.onTabChange('employees')">
+                            <i class="fa fa-users me-1"/> Top Employees
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" t-att-class="{ active: state.activeTab === 'recent' }"
+                           href="#" t-on-click.prevent="() => this.onTabChange('recent')">
+                            <i class="fa fa-list me-1"/> Recent Expenses
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- ═══════════════════════════
+                     TAB: OVERVIEW (Charts)
+                     ═══════════════════════════ -->
+                <div t-if="state.activeTab === 'overview'">
+                    <div class="chart-panel" style="height:380px;">
+                        <canvas t-ref="barChart"/>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-lg-4">
+                            <div class="chart-panel" style="height:320px;">
+                                <canvas t-ref="categoryChart"/>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="chart-panel" style="height:320px;">
+                                <canvas t-ref="statusChart"/>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="chart-panel" style="height:320px;">
+                                <canvas t-ref="deptChart"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════
+                     TAB: TOP EMPLOYEES
+                     ═══════════════════════════ -->
+                <div t-if="state.activeTab === 'employees'">
+                    <div class="chart-panel">
+                        <h5 class="mb-3"><i class="fa fa-trophy text-warning me-2"/>Top Employees by Expense Amount</h5>
+
+                        <div t-if="!state.topEmployees.length" class="text-center text-muted py-4">
+                            No employee data for the selected period.
+                        </div>
+
+                        <table t-else="" class="table dash-table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width:40px;">#</th>
+                                    <th>Employee</th>
+                                    <th>Department</th>
+                                    <th class="text-end">Total Amount</th>
+                                    <th class="text-end">Approved</th>
+                                    <th class="text-center">Expenses</th>
+                                    <th style="width:200px;">Share</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="state.topEmployees" t-as="emp" t-key="emp.id">
+                                    <tr t-on-click="() => this.onEmployeeClick(emp.id)">
+                                        <td>
+                                            <span class="badge rounded-pill"
+                                                  t-att-style="'background:' + (emp.rank === 1 ? '#f59e0b' : emp.rank === 2 ? '#94a3b8' : emp.rank === 3 ? '#cd7f32' : '#e2e8f0') + ';color:' + (emp.rank &lt;= 3 ? '#fff' : '#475569')">
+                                                <t t-esc="emp.rank"/>
+                                            </span>
+                                        </td>
+                                        <td class="fw-semibold"><t t-esc="emp.name"/></td>
+                                        <td class="text-muted"><t t-esc="emp.dept"/></td>
+                                        <td class="text-end fw-semibold"><t t-esc="formatCurrency(emp.amount)"/></td>
+                                        <td class="text-end" style="color:#10b981;"><t t-esc="formatCurrency(emp.approved)"/></td>
+                                        <td class="text-center"><t t-esc="emp.count"/></td>
+                                        <td>
+                                            <div class="emp-bar">
+                                                <div class="emp-bar-fill" t-att-style="'width:' + emp.percent + '%;background:#3b82f6;'"/>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════
+                     TAB: RECENT EXPENSES
+                     ═══════════════════════════ -->
+                <div t-if="state.activeTab === 'recent'">
+                    <div class="chart-panel">
+                        <h5 class="mb-3"><i class="fa fa-clock-o text-info me-2"/>Recent Expenses</h5>
+
+                        <div t-if="!state.recentExpenses.length" class="text-center text-muted py-4">
+                            No expenses found for the selected period.
+                        </div>
+
+                        <table t-else="" class="table dash-table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>Employee</th>
+                                    <th>Category</th>
+                                    <th>Date</th>
+                                    <th class="text-end">Amount</th>
+                                    <th class="text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="state.recentExpenses" t-as="exp" t-key="exp.id">
+                                    <tr t-on-click="() => this.onExpenseClick(exp.id)">
+                                        <td class="fw-semibold"><t t-esc="exp.name"/></td>
+                                        <td><t t-esc="exp.employee"/></td>
+                                        <td class="text-muted"><t t-esc="exp.category"/></td>
+                                        <td class="text-muted"><t t-esc="exp.date"/></td>
+                                        <td class="text-end fw-semibold"><t t-esc="formatCurrency(exp.amount)"/></td>
+                                        <td class="text-center">
+                                            <span class="status-badge" t-att-style="'background:' + exp.state_color">
+                                                <t t-esc="exp.state"/>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,72 @@
+<odoo>
+    <data>
+
+        <!-- Adjust Advance Wizard Form -->
+        <record id="advance_adjust_wizard_form" model="ir.ui.view">
+            <field name="name">advance.adjust.wizard.form</field>
+            <field name="model">advance.adjust.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Adjust Advance Payment">
+                    <group>
+                        <field name="advance_line_id" readonly="1"/>
+                        <field name="advance_date"/>
+                        <field name="advance_amount" widget="monetary"/>
+                        <field name="advance_remark" readonly="1"/>
+                        <field name="expense_id" invisible="1"/>
+                        <field name="currency_id" invisible="1"/>
+                    </group>
+                    <footer>
+                        <button name="action_adjust"
+                                type="object"
+                                string="Confirm Adjust"
+                                class="btn-primary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_adjust_advance_wizard" model="ir.actions.act_window">
+            <field name="name">Adjust Advance</field>
+            <field name="res_model">advance.adjust.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="advance_adjust_wizard_form"/>
+            <field name="target">new</field>
+        </record>
+
+        <!-- Remove Advance Wizard Form -->
+        <record id="advance_remove_wizard_form" model="ir.ui.view">
+            <field name="name">advance.remove.wizard.form</field>
+            <field name="model">advance.remove.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Remove Advance Payment">
+                    <group>
+                        <p class="text-danger fw-bold">
+                            Are you sure you want to remove this advance from the expense?
+                        </p>
+                        <field name="advance_line_id" readonly="1"/>
+                        <field name="advance_amount" widget="monetary"/>
+                        <field name="expense_id" invisible="1"/>
+                        <field name="currency_id" invisible="1"/>
+                    </group>
+                    <footer>
+                        <button name="action_remove"
+                                type="object"
+                                string="Remove"
+                                class="btn-danger"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_remove_advance_wizard" model="ir.actions.act_window">
+            <field name="name">Remove Advance</field>
+            <field name="res_model">advance.remove.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="advance_remove_wizard_form"/>
+            <field name="target">new</field>
+        </record>
+
+    </data>
+</odoo>
