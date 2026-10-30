@@ -132,13 +132,19 @@
 
                     <notebook>
                         <page string="Request Lines" name="lines">
+                            <!-- Draft: the requester describes the need. Submitted: the
+                                 approver sets category and product, then approves. -->
                             <field name="line_ids"
-                                   readonly="state not in ('draft',)">
-                                <list editable="bottom">
-                                    <field name="asset_category_id" options="{'no_create': True, 'no_create_edit':True}"/>
-                                    <field name="product_id" options="{'no_create': True, 'no_create_edit':True}"/>
-                                    <field name="description"/>
-                                    <field name="quantity"/>
+                                   readonly="state not in ('draft', 'submitted')">
+                                <list editable="bottom" create="parent.state == 'draft'" delete="parent.state == 'draft'">
+                                    <field name="description" readonly="parent.state != 'draft'"/>
+                                    <field name="quantity" readonly="parent.state != 'draft'"/>
+                                    <field name="asset_category_id" column_invisible="parent.state == 'draft'"
+                                           required="parent.state == 'submitted'"
+                                           options="{'no_create': True, 'no_create_edit':True}"/>
+                                    <field name="product_id" column_invisible="parent.state == 'draft'"
+                                           required="parent.state == 'submitted'"
+                                           options="{'no_create': True, 'no_create_edit':True}"/>
                                     <field name="joining_requirement_id" readonly="1" optional="hide"/>
                                 </list>
                             </field>

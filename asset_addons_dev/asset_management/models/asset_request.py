@@ -191,6 +191,10 @@ class AssetRequest(models.Model):
         for rec in self:
             if rec.state != "submitted":
                 raise UserError(_("Only Submitted requests can be approved."))
+            missing = rec.line_ids.filtered(lambda l: not l.asset_category_id or not l.product_id)
+            if missing:
+                raise UserError(_("Set the category and product on: %s",
+                                  ", ".join(missing.mapped("description"))))
             rec.state = "approved"
 
     def action_reject(self):
@@ -487,10 +491,11 @@ class AssetRequestLine(models.Model):
         ondelete="cascade",
         index=True,
     )
+    # Filled by the approver once the request is submitted; the requester
+    # only describes the need (as on the Asset Assign Process).
     asset_category_id = fields.Many2one(
         "asset.category",
         string="Asset Category",
-        required=True,
     )
     product_id = fields.Many2one(
         "product.product",
@@ -499,7 +504,7 @@ class AssetRequestLine(models.Model):
              "set, this pre-fills the Purchase Order line created from this "
              "request, so the buyer does not have to look it up again.",
     )
-    description = fields.Char(string="Description")
+    description = fields.Char(string="Description", required=True)
     quantity = fields.Integer(string="Quantity", required=True, default=1)
     joining_requirement_id = fields.Many2one(
         "asset.joining.requirement",
