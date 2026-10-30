@@ -49,8 +49,12 @@ class AssetRequest(models.Model):
     # Workflow
     # ----------------------------------------------------------------
     # STATE FLOW:
-    #   draft → submitted → approved → rfq → po_created → done
+    #   draft → submitted → approved → rfq → po_created → received → done
     #   (or approved → done by the store, with Store Notes)
+    #
+    # po_created → received is automatic once every committed PO is
+    # received; the store then checks availability and presses Done, which
+    # delivers the consumable lines out of stock.
     #
     # The requester describes the need and submits; the requester's manager
     # approves; the store then sets the product on each line (category
@@ -68,6 +72,7 @@ class AssetRequest(models.Model):
             ("approved", "Approved"),
             ("rfq", "RFQ Sent"),
             ("po_created", "PO Created"),
+            ("received", "Received"),
             ("done", "Done"),
             ("cancel", "Cancelled"),
         ],
@@ -283,13 +288,18 @@ class AssetRequest(models.Model):
         partial=True (after the purchase is received): issue what is on hand
         and note any shortfall instead of blocking the receipt."""
         self.ensure_one()
-        lines = self.line_ids.filtered(lambda l: l.is_consumable and l.product_id.is_storable)
+        lines = self.line_ids.filtered(lambda l: l.is_consumable and l.product_id.type == "consu")
         if not lines:
             return
         warehouse = self._stock_source()
         source = warehouse.lot_stock_id
         todo, short = [], []
         for line in lines:
+            if not line.product_id.is_storable:
+                # Untracked (no Track Inventory): no stock to check, the
+                # out move only records what the department took.
+                todo.append((line, line.quantity))
+                continue
             on_hand = line.product_id.with_context(location=source.id).qty_available
             qty = min(line.quantity, on_hand) if partial else line.quantity
             if on_hand < line.quantity:
@@ -341,7 +351,11 @@ class AssetRequest(models.Model):
         for line in self.line_ids:
             free = line.available_qty
             short = short or free < line.quantity
-            if line.is_consumable:
+            if line.is_consumable and not line.product_id.is_storable:
+                rows.append(_("• %(prod)s: need %(need)s %(uom)s, received on this request %(free)s %(uom)s (stock not tracked)",
+                              prod=line.product_id.display_name, need=line.quantity,
+                              free=free, uom=line.product_id.uom_id.name))
+            elif line.is_consumable:
                 rows.append(_("• %(prod)s: need %(need)s %(uom)s, on hand %(free)s %(uom)s",
                               prod=line.product_id.display_name, need=line.quantity,
                               free=free, uom=line.product_id.uom_id.name))
@@ -360,16 +374,18 @@ class AssetRequest(models.Model):
         }
 
     def action_store_done(self):
-        """Close the request without buying (e.g. issued from stock)."""
+        """Store closes the request: Approved (no purchase - Store Notes say
+        why) or Received (the purchase arrived). Consumable lines are
+        delivered out of stock."""
         for rec in self:
-            if rec.state != "approved":
-                raise UserError(_("Only an Approved request can be marked done."))
-            if not (rec.store_notes or "").strip():
+            if rec.state not in ("approved", "received"):
+                raise UserError(_("Only an Approved or Received request can be marked done."))
+            if rec.state == "approved" and not (rec.store_notes or "").strip():
                 raise UserError(_("Enter the Store Notes first (why no purchase is needed)."))
             rec._check_products_set()
             rec._issue_consumables()
             rec.state = "done"
-            rec.message_post(body=_("Closed by the store: %s", rec.store_notes))
+            rec.message_post(body=_("Closed by the store: %s", rec.store_notes or _("received goods issued")))
 
     def action_reject(self):
         for rec in self:
@@ -550,12 +566,11 @@ class AssetRequest(models.Model):
             if not all_received:
                 continue
 
-            rec.state = "done"
+            rec.state = "received"
             rec._finalize_received_assets()
-            rec._issue_consumables(partial=True)
             rec.message_post(body=_(
                 "All Purchase Orders are received. %d asset(s) created from "
-                "the receipts. Request marked as Done."
+                "the receipts. The store can check availability and press Done."
             ) % rec.asset_count)
 
     def _finalize_received_assets(self):
@@ -732,6 +747,13 @@ class AssetRequestLine(models.Model):
         for line in self:
             if not line.product_id:
                 line.available_qty = 0
+            elif line.is_consumable and not line.product_id.is_storable:
+                req = line.request_id.sudo()
+                received = sum(req.purchase_order_ids.filtered(lambda p: p.state in ("purchase", "done"))
+                               .order_line.filtered(lambda l: l.product_id == line.product_id).mapped("qty_received"))
+                issued = sum(req.issue_picking_ids.move_ids.filtered(
+                    lambda m: m.product_id == line.product_id and m.state == "done").mapped("quantity"))
+                line.available_qty = received - issued
             elif line.is_consumable:
                 line.available_qty = line.product_id.sudo().with_context(
                     location=warehouse.lot_stock_id.id).qty_available if warehouse else 0
