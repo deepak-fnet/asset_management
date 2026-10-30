@@ -84,9 +84,12 @@ class AssetRequest(models.Model):
         domain=[("state", "in", ("draft", "sent"))],
         copy=False,
     )
+    # Counters read the purchase orders as superuser: asset users have no
+    # purchase rights but still see how far their request has got.
     rfq_count = fields.Integer(
         string="RFQs",
         compute="_compute_rfq_count",
+        compute_sudo=True,
     )
 
     @api.depends("purchase_order_ids.state")
@@ -116,6 +119,7 @@ class AssetRequest(models.Model):
     po_count = fields.Integer(
         string="POs",
         compute="_compute_po_count",
+        compute_sudo=True,
     )
     asset_ids = fields.One2many(
         "asset.asset",
@@ -130,6 +134,7 @@ class AssetRequest(models.Model):
     all_pos_done = fields.Boolean(
         string="All POs Done",
         compute="_compute_all_pos_done",
+        compute_sudo=True,
         help="True when at least one non-cancelled PO exists and "
              "every non-cancelled PO has state == 'done'.",
     )
@@ -145,8 +150,8 @@ class AssetRequest(models.Model):
         has_link = "purchase_order_id" in Asset._fields
         for rec in self:
             assets = Asset.search([
-                ("purchase_order_id", "in", rec.purchase_order_ids.ids),
-            ]) if has_link and rec.purchase_order_ids else Asset
+                ("purchase_order_id", "in", rec.sudo().purchase_order_ids.ids),
+            ]) if has_link and rec.sudo().purchase_order_ids else Asset
             rec.asset_ids = assets
             rec.asset_count = len(assets)
 
