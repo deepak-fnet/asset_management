@@ -1,5 +1,4 @@
 from odoo import api, fields, models, _
-from odoo.exceptions import ValidationError
 
 
 class PurchaseOrder(models.Model):
@@ -13,74 +12,8 @@ class PurchaseOrder(models.Model):
         index=True,
         help="The Asset Request that originated this Purchase Order.",
     )
-    # ----------------------------------------------------------------
-    # Constraint: total ordered quantity across all (non-cancelled) POs
-    # of the same Asset Request must not exceed the requested quantity.
-    #
-    # Examples:
-    #   - Request: Laptop x 1  →  POs may have total qty = 1 (not 2, not 0.5)
-    #   - Request: Laptop x 10 →  POs may have total qty up to 10 (e.g.
-    #                              one PO with 10, or two POs with 6 + 4)
-    #
-    # The check runs at the PO level (not the line level) because we need
-    # to consider all sibling POs, not just self. Section/note lines
-    # (display_type set) are excluded.
-    # ----------------------------------------------------------------
-    @api.constrains("order_line", "order_line.product_qty", "state", "asset_request_id")
-    def _check_qty_against_asset_request(self):
-        for po in self:
-            request = po.asset_request_id
-            if not request:
-                continue
-            # Cancelled POs are not enforced (they're being thrown away)
-            if po.state == "cancel":
-                continue
-
-            # Total requested = sum of request.line_ids.quantity
-            requested_qty = sum(int(rl.quantity or 0) for rl in request.line_ids)
-            if requested_qty <= 0:
-                continue  # nothing to enforce yet
-
-            # Total ordered = sum across all COMMITTED POs of the same request.
-            #
-            # Only 'purchase' (confirmed) and 'done' (locked) count. Draft and
-            # sent POs are RFQs - competing quotes, not commitments. The vendor
-            # comparison flow deliberately raises one RFQ per vendor for the
-            # SAME quantity (3 vendors x 7 units = 21 across RFQs), expecting
-            # to award only one and cancel the rest. Counting RFQs here made
-            # any multi-vendor tender impossible to save, which is exactly the
-            # scenario the comparison step exists to support.
-            #
-            # Over-ordering is still caught: it is blocked at the moment a
-            # second PO is CONFIRMED, which is the point where real money is
-            # actually committed.
-            ordered_qty = 0.0
-            for sibling_po in request.purchase_order_ids:
-                if sibling_po.state not in ("purchase", "done"):
-                    continue
-                for line in sibling_po.order_line:
-                    if line.display_type:  # skip section / note rows
-                        continue
-                    ordered_qty += line.product_qty or 0.0
-
-            # Convert to int for clean comparison (avoid float-equality issues
-            # when user types whole numbers).
-            ordered_qty_int = int(round(ordered_qty))
-
-            if ordered_qty_int > requested_qty:
-                raise ValidationError(_(
-                    "Cannot confirm this Purchase Order.\n\n"
-                    "The Asset Request %(req_name)s is for %(requested)d unit(s), "
-                    "but the total on CONFIRMED Purchase Orders would become "
-                    "%(ordered)d.\n\n"
-                    "Draft RFQs are not counted - only confirmed orders. "
-                    "Either reduce the quantity on this PO, or cancel one of "
-                    "the other confirmed Purchase Orders linked to this request."
-                ) % {
-                    "req_name": request.name,
-                    "requested": requested_qty,
-                    "ordered": ordered_qty_int,
-                })
+    # No cap on the ordered quantity: purchase may buy more than the request
+    # asked for (pack sizes, minimum order, spares). Extra units stay in stock.
 
     # ----------------------------------------------------------------
     # When a PO linked to an asset.request is saved for the first time,
