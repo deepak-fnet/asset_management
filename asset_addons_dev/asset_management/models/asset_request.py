@@ -39,6 +39,11 @@ class AssetRequest(models.Model):
         help="Why the request was closed without buying (e.g. issued from "
              "stock). Required for Mark Done.")
     can_approve = fields.Boolean(compute="_compute_can_approve")
+    issue_picking_ids = fields.Many2many(
+        "stock.picking", "asset_request_issue_picking_rel", "request_id", "picking_id",
+        string="Deliveries", copy=False, readonly=True,
+        help="Stock taken out for the consumable (non-asset) lines.")
+    issue_picking_count = fields.Integer(compute="_compute_issue_picking_count")
 
     # ----------------------------------------------------------------
     # Workflow
@@ -238,16 +243,111 @@ class AssetRequest(models.Model):
         if missing:
             raise UserError(_("Set the product on: %s", ", ".join(missing.mapped("description"))))
 
+    @api.depends("issue_picking_ids")
+    def _compute_issue_picking_count(self):
+        for rec in self:
+            rec.issue_picking_count = len(rec.issue_picking_ids)
+
+    def action_open_issue_pickings(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Deliveries"),
+            "res_model": "stock.picking",
+            "view_mode": "list,form",
+            "domain": [("id", "in", self.issue_picking_ids.ids)],
+        }
+
+    def _stock_source(self):
+        warehouse = self.env["stock.warehouse"].sudo().search(
+            [("company_id", "=", self.env.company.id)], limit=1)
+        if not warehouse:
+            raise UserError(_("No warehouse configured."))
+        return warehouse
+
+    def _consumption_location(self):
+        Location = self.env["stock.location"].sudo()
+        loc = Location.search([("name", "=", "Department Consumption"), ("usage", "=", "inventory"),
+                               ("company_id", "in", (False, self.env.company.id))], limit=1)
+        if not loc:
+            parent = self.env.ref("stock.stock_location_locations_virtual", raise_if_not_found=False)
+            loc = Location.create({"name": "Department Consumption", "usage": "inventory",
+                                   "location_id": parent.id if parent else False,
+                                   "company_id": self.env.company.id})
+        return loc
+
+    def _issue_consumables(self, partial=False):
+        """Deliver the consumable lines out of stock (one validated picking).
+
+        partial=False (Mark Done): every line must be fully in stock.
+        partial=True (after the purchase is received): issue what is on hand
+        and note any shortfall instead of blocking the receipt."""
+        self.ensure_one()
+        lines = self.line_ids.filtered(lambda l: l.is_consumable and l.product_id.is_storable)
+        if not lines:
+            return
+        warehouse = self._stock_source()
+        source = warehouse.lot_stock_id
+        todo, short = [], []
+        for line in lines:
+            on_hand = line.product_id.with_context(location=source.id).qty_available
+            qty = min(line.quantity, on_hand) if partial else line.quantity
+            if on_hand < line.quantity:
+                short.append(_("%(p)s: need %(q)s %(u)s, on hand %(h)s",
+                               p=line.product_id.display_name, q=line.quantity,
+                               u=line.product_id.uom_id.name, h=on_hand))
+            if qty > 0:
+                todo.append((line, qty))
+        if short and not partial:
+            raise UserError(_("Not enough stock:\n%s\n\nCreate an RFQ instead.") % "\n".join(short))
+        if todo:
+            dest = self._consumption_location()
+            Picking = self.env["stock.picking"].sudo()
+            picking = Picking.create({
+                "picking_type_id": (warehouse.out_type_id or warehouse.int_type_id).id,
+                "location_id": source.id,
+                "location_dest_id": dest.id,
+                "origin": self.name,
+            })
+            for line, qty in todo:
+                self.env["stock.move"].sudo().create({
+                    "description_picking": line.description,
+                    "product_id": line.product_id.id,
+                    "product_uom_qty": qty,
+                    "product_uom": line.product_id.uom_id.id,
+                    "picking_id": picking.id,
+                    "location_id": source.id,
+                    "location_dest_id": dest.id,
+                })
+            picking.action_confirm()
+            picking.action_assign()
+            for move in picking.move_ids:
+                move.quantity = move.product_uom_qty
+                move.picked = True
+            picking.with_context(skip_backorder=True).button_validate()
+            self.sudo().issue_picking_ids = [(4, picking.id)]
+            self.message_post(body=_("Delivered from stock (%(pick)s): %(lines)s",
+                                     pick=picking.name,
+                                     lines=", ".join("%s x %s" % (l.product_id.display_name, q) for l, q in todo)))
+        if short and partial:
+            self.message_post(body=_("Not fully delivered - short on stock: %s", "; ".join(short)))
+
     def action_check_availability(self):
-        """Free units per line: Submitted assets of that product, not in repair."""
+        """Per line: free assets (Submitted, not in repair) for asset
+        products; on-hand stock for consumables."""
         self.ensure_one()
         self._check_products_set()
         rows, short = [], False
         for line in self.line_ids:
             free = line.available_qty
             short = short or free < line.quantity
-            rows.append(_("• %(prod)s: need %(need)s, free %(free)s",
-                          prod=line.product_id.display_name, need=line.quantity, free=free))
+            if line.is_consumable:
+                rows.append(_("• %(prod)s: need %(need)s %(uom)s, on hand %(free)s %(uom)s",
+                              prod=line.product_id.display_name, need=line.quantity,
+                              free=free, uom=line.product_id.uom_id.name))
+            else:
+                rows.append(_("• %(prod)s: need %(need)s, free assets %(free)s",
+                              prod=line.product_id.display_name, need=line.quantity, free=free))
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
@@ -266,6 +366,8 @@ class AssetRequest(models.Model):
                 raise UserError(_("Only an Approved request can be marked done."))
             if not (rec.store_notes or "").strip():
                 raise UserError(_("Enter the Store Notes first (why no purchase is needed)."))
+            rec._check_products_set()
+            rec._issue_consumables()
             rec.state = "done"
             rec.message_post(body=_("Closed by the store: %s", rec.store_notes))
 
@@ -450,6 +552,7 @@ class AssetRequest(models.Model):
 
             rec.state = "done"
             rec._finalize_received_assets()
+            rec._issue_consumables(partial=True)
             rec.message_post(body=_(
                 "All Purchase Orders are received. %d asset(s) created from "
                 "the receipts. Request marked as Done."
@@ -571,9 +674,14 @@ class AssetRequestLine(models.Model):
         string="Asset Category",
         compute="_compute_asset_category_id", store=True, readonly=False,
     )
-    available_qty = fields.Integer(
-        string="Free in Stock", compute="_compute_available_qty",
-        help="Submitted assets of this product that are not under repair.")
+    product_uom_id = fields.Many2one(related="product_id.uom_id", string="Unit")
+    is_consumable = fields.Boolean(
+        compute="_compute_is_consumable",
+        help="Not tracked as an asset (e.g. wire): taken out of stock by a delivery.")
+    available_qty = fields.Float(
+        string="Available", compute="_compute_available_qty", digits="Product Unit",
+        help="Asset products: Submitted assets not under repair. "
+             "Consumables: on-hand stock.")
     product_id = fields.Many2one(
         "product.product",
         string="Product",
@@ -582,7 +690,7 @@ class AssetRequestLine(models.Model):
              "request, so the buyer does not have to look it up again.",
     )
     description = fields.Char(string="Description", required=True)
-    quantity = fields.Integer(string="Quantity", required=True, default=1)
+    quantity = fields.Float(string="Quantity", required=True, default=1, digits="Product Unit")
     joining_requirement_id = fields.Many2one(
         "asset.joining.requirement",
         string="Source Requirement",
@@ -607,14 +715,30 @@ class AssetRequestLine(models.Model):
                 line.asset_category_id = line.product_id.categ_id
 
     @api.depends("product_id")
+    def _compute_is_consumable(self):
+        for line in self:
+            product = line.product_id
+            # is_fixed_asset comes from asset_purchase (optional here).
+            is_asset = product.is_asset or ("is_fixed_asset" in product._fields and product.is_fixed_asset)
+            line.is_consumable = bool(product) and not is_asset
+
+    @api.depends("product_id")
     def _compute_available_qty(self):
         Asset = self.env["asset.asset"].sudo()
         # asset.asset.product_id comes from general_asset (optional here).
         has_product = "product_id" in Asset._fields
+        warehouse = self.env["stock.warehouse"].sudo().search(
+            [("company_id", "=", self.env.company.id)], limit=1)
         for line in self:
-            line.available_qty = Asset.search_count([
-                ("product_id", "=", line.product_id.id), ("state", "=", "submit"),
-                ("in_repair", "=", False)]) if has_product and line.product_id else 0
+            if not line.product_id:
+                line.available_qty = 0
+            elif line.is_consumable:
+                line.available_qty = line.product_id.sudo().with_context(
+                    location=warehouse.lot_stock_id.id).qty_available if warehouse else 0
+            else:
+                line.available_qty = Asset.search_count([
+                    ("product_id", "=", line.product_id.id), ("state", "=", "submit"),
+                    ("in_repair", "=", False)]) if has_product else 0
 
 class AssetAssetWindowsUpdate(models.Model):
     _inherit = 'asset.asset'

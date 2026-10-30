@@ -114,6 +114,13 @@
                                 invisible="po_count == 0">
                             <field name="po_count" widget="statinfo" string="Purchase Orders"/>
                         </button>
+                        <button name="action_open_issue_pickings"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-truck"
+                                invisible="issue_picking_count == 0">
+                            <field name="issue_picking_count" widget="statinfo" string="Deliveries"/>
+                        </button>
                         <button name="action_open_assets"
                                 type="object"
                                 class="oe_stat_button"
@@ -157,7 +164,10 @@
                                     <field name="asset_category_id" column_invisible="parent.state in ('draft', 'submitted')"
                                            readonly="parent.state != 'approved'"
                                            options="{'no_create': True, 'no_create_edit':True}"/>
-                                    <field name="available_qty" column_invisible="parent.state != 'approved'"/>
+                                    <field name="product_uom_id" column_invisible="parent.state in ('draft', 'submitted')"/>
+                                    <field name="is_consumable" column_invisible="1"/>
+                                    <field name="available_qty" column_invisible="parent.state != 'approved'"
+                                           decoration-danger="available_qty &lt; quantity"/>
                                     <field name="joining_requirement_id" readonly="1" optional="hide"/>
                                 </list>
                             </field>
