@@ -118,44 +118,6 @@ export class VendorComparisonGrid extends Component {
             && dates[0] !== dates[dates.length - 1];
     }
 
-    // ---- per vendor (scorecards) ----------------------------------------
-
-    isFastestVendor(vendor) {
-        const dates = this.state.vendors.map((v) => v.delivery_date).filter(Boolean).sort();
-        return dates.length > 1 && vendor.delivery_date === dates[0] && dates[0] !== dates[dates.length - 1];
-    }
-
-    /** 0-100: price 50%, coverage 15%, delivery 15%, on-time 10%, rating 10%. */
-    vendorScore(vendor) {
-        const totals = this.state.vendors.map((v) => this.vendorTotal(v.id)).filter((t) => t > 0);
-        const mine = this.vendorTotal(vendor.id);
-        const price = mine > 0 && totals.length ? Math.min(...totals) / mine : 0;
-        const coverage = this.state.products.length ? vendor.quoted_count / this.state.products.length : 0;
-        const today = Date.now();
-        const days = (d) => (d ? Math.max(1, (new Date(d) - today) / 86400000) : null);
-        const allDays = this.state.vendors.map((v) => days(v.delivery_date)).filter((d) => d !== null);
-        const myDays = days(vendor.delivery_date);
-        const delivery = myDays !== null && allDays.length ? Math.min(...allDays) / myDays : 0.5;
-        const onTime = vendor.on_time_pct === null || vendor.on_time_pct === undefined ? 0.5 : vendor.on_time_pct / 100;
-        const rating = vendor.rating === null || vendor.rating === undefined ? 0.5 : vendor.rating / 100;
-        return Math.round((price * 50 + coverage * 15 + delivery * 15 + onTime * 10 + rating * 10));
-    }
-
-    /** Highest score; on a tie, the lower bid total wins - one badge only. */
-    isBestOverall(vendor) {
-        if (this.state.vendors.length < 2) {
-            return false;
-        }
-        const best = [...this.state.vendors].sort((a, b) =>
-            this.vendorScore(b) - this.vendorScore(a)
-            || (this.vendorTotal(a.id) || Infinity) - (this.vendorTotal(b.id) || Infinity))[0];
-        return best.id === vendor.id;
-    }
-
-    vendorWonCount(vendorId) {
-        return this.state.products.filter((p) => p.cellsByVendor[vendorId]?.is_winning).length;
-    }
-
     // ---- selection summary ------------------------------------------------
 
     /** The order if every product went to its cheapest quote. */
@@ -222,18 +184,6 @@ export class VendorComparisonGrid extends Component {
         this.state.busy = true;
         await this._call("purchase.order", "action_clear_awards", [[this.poId]]);
         this.state.busy = false;
-    }
-
-    async openBid(vendor) {
-        if (!vendor.quote_id) {
-            return;
-        }
-        await this.actionService.doAction({
-            type: "ir.actions.act_window",
-            res_model: "vendor.quote",
-            res_id: vendor.quote_id,
-            views: [[false, "form"]],
-        });
     }
 
     /** What this vendor's bid would cost for everything they quoted. */

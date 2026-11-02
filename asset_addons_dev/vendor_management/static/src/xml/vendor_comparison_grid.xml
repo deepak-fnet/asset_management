@@ -37,65 +37,6 @@
                             <i class="fa fa-lock"/>
                             <span t-esc="state.lockedReason"/>
                         </div>
-                        <!-- One scorecard per vendor: not only price -->
-                        <div class="o_vcg_scorecards">
-                            <t t-foreach="state.vendors" t-as="vendor" t-key="vendor.id">
-                                <div class="o_vcg_card o_vcg_scorecard"
-                                     t-att-class="{'o_vcg_scorecard_best': isBestOverall(vendor), 'o_vcg_scorecard_all': isVendorAwardedAll(vendor.id)}">
-                                    <div class="o_vcg_sc_head">
-                                        <div class="o_vcg_sc_name">
-                                            <span t-esc="vendor.name"/>
-                                            <span t-if="vendor.subtitle" class="o_vcg_vendor_sub" t-esc="vendor.subtitle"/>
-                                        </div>
-                                        <div class="o_vcg_sc_score" t-att-title="'Overall score: price 50%, products quoted 15%, delivery 15%, on-time 10%, rating 10%'">
-                                            <t t-esc="vendorScore(vendor)"/>
-                                        </div>
-                                    </div>
-                                    <div class="o_vcg_sc_tags">
-                                        <span t-if="isBestOverall(vendor)" class="o_vcg_tag o_vcg_tag_best"><i class="fa fa-trophy"/> Best overall</span>
-                                        <span t-if="isLowestTotal(vendor.id)" class="o_vcg_tag_lowest">Lowest total</span>
-                                        <span t-if="isFastestVendor(vendor)" class="o_vcg_tag o_vcg_tag_fast"><i class="fa fa-bolt"/> Fastest</span>
-                                    </div>
-                                    <div class="o_vcg_sc_total" t-esc="formatAmount(vendorTotal(vendor.id))"/>
-                                    <dl class="o_vcg_sc_facts">
-                                        <dt>Payment terms</dt>
-                                        <dd t-att-class="vendor.payment_term ? '' : 'o_vcg_not_quoted'" t-esc="vendor.payment_term or 'Not given'"/>
-                                        <dt>Delivery by</dt>
-                                        <dd t-att-class="vendor.delivery_date ? '' : 'o_vcg_not_quoted'" t-esc="vendor.delivery_date or 'Not given'"/>
-                                        <dt>Products quoted</dt>
-                                        <dd><t t-esc="vendor.quoted_count"/> of <t t-esc="state.products.length"/></dd>
-                                        <dt>On-time delivery</dt>
-                                        <dd t-att-class="vendor.on_time_pct === null ? 'o_vcg_not_quoted' : ''">
-                                            <t t-if="vendor.on_time_pct !== null"><t t-esc="vendor.on_time_pct"/>% <small class="o_vcg_vendor_sub">(<t t-esc="vendor.receipt_count"/> receipts)</small></t>
-                                            <t t-else="">No history</t>
-                                        </dd>
-                                        <dt>Rating</dt>
-                                        <dd t-att-class="vendor.rating === null ? 'o_vcg_not_quoted' : ''" t-esc="vendor.rating !== null ? vendor.rating + ' / 100' : 'Not rated'"/>
-                                    </dl>
-                                    <div t-if="vendor.note" class="o_vcg_sc_note" t-att-title="vendor.note">
-                                        <i class="fa fa-comment-o"/> <t t-esc="vendor.note"/>
-                                    </div>
-                                    <div class="o_vcg_sc_foot">
-                                        <span class="o_vcg_vendor_sub">
-                                            Awarded <b t-esc="vendorWonCount(vendor.id)"/> of <t t-esc="vendor.quoted_count"/>
-                                        </span>
-                                        <span class="o_vcg_sc_actions">
-                                            <button type="button" class="btn btn-sm btn-light" t-on-click="() => this.openBid(vendor)">
-                                                <i class="fa fa-file-text-o"/> Bid<t t-if="vendor.attachment_count"> · <i class="fa fa-paperclip"/><t t-esc="vendor.attachment_count"/></t>
-                                            </button>
-                                            <button t-if="!state.locked" type="button" class="btn btn-sm"
-                                                    t-att-class="isVendorAwardedAll(vendor.id) ? 'btn-outline-secondary' : 'btn-primary'"
-                                                    t-att-disabled="state.busy"
-                                                    t-on-click="() => this.toggleVendorAll(vendor.id)">
-                                                <t t-if="isVendorAwardedAll(vendor.id)">Withdraw all</t>
-                                                <t t-else="">Award all</t>
-                                            </button>
-                                        </span>
-                                    </div>
-                                </div>
-                            </t>
-                        </div>
-
                         <!-- One-click picks -->
                         <div t-if="!state.locked and state.vendors.length &gt; 1" class="o_vcg_card o_vcg_smart">
                             <span class="o_vcg_select_label"><i class="fa fa-magic"/> Quick pick</span>
