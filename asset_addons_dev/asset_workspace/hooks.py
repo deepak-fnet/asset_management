@@ -250,6 +250,11 @@ OPTIONAL_MENUS = [
         ['general_asset.action_asset_rfid_comparison'],
         'RFID Comparison', 'asset_workspace.menu_ws_config', 70,
     ),
+    (
+        'menu_ws_config_warranty_template',
+        ['asset_management.action_asset_warranty_template'],
+        'Warranty Templates', 'asset_workspace.menu_ws_config', 75,
+    ),
 ]
 
 
