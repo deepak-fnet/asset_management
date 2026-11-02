@@ -437,9 +437,11 @@ class ResPartner(models.Model):
         for partner in self:
             if not partner.vat:
                 continue
+            # Contacts of a company carry its GST number (commercial field):
+            # only another company with the same number is a duplicate.
             duplicate = self.search([
                 ('vat', '=', partner.vat),
-                ('id', '!=', partner.id),
+                ('commercial_partner_id', '!=', partner.commercial_partner_id.id),
             ], limit=1)
             if duplicate:
                 raise ValidationError(_(
@@ -458,7 +460,7 @@ class ResPartner(models.Model):
                 continue
             duplicate = self.search([
                 ('l10n_in_pan', '=', partner.l10n_in_pan),
-                ('id', '!=', partner.id),
+                ('commercial_partner_id', '!=', partner.commercial_partner_id.id),
             ], limit=1)
             if duplicate:
                 raise ValidationError(_(
