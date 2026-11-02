@@ -303,7 +303,8 @@ class PurchaseOrder(models.Model):
                 'order_id': False,
                 'vendor_id': vendor.id,
                 'winning_quote_line_id': line.winning_quote_line_id.id,
-                'price_unit': line.price_unit,
+                # The awarded bid is the price, whatever the RFQ line shows.
+                'price_unit': line.winning_quote_line_id.vendor_price or line.price_unit,
                 'product_qty': line.product_qty,
             })[0]
             line_vals.pop('order_id', None)

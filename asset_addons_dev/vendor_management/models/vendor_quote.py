@@ -335,6 +335,13 @@ class VendorQuoteLine(models.Model):
             rfqs |= line.quote_id.rfq_id
         rfqs._sync_quote_states()
         rfqs.filtered('comparison_confirmed').write({'comparison_confirmed': False})
+        # Changing the header vendor above makes Odoo recompute every line's
+        # price (from vendor pricelists / a purchase agreement), wiping the
+        # prices awarded earlier: put the awarded bid prices back.
+        for po_line in rfqs.order_line.filtered('winning_quote_line_id'):
+            if po_line.price_unit != po_line.winning_quote_line_id.vendor_price:
+                po_line.with_context(skip_approval_lock_check=True).price_unit = \
+                    po_line.winning_quote_line_id.vendor_price
         # No explicit action returned: the web client already re-reads every
         # field on the current record after any button call, which is
         # enough to refresh comparison_line_ids/is_winning_line/
