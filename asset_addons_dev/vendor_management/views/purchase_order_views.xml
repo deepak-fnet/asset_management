@@ -12,7 +12,7 @@
         <field name="priority">99</field>
         <field name="arch" type="xml">
             <xpath expr="//header" position="inside">
-                <button name="action_send_to_vendors" type="object" string="Send to Multiple Vendors"
+                <button name="action_send_to_vendors" type="object" string="Send RFQ"
                         invisible="state != 'draft' or comparison_state != 'draft' or direct_order" class="btn-primary"
                         groups="vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
                 <button name="action_mark_bid_received" type="object" string="Bid Received"
@@ -20,7 +20,7 @@
                         confirm="Close bidding? Vendors who have not submitted yet will no longer be able to."
                         groups="vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
                 <button name="action_compare_quotes" type="object" string="Compare Quotes"
-                        invisible="comparison_state in ('draft', 'sent') or rfq_id or state == 'ordered'" class="btn-info"
+                        invisible="comparison_state in ('draft', 'sent') or rfq_id or state == 'ordered' or single_vendor" class="btn-info"
                         groups="vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md"/>
                 <!-- Child purchase order: bill what has been received (Odoo's
                      own bill creation). The bill then goes Stores Approve ->
@@ -38,6 +38,7 @@
                 <field name="receipt_complete" invisible="1"/>
                 <field name="can_edit_bill_policy" invisible="1"/>
                 <field name="comparison_confirmed" invisible="1"/>
+                <field name="single_vendor" invisible="1"/>
             </xpath>
             <!-- Same screen as the "Compare Quotes" header button above
                  (action_compare_quotes, the vendor-grouped comparison
@@ -213,6 +214,25 @@
                 <attribute name="invisible">not approval_config_id or approval_status not in ('draft', 'revision') or (direct_order and state != 'sent') or (not direct_order and (comparison_state in ('draft', 'sent') or not vendor_finalized or not comparison_confirmed))</attribute>
             </xpath>
             <xpath expr="//notebook" position="inside">
+                <!-- After approval: the awarded vendors' payment terms (from
+                     their bids, adjustable here) - required for Confirm Order
+                     and carried onto each vendor's purchase order. -->
+                <page string="Order Terms" name="order_terms"
+                      invisible="rfq_id or direct_order or approval_status != 'approved'">
+                    <p class="text-muted">
+                        Select the payment terms for every awarded vendor, then Confirm Order.
+                        They are copied onto each vendor's purchase order with the delivery dates.
+                    </p>
+                    <field name="awarded_quote_ids" nolabel="1"
+                           readonly="state not in ('draft', 'sent')">
+                        <list editable="bottom" create="false" delete="false">
+                            <field name="vendor_id" readonly="1"/>
+                            <field name="total_amount" readonly="1" string="Awarded Bid Total"/>
+                            <field name="delivery_date" readonly="1"/>
+                            <field name="payment_term_id" required="1" options="{'no_create': True}"/>
+                        </list>
+                    </field>
+                </page>
                 <!-- One row per invited vendor: who has bid, who hasn't. A vendor
                      that cannot use the portal sends prices by phone/email -
                      Enter Bid opens their quote to fill in and submit. -->
@@ -226,6 +246,7 @@
                               decoration-success="state in ('submitted', 'selected')">
                             <field name="vendor_id"/>
                             <field name="total_amount"/>
+                            <field name="payment_term_id"/>
                             <field name="delivery_date"/>
                             <field name="last_submitted_at" string="Submitted On"/>
                             <field name="attachment_count" string="Quotation Files"/>
@@ -247,7 +268,7 @@
                         </list>
                     </field>
                 </page>
-                <page string="Vendor Comparison" invisible="comparison_state in ('draft', 'sent') or rfq_id or direct_order">
+                <page string="Vendor Comparison" invisible="comparison_state in ('draft', 'sent') or rfq_id or direct_order or single_vendor">
                     <p class="text-muted" colspan="2">
                         Confirm one vendor per product below - different products can go to different vendors.
                     </p>
@@ -328,6 +349,28 @@
             <xpath expr="//list//field[@name='amount_total']" position="attributes">
                 <attribute name="sum"></attribute>
             </xpath>
+        </field>
+    </record>
+    <!-- Approved RFQ: frozen - nothing on the order changes any more; only
+         the Order Terms (payment terms) are filled in before Confirm Order. -->
+    <record id="purchase_order_form_approved_freeze" model="ir.ui.view">
+        <field name="name">purchase.order.form.approved.freeze</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="priority">120</field>
+        <field name="arch" type="xml">
+            <field name="order_line" position="attributes">
+                <attribute name="readonly">state == 'cancel' or locked or (state in ('draft', 'sent') and approval_status == 'approved')</attribute>
+            </field>
+            <field name="vendor_ids" position="attributes">
+                <attribute name="readonly">approval_status == 'approved' or state not in ('draft', 'sent')</attribute>
+            </field>
+            <field name="date_order" position="attributes">
+                <attribute name="readonly">state in ('cancel', 'done', 'purchase') or approval_status == 'approved'</attribute>
+            </field>
+            <field name="partner_ref" position="attributes">
+                <attribute name="readonly">approval_status == 'approved' and state in ('draft', 'sent')</attribute>
+            </field>
         </field>
     </record>
 </odoo>

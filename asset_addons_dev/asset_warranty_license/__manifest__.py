@@ -38,6 +38,8 @@ beyond the licensed count.
         # instead of the simple, disconnected fields general_asset shipped
         # with on its own.
         "general_asset",
+        # Providers / "purchased from" are restricted to vendors (is_vendor).
+        "vendor_management",
     ],
     "data": [
         "security/warranty_license_security.xml",

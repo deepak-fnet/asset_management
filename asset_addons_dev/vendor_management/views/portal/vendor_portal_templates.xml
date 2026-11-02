@@ -660,6 +660,17 @@
               </div>
               
               <div class="mt-3">
+                <label class="form-label">Payment Terms <span class="text-danger">*</span></label>
+                <select name="payment_term_id" class="form-select" required="1"
+                        t-att-disabled="not can_edit_quote and 'disabled' or None">
+                  <option value="">Select payment terms...</option>
+                  <t t-foreach="payment_terms" t-as="term">
+                    <option t-att-value="term.id" t-att-selected="quote and quote.payment_term_id == term and 'selected' or None"
+                            t-esc="term.name"/>
+                  </t>
+                </select>
+              </div>
+              <div class="mt-3">
                 <label class="form-label">General Notes / Terms</label>
                 <textarea name="note" class="form-control" rows="3" 
                           t-att-readonly="not can_edit_quote and 'readonly' or None"><t t-if="quote" t-esc="quote.note"/></textarea>

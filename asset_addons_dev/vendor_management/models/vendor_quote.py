@@ -28,6 +28,9 @@ class VendorQuote(models.Model):
                                  compute="_compute_delivery_date", store=True)
 
     total_amount = fields.Float(string="Total Amount", compute="_compute_total_amount", store=True)
+    # Entered by the vendor with the bid (portal); the buyer may adjust it on
+    # the approved RFQ before confirming - it becomes the purchase order's.
+    payment_term_id = fields.Many2one('account.payment.term', string="Payment Terms", tracking=True)
 
     state = fields.Selection([
         ('draft', 'Draft'),

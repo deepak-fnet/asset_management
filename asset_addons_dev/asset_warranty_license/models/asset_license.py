@@ -34,7 +34,8 @@ class AssetLicense(models.Model):
     version = fields.Char()
     publisher = fields.Char(help="Microsoft, Adobe, Autodesk, ...")
     vendor_id = fields.Many2one(
-        "res.partner", string="Purchased From", tracking=True)
+        "res.partner", string="Purchased From", tracking=True,
+        domain="[('is_vendor', '=', True)]")
 
     license_type = fields.Selection(
         [("perpetual", "Perpetual"),

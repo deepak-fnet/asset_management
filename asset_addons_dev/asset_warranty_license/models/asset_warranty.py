@@ -21,6 +21,7 @@ class AssetAssetWarranty(models.Model):
     # ── Provider / coverage detail ────────────────────────────────────────
     warranty_provider_id = fields.Many2one(
         "res.partner", string="Warranty Provider", tracking=True,
+        domain="[('is_vendor', '=', True)]",
         help="Who honours the warranty - often the manufacturer (Dell, HP) "
              "rather than the reseller the asset was bought from.")
     warranty_type = fields.Selection(
@@ -188,7 +189,8 @@ class AssetWarrantyClaim(models.Model):
     # a historical claim must keep showing what was actually quoted to the
     # provider on the day it was raised.
     provider_id = fields.Many2one(
-        "res.partner", string="Provider", tracking=True)
+        "res.partner", string="Provider", tracking=True,
+        domain="[('is_vendor', '=', True)]")
     contract_no = fields.Char(string="Contract / Reference No")
     provider_ticket_no = fields.Char(
         string="Provider Ticket No", tracking=True,

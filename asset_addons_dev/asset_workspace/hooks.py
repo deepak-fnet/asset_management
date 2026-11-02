@@ -25,6 +25,10 @@ _logger = logging.getLogger(__name__)
 # Old top-level menus to hide. These are replaced by the new grouped
 # structure; hiding is reversible, deleting is not.
 LEGACY_MENUS_TO_HIDE = [
+    # Warranty Templates live under Warranty & Licenses > Configuration
+    # (asset_warranty_license), not under the asset Configuration.
+    'asset_workspace.menu_ws_config_warranty_template',
+    'general_asset.menu_config_asset_warranty_template',
     'asset_management.menu_system_overview',
     'asset_management.menu_windows_root',
     'asset_management.menu_ubuntu_root',
@@ -249,11 +253,6 @@ OPTIONAL_MENUS = [
         'menu_ws_config_rfid',
         ['general_asset.action_asset_rfid_comparison'],
         'RFID Comparison', 'asset_workspace.menu_ws_config', 70,
-    ),
-    (
-        'menu_ws_config_warranty_template',
-        ['asset_management.action_asset_warranty_template'],
-        'Warranty Templates', 'asset_workspace.menu_ws_config', 75,
     ),
 ]
 

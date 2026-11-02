@@ -297,6 +297,12 @@ class AccountMove(models.Model):
         return res
 
     def button_draft(self):
+        # A fully approved bill is final: no reset (and so no editing) except
+        # by an accounting manager.
+        approved = self.filtered(lambda m: m.purchase_bill_approval and m.state == 'posted')
+        if approved and not self.env.user.has_group('account.group_account_manager'):
+            raise UserError(_("%s is fully approved and confirmed - it can no longer be edited.",
+                              ", ".join(approved.mapped('name'))))
         # Reset to draft = changed after approval: the whole chain again.
         res = super().button_draft()
         self.filtered('purchase_bill_approval').write({'bill_approval_state': 'draft'})

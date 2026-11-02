@@ -47,6 +47,7 @@
                             <field name="vendor_id" options="{'no_create': True}" readonly="1"/>
                             <field name="rfq_id" readonly="1"/>
                             <field name="quote_date" readonly="state != 'draft'"/>
+                            <field name="payment_term_id" readonly="state != 'draft'" options="{'no_create': True}"/>
                         </group>
                         <group>
                             <field name="delivery_date"/>

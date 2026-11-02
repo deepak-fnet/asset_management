@@ -237,6 +237,11 @@ class PurchaseOrder(models.Model):
                     "Select a vendor for every product before confirming. Missing a vendor for: %s",
                     ', '.join(unresolved.mapped('product_id.display_name')) or _('(all lines)')))
             rfq._check_approval_before_confirm()
+            missing = rfq.awarded_quote_ids.filtered(lambda q: not q.payment_term_id)
+            if missing:
+                raise UserError(_(
+                    "Select the payment terms (Order Terms tab) for: %s",
+                    ", ".join(missing.vendor_id.mapped('name'))))
 
             lines_by_vendor = {}
             for line in rfq.order_line.filtered(lambda l: not l.display_type):
@@ -273,7 +278,8 @@ class PurchaseOrder(models.Model):
             'user_id': vendor_cmp.buyer_id.id or self.user_id.id,
             'picking_type_id': self.picking_type_id.id,
             'dest_address_id': self.dest_address_id.id,
-            'payment_term_id': (vendor_cmp.property_supplier_payment_term_id or self.payment_term_id).id,
+            'payment_term_id': (self.awarded_quote_ids.filtered(lambda q: q.vendor_id == vendor)[:1].payment_term_id
+                                or vendor_cmp.property_supplier_payment_term_id or self.payment_term_id).id,
             'fiscal_position_id': fiscal_position.id or self.fiscal_position_id.id,
             'receipt_reminder_email': vendor_cmp.receipt_reminder_email,
             'reminder_date_before_receipt': vendor_cmp.reminder_date_before_receipt,
@@ -301,6 +307,9 @@ class PurchaseOrder(models.Model):
                 'product_qty': line.product_qty,
             })[0]
             line_vals.pop('order_id', None)
+            # The vendor's promised delivery date for this product.
+            if line.winning_quote_line_id.delivery_date:
+                line_vals['date_planned'] = line.winning_quote_line_id.delivery_date
             order_vals['order_line'].append((0, 0, line_vals))
         return self.with_context(purchase_approval_skip_default=True).create(order_vals)
 
@@ -736,6 +745,8 @@ class PurchaseOrder(models.Model):
                 lines = submitted.line_ids.filtered('po_line_id')
                 if lines:
                     lines.action_select_line()
+                    if rec.vendor_finalized:
+                        rec.comparison_confirmed = True
                     rec.message_post(body=_("Single vendor - all products awarded to %s.",
                                             submitted.vendor_id.name))
 
@@ -761,6 +772,18 @@ class PurchaseOrder(models.Model):
                     "Confirm the vendor selection in Vendor Comparison "
                     "before submitting for approval."))
         return super().action_submit_for_approval()
+
+    awarded_quote_ids = fields.One2many(
+        'vendor.quote', 'rfq_id', string="Order Terms",
+        domain=[('line_result', 'in', ('partial', 'all'))],
+        help="Vendors who won at least one product, with the payment terms "
+             "and delivery date the purchase orders will carry.")
+    single_vendor = fields.Boolean(compute='_compute_single_vendor')
+
+    @api.depends('vendor_ids')
+    def _compute_single_vendor(self):
+        for rec in self:
+            rec.single_vendor = len(rec.vendor_ids) == 1
 
     comparison_confirmed = fields.Boolean(
         string="Vendor Selection Confirmed", copy=False, tracking=True,
@@ -910,7 +933,10 @@ class PurchaseOrder(models.Model):
                 'id': v.id,
                 'name': v.name,
                 'subtitle': v.parent_id.name or v.email or '',
-            } for v in vendors],
+                'payment_term': quote.payment_term_id.name or '',
+                'delivery_date': fields.Date.to_string(quote.delivery_date) if quote.delivery_date else '',
+            } for v in vendors
+              for quote in [self.quote_ids.filtered(lambda q, v=v: q.vendor_id == v)[:1]]],
             'products': [{
                 'line_id': line.id,
                 'product_id': line.product_id.id,

@@ -61,4 +61,17 @@
               action="action_asset_license_over_deployed"
               sequence="40"
               groups="asset_warranty_license.group_warranty_license_manager"/>
+
+    <!-- ── Configuration ─────────────────────────────────────────────── -->
+    <menuitem id="menu_warranty_license_config"
+              name="Configuration"
+              parent="menu_warranty_license_root"
+              sequence="90"
+              groups="asset_warranty_license.group_warranty_license_manager"/>
+
+    <menuitem id="menu_config_warranty_template"
+              name="Warranty Templates"
+              parent="menu_warranty_license_config"
+              action="asset_management.action_asset_warranty_template"
+              sequence="10"/>
 </odoo>

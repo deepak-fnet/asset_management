@@ -306,7 +306,11 @@ class VendorPortal(http.Controller):
                     'res_id': quote.id,
                 })
             # Update Quote Header
+            term_id = int(post.get('payment_term_id') or 0)
+            if not term_id:
+                return request.redirect('/my/vendor/rfq/%s?error=payment_terms' % rfq_id)
             quote.sudo().write({
+                'payment_term_id': term_id,
                 'note': post.get('note'),
                 'state': 'submitted',
                 'quotation_attachment_ids': [(4, a.id) for a in attachments],
@@ -320,6 +324,8 @@ class VendorPortal(http.Controller):
         return request.render('vendor_management.portal_vendor_rfq_edit', {
             'order': order,
             'quote': quote,
+            'payment_terms': request.env['account.payment.term'].sudo().search(
+                [('company_id', 'in', (False, order.company_id.id))]),
             'can_edit_quote': can_edit_quote,
             'success': post.get('success'),
         })
