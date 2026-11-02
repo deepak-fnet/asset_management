@@ -7,6 +7,17 @@ class ResPartner(models.Model):
     _inherit = 'res.partner'
 
     @api.model
+    def _get_view(self, view_id=None, view_type='form', **options):
+        # The Tax ID is the GST number here. Set after super(), which puts the
+        # company country's own VAT label (e.g. "GSTIN") on the field.
+        arch, view = super()._get_view(view_id, view_type, **options)
+        for node in arch.iterfind(".//field[@name='vat']"):
+            node.set("string", _("GST ID"))
+        for node in arch.iterfind(".//label[@for='vat']"):
+            node.set("string", _("GST ID"))
+        return arch, view
+
+    @api.model
     def _get_active_vendor_domain(self):
         return [('is_vendor', '=', True), ('vendor_state', '=', 'active')]
 
@@ -298,7 +309,7 @@ class ResPartner(models.Model):
         ('submitted', 'Submitted'),
         ('manager_review', 'Manager Review'),
         ('query', 'Query Raised'),
-        ('active', 'Approved/Active'),
+        ('active', 'Approved'),
         ('blocked', 'Blocked'),
         ('rejected', 'Rejected'),
     ], default='draft', string="Vendor Status", tracking=True)

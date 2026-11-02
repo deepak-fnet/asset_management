@@ -10,6 +10,9 @@ class VendorDocumentType(models.Model):
     code = fields.Char(string='Code', help="Auto-generated from name if not provided")
     active = fields.Boolean(default=True)
     validation_regex = fields.Char(string='Validation Regex')
+    requires_document_number = fields.Boolean(
+        string='Document Number Required', default=True,
+        help="Untick for documents that carry no number (e.g. a cancelled cheque).")
     
     # NOTE: Expiry and mandatory configuration has been moved to 
     # vendor.category.document.line for per-category flexibility.

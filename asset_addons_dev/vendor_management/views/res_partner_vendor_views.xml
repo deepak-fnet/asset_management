@@ -208,7 +208,8 @@
                         <field name="document_ids">
                             <list editable="bottom" decoration-danger="is_expired" decoration-success="state == 'approved'">
                                 <field name="doc_type_id"/>
-                                <field name="document_number" required="state != 'draft'"/>
+                                <field name="number_required" column_invisible="1" invisible="1"/>
+                                <field name="document_number" required="state != 'draft' and number_required"/>
                                 <field name="expiry_date" required="state != 'draft'"/>
                                 <field name="attachment" widget="binary" filename="filename" required="state != 'draft'"/>
                                 <field name="filename" column_invisible="True"/>

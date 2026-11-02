@@ -75,6 +75,9 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,submitted,manager_review,md_approval,approved"/>
                 </header>
                 <sheet>
+                    <widget name="web_ribbon" title="Active" bg_color="text-bg-success" invisible="state != 'approved' or is_expired"/>
+                    <widget name="web_ribbon" title="Expired" bg_color="text-bg-danger" invisible="not is_expired"/>
+                    <field name="is_expired" invisible="1"/>
                     <div class="vendor_section_card">
                         <div class="vendor_section_title">
                             <i class="fa fa-file-pdf-o" title="Document Details Icon"/> Document Details
@@ -83,7 +86,8 @@
                             <group>
                                 <field name="vendor_id" options="{'no_create': True}"/>
                                 <field name="doc_type_id"/>
-                                <field name="document_number" required="state != 'draft'"/>
+                                <field name="number_required" invisible="1"/>
+                                <field name="document_number" required="state != 'draft' and number_required"/>
                             </group>
                             <group>
                                 <!-- Feature 4: Conditional expiry date based on category configuration -->
@@ -154,7 +158,8 @@
                             <field name="document_ids" context="{'default_vendor_id': id}">
                                 <list editable="bottom" decoration-danger="is_expired" decoration-success="state == 'approved'">
                                     <field name="doc_type_id"/>
-                                    <field name="document_number" required="state != 'draft'"/>
+                                    <field name="number_required" column_invisible="1" invisible="1"/>
+                                <field name="document_number" required="state != 'draft' and number_required"/>
                                     <field name="expiry_date" 
                                            invisible="not requires_expiry_for_vendor"
                                            optional="hide"/>
@@ -266,7 +271,7 @@
         <field name="res_model">res.partner</field>
         <field name="view_mode">kanban,list,form</field>
         <field name="domain">[('is_vendor', '=', True)]</field>
-        <field name="context">{'default_is_vendor': True}</field>
+        <field name="context">{'default_is_vendor': True, 'default_is_company': True}</field>
         <field name="view_ids" eval="[(5, 0, 0), 
             (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_vendor_document_kanban_vendor_centric')}),
             (0, 0, {'view_mode': 'list', 'view_id': ref('view_vendor_document_list_vendor_centric')}),

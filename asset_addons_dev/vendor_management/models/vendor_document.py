@@ -32,6 +32,7 @@ class VendorDocument(models.Model):
     )
 
     document_number = fields.Char(tracking=True, index=True)
+    number_required = fields.Boolean(related='doc_type_id.requires_document_number')
     expiry_date = fields.Date(tracking=True, index=True)
     
     @api.onchange('document_number')
@@ -210,7 +211,7 @@ class VendorDocument(models.Model):
         """Document number is mandatory only when not in draft state"""
         for r in self:
             # Allow empty document_number for draft documents (placeholders)
-            if r.state != 'draft' and not r.document_number:
+            if r.state != 'draft' and not r.document_number and r.doc_type_id.requires_document_number:
                 raise ValidationError("Document number is mandatory before submission.")
 
 
@@ -349,8 +350,10 @@ class VendorDocument(models.Model):
 
     def _check_mandatory_fields(self):
         for rec in self:
-            if not rec.document_number or not rec.attachment:
-                raise UserError(_("Document number and attachment are mandatory before submission."))
+            if not rec.attachment:
+                raise UserError(_("The attachment is mandatory before submission."))
+            if not rec.document_number and rec.doc_type_id.requires_document_number:
+                raise UserError(_("The document number is mandatory before submission."))
             
             # Only check expiry if required for this vendor's category
             if rec._get_requires_expiry() and not rec.expiry_date:

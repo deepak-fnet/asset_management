@@ -9,6 +9,7 @@
                         <field name="name"/>
                         <field name="code"/>
                         <field name="validation_regex"/>
+                        <field name="requires_document_number"/>
                         <field name="is_critical"/>
                         <field name="category"/>
                         <field name="validity_days"/>

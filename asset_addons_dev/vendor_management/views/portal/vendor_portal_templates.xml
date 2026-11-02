@@ -205,7 +205,7 @@
                         <t t-elif="doc.state == 'submitted'">In Review</t>
                         <t t-elif="doc.state == 'manager_review'">Manager Review</t>
                         <t t-elif="doc.state == 'md_approval'">Final Approval</t>
-                        <t t-elif="doc.state == 'approved'">Approved</t>
+                        <t t-elif="doc.state == 'approved' and not doc.is_expired">Active</t>
                         <t t-elif="doc.state == 'rejected'">Rejected</t>
                         <t t-else="">Expired</t>
                       </span>
@@ -266,8 +266,8 @@
                         </div>
                         <div class="modal-body">
                           <div class="mb-3">
-                            <label class="form-label small fw-bold">Document Number <span class="text-danger">*</span></label>
-                            <input type="text" name="document_number" class="form-control" required="1" t-att-value="doc.document_number"
+                            <label class="form-label small fw-bold">Document Number <span t-if="doc.doc_type_id.requires_document_number" class="text-danger">*</span></label>
+                            <input type="text" name="document_number" class="form-control" t-att-required="doc.doc_type_id.requires_document_number and '1'" t-att-value="doc.document_number"
                                    style="text-transform: uppercase;"/>
                           </div>
                           <div class="mb-3">
