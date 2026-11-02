@@ -296,24 +296,8 @@
             </xpath>
         </field>
     </record>
-    <!-- Terms & Conditions belong to the purchase order sent to the vendor,
-         not to the RFQ: hidden on the RFQ, shown on each purchase order
-         created from it. Separate view with priority above purchase_approval's
-         own terms view (99), so these fields exist when this applies. -->
-    <record id="purchase_order_form_vendor_mgmt_terms_po_only" model="ir.ui.view">
-        <field name="name">purchase.order.form.vendor.mgmt.terms.po.only</field>
-        <field name="model">purchase.order</field>
-        <field name="inherit_id" ref="purchase.purchase_order_form"/>
-        <field name="priority">120</field>
-        <field name="arch" type="xml">
-            <xpath expr="//field[@name='terms_template_id']" position="attributes">
-                <attribute name="invisible">not rfq_id and not direct_order</attribute>
-            </xpath>
-            <xpath expr="//page[@name='terms_conditions']" position="attributes">
-                <attribute name="invisible">not rfq_id and not direct_order</attribute>
-            </xpath>
-        </field>
-    </record>
+    <!-- Terms & Conditions are chosen on the RFQ (locked once it goes for
+         approval) and copied onto each purchase order created from it. -->
 
     <!-- Requests for Quotation menu: RFQs only. Purchase orders created
          from an RFQ (one per vendor) live under Orders > Purchase Orders. -->
