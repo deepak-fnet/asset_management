@@ -107,6 +107,9 @@
                                                         <span class="o_vcg_price" t-esc="formatAmount(cell.price)"/>
                                                         <span t-if="isLowestPrice(product, cell)" class="o_vcg_tag_lowest">Lowest</span>
                                                     </label>
+                                                    <div t-if="cell and cell.delivery_date" class="o_vcg_vendor_sub mt-1">
+                                                        <i class="fa fa-truck me-1"/>Delivery: <t t-esc="cell.delivery_date"/>
+                                                    </div>
                                                     <span t-else="" class="o_vcg_not_quoted">Not quoted</span>
                                                 </td>
                                             </t>
@@ -123,6 +126,25 @@
                                                     <span t-esc="formatAmount(vendorTotal(vendor.id))"/>
                                                     <span t-if="isLowestTotal(vendor.id)" class="o_vcg_tag_lowest">Lowest</span>
                                                 </div>
+                                            </td>
+                                        </t>
+                                    </tr>
+                                    <!-- Not only price: each vendor's terms -->
+                                    <tr>
+                                        <td colspan="2" class="o_vcg_total_label">Payment Terms</td>
+                                        <t t-foreach="state.vendors" t-as="vendor" t-key="vendor.id">
+                                            <td>
+                                                <span t-if="vendor.payment_term" t-esc="vendor.payment_term"/>
+                                                <span t-else="" class="o_vcg_not_quoted">Not given</span>
+                                            </td>
+                                        </t>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2" class="o_vcg_total_label">Delivery Date</td>
+                                        <t t-foreach="state.vendors" t-as="vendor" t-key="vendor.id">
+                                            <td>
+                                                <span t-if="vendor.delivery_date" t-esc="vendor.delivery_date"/>
+                                                <span t-else="" class="o_vcg_not_quoted">Not given</span>
                                             </td>
                                         </t>
                                     </tr>

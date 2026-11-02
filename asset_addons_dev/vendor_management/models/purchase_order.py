@@ -947,6 +947,7 @@ class PurchaseOrder(models.Model):
                     'quote_line_id': ql.id,
                     'vendor_id': ql.vendor_id.id,
                     'price': ql.vendor_price,
+                    'delivery_date': fields.Date.to_string(ql.delivery_date) if ql.delivery_date else '',
                     'is_winning': ql.is_winning_line,
                 } for ql in self.comparison_line_ids.filtered(lambda q: q.po_line_id == line)],
             } for line in lines],
