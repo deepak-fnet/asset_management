@@ -38,6 +38,12 @@ def ref(xmlid):
     return SU.ref(xmlid, raise_if_not_found=False)
 
 
+# ---------------------------------------------------------------- menus (workspace layout)
+if hasattr(SU['ir.module.module'], '_workspace_rewire_menus'):
+    SU['ir.module.module']._workspace_rewire_menus()
+    env.cr.commit()  # noqa: F821
+    log('menus rewired')
+
 # ---------------------------------------------------------------- masters
 company = SU.company
 tn = SU['res.country.state'].search([('code', '=', 'TN'), ('country_id.code', '=', 'IN')], limit=1)
