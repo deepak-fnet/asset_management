@@ -345,6 +345,16 @@ class ResPartner(models.Model):
     dispute_score = fields.Float(compute="_compute_latest_performance", store=True, compute_sudo=True, string="Dispute Score")
 
     risk_score = fields.Integer(compute='_compute_risk_score', store=True, string="Risk Score", tracking=True)
+    documents_all_approved = fields.Boolean(
+        compute='_compute_documents_all_approved',
+        help="Every document of the vendor is approved and not expired.")
+
+    @api.depends('document_ids.state', 'document_ids.is_expired')
+    def _compute_documents_all_approved(self):
+        for rec in self:
+            docs = rec.document_ids
+            rec.documents_all_approved = bool(docs) and all(
+                d.state == 'approved' and not d.is_expired for d in docs)
 
     vendor_blacklisted = fields.Boolean(string="Blacklisted", default=False, tracking=True)
     vendor_blacklist_reason = fields.Text()

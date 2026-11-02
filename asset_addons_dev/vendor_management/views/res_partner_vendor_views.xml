@@ -30,6 +30,13 @@
                 <attribute name="class" add="vendor_partner_sheet" separator=" "/>
             </xpath>
 
+            <!-- Every document approved (and none expired): Active ribbon -->
+            <xpath expr="//sheet" position="inside">
+                <field name="documents_all_approved" invisible="1"/>
+                <widget name="web_ribbon" title="Active" bg_color="text-bg-success"
+                        invisible="not is_vendor or not documents_all_approved"/>
+            </xpath>
+
             <!-- 0b. Workflow Buttons -->
             <xpath expr="//sheet" position="before">
                 <header>

@@ -271,7 +271,7 @@
         <field name="res_model">res.partner</field>
         <field name="view_mode">kanban,list,form</field>
         <field name="domain">[('is_vendor', '=', True)]</field>
-        <field name="context">{'default_is_vendor': True, 'default_is_company': True}</field>
+        <field name="context">{'default_is_vendor': True, 'default_is_company': True, 'default_company_type': 'company'}</field>
         <field name="view_ids" eval="[(5, 0, 0), 
             (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_vendor_document_kanban_vendor_centric')}),
             (0, 0, {'view_mode': 'list', 'view_id': ref('view_vendor_document_list_vendor_centric')}),
