@@ -248,7 +248,7 @@
                             <field name="order_line" widget="section_and_note_one2many"
                                    mode="tree,kanban"
                                    context="{'default_state': 'draft'}"
-                                   readonly="state in ('done', 'cancel') or incoming_picking_count > 0">
+                                   readonly="state in ('purchase', 'done', 'cancel') or incoming_picking_count > 0">
                                 <list string="Purchase Order Lines" editable="bottom">
                                     <control>
                                         <create name="add_product_control" string="Add a product"/>
