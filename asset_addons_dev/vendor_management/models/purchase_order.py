@@ -929,13 +929,17 @@ class PurchaseOrder(models.Model):
                            and self.approval_status not in ('submitted', 'approved', 'query'),
             'currency_symbol': self.currency_id.symbol or '',
             'currency_position': self.currency_id.position or 'before',
-            'vendors': [{
+            'vendors': [dict({
                 'id': v.id,
                 'name': v.name,
                 'subtitle': v.parent_id.name or v.email or '',
+                'quote_id': quote.id,
                 'payment_term': quote.payment_term_id.name or '',
                 'delivery_date': fields.Date.to_string(quote.delivery_date) if quote.delivery_date else '',
-            } for v in vendors
+                'note': quote.note or '',
+                'attachment_count': quote.attachment_count,
+                'quoted_count': len(quote.line_ids.filtered(lambda l: l.po_line_id and l.vendor_price > 0)),
+            }, **self._vendor_delivery_and_rating(v)) for v in vendors
               for quote in [self.quote_ids.filtered(lambda q, v=v: q.vendor_id == v)[:1]]],
             'products': [{
                 'line_id': line.id,
@@ -948,10 +952,22 @@ class PurchaseOrder(models.Model):
                     'vendor_id': ql.vendor_id.id,
                     'price': ql.vendor_price,
                     'delivery_date': fields.Date.to_string(ql.delivery_date) if ql.delivery_date else '',
+                    'notes': ql.vendor_notes or '',
                     'is_winning': ql.is_winning_line,
                 } for ql in self.comparison_line_ids.filtered(lambda q: q.po_line_id == line)],
             } for line in lines],
         }
+
+    def action_award_quote_lines(self, quote_line_ids):
+        """Comparison grid smart picks (lowest price / fastest delivery for
+        every product): award these quote lines in one call."""
+        self.ensure_one()
+        self.comparison_line_ids.filtered(lambda ql: ql.id in quote_line_ids).action_select_line()
+
+    def action_clear_awards(self):
+        """Comparison grid: withdraw every award on this RFQ."""
+        self.ensure_one()
+        self.comparison_line_ids.filtered('is_winning_line').action_unselect_line()
 
     def action_award_all_to_vendor(self, vendor_id):
         """Column-header checkbox: award every product on this RFQ that
