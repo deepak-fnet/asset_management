@@ -68,8 +68,8 @@
               action="vendor_management.action_vendor_periodic_reviews"
               sequence="20"/>
 
-    <!-- Vendor Contracts -->
-    <menuitem id="menu_vendor_contracts"
+    <!-- Vendor Contracts: hidden for now (not used in this flow) -->
+    <menuitem active="False" id="menu_vendor_contracts"
               name="Vendor Contracts"
               parent="menu_vendor_root"
               action="vendor_management.action_vendor_contract"

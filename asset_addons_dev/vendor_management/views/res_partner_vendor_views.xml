@@ -241,7 +241,7 @@
                             </list>
                         </field>
                     </page>
-                    <page name="contracts" string="Contracts">
+                    <page name="contracts" string="Contracts" invisible="1">
                         <field name="contract_ids">
                             <list editable="bottom">
                                 <field name="name"/>
