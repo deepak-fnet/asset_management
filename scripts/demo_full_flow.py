@@ -98,6 +98,41 @@ vcat = get_or('vendor.category', [('name', '=', 'IT Hardware Suppliers')], {
     'mandatory_document_line_ids': [(0, 0, {'document_type_id': t.id, 'is_mandatory': True, 'requires_expiry': False})
                                     for t in (gst_t, pan_t, chq_t)]})
 
+# terms & conditions: term types with their values, one template
+TERMS = [
+    ('Delivery Period', 'Within 7 days from the date of PO'),
+    ('Payment Terms', '30 days from receipt of goods and invoice'),
+    ('Warranty', '3 years onsite warranty from the date of delivery'),
+    ('Freight & Insurance', 'Free delivery to our office, insured by the vendor'),
+    ('Taxes', 'GST extra as applicable; GSTIN must be on the invoice'),
+    ('Late Delivery Penalty', '0.5% of order value per week, maximum 5%'),
+    ('Price Validity', 'Prices firm till the order is fully delivered'),
+    ('Installation', 'Unboxing, OS setup and asset tagging at site by the vendor'),
+]
+TC = SU['purchase.terms.condition']
+TV = SU['purchase.terms.condition.value']
+term_value = {}
+for tname, tval in TERMS:
+    term = TC.search([('name', '=', tname)], limit=1) or TC.create({'name': tname})
+    value = TV.search([('term_id', '=', term.id), ('value', '=', tval)], limit=1) or \
+        TV.create({'term_id': term.id, 'value': tval})
+    term_value[term] = value
+tc_template = SU['purchase.terms.condition.template'].search([('name', '=', 'IT Hardware Purchase Terms')], limit=1) \
+    or SU['purchase.terms.condition.template'].create({'name': 'IT Hardware Purchase Terms'})
+tc_template.term_ids = [(6, 0, [t.id for t in term_value])]
+
+
+def apply_terms(order):
+    """Terms template + one line per term with its value (if the order has none)."""
+    if order.terms_condition_line_ids:
+        return False
+    order.sudo().write({'terms_template_id': tc_template.id, 'terms_condition_line_ids': [
+        (0, 0, {'term_id': t.id, 'value_id': v.id}) for t, v in term_value.items()]})
+    return True
+
+
+log('terms template', tc_template.name, len(term_value), 'terms')
+
 # ---------------------------------------------------------------- vendors
 VENDORS = [
     dict(name='Nova Tech Systems Pvt Ltd', email='sales@novatech.example', phone='+91 44 4567 8901',
@@ -188,17 +223,13 @@ if not rfq:
     act = pu['asset.request'].browse(request.id).action_create_rfq()
     vals = {k[8:]: val for k, val in (act.get('context') or {}).items()
             if k.startswith('default_') and k != 'default_order_line'}
-    template = SU['purchase.terms.condition.template'].search([], limit=1) if 'purchase.terms.condition.template' in SU else False
     vals.update({
         'partner_ref': TAG, 'vendor_ids': [(6, 0, vendors.ids)], 'expiry_date': TODAY + timedelta(days=7),
         'order_line': [(0, 0, {'product_id': l.product_id.id, 'product_qty': l.quantity, 'name': l.description,
                                'date_planned': TODAY + timedelta(days=14)}) for l in request.line_ids],
     })
-    if template:
-        vals['terms_template_id'] = template.id
     rfq = pu['purchase.order'].create(vals)
-    if template:
-        rfq._onchange_terms_template_id() if hasattr(rfq, '_onchange_terms_template_id') else None
+    apply_terms(rfq)
     rfq.action_send_to_vendors()
     log('rfq', rfq.name, rfq.comparison_state, 'vendors', rfq.vendor_ids.mapped('name'))
 
@@ -246,6 +277,9 @@ if not rfq:
     pu['purchase.order'].browse(rfq.id).button_confirm()
 
 children = PO.search([('rfq_id', '=', rfq.id)])
+for order in rfq | children:
+    if apply_terms(order):
+        log('terms added to', order.name)
 QREF = {nova.id: 'NTS/Q/2026/118', prime.id: 'PID/QT/4471'}
 for po in children:
     pm = po.partner_id.property_outbound_payment_method_line_id if 'property_outbound_payment_method_line_id' in po.partner_id._fields else False
