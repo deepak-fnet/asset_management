@@ -739,8 +739,12 @@ def run_cycle(spec):
             po.order_line.write({'price_unit': t['cost']})
             apply_terms(po)
             P = as_('purchase_user')['purchase.order'].browse(po.id)
-            # a direct order goes through the approval flow before Confirm
-            if getattr(po, 'approval_status', False) in ('draft', 'not_submitted', False) \
+            # direct order: Send RFQ (mail to the vendor) -> approval -> Confirm
+            if po.state == 'draft':
+                send = P.action_rfq_send()
+                comp = as_('purchase_user')['mail.compose.message'].with_context(**send['context']).create({})
+                comp.action_send_mail()
+            if getattr(po, 'approval_status', False) in ('draft', False) \
                     and hasattr(P, 'action_submit_for_approval'):
                 P.action_submit_for_approval()
             approve_chain(c, po)
