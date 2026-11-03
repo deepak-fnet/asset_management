@@ -420,6 +420,20 @@ def _apply_menu_mirrors(env):
                      'model': 'ir.ui.menu', 'res_id': menu.id, 'noupdate': True})
 
 
+# Menus shown under a different name than their module gives them; an upgrade
+# of that module puts the original name back, the next rewire renames again.
+MENU_RENAMES = [
+    ('account.menu_finance', 'Accounting'),   # app tile "Invoicing"
+]
+
+
+def _apply_menu_renames(env):
+    for xml_id, name in MENU_RENAMES:
+        menu = env.ref(xml_id, raise_if_not_found=False)
+        if menu and menu.name != name:
+            menu.sudo().name = name
+
+
 def _apply_menu_layout(env):
     moved = []
     for xml_id, parent_xml_id, sequence in MENU_LAYOUT:
@@ -433,6 +447,7 @@ def _apply_menu_layout(env):
         if menu:
             menu.sudo().active = False
     _apply_menu_mirrors(env)
+    _apply_menu_renames(env)
     _logger.info('[Workspace] Menu layout applied to %s menu(s).', len(moved))
     return moved
 
