@@ -374,10 +374,12 @@
                 <attribute name="readonly">state in ('purchase', 'done', 'cancel', 'ordered')</attribute>
             </field>
             <field name="terms_template_id" position="attributes">
-                <attribute name="readonly">state in ('purchase', 'done', 'cancel', 'ordered') or approval_status not in (False, 'draft', 'rejected', 'revision')</attribute>
+                <!-- editable until Confirm Order (also after approval), read-only once confirmed -->
+                <attribute name="readonly">state in ('purchase', 'done', 'cancel', 'ordered')</attribute>
             </field>
             <field name="terms_condition_line_ids" position="attributes">
-                <attribute name="readonly">state in ('purchase', 'done', 'cancel', 'ordered') or approval_status not in (False, 'draft', 'rejected', 'revision')</attribute>
+                <!-- editable until Confirm Order (also after approval), read-only once confirmed -->
+                <attribute name="readonly">state in ('purchase', 'done', 'cancel', 'ordered')</attribute>
             </field>
             <field name="date_planned" position="attributes">
                 <attribute name="readonly">state in ('purchase', 'done', 'cancel', 'ordered')</attribute>
