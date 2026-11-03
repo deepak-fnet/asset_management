@@ -34,11 +34,25 @@
                                 string="Receive from Vendor"
                                 class="btn-primary"
                                 invisible="state != 'in_progress' or not dispatch_picking_id or return_picking_id"/>
+                        <!-- External Team: the vendor's service is bought with a PO once
+                             the asset is back; Done needs it confirmed. -->
+                        <field name="can_create_service_po" invisible="1"/>
+                        <button name="action_create_service_po" type="object"
+                                string="Create Service PO"
+                                class="btn-primary"
+                                invisible="not can_create_service_po"/>
                         <field name="state" widget="statusbar"
                                statusbar_visible="new,in_progress,done"/>
                     </header>
                     <sheet>
                         <div class="oe_button_box" name="button_box">
+                            <button name="action_view_service_pos"
+                                    type="object"
+                                    class="oe_stat_button"
+                                    icon="fa-shopping-cart"
+                                    invisible="purchase_order_count == 0">
+                                <field name="purchase_order_count" widget="statinfo" string="Purchase Orders"/>
+                            </button>
                             <button name="action_open_assign_process"
                                     type="object"
                                     class="oe_stat_button"
@@ -68,14 +82,6 @@
                                        options="{'no_create': True}"
                                        readonly="state != 'new'"/>
                                 <field name="issue_type" invisible="1"/>
-                                <field name="support_mode"
-                                       invisible="not issue_type"
-                                       readonly="state != 'new'"
-                                       required="issue_type != False"/>
-                                <field name="handover_mode"
-                                       invisible="support_mode != 'direct_visit'"
-                                       readonly="state != 'new'"
-                                       required="support_mode == 'direct_visit'"/>
                             </group>
                         </group>
                         <group>
@@ -165,8 +171,6 @@
                     <field name="asset_id"/>
                     <field name="asset_name"/>
                     <field name="issue_type_id"/>
-                    <field name="support_mode"/>
-                    <field name="handover_mode" optional="hide"/>
                     <field name="engineer_id"/>
                     <field name="repair_mode" optional="show"/>
                     <field name="vendor_id" optional="hide"/>

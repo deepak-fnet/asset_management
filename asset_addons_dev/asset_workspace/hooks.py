@@ -103,7 +103,7 @@ OPTIONAL_MENUS = [
     (
         'menu_ws_helpdesk_all_mails',
         ['asset_helpdesk.action_asset_helpdesk_all_mails'],
-        'All Mails', 'asset_workspace.menu_ws_helpdesk', 2,
+        'All Mails/Tickets', 'asset_workspace.menu_ws_helpdesk', 2,
     ),
     (
         # Stand-in for the incoming mailbox until IMAP is configured.
@@ -283,6 +283,8 @@ def _wire_optional_menus(env):
         existing = env.ref(f'asset_workspace.{menu_xml_id}',
                            raise_if_not_found=False)
         if existing:
+            if existing.name != name:  # renamed in this list since
+                existing.sudo().name = name
             continue
 
         parent = env.ref(parent_xml_id, raise_if_not_found=False)

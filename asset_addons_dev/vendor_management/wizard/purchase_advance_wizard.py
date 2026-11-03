@@ -23,7 +23,7 @@ class PurchaseAdvanceRequestWizard(models.TransientModel):
     company_id = fields.Many2one(related='order_id.company_id')
     date = fields.Date(string="Payment Date", required=True, default=fields.Date.context_today)
     memo = fields.Char(string="Memo")
-    invoice_ids = fields.Many2many('ir.attachment', string="Vendor Invoice", required=True,
+    invoice_ids = fields.Many2many('ir.attachment', string="Vendor Document", required=True,
                                    help="The vendor's invoice / proforma asking for this advance.")
     needs_manager = fields.Boolean(compute='_compute_needs_manager')
     manager_id = fields.Many2one('res.users', compute='_compute_needs_manager', string="Approving Manager")

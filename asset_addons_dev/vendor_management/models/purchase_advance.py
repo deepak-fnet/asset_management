@@ -52,7 +52,7 @@ class AccountPayment(models.Model):
         help="Manager of the requester's department, who approves the advance before Finance.")
     advance_invoice_ids = fields.Many2many(
         'ir.attachment', 'purchase_advance_invoice_rel', 'payment_id', 'attachment_id',
-        string="Vendor Invoice", copy=False)
+        string="Vendor Document", copy=False)
     can_advance_manager = fields.Boolean(compute='_compute_can_advance_finance')
     can_advance_finance = fields.Boolean(compute='_compute_can_advance_finance')
 

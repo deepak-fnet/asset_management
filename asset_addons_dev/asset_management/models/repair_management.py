@@ -58,6 +58,13 @@ class RepairManagement(models.Model):
         help="The outgoing transfer sending this asset to the vendor.",
     )
     dispatch_date = fields.Date(string='Dispatched On', readonly=True, copy=False)
+    # External Team repair: the vendor's service is bought with a purchase
+    # order, raised once the asset is back and required before Done.
+    purchase_order_ids = fields.One2many('purchase.order', 'repair_id', string="Service Purchase Orders")
+    purchase_order_count = fields.Integer(compute='_compute_purchase_order_count')
+    service_po_confirmed = fields.Boolean(compute='_compute_purchase_order_count')
+    can_create_service_po = fields.Boolean(compute='_compute_purchase_order_count')
+
     return_picking_id = fields.Many2one(
         'stock.picking', string='Return Transfer', readonly=True, copy=False,
         help="The incoming transfer receiving this asset back from the vendor.",
@@ -154,10 +161,6 @@ class RepairManagement(models.Model):
         for rec in self:
             if not rec.engineer_id:
                 raise UserError("Please assign an engineer before starting.")
-            if rec.issue_type == 'hardware' and not rec.handover_mode:
-                raise UserError("Handover mode is required for hardware issues.")
-            if rec.support_mode == 'direct_visit' and not rec.handover_mode:
-                raise UserError("Handover mode is required for direct visit support.")
             # Move the asset under repair NOW (not at ticket creation) -
             # remember exactly what it was, so closing this repair can put
             # it back precisely instead of assuming 'assigned'.
@@ -317,6 +320,67 @@ class RepairManagement(models.Model):
             "Asset dispatched to vendor %s (transfer %s)."
         ) % (self.vendor_id.display_name, picking.name))
 
+    @api.depends('purchase_order_ids.state', 'repair_mode', 'return_picking_id', 'state')
+    def _compute_purchase_order_count(self):
+        for rec in self:
+            orders = rec.sudo().purchase_order_ids.filtered(lambda p: p.state != 'cancel')
+            rec.purchase_order_count = len(orders)
+            rec.service_po_confirmed = any(p.state in ('purchase', 'done') for p in orders)
+            # after the asset is back (or when it never had a stock move to send)
+            back = rec.return_picking_id or not rec.asset_id.product_id
+            rec.can_create_service_po = (rec.repair_mode == 'vendor' and rec.state == 'in_progress'
+                                         and bool(back) and not orders)
+
+    def _repair_service_product(self):
+        product = self.env['product.product'].sudo().search([('default_code', '=', 'REPAIR-SVC')], limit=1)
+        if not product:
+            product = self.env['product.product'].sudo().create({
+                'name': 'Repair Service', 'default_code': 'REPAIR-SVC', 'type': 'service',
+                'purchase_ok': True, 'sale_ok': False})
+        return product
+
+    def action_create_service_po(self):
+        """Open a new purchase order for the vendor's repair service."""
+        self.ensure_one()
+        if self.repair_mode != 'vendor' or not self.vendor_id:
+            raise UserError(_("Select the External Team vendor first."))
+        product = self._repair_service_product()
+        line_name = _("Repair service: %(asset)s - %(repair)s", asset=self.asset_id.display_name or '', repair=self.name)
+        ctx = {
+            'default_partner_id': self.vendor_id.id,
+            'default_repair_id': self.id,
+            'default_origin': self.name,
+            'default_order_line': [(0, 0, {'product_id': product.id, 'name': line_name, 'product_qty': 1,
+                                           'price_unit': self.repair_cost or 0.0})],
+        }
+        if 'direct_order' in self.env['purchase.order']._fields:
+            ctx['default_direct_order'] = True
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _("Service Purchase Order"),
+            'res_model': 'purchase.order',
+            'view_mode': 'form',
+            'views': [(False, 'form')],
+            'target': 'current',
+            'context': ctx,
+        }
+
+    def action_view_service_pos(self):
+        self.ensure_one()
+        orders = self.purchase_order_ids
+        action = {
+            'type': 'ir.actions.act_window',
+            'name': _("Service Purchase Orders"),
+            'res_model': 'purchase.order',
+            'domain': [('id', 'in', orders.ids)],
+            'context': {'default_repair_id': self.id, 'default_partner_id': self.vendor_id.id},
+        }
+        if len(orders) == 1:
+            action.update(view_mode='form', views=[(False, 'form')], res_id=orders.id)
+        else:
+            action.update(view_mode='list,form', views=[(False, 'list'), (False, 'form')])
+        return action
+
     def action_receive_from_vendor(self):
         """Receive the physical asset back from the vendor after repair."""
         self.ensure_one()
@@ -354,10 +418,10 @@ class RepairManagement(models.Model):
         for rec in self:
             # A repair may cost nothing (no spares, internal work), so the
             # cost is not required. A paid vendor repair still needs its bill.
-            if rec.repair_mode == 'vendor' and rec.repair_cost and not (rec.vendor_id and rec.bill_file):
+            if rec.repair_mode == 'vendor' and not rec.service_po_confirmed:
                 raise UserError(_(
-                    "Select the vendor and attach the bill before marking "
-                    "a vendor repair Done."))
+                    "Create and confirm the service purchase order for the vendor "
+                    "(Create Service PO) before marking this repair Done."))
             # Only enforced when the asset actually has a stock record to
             # move (see action_dispatch_to_vendor()) - an asset with none
             # never got Dispatch/Receive buttons in the first place, so
@@ -469,10 +533,11 @@ class RepairManagement(models.Model):
         self._check_standby_returned()
         self._check_repair_cost_and_bill()
         for rec in self:
-            rec.write({
-                'state': 'done',
-                'resolution_date': fields.Date.today(),
-            })
+            vals = {'state': 'done', 'resolution_date': fields.Date.today()}
+            orders = rec.sudo().purchase_order_ids.filtered(lambda p: p.state in ('purchase', 'done'))
+            if rec.repair_mode == 'vendor' and orders:
+                vals['repair_cost'] = sum(orders.mapped('amount_untaxed'))  # what the vendor is paid
+            rec.write(vals)
             if rec.asset_id:
                 rec.asset_id.write({
                     # Restore exactly what it was before this repair started
@@ -497,7 +562,7 @@ class RepairManagement(models.Model):
             # vendor repair still needs the same proof a completed repair
             # would - the asset ending up scrapped doesn't waive that.
             if rec.repair_cost and rec.repair_mode == 'vendor' and not (
-                    rec.vendor_id and rec.bill_file):
+                    rec.vendor_id and (rec.bill_file or rec.service_po_confirmed)):
                 raise UserError(_(
                     "Select the vendor and attach the bill before closing "
                     "a vendor repair as Not Repairable."))

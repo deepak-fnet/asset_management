@@ -34,7 +34,7 @@
                             <field name="currency_id" column_invisible="1"/>
                             <field name="advance_requested_by" string="Requested By"/>
                             <field name="advance_manager_id" string="Manager"/>
-                            <field name="advance_invoice_ids" widget="many2many_binary" string="Vendor Invoice"/>
+                            <field name="advance_invoice_ids" widget="many2many_binary" string="Vendor Document" readonly="1"/>
                             <field name="advance_state" widget="badge"
                                    decoration-info="advance_state == 'to_manager'"
                                    decoration-warning="advance_state == 'requested'"
@@ -81,8 +81,8 @@
             </xpath>
             <xpath expr="//field[@name='memo']" position="after">
                 <field name="purchase_advance_id" invisible="not purchase_advance_id"/>
-                <field name="advance_invoice_ids" widget="many2many_binary" string="Vendor Invoice"
-                       invisible="not purchase_advance_id"/>
+                <field name="advance_invoice_ids" widget="many2many_binary" string="Vendor Document"
+                       invisible="not purchase_advance_id" readonly="1"/>
                 <field name="advance_state" invisible="not purchase_advance_id" widget="badge"
                        decoration-info="advance_state == 'to_manager'"
                        decoration-warning="advance_state == 'requested'"
@@ -126,8 +126,8 @@
                     </group>
                 </group>
                 <group>
-                    <field name="invoice_ids" widget="many2many_binary" string="Vendor Invoice"
-                           required="1"/>
+                    <field name="invoice_ids" widget="many2many_binary" string="Vendor Document"
+                           readonly="1" force_save="1"/>
                 </group>
                 <footer>
                     <button name="action_confirm_request" type="object" string="Request" class="btn-primary"/>

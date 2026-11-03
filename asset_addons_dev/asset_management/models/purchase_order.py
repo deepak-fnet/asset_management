@@ -4,6 +4,9 @@ from odoo import api, fields, models, _
 class PurchaseOrder(models.Model):
     _inherit = "purchase.order"
 
+    repair_id = fields.Many2one(
+        "repair.management", string="Repair", ondelete="set null", copy=False, index=True,
+        help="External Team repair whose service this order buys.")
     asset_request_id = fields.Many2one(
         "asset.request",
         string="Asset Request",
