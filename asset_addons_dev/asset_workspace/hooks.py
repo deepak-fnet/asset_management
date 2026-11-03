@@ -379,6 +379,47 @@ MENUS_HIDDEN_IN_LAYOUT = [
 ]
 
 
+# Menus that must appear in two apps. A menu has one parent, so the second
+# place gets a copy of the whole subtree, rebuilt on every rewire so it
+# follows the source: (source xml_id, mirror xml_name, parent xml_id, sequence).
+MENU_MIRRORS = [
+    # Warranty & Licenses: IT Asset (source) and Fixed Asset, after
+    # Physical Verification.
+    ('asset_warranty_license.menu_warranty_license_root',
+     'menu_ws_fa_warranty_license', 'asset_management.menu_asset_root', 4),
+]
+
+
+def _copy_menu(env, src, parent, sequence=None):
+    menu = env['ir.ui.menu'].sudo().create({
+        'name': src.name,
+        'parent_id': parent.id,
+        'sequence': src.sequence if sequence is None else sequence,
+        'action': src.action and f'{src.action._name},{src.action.id}',
+        'group_ids': [(6, 0, src.group_ids.ids)],
+    })
+    for child in src.child_id:
+        _copy_menu(env, child, menu)
+    return menu
+
+
+def _apply_menu_mirrors(env):
+    Data = env['ir.model.data'].sudo()
+    for src_xml_id, name, parent_xml_id, sequence in MENU_MIRRORS:
+        src = env.ref(src_xml_id, raise_if_not_found=False)
+        parent = env.ref(parent_xml_id, raise_if_not_found=False)
+        old = env.ref(f'asset_workspace.{name}', raise_if_not_found=False)
+        if old:
+            old.sudo().with_context(active_test=False).search(
+                [('id', 'child_of', old.id)]).unlink()
+            Data.search([('module', '=', 'asset_workspace'), ('name', '=', name)]).unlink()
+        if not (src and parent):
+            continue
+        menu = _copy_menu(env, src, parent, sequence)
+        Data.create({'name': name, 'module': 'asset_workspace',
+                     'model': 'ir.ui.menu', 'res_id': menu.id, 'noupdate': True})
+
+
 def _apply_menu_layout(env):
     moved = []
     for xml_id, parent_xml_id, sequence in MENU_LAYOUT:
@@ -391,6 +432,7 @@ def _apply_menu_layout(env):
         menu = env.ref(xml_id, raise_if_not_found=False)
         if menu:
             menu.sudo().active = False
+    _apply_menu_mirrors(env)
     _logger.info('[Workspace] Menu layout applied to %s menu(s).', len(moved))
     return moved
 
