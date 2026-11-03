@@ -207,6 +207,7 @@ class PurchaseOrder(models.Model):
         if not orders:
             return True
 
+        orders._check_terms_conditions()
         # Child (or legacy) single-vendor orders: standard confirm. The
         # vendor_finalized check still applies to any order confirmed this
         # way - a child always has its vendor set on every line.
@@ -225,9 +226,24 @@ class PurchaseOrder(models.Model):
                 rec._trigger_transaction_review()
         return res
 
+    def _check_terms_conditions(self):
+        """A purchase order is confirmed only with its Terms & Conditions
+        template chosen and every term given a value."""
+        if 'terms_template_id' not in self._fields:
+            return
+        for rec in self.filtered(lambda o: o.state in ('draft', 'sent')):
+            if not rec.terms_template_id or not rec.terms_condition_line_ids:
+                raise UserError(_("Select the Terms & conditions for %s and fill its Terms Conditions tab "
+                                  "before confirming.", rec.name))
+            missing = rec.terms_condition_line_ids.filtered(lambda l: not l.value_id)
+            if missing:
+                raise UserError(_("Fill a value for every term on %(po)s: %(terms)s",
+                                  po=rec.name, terms=", ".join(missing.term_id.mapped('name'))))
+
     def _split_into_vendor_orders(self):
-        """Confirm Order on an RFQ: one confirmed purchase order per awarded
-        vendor, carrying only that vendor's lines at the awarded price."""
+        """Confirm Order on an RFQ: one purchase order per awarded vendor
+        (left in draft for its Terms & Conditions), carrying only that
+        vendor's lines at the awarded price."""
         for rfq in self:
             if rfq.comparison_state in ('draft', 'sent'):
                 raise UserError(_("Bids must be received and vendors selected before confirming."))
@@ -253,11 +269,10 @@ class PurchaseOrder(models.Model):
                 children |= rfq._create_vendor_order(vendor, lines)
 
             rfq.write({'state': 'ordered', 'comparison_state': 'po_created'})
-            # Confirm after the RFQ has left draft/sent: children are
-            # ordinary orders from here on (picking, PO numbering, review).
-            children.button_confirm()
+            # The purchase orders stay in draft: each one needs its Terms &
+            # Conditions filled before it is confirmed (see button_confirm).
             rfq.message_post(body=_(
-                "Purchase orders created: %s",
+                "Purchase orders created: %s. Fill the Terms & Conditions on each and confirm it.",
                 ", ".join("%s (%s)" % (c.name, c.partner_id.name) for c in children)))
 
     def _create_vendor_order(self, vendor, lines):

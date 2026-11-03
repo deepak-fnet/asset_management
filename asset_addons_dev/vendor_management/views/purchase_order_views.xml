@@ -116,11 +116,11 @@
                  Restricted to Purchase User (+ the vendor_manager/md
                  super-roles every other action button here already allows). -->
             <xpath expr="//button[@id='draft_confirm']" position="attributes">
-                <attribute name="invisible">state != 'draft' or rfq_id or (not direct_order and not vendor_finalized) or (approval_config_id and approval_status != 'approved')</attribute>
+                <attribute name="invisible">state != 'draft' or (not rfq_id and not direct_order and not vendor_finalized) or (approval_config_id and approval_status != 'approved')</attribute>
                 <attribute name="groups">vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md</attribute>
             </xpath>
             <xpath expr="//button[@id='bid_confirm']" position="attributes">
-                <attribute name="invisible">state != 'sent' or rfq_id or (not direct_order and not vendor_finalized) or (approval_config_id and approval_status != 'approved')</attribute>
+                <attribute name="invisible">state != 'sent' or (not rfq_id and not direct_order and not vendor_finalized) or (approval_config_id and approval_status != 'approved')</attribute>
                 <attribute name="groups">vendor_management.group_purchase_role_user,vendor_management.group_vendor_manager,vendor_management.group_vendor_md</attribute>
             </xpath>
             <!-- Trim the button bar down to what this workflow actually uses:
@@ -296,8 +296,22 @@
             </xpath>
         </field>
     </record>
-    <!-- Terms & Conditions are chosen on the RFQ (locked once it goes for
-         approval) and copied onto each purchase order created from it. -->
+    <!-- Terms & Conditions belong to each purchase order (filled before it is
+         confirmed), not to the multi-vendor RFQ: hidden on the RFQ. -->
+    <record id="purchase_order_form_vendor_mgmt_terms_po_only" model="ir.ui.view">
+        <field name="name">purchase.order.form.vendor.mgmt.terms.po.only</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="priority">110</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='terms_template_id']" position="attributes">
+                <attribute name="invisible">not rfq_id and not direct_order</attribute>
+            </xpath>
+            <xpath expr="//page[@name='terms_conditions']" position="attributes">
+                <attribute name="invisible">not rfq_id and not direct_order</attribute>
+            </xpath>
+        </field>
+    </record>
 
     <!-- Requests for Quotation menu: RFQs only. Purchase orders created
          from an RFQ (one per vendor) live under Orders > Purchase Orders. -->
@@ -309,7 +323,7 @@
          shown with the same form as an order split from an RFQ. A draft
          direct order is listed too, so it doesn't vanish after saving. -->
     <record id="purchase.purchase_form_action" model="ir.actions.act_window">
-        <field name="domain">['|', ('state', '=', 'purchase'), ('direct_order', '=', True)]</field>
+        <field name="domain">['|', '|', ('state', 'in', ('purchase', 'done')), ('direct_order', '=', True), ('rfq_id', '!=', False)]</field>
         <field name="context">{'default_direct_order': True}</field>
     </record>
 

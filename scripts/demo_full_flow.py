@@ -229,7 +229,6 @@ if not rfq:
                                'date_planned': TODAY + timedelta(days=14)}) for l in request.line_ids],
     })
     rfq = pu['purchase.order'].create(vals)
-    apply_terms(rfq)
     rfq.action_send_to_vendors()
     log('rfq', rfq.name, rfq.comparison_state, 'vendors', rfq.vendor_ids.mapped('name'))
 
@@ -277,13 +276,16 @@ if not rfq:
     pu['purchase.order'].browse(rfq.id).button_confirm()
 
 children = PO.search([('rfq_id', '=', rfq.id)])
-for order in rfq | children:
+# each purchase order: Terms & Conditions filled, then confirmed
+for order in children:
     if apply_terms(order):
         log('terms added to', order.name)
 QREF = {nova.id: 'NTS/Q/2026/118', prime.id: 'PID/QT/4471'}
 for po in children:
     pm = po.partner_id.property_outbound_payment_method_line_id if 'property_outbound_payment_method_line_id' in po.partner_id._fields else False
     po.write({'partner_ref': QREF.get(po.partner_id.id, TAG)} | ({'vendor_payment_method_line_id': pm.id} if pm else {}))
+for po in children.filtered(lambda o: o.state in ('draft', 'sent')):
+    as_('purchase_user')['purchase.order'].browse(po.id).button_confirm()
 log('purchase orders', [(p.name, p.partner_id.name, p.amount_total, p.payment_term_id.name) for p in children])
 
 # ---------------------------------------------------------------- receive
