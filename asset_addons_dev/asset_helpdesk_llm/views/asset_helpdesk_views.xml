@@ -11,7 +11,7 @@
 
             <xpath expr="//header" position="inside">
                 <button name="action_run_llm" type="object"
-                        string="Ask AI" class="btn-secondary"/>
+                        string="Ask AI" class="btn-secondary" icon="fa-magic"/>
             </xpath>
 
             <xpath expr="//notebook" position="inside">
@@ -19,7 +19,8 @@
                     <group>
                         <field name="llm_status"/>
                     </group>
-                    <field name="llm_response" readonly="1"/>
+                    <field name="llm_response" readonly="1" nolabel="1"
+                           widget="html" options="{'collaborative': false}"/>
                 </page>
             </xpath>
 

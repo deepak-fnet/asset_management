@@ -1,6 +1,6 @@
 {
     'name': 'Asset Helpdesk LLM',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'summary': 'Send helpdesk notes to a local LLM and store the AI response',
     'description': """
 Asset Helpdesk LLM
