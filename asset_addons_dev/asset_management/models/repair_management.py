@@ -33,8 +33,11 @@ class RepairManagement(models.Model):
         ('in_house', 'Internal Team'),
         ('vendor', 'External Team'),
     ], string='Repair Mode', default='in_house', required=True, tracking=True)
+    # Vendor master (res.partner): approved vendors when vendor_management
+    # is installed, otherwise any supplier.
     vendor_id = fields.Many2one(
-        'asset.vendor', string='Repair Vendor', tracking=True,
+        'res.partner', string='Repair Vendor', tracking=True,
+        domain=lambda self: self.env['res.partner']._asset_vendor_domain(),
     )
     repair_cost = fields.Monetary(
         string='Repair Cost', currency_field='currency_id', tracking=True,
@@ -551,3 +554,15 @@ class RepairManagement(models.Model):
                 'default_location_id': self.asset_id.location_id.id,
             },
         }
+
+
+class ResPartnerAssetVendor(models.Model):
+    _inherit = 'res.partner'
+
+    @api.model
+    def _asset_vendor_domain(self):
+        """Vendors offered on assets / repairs: the vendor master's approved
+        vendors (vendor_management), otherwise companies that are suppliers."""
+        if 'is_vendor' in self._fields:
+            return [('is_vendor', '=', True), ('vendor_state', '=', 'active')]
+        return [('supplier_rank', '>', 0)]

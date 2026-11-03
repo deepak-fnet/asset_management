@@ -111,7 +111,8 @@ class AssetMaintenance(models.Model):
         ('in_house', 'In-House'),
         ('vendor', 'Vendor'),
     ], string='Repair Mode')
-    vendor_id = fields.Many2one('asset.vendor', string='Repair Vendor')
+    vendor_id = fields.Many2one('res.partner', string='Repair Vendor',
+                                domain=lambda self: self.env['res.partner']._asset_vendor_domain())
     bill_file = fields.Binary(string='Bill / Invoice')
     bill_filename = fields.Char()
 
@@ -132,7 +133,8 @@ class AssetVendor(models.Model):
     contact = fields.Char(string='Contact Number')
     email = fields.Char(string='Email')
     sla_details = fields.Text(string='SLA Details')
-    asset_ids = fields.One2many('asset.asset', 'vendor_id', string='Assets')
+    # Superseded: assets and repairs now point at the vendor master
+    # (res.partner); this model is kept only for old data.
 
 
 class AssetAssignmentHistory(models.Model):

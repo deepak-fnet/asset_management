@@ -124,17 +124,6 @@
                             <field name="sla_details"/>
                         </group>
                     </group>
-                    <notebook>
-                        <page string="Assets">
-                            <field name="asset_ids" readonly="1">
-                                <list>
-                                    <field name="asset_code"/>
-                                    <field name="asset_name"/>
-                                    <field name="state"/>
-                                </list>
-                            </field>
-                        </page>
-                    </notebook>
                 </sheet>
                 <chatter/>
             </form>

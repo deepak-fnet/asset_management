@@ -281,9 +281,10 @@ class AssetAsset(models.Model):
     # =====================
 
     vendor_id = fields.Many2one(
-        "asset.vendor",
+        "res.partner",
         string="Vendor / AMC Provider",
-        tracking=True
+        tracking=True,
+        domain=lambda self: self.env["res.partner"]._asset_vendor_domain(),
     )
 
     warranty_template_id = fields.Many2one(
