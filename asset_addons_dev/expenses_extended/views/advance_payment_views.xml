@@ -32,12 +32,17 @@
                                 class="btn-primary"
                                 groups="account.group_account_invoice"
                                 invisible="state != 'draft' or is_created_by_user"/>
+                        <button name="action_manager_approve"
+                                type="object"
+                                string="Approve"
+                                class="btn-primary"
+                                invisible="state != 'request' or not is_manager_user"/>
                         <button name="action_confirm"
                                 type="object"
                                 string="Confirm"
                                 class="btn-primary"
                                 groups="account.group_account_invoice"
-                                invisible="state != 'request' or not is_manager_user"/>
+                                invisible="state != 'approved'"/>
                         <button name="action_reset_draft"
                                 type="object"
                                 string="Reset to Draft"
@@ -45,7 +50,7 @@
                                 groups="account.group_account_invoice"
                                 invisible="state != 'confirmed'"/>
                         <field name="state" widget="statusbar"
-                               statusbar_visible="draft,confirmed"/>
+                               statusbar_visible="draft,request,approved,confirmed"/>
                     </header>
                     <sheet>
                         <div class="oe_title">
@@ -327,12 +332,17 @@
                                 class="btn-primary"
                                 groups="account.group_account_invoice"
                                 invisible="state != 'draft' or is_created_by_user"/>
+                        <button name="action_manager_approve"
+                                type="object"
+                                string="Approve"
+                                class="btn-primary"
+                                invisible="state != 'request' or not is_manager_user"/>
                         <button name="action_confirm"
                                 type="object"
                                 string="Confirm"
                                 class="btn-primary"
                                 groups="account.group_account_invoice"
-                                invisible="state != 'request' or not is_manager_user"/>
+                                invisible="state != 'approved'"/>
                         <button name="action_reset_draft"
                                 type="object"
                                 string="Reset to Draft"
@@ -340,7 +350,7 @@
                                 groups="account.group_account_invoice"
                                 invisible="state != 'confirmed'"/>
                         <field name="state" widget="statusbar"
-                               statusbar_visible="draft,confirmed"/>
+                               statusbar_visible="draft,request,approved,confirmed"/>
                     </header>
                     <sheet>
                         <div class="oe_title">

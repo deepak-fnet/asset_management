@@ -143,12 +143,18 @@ class AdvancePayment(models.Model):
             'target': 'current',
         }
 
+    @api.depends_context('uid')
     @api.depends('employee_id.parent_id.user_id')
     def _compute_is_manager_user(self):
+        """Who may approve a requested advance: the employee's manager, and
+        always an administrator or an Expense Manager (an employee with no
+        manager set would otherwise have nobody to approve it)."""
         current_user = self.env.user
+        override = (current_user.has_group('base.group_system')
+                    or current_user.has_group('hr_expense.group_hr_expense_manager'))
         for rec in self:
-            manager_user = rec.employee_id.parent_id.user_id
-            rec.is_manager_user = (manager_user == current_user)
+            manager_user = rec.sudo().employee_id.parent_id.user_id
+            rec.is_manager_user = override or (manager_user == current_user)
 
     @api.depends('line_ids', 'line_ids.employee_id', 'line_ids.line_state', 'line_ids.expense_id')
     def _compute_pending_advance_lines(self):
