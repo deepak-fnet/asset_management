@@ -584,8 +584,11 @@ def run_cycle(spec):
         if i >= max(1, len(assets) - 1):
             break
         with Step(c, 'assign %s' % asset.asset_code):
-            target = emp if i == 0 else SU['hr.employee'].search(
-                [('department_id.name', '=', spec['dept']), ('id', '!=', emp.id)], limit=1) or emp
+            others = SU['hr.employee'].search([('id', '!=', emp.id), ('user_id.login', 'in', [
+                'vignesh', 'meena', 'lakshmi', 'priya', 'rahul', 'suresh', 'divya', 'gokul', 'arun', 'anitha'])],
+                order='id')
+            pool = others.filtered(lambda e: e.department_id.name == spec['dept']) | others
+            target = emp if i == 0 else pool[(i - 1) % len(pool)]
             wiz = as_('it_user')['asset.direct.assign.wizard'].create({
                 'asset_id': asset.id, 'assign_type': 'employee', 'employee_id': target.id,
                 'department_id': target.sudo().department_id.id, 'location_id': loc.id if loc else False})
@@ -671,7 +674,18 @@ def run_cycle(spec):
                  ('maintenance' if t.get('general') else 'hardware'),
                  'notes': 'Checked by phone with the user; %s.' % ('needs onsite visit' if t['mode'] != 'software'
                                                                      else 'remote session planned')})
-        T.action_create_repair_management()
+    with Step(c, 'create task'):
+        # Create Task opens a new repair form prefilled from the ticket; the
+        # engineer completes it and saves.
+        act = as_(lead)['asset.helpdesk'].browse(ticket.id).action_create_repair_management()
+        ctx = dict(act.get('context') or {})
+        vals = {'engineer_id': eng.employee_id.id, 'team_id': ticket.team_id.id,
+                'request_date': TODAY, 'standby_needed': 'no'}
+        if not ctx.get('default_asset_id'):
+            vals['asset_id'] = target_asset.id
+        as_('engineer')['repair.management'].with_context(**ctx).create(
+            {k: v for k, v in vals.items() if k in SU['repair.management']._fields})
+        ticket.invalidate_recordset()
         if not ticket.repair_id:
             raise Exception('Create Task made no repair')
     repair = ticket.repair_id
@@ -684,7 +698,8 @@ def run_cycle(spec):
         if RTYPE.get(beh):
             vals['issue_type_id'] = RTYPE[beh].id
         if t['mode'] in ('external',):
-            repairer = SU['res.partner'].search([('name', '=', 'QuickFix Device Care'), ('vendor_state', '=', 'active')], limit=1) \
+            repairer = SU['res.partner'].search([('name', 'in', ['QuickFix Device Care', 'Sri Balaji Computers']),
+                                                 ('vendor_state', '=', 'active')], order='name', limit=1) \
                 if not t.get('general') else SU['res.partner'].search(
                     [('name', 'in', ['PowerSafe UPS Solutions', 'CoolAir HVAC Services']),
                      ('vendor_state', '=', 'active')], limit=1)
@@ -724,11 +739,12 @@ def run_cycle(spec):
             po.order_line.write({'price_unit': t['cost']})
             apply_terms(po)
             P = as_('purchase_user')['purchase.order'].browse(po.id)
+            # a direct order goes through the approval flow before Confirm
+            if getattr(po, 'approval_status', False) in ('draft', 'not_submitted', False) \
+                    and hasattr(P, 'action_submit_for_approval'):
+                P.action_submit_for_approval()
+            approve_chain(c, po)
             P.button_confirm()
-            if po.state not in ('purchase', 'done') and po.approval_line_ids:
-                approve_chain(c, po)
-                if po.state not in ('purchase', 'done'):
-                    P.button_confirm()
             if po.state not in ('purchase', 'done'):
                 raise Exception('service PO %s not confirmed (state %s, approval %s)' % (
                     po.name, po.state, getattr(po, 'approval_status', '-')))

@@ -2052,8 +2052,12 @@ class AssetAsset(models.Model):
     def _assignment_target_text(self):
         """'Employee / Department / Location' of the asset, for history text."""
         self.ensure_one()
-        return " / ".join(n for n in [self.assigned_employee_id.name, self.department_id.name,
-                                      self.location_id.complete_name] if n) or _("no target")
+        # sudo: only names for the history line. Read as the user, the
+        # employee fetch pulls private HR fields (grade_id...) and fails for
+        # anyone without HR rights - e.g. an engineer closing a repair.
+        asset = self.sudo()
+        return " / ".join(n for n in [asset.assigned_employee_id.name, asset.department_id.name,
+                                      asset.location_id.complete_name] if n) or _("no target")
 
     def write(self, vals):
         # What the asset looked like before, to log assignments that have no
