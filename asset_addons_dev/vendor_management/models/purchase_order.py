@@ -66,6 +66,10 @@ class PurchaseOrder(models.Model):
                 or self.env.user.has_group('vendor_management.group_vendor_md')
                 or self.env.su):
             raise AccessError(_("Only a Purchase Manager can change the Bill Policy."))
+        if 'bill_policy' in vals and not self.env.su and any(
+                o.state in ('purchase', 'done', 'cancel') and o.bill_policy != vals['bill_policy']
+                for o in self):
+            raise UserError(_("The Bill Policy is fixed once the order is confirmed."))
         # Feature: RFQ Revision Handling
         # Meaningful fields to track for revision
         meaningful_fields = ['order_line', 'product_id', 'product_qty', 'price_unit']
@@ -300,6 +304,7 @@ class PurchaseOrder(models.Model):
             'reminder_date_before_receipt': vendor_cmp.reminder_date_before_receipt,
             'incoterm_id': self.incoterm_id.id,
             'note': self.note,
+            'bill_policy': self.bill_policy,
             'comparison_state': 'po_created',
             'order_line': [],
         }

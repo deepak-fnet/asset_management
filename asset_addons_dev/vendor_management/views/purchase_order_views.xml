@@ -64,7 +64,7 @@
                        invisible="not rfq_id and not direct_order"/>
             </xpath>
             <xpath expr="//field[@name='payment_term_id']" position="after">
-                <field name="bill_policy" readonly="not can_edit_bill_policy" invisible="state not in ('purchase', 'done')"/>
+                <field name="bill_policy" readonly="not can_edit_bill_policy or state in ('purchase', 'done', 'cancel')"/>
             </xpath>
             <xpath expr="//sheet" position="before">
                 <div class="alert alert-warning mb-0" role="status"
