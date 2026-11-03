@@ -326,15 +326,23 @@ class AccountMove(models.Model):
 
     is_rated = fields.Boolean(compute='_compute_is_rated', store=False)
 
+    def _rating_purchase_order(self):
+        """The purchase order this bill pays. account.move.purchase_id is only
+        the 'auto-complete from PO' helper and is empty on a saved bill - the
+        real link is on the bill lines."""
+        self.ensure_one()
+        return self.sudo().invoice_line_ids.purchase_line_id.order_id[:1]
+
     def _compute_is_rated(self):
         for rec in self:
+            po = rec._rating_purchase_order() if rec.id else rec.purchase_id
             # A yes/no flag: Dept Head / Audit / Stores / Finance open the bill too
             # and hold no vendor-performance rights.
             rec.is_rated = self.env['vendor.performance.overview'].sudo().search_count([
                 ('vendor_id', '=', rec.partner_id.id),
                 '|',
                 ('move_id', '=', rec.id),
-                ('purchase_id', '=', rec.purchase_id.id) if rec.purchase_id else ('id', '=', 0)
+                ('purchase_id', '=', po.id) if po else ('id', '=', 0)
             ]) > 0
 
     def action_open_rating_wizard(self):
@@ -346,7 +354,7 @@ class AccountMove(models.Model):
             'view_mode': 'form',
             'target': 'new',
             'context': {
-                'default_purchase_id': self.purchase_id.id if self.purchase_id else False,
+                'default_purchase_id': self._rating_purchase_order().id or False,
                 'default_move_id': self.id,
             }
         }

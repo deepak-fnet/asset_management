@@ -258,6 +258,7 @@
                             <field name="performance_overview_ids" nolabel="1">
                                 <list create="false">
                                     <field name="purchase_id"/>
+                                    <field name="move_id" optional="show"/>
                                     <field name="quality" widget="priority"/>
                                     <field name="delivery" widget="priority"/>
                                     <field name="service" widget="priority"/>

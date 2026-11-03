@@ -156,6 +156,19 @@ class PerformanceOverview(models.Model):
 
     performance_overview_score = fields.Float(compute="_compute_overview_score", store=True)
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        records._fill_purchase_from_bill()
+        return records
+
+    def _fill_purchase_from_bill(self):
+        """A rating made from a bill: take the PO from the bill lines."""
+        for rec in self.sudo().filtered(lambda r: r.move_id and not r.purchase_id):
+            po = rec.move_id.invoice_line_ids.purchase_line_id.order_id[:1]
+            if po:
+                rec.purchase_id = po
+
     @api.depends('quality', 'delivery', 'service', 'overall')
     def _compute_overview_score(self):
         for rec in self:
