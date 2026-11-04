@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_asset_form_accounting_asset" model="ir.ui.view">
+        <field name="name">asset.asset.form.accounting.asset</field>
+        <field name="model">asset.asset</field>
+        <field name="inherit_id" ref="general_asset.view_asset_general_form"/>
+        <field name="arch" type="xml">
+            <button name="action_calculate_depreciation" position="after">
+                <button name="action_accounting_confirm" type="object" string="Confirm" class="btn-primary"
+                        invisible="not accounting_asset_id or accounting_asset_state != 'draft'"
+                        groups="account.group_account_manager"
+                        confirm="Confirm this asset in accounting? Entries up to today are posted, later ones post on their date."/>
+                <button name="action_accounting_modify" type="object" string="Modify Depreciation"
+                        invisible="accounting_asset_state != 'open'" groups="account.group_account_manager"/>
+                <button name="action_accounting_set_draft" type="object" string="Set to Draft"
+                        invisible="accounting_asset_state != 'open'" groups="account.group_account_manager"/>
+                <button name="action_open_accounting_asset" type="object" class="oe_stat_button" icon="fa-book"
+                        invisible="not accounting_asset_id" groups="account.group_account_readonly">
+                    <div class="o_stat_info">
+                        <span class="o_stat_value"><field name="accounting_asset_state" readonly="1"/></span>
+                        <span class="o_stat_text">Accounting Asset</span>
+                    </div>
+                </button>
+                <button name="action_accounting_entries" type="object" class="oe_stat_button" icon="fa-pencil"
+                        invisible="not accounting_entry_count" groups="account.group_account_readonly">
+                    <field name="accounting_entry_count" widget="statinfo" string="Journal Entries"/>
+                </button>
+            </button>
+            <field name="salvage_value" position="after">
+                <field name="accounting_asset_id" groups="account.group_account_readonly"/>
+            </field>
+            <field name="depreciation_line_ids" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+            <field name="depreciation_line_ids" position="after">
+                <group string="Accounting" invisible="not accounting_asset_id" groups="account.group_account_readonly">
+                    <group>
+                        <field name="accounting_account_asset_id" readonly="accounting_asset_state != 'draft'"/>
+                        <field name="accounting_account_depreciation_id" readonly="accounting_asset_state != 'draft'"/>
+                    </group>
+                    <group>
+                        <field name="accounting_account_expense_id" readonly="accounting_asset_state != 'draft'"/>
+                        <field name="accounting_journal_id" readonly="accounting_asset_state != 'draft'"/>
+                    </group>
+                </group>
+                <field name="accounting_line_ids" readonly="1" nolabel="1" invisible="not accounting_asset_id"
+                       groups="account.group_account_readonly">
+                    <list create="0" delete="0" decoration-muted="move_state == 'posted'" decoration-info="move_state == 'draft'">
+                        <field name="sequence" string="#"/>
+                        <field name="depreciation_date" string="Date"/>
+                        <field name="amount" string="Depreciation" sum="Total"/>
+                        <field name="depreciated_value" string="Cumulative"/>
+                        <field name="remaining_value" string="Residual (excl. salvage)"/>
+                        <field name="move_id" string="Journal Entry"/>
+                        <field name="move_state" widget="badge" decoration-success="move_state == 'posted'"
+                               decoration-info="move_state == 'draft'"/>
+                        <field name="parent_state" column_invisible="1"/>
+                        <button name="action_post_entry" type="object" string="Post" icon="fa-check"
+                                invisible="parent_state != 'open' or move_state == 'posted'"
+                                groups="account.group_account_manager"/>
+                    </list>
+                </field>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_product_category_accounting_asset" model="ir.ui.view">
+        <field name="name">product.category.form.accounting.asset</field>
+        <field name="model">product.category</field>
+        <field name="inherit_id" ref="product.product_category_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Accounting Asset" groups="account.group_account_readonly">
+                    <field name="account_asset_category_id"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
