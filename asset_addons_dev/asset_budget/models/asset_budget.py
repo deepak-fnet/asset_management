@@ -37,9 +37,13 @@ class AssetBudget(models.Model):
     transfer_out = fields.Monetary(compute='_compute_amounts', store=True)
     additional_amount = fields.Monetary('Additional', compute='_compute_amounts', store=True)
     surrendered_amount = fields.Monetary('Surrendered', compute='_compute_amounts', store=True)
-    total_amount = fields.Monetary('Total Budget', compute='_compute_amounts', store=True)
-    reserved_amount = fields.Monetary('In Process', compute='_compute_amounts', store=True)
-    spent_amount = fields.Monetary('Spent', compute='_compute_amounts', store=True)
+    total_amount = fields.Monetary('Total Budget Allocated', compute='_compute_amounts', store=True)
+    reserved_amount = fields.Monetary('In Process', compute='_compute_amounts', store=True,
+                                      help="On RFQs / purchase orders, not billed yet.")
+    spent_amount = fields.Monetary('Invoiced', compute='_compute_amounts', store=True,
+                                   help="Posted vendor bills.")
+    po_amount = fields.Monetary('PO Amount', compute='_compute_amounts', store=True,
+                                help="Committed on RFQs / purchase orders: not yet billed + already billed.")
     balance_amount = fields.Monetary('Balance', compute='_compute_amounts', store=True)
     reserved_qty = fields.Float('In Process Qty', compute='_compute_amounts', store=True)
     spent_qty = fields.Float('Spent Qty', compute='_compute_amounts', store=True)
@@ -69,6 +73,7 @@ class AssetBudget(models.Model):
             rec.reserved_qty = sum(max(l.quantity - l.consumed_qty, 0.0) for l in reserves)
             rec.spent_amount = sum(spends.mapped('amount'))
             rec.spent_qty = sum(spends.mapped('quantity'))
+            rec.po_amount = rec.reserved_amount + rec.spent_amount
             rec.total_amount = rec.budget_amount + rec.transfer_in + rec.additional_amount
             rec.balance_amount = rec.total_amount - (rec.reserved_amount + rec.spent_amount
                                                      + rec.transfer_out + rec.surrendered_amount)

@@ -11,10 +11,11 @@
                 <field name="date_to"/>
                 <field name="currency_id" column_invisible="1"/>
                 <field name="total_amount" sum="Total"/>
-                <field name="reserved_amount" sum="In Process"/>
-                <field name="spent_amount" sum="Spent"/>
+                <field name="po_amount" sum="PO Amount"/>
+                <field name="spent_amount" sum="Invoiced"/>
                 <field name="balance_amount" sum="Balance"/>
-                <field name="used_percent" widget="progressbar"/>
+                <field name="reserved_amount" sum="In Process" optional="hide"/>
+                <field name="used_percent" widget="progressbar" optional="show"/>
                 <field name="budget_qty" optional="hide"/>
                 <field name="balance_qty" optional="hide"/>
                 <field name="ledger_code" optional="hide"/>
@@ -56,7 +57,8 @@
                             <field name="transfer_in"/>
                             <field name="additional_amount"/>
                             <field name="total_amount" class="fw-bold"/>
-                            <field name="reserved_amount"/>
+                            <field name="po_amount"/>
+                            <field name="reserved_amount" string="  of which not billed"/>
                             <field name="spent_amount"/>
                             <field name="transfer_out"/>
                             <field name="surrendered_amount"/>
@@ -146,7 +148,7 @@
                 <field name="department_id" type="row"/>
                 <field name="category_id" type="col"/>
                 <field name="total_amount" type="measure"/>
-                <field name="reserved_amount" type="measure"/>
+                <field name="po_amount" type="measure"/>
                 <field name="spent_amount" type="measure"/>
                 <field name="balance_amount" type="measure"/>
             </pivot>

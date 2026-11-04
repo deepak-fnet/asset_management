@@ -1,6 +1,6 @@
 {
     'name': 'Asset Budget',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'summary': 'Budget allocation by product category and department for requests and their purchases',
     'description': """
 Budget per product category + department + period (NewGen budget allocation).
