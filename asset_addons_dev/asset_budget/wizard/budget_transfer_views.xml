@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_asset_budget_transfer_wizard" model="ir.ui.view">
+        <field name="name">asset.budget.transfer.wizard.form</field>
+        <field name="model">asset.budget.transfer.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <group>
+                        <field name="operation" widget="radio"/>
+                        <field name="from_budget_id" options="{'no_create': True}"/>
+                        <field name="currency_id" invisible="1"/>
+                        <field name="from_balance"/>
+                    </group>
+                    <group invisible="operation != 'transfer'">
+                        <field name="to_budget_id" options="{'no_create': True}" required="operation == 'transfer'"/>
+                        <field name="to_balance"/>
+                    </group>
+                </group>
+                <group>
+                    <field name="amount"/>
+                    <field name="reason"/>
+                </group>
+                <footer>
+                    <button name="action_apply" type="object" string="Apply" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

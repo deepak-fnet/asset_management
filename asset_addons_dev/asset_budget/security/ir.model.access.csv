@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_asset_budget_user,asset.budget.user,model_asset_budget,base.group_user,1,0,0,0
+access_asset_budget_manager,asset.budget.manager,model_asset_budget,purchase.group_purchase_manager,1,1,1,1
+access_asset_budget_asset_manager,asset.budget.asset.manager,model_asset_budget,asset_management.group_asset_manager,1,1,1,0
+access_asset_budget_line_user,asset.budget.line.user,model_asset_budget_line,base.group_user,1,0,0,0
+access_asset_budget_line_manager,asset.budget.line.manager,model_asset_budget_line,purchase.group_purchase_manager,1,1,1,1
+access_asset_budget_transfer_user,asset.budget.transfer.user,model_asset_budget_transfer,base.group_user,1,0,0,0
+access_asset_budget_transfer_manager,asset.budget.transfer.manager,model_asset_budget_transfer,purchase.group_purchase_manager,1,1,1,1
+access_asset_budget_transfer_wizard,asset.budget.transfer.wizard,model_asset_budget_transfer_wizard,purchase.group_purchase_manager,1,1,1,1

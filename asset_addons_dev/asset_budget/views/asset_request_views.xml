@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_asset_request_form_budget" model="ir.ui.view">
+        <field name="name">asset.request.form.budget</field>
+        <field name="model">asset.request</field>
+        <field name="inherit_id" ref="asset_management.view_asset_request_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <div class="alert alert-warning mb-0" role="alert"
+                     invisible="not budget_warning or state in ('draft', 'submitted', 'done', 'cancel', 'rejected')">
+                    <i class="fa fa-exclamation-triangle me-1" title="Budget"/> <b>Budget:</b>
+                    <field name="budget_warning" readonly="1" class="d-inline"/>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='request_date']" position="after">
+                <field name="department_id" readonly="state not in ('draft', 'submitted', 'approved')"
+                       options="{'no_create': True}"/>
+            </xpath>
+            <xpath expr="//field[@name='line_ids']/list/field[@name='available_qty']" position="after">
+                <field name="budget_currency_id" column_invisible="1"/>
+                <field name="budget_id" optional="show" column_invisible="parent.state in ('draft', 'submitted')"/>
+                <field name="estimated_amount" optional="show" column_invisible="parent.state in ('draft', 'submitted')"/>
+                <field name="budget_balance" optional="show" column_invisible="parent.state in ('draft', 'submitted')"
+                       decoration-danger="budget_balance &lt; estimated_amount"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_asset_budget_list" model="ir.ui.view">
+        <field name="name">asset.budget.list</field>
+        <field name="model">asset.budget</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="balance_amount &lt; 0" decoration-warning="used_percent &gt;= 90 and balance_amount &gt;= 0">
+                <field name="department_id"/>
+                <field name="category_id"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="total_amount" sum="Total"/>
+                <field name="reserved_amount" sum="In Process"/>
+                <field name="spent_amount" sum="Spent"/>
+                <field name="balance_amount" sum="Balance"/>
+                <field name="used_percent" widget="progressbar"/>
+                <field name="budget_qty" optional="hide"/>
+                <field name="balance_qty" optional="hide"/>
+                <field name="ledger_code" optional="hide"/>
+                <field name="company_id" optional="hide" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_budget_form" model="ir.ui.view">
+        <field name="name">asset.budget.form</field>
+        <field name="model">asset.budget</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_open_transfer" type="object" string="Transfer / Add / Surrender"
+                            class="btn-primary" groups="purchase.group_purchase_manager"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_lines" type="object" class="oe_stat_button" icon="fa-history"
+                                string="History"/>
+                    </div>
+                    <widget name="web_ribbon" title="Over Budget" bg_color="text-bg-danger" invisible="balance_amount &gt;= 0"/>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="department_id"/>
+                            <field name="category_id"/>
+                            <label for="date_from" string="Period"/>
+                            <div class="o_row">
+                                <field name="date_from"/> <span>to</span> <field name="date_to"/>
+                            </div>
+                            <field name="ledger_code"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="budget_amount"/>
+                            <field name="transfer_in"/>
+                            <field name="additional_amount"/>
+                            <field name="total_amount" class="fw-bold"/>
+                            <field name="reserved_amount"/>
+                            <field name="spent_amount"/>
+                            <field name="transfer_out"/>
+                            <field name="surrendered_amount"/>
+                            <field name="balance_amount" class="fw-bold"
+                                   decoration-danger="balance_amount &lt; 0" decoration-success="balance_amount &gt;= 0"/>
+                            <field name="used_percent" widget="progressbar"/>
+                        </group>
+                    </group>
+                    <group string="Quantity" name="qty">
+                        <group>
+                            <field name="budget_qty"/>
+                        </group>
+                        <group invisible="not budget_qty">
+                            <field name="reserved_qty"/>
+                            <field name="spent_qty"/>
+                            <field name="balance_qty"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Budget History" name="history">
+                            <field name="line_ids" readonly="1">
+                                <list>
+                                    <field name="date"/>
+                                    <field name="kind" widget="badge" decoration-info="kind == 'reserve'" decoration-success="kind == 'spend'"/>
+                                    <field name="request_id"/>
+                                    <field name="order_id"/>
+                                    <field name="move_id"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="amount"/>
+                                    <field name="consumed_amount" string="Billed"/>
+                                    <field name="quantity"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="note"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Transfers" name="transfers">
+                            <field name="transfer_ids" readonly="1">
+                                <list>
+                                    <field name="date"/>
+                                    <field name="direction" widget="badge"/>
+                                    <field name="other_budget_id"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="amount"/>
+                                    <field name="reason"/>
+                                    <field name="user_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_asset_budget_search" model="ir.ui.view">
+        <field name="name">asset.budget.search</field>
+        <field name="model">asset.budget</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="department_id"/>
+                <field name="category_id"/>
+                <filter string="Current" name="current"
+                        domain="[('date_from', '&lt;=', context_today().strftime('%Y-%m-%d')), ('date_to', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter string="Over Budget" name="over" domain="[('balance_amount', '&lt;', 0)]"/>
+                <filter string="90% Used" name="used90" domain="[('used_percent', '&gt;=', 90)]"/>
+                <separator/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Department" name="g_dept" context="{'group_by': 'department_id'}"/>
+                    <filter string="Category" name="g_cat" context="{'group_by': 'category_id'}"/>
+                    <filter string="Period" name="g_from" context="{'group_by': 'date_from:year'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_asset_budget_pivot" model="ir.ui.view">
+        <field name="name">asset.budget.pivot</field>
+        <field name="model">asset.budget</field>
+        <field name="arch" type="xml">
+            <pivot string="Budget Analysis">
+                <field name="department_id" type="row"/>
+                <field name="category_id" type="col"/>
+                <field name="total_amount" type="measure"/>
+                <field name="reserved_amount" type="measure"/>
+                <field name="spent_amount" type="measure"/>
+                <field name="balance_amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_asset_budget_graph" model="ir.ui.view">
+        <field name="name">asset.budget.graph</field>
+        <field name="model">asset.budget</field>
+        <field name="arch" type="xml">
+            <graph string="Budget" type="bar" stacked="1">
+                <field name="department_id"/>
+                <field name="spent_amount" type="measure"/>
+                <field name="reserved_amount" type="measure"/>
+                <field name="balance_amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_asset_budget_line_list" model="ir.ui.view">
+        <field name="name">asset.budget.line.list</field>
+        <field name="model">asset.budget.line</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0">
+                <field name="date"/>
+                <field name="budget_id"/>
+                <field name="kind" widget="badge" decoration-info="kind == 'reserve'" decoration-success="kind == 'spend'"/>
+                <field name="request_id"/>
+                <field name="order_id"/>
+                <field name="move_id"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="amount" sum="Total"/>
+                <field name="consumed_amount" string="Billed"/>
+                <field name="quantity"/>
+                <field name="state" widget="badge"/>
+                <field name="note"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_asset_budget_line_search" model="ir.ui.view">
+        <field name="name">asset.budget.line.search</field>
+        <field name="model">asset.budget.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="budget_id"/>
+                <field name="request_id"/>
+                <field name="order_id"/>
+                <filter string="In Process" name="reserve" domain="[('kind', '=', 'reserve'), ('state', '=', 'active')]"/>
+                <filter string="Spent" name="spend" domain="[('kind', '=', 'spend')]"/>
+                <group>
+                    <filter string="Budget" name="g_budget" context="{'group_by': 'budget_id'}"/>
+                    <filter string="Type" name="g_kind" context="{'group_by': 'kind'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_asset_budget" model="ir.actions.act_window">
+        <field name="name">Budget Allocation</field>
+        <field name="res_model">asset.budget</field>
+        <field name="view_mode">list,form,pivot,graph</field>
+        <field name="context">{'search_default_current': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Allocate a budget</p>
+            <p>One budget per product category and department for a period. Requests and the RFQs raised
+               from them are checked against it.</p>
+        </field>
+    </record>
+    <record id="action_asset_budget_analysis" model="ir.actions.act_window">
+        <field name="name">Budget Analysis</field>
+        <field name="res_model">asset.budget</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="context">{'search_default_current': 1}</field>
+    </record>
+    <record id="action_asset_budget_line" model="ir.actions.act_window">
+        <field name="name">Budget History</field>
+        <field name="res_model">asset.budget.line</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <menuitem id="menu_asset_budget_root" name="Budget" parent="purchase.menu_purchase_root" sequence="45"
+              groups="purchase.group_purchase_manager,asset_management.group_asset_manager"/>
+    <menuitem id="menu_asset_budget" name="Budget Allocation" parent="menu_asset_budget_root"
+              action="action_asset_budget" sequence="10"/>
+    <menuitem id="menu_asset_budget_analysis" name="Budget Analysis" parent="menu_asset_budget_root"
+              action="action_asset_budget_analysis" sequence="20"/>
+    <menuitem id="menu_asset_budget_line" name="Budget History" parent="menu_asset_budget_root"
+              action="action_asset_budget_line" sequence="30"/>
+</odoo>

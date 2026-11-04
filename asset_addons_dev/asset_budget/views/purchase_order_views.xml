@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="purchase_order_form_budget" model="ir.ui.view">
+        <field name="name">purchase.order.form.budget</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <div class="alert alert-danger mb-0" role="alert" invisible="not budget_exceeded">
+                    <i class="fa fa-exclamation-triangle me-1" title="Budget"/> <b>Over budget</b> - the Budget Approver signs off last.
+                    <field name="budget_check_note" readonly="1" class="d-block"/>
+                </div>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Budget" name="budget" invisible="not asset_request_id">
+                    <field name="budget_exceeded" invisible="1"/>
+                    <field name="budget_summary" readonly="1" nolabel="1"/>
+                    <field name="budget_line_ids" readonly="1" nolabel="1">
+                        <list>
+                            <field name="date"/>
+                            <field name="budget_id"/>
+                            <field name="kind" widget="badge"/>
+                            <field name="move_id"/>
+                            <field name="currency_id" column_invisible="1"/>
+                            <field name="amount"/>
+                            <field name="consumed_amount" string="Billed"/>
+                            <field name="state" widget="badge"/>
+                            <field name="note"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
