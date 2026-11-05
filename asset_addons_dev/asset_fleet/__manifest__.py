@@ -1,6 +1,6 @@
 {
     'name': 'Asset Agent - Install Link & Telemetry Policies',
-    'version': '19.0.3.0.0',
+    'version': '19.0.3.1.0',
     'summary': 'Install the asset agent from an Odoo link (no .deb per server) and configure what '
                'Agent Telemetry collects - sections, interval and custom commands - per policy',
     'category': 'Inventory',
@@ -12,6 +12,7 @@
         'views/fleet_views.xml',
         'views/screentime_views.xml',
         'views/fixed_sync_views.xml',
+        'views/fixed_form_ui_views.xml',
     ],
     'assets': {
         'web.assets_backend': [
@@ -20,6 +21,8 @@
             'asset_fleet/static/src/asset360/asset360.scss',
             'asset_fleet/static/src/asset360/screen_tab.scss',
             'asset_fleet/static/src/asset360/fixed_card.scss',
+            'asset_fleet/static/src/fixed_form/fixed_form.scss',
+            'asset_fleet/static/src/fixed_form/fixed_form.js',
         ],
     },
     'license': 'LGPL-3',

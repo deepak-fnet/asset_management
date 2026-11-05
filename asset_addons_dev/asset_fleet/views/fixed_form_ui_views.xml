@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Fixed (general) asset form: a thin pulse line under the title and a
+         slim visual strip on top of each tab. No cards, little height. -->
+    <record id="view_asset_general_form_ui" model="ir.ui.view">
+        <field name="name">asset.asset.general.form.ui</field>
+        <field name="model">asset.asset</field>
+        <field name="inherit_id" ref="general_asset.view_asset_general_form"/>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="class" add="ga-form" separator=" "/>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_title')]" position="after">
+                <field name="ga_pulse" nolabel="1" readonly="1" class="ga-w d-block clearfix"/>
+            </xpath>
+            <xpath expr="//page[@name='warranty']/*[1]" position="before">
+                <field name="ga_warranty_strip" nolabel="1" readonly="1" class="ga-w d-block"/>
+            </xpath>
+            <xpath expr="//page[@name='amc']/*[1]" position="before">
+                <field name="ga_amc_strip" nolabel="1" readonly="1" class="ga-w d-block"/>
+            </xpath>
+            <xpath expr="//page[@name='licence']/*[1]" position="before">
+                <field name="ga_licence_strip" nolabel="1" readonly="1" class="ga-w d-block"/>
+            </xpath>
+            <xpath expr="//page[@name='depreciation']/*[1]" position="before">
+                <field name="ga_dep_strip" nolabel="1" readonly="1" class="ga-w d-block"/>
+            </xpath>
+            <xpath expr="//page[.//field[@name='assignment_history_ids']]" position="attributes">
+                <attribute name="name">assign</attribute>
+            </xpath>
+            <xpath expr="//page[.//field[@name='assignment_history_ids']]/*[1]" position="before">
+                <field name="ga_holders_strip" nolabel="1" readonly="1" class="ga-w d-block"/>
+            </xpath>
+            <xpath expr="//page[@name='maintenance_history']/*[1]" position="before">
+                <field name="ga_repair_strip" nolabel="1" readonly="1" class="ga-w d-block"/>
+            </xpath>
+            <xpath expr="//page[@name='repair_history']/*[1]" position="before">
+                <field name="ga_repair_strip" nolabel="1" readonly="1" class="ga-w d-block"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
