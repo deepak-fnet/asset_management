@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 <t t-name="asset_fleet.Asset360">
-<div class="a360 o_action">
+<div class="o_action a360">
+<div class="o_content a360-scroll">
   <t t-if="state.loading and !state.data"><div class="a360-loading"><div class="a360-spin"/>Loading Asset 360…</div></t>
   <t t-elif="state.data and state.data.error"><div class="a360-loading" t-esc="state.data.error"/></t>
   <t t-elif="state.data">
@@ -343,6 +344,7 @@
   <div class="a360-foot">Auto-refreshes every minute · <t t-esc="d.asset.name"/></div>
   </div>
   </t>
+</div>
 </div>
 </t>
 </templates>

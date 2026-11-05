@@ -10,12 +10,11 @@ $red: #e5484d;
 $card: #ffffff;
 $bg: #f2f4fa;
 
+.o_web_client > .o_action_manager > .o_action.a360 { background: $bg; }
 .a360 {
-    /* the client action fills the action manager: scroll inside it */
-    height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
     background: $bg;
+    /* Odoo makes .o_action overflow:hidden and scrolls its .o_content */
+    > .a360-scroll { height: 100%; overflow-y: auto !important; overflow-x: hidden; scrollbar-width: auto; }
     color: $ink;
     font-size: 13px;
 
