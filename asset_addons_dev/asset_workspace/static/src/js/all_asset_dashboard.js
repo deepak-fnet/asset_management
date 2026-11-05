@@ -51,7 +51,7 @@ class AllAssetDashboard extends Component {
             await Promise.all([this.loadFilterOptions(), this.load()]);
         });
 
-        onMounted(() => this.renderCharts());
+        onMounted(() => { this.renderCharts(); this.animateNumbers(); });
         // Draw the charts only once the new canvases are actually in the
         // DOM: after Apply the dashboard re-renders, and drawing earlier
         // (setTimeout) found no canvas and left every chart empty.
@@ -60,6 +60,7 @@ class AllAssetDashboard extends Component {
                 this.chartsDirty = false;
                 this.renderCharts();
             }
+            this.animateNumbers();
         });
         onWillUnmount(() => this.destroyCharts());
     }
@@ -75,10 +76,10 @@ class AllAssetDashboard extends Component {
             return value || fallback;
         };
         return [
-            read("--hub-chart-1", "#2c7be5"), read("--hub-chart-2", "#00d97e"),
-            read("--hub-chart-3", "#f6c343"), read("--hub-chart-4", "#e63757"),
-            read("--hub-chart-5", "#39afd1"), read("--hub-chart-6", "#95aac9"),
-            read("--hub-chart-7", "#6b5eae"), read("--hub-chart-8", "#fd7e14"),
+            read("--hub-chart-1", "#6366f1"), read("--hub-chart-2", "#10b981"),
+            read("--hub-chart-3", "#f59e0b"), read("--hub-chart-4", "#f43f5e"),
+            read("--hub-chart-5", "#0ea5e9"), read("--hub-chart-6", "#94a3b8"),
+            read("--hub-chart-7", "#8b5cf6"), read("--hub-chart-8", "#f97316"),
         ];
     }
 
@@ -152,6 +153,108 @@ class AllAssetDashboard extends Component {
         await this.load();
     }
 
+    // ── Display helpers (template stays free of Math / String calls) ────
+    get greeting() {
+        const h = new Date().getHours();
+        return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+    }
+
+    money(v) {
+        v = Number(v || 0);
+        if (v >= 1e7) { return "₹" + (v / 1e7).toFixed(2) + " Cr"; }
+        if (v >= 1e5) { return "₹" + (v / 1e5).toFixed(2) + " L"; }
+        return "₹" + Math.round(v).toLocaleString("en-IN");
+    }
+
+    get qualityItems() {
+        return (this.state.risk || []).filter((r) => r.key.startsWith("missing"));
+    }
+
+    // share of the register with tag, serial, location and category filled
+    get quality() {
+        const total = this.state.kpis.total_assets || 0;
+        const items = this.qualityItems;
+        if (!total || !items.length) { return 100; }
+        const gaps = items.reduce((sum, r) => sum + Math.min(r.count, total), 0);
+        return Math.max(0, Math.round(100 - (gaps * 100) / (items.length * total)));
+    }
+
+    get qualityTone() {
+        const q = this.quality;
+        return q >= 80 ? "ok" : q >= 50 ? "warn" : "bad";
+    }
+
+    // the single biggest gap - what to fix next
+    get nextFix() {
+        const worst = [...this.qualityItems].sort((a, b) => b.count - a.count)[0];
+        return worst && worst.count ? worst : null;
+    }
+
+    get stateSegments() {
+        const s = this.state.charts.by_state || { labels: [], data: [] };
+        const total = s.data.reduce((a, b) => a + b, 0) || 1;
+        const pal = this.palette;
+        return s.labels.map((label, i) => ({
+            label, count: s.data[i], pct: (s.data[i] * 100) / total, colour: pal[i % pal.length],
+        }));
+    }
+
+    get leaderMax() {
+        const rows = this.state.employees.rows || [];
+        return Math.max(1, ...rows.map((r) => r.count), this.state.employees.common || 0);
+    }
+
+    get ageMax() {
+        return Math.max(1, ...(this.state.age_profile || []).map((b) => b.count));
+    }
+
+    pctOf(n, max) {
+        return Math.round((Number(n || 0) * 100) / (max || 1));
+    }
+
+    riskPct(r) {
+        return this.pctOf(r.count, this.state.kpis.total_assets || 1);
+    }
+
+    riskIcon(key) {
+        const map = {
+            tag: "fa-tag", serial: "fa-barcode", location: "fa-map-marker", category: "fa-folder-open",
+            warranty: "fa-shield", amc: "fa-wrench", licence: "fa-id-card", old: "fa-hourglass-end",
+        };
+        const hit = Object.keys(map).find((k) => key.includes(k));
+        return "fa " + (hit ? map[hit] : "fa-exclamation");
+    }
+
+    initials(name) {
+        return (name || "?").split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+    }
+
+    avatarColour(i) {
+        return ["#6366f1", "#0ea5e9", "#10b981", "#f59e0b", "#ec4899", "#8b5cf6", "#14b8a6"][i % 7];
+    }
+
+    medal(i) {
+        return ["🥇", "🥈", "🥉"][i] || "";
+    }
+
+    // count-up for elements carrying data-count, after each render
+    animateNumbers() {
+        const root = document.querySelector(".o_all_asset_dashboard");
+        if (!root) { return; }
+        root.querySelectorAll("[data-count]").forEach((el) => {
+            const target = Number(el.dataset.count);
+            if (!isFinite(target) || el.dataset.shown === String(target)) { return; }
+            el.dataset.shown = String(target);
+            const t0 = performance.now();
+            const tick = (t) => {
+                const k = Math.min((t - t0) / 800, 1);
+                el.textContent = Math.round(target * (1 - Math.pow(1 - k, 3))).toLocaleString("en-IN");
+                if (k < 1) { requestAnimationFrame(tick); }
+            };
+            requestAnimationFrame(tick);
+        });
+    }
+
     // ── Charts ──────────────────────────────────────────────────────────
     destroyCharts() {
         Object.values(this.charts).forEach((chart) => chart && chart.destroy());
@@ -176,6 +279,13 @@ class AllAssetDashboard extends Component {
         this._ageBar();
     }
 
+    _tip() {
+        return {
+            backgroundColor: "#0f172a", padding: 10, cornerRadius: 8, displayColors: false,
+            titleFont: { weight: "700" }, bodyFont: { size: 12 },
+        };
+    }
+
     _canvas(key) {
         const el = this.rootRefs[key] && this.rootRefs[key].el;
         return el || null;
@@ -188,12 +298,15 @@ class AllAssetDashboard extends Component {
             type: "doughnut",
             data: {
                 labels: series.labels,
-                datasets: [{ data: series.data, backgroundColor: colours }],
+                datasets: [{ data: series.data, backgroundColor: colours, borderWidth: 3,
+                             borderColor: "#fff", hoverOffset: 10, borderRadius: 6 }],
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { position: "bottom" } },
+                cutout: "72%",
+                animation: { animateRotate: true, duration: 900 },
+                plugins: { legend: { display: false }, tooltip: this._tip() },
             },
         });
     }
@@ -205,14 +318,18 @@ class AllAssetDashboard extends Component {
             type: "bar",
             data: {
                 labels: series.labels,
-                datasets: [{ data: series.data, backgroundColor: colour }],
+                datasets: [{ data: series.data, backgroundColor: colour + "cc", hoverBackgroundColor: colour,
+                             borderRadius: 8, borderSkipped: false, barThickness: 14 }],
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 indexAxis: "y",
-                plugins: { legend: { display: false } },
-                scales: { x: { beginAtZero: true, ticks: { precision: 0 } } },
+                plugins: { legend: { display: false }, tooltip: this._tip() },
+                scales: {
+                    x: { beginAtZero: true, ticks: { precision: 0, color: "#94a3b8" }, grid: { color: "#f1f5f9" }, border: { display: false } },
+                    y: { ticks: { color: "#334155" }, grid: { display: false }, border: { display: false } },
+                },
             },
         });
     }
@@ -225,15 +342,28 @@ class AllAssetDashboard extends Component {
             data: {
                 labels: series.labels,
                 datasets: [{
-                    data: series.data, borderColor: colour,
-                    backgroundColor: colour, tension: 0.3, fill: false,
+                    data: series.data, borderColor: colour, borderWidth: 3,
+                    backgroundColor: (ctx) => {
+                        const { chart } = ctx;
+                        if (!chart.chartArea) { return colour + "22"; }
+                        const g = chart.ctx.createLinearGradient(0, chart.chartArea.top, 0, chart.chartArea.bottom);
+                        g.addColorStop(0, colour + "55");
+                        g.addColorStop(1, colour + "00");
+                        return g;
+                    },
+                    tension: 0.4, fill: true, pointRadius: 3, pointHoverRadius: 7,
+                    pointBackgroundColor: "#fff", pointBorderColor: colour, pointBorderWidth: 2,
                 }],
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+                interaction: { mode: "index", intersect: false },
+                plugins: { legend: { display: false }, tooltip: this._tip() },
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0, color: "#94a3b8" }, grid: { color: "#f1f5f9" }, border: { display: false } },
+                    x: { ticks: { color: "#64748b" }, grid: { display: false }, border: { display: false } },
+                },
             },
         });
     }
@@ -243,18 +373,22 @@ class AllAssetDashboard extends Component {
         if (!canvas || !this.state.age_profile.length) { return; }
         const labels = this.state.age_profile.map((b) => b.name);
         const data = this.state.age_profile.map((b) => b.count);
-        const shades = ["#c7d9f7", "#9fbdf0", "#6f96e6", "#4a76d6", "#2c58b8"];
+        const shades = ["#c7d2fe", "#a5b4fc", "#818cf8", "#6366f1", "#4338ca"];
         this.charts.ageChart = new Chart(canvas, {
             type: "bar",
             data: {
                 labels,
-                datasets: [{ data, backgroundColor: shades }],
+                datasets: [{ data, backgroundColor: shades, borderRadius: 10, borderSkipped: false, maxBarThickness: 46 }],
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+                onHover: (ev, els) => { ev.native.target.style.cursor = els.length ? "pointer" : "default"; },
+                plugins: { legend: { display: false }, tooltip: this._tip() },
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0, color: "#94a3b8" }, grid: { color: "#f1f5f9" }, border: { display: false } },
+                    x: { ticks: { color: "#64748b" }, grid: { display: false }, border: { display: false } },
+                },
                 onClick: (_ev, elements) => {
                     if (elements.length) { this.openBucket(elements[0].index); }
                 },
