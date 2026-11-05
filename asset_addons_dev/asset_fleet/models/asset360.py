@@ -83,7 +83,68 @@ class AssetAsset360(models.Model):
         data['health'] = self._360_health(it)
         data['finance'] = self._360_finance(asset, cur)
         data['feed'] = self._360_feed(asset, it)
+        data['details'] = self._360_details(asset, it)
         return data
+
+    def _360_details(self, asset, it):
+        def dt(v):
+            if not v:
+                return False
+            if isinstance(v, datetime):
+                return fields.Datetime.to_string(v)
+            if isinstance(v, date):
+                return fields.Date.to_string(v)
+            return str(v)[:19]
+        out = {'storage': [], 'os_patches': [], 'app_updates': [], 'cves': [], 'assignments': [], 'security': [],
+               'recent_installs': []}
+        if 'storage_volume_ids' in it._fields:
+            for v in it.storage_volume_ids:
+                out['storage'].append({'name': v.drive_letter or v.drive_label or '/', 'label': v.drive_label or '',
+                                       'total': _r(v.total_size), 'used': _r(v.used_space), 'free': _r(v.free_space),
+                                       'pct': _r(v.usage_percentage, 0)})
+        for f in ('linux_update_ids', 'windows_update_ids', 'macos_update_ids'):
+            if f in it._fields and it[f]:
+                for u in it[f].filtered(lambda x: x.status in ('pending', 'available', 'detected', False))[:10]:
+                    out['os_patches'].append({'name': getattr(u, 'package_name', False) or getattr(u, 'title', '') or u.display_name,
+                                              'from': getattr(u, 'current_version', '') or '',
+                                              'to': getattr(u, 'new_version', '') or '',
+                                              'severity': getattr(u, 'severity', '') or ''})
+                break
+        if 'app_update_ids' in it._fields:
+            for u in it.app_update_ids.filtered(lambda x: x.status in ('available', 'failed', 'queued'))[:10]:
+                out['app_updates'].append({'name': u.app_name, 'from': u.installed_version or '',
+                                           'to': u.available_version or '', 'status': u.status, 'source': u.source or ''})
+        if 'vulnerability_ids' in it._fields:
+            for v in it.vulnerability_ids.sorted(lambda x: -(x.cvss_score or 0))[:6]:
+                out['cves'].append({'cve': v.cve_ref or '', 'score': _r(v.cvss_score), 'severity': v.severity or '',
+                                    'software': '%s %s' % (v.software_name or '', v.software_version or '')})
+        hist = self.env['asset.assignment.history'].sudo().search(
+            [('asset_id', 'in', list({asset.id, it.id}))], order='date desc', limit=8) \
+            if 'asset.assignment.history' in self.env else []
+        for h in hist:
+            out['assignments'].append({'date': dt(h.date), 'employee': h.employee_id.name or '',
+                                       'action': h.action or '', 'note': h.description or ''})
+        if 'security_log_ids' in it._fields:
+            for l in it.security_log_ids.sorted('id', reverse=True)[:8]:
+                out['security'].append({'date': dt(l.timestamp or l.date), 'type': l.log_type or '',
+                                        'action': l.action or '', 'text': (l.description or '')[:120]})
+        if 'installed_application_ids' in it._fields:
+            apps = it.installed_application_ids.filtered('installed_date').sorted('installed_date', reverse=True)[:8] \
+                or it.installed_application_ids[:8]
+            for a in apps:
+                out['recent_installs'].append({'name': a.name, 'version': a.version or '', 'publisher': a.publisher or '',
+                                               'date': dt(a.installed_date)})
+        out['installed_total'] = len(it.installed_application_ids) if 'installed_application_ids' in it._fields else 0
+        out['specs'] = [(k, v) for k, v in (
+            ('Device', it.device_name if 'device_name' in it._fields else ''), ('Hostname', it.hostname),
+            ('OS', '%s %s' % (it.os_name or '', it.os_version or '')), ('Processor', it.processor),
+            ('Memory', '%s GB' % _r(it.ram_size) if it.ram_size else ''),
+            ('Storage', '%s GB' % _r(it.total_storage_size) if it.total_storage_size else ''),
+            ('Disk type', it.disk_type if 'disk_type' in it._fields else ''),
+            ('Battery health', '%s%%' % _r(it.battery_health, 0) if 'battery_health' in it._fields and it.battery_health else ''),
+            ('Serial', it.serial_number), ('Asset code', asset.asset_code if 'asset_code' in asset._fields else ''),
+        ) if v and str(v).strip()]
+        return out
 
     def _360_location(self, it):
         hist = []
@@ -166,9 +227,22 @@ class AssetAsset360(models.Model):
             m['icon'] = m['icon'] or icon(a)
         tot = sel.active_minutes or 1
         apps = [{'name': m['name'], 'minutes': _r(m['minutes'], 0), 'dur': _fmt_min(m['minutes']),
-                 'share': _r(m['minutes'] / tot * 100, 0), 'icon': m['icon']}
+                 'share': min(100, _r(m['minutes'] / tot * 100, 0)), 'icon': m['icon']}
                 for m in sorted(merged.values(), key=lambda x: -x['minutes'])]
+        hourly = [0] * 24
+        for sg in segs(sel):
+            if sg['state'] != 'active':
+                continue
+            m = sg['s']
+            while m < sg['e']:
+                h = int(m // 60)
+                nxt = min(sg['e'], (h + 1) * 60)
+                hourly[min(h, 23)] += nxt - m
+                m = nxt
+        prev = recs.filtered(lambda x: x.date == sel.date - timedelta(days=1))[:1]
         return {
+            'hourly': [round(v) for v in hourly], 'prev_active': _r(prev.active_minutes, 0) if prev else None,
+            'apps_count': len(apps),
             'has_data': True, 'days': days_available, 'day': fields.Date.to_string(sel.date),
             'user': sel.user_name, 'active': _r(sel.active_minutes, 0), 'idle': _r(sel.idle_minutes, 0),
             'locked': _r(sel.locked_minutes, 0), 'on': _r(sel.on_minutes, 0),

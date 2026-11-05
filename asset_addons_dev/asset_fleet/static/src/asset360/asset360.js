@@ -24,7 +24,10 @@ const localTime = (s) => {
 };
 const localDate = (s) => {
     if (!s) return "-";
+    s = String(s);
+    if (/^\d{8}$/.test(s)) s = `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;   // 20240311
     const t = new Date((s.length > 10 ? s.replace(" ", "T") + "Z" : s + "T00:00:00"));
+    if (isNaN(t.getTime())) return s;
     return t.toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
 };
 
@@ -137,6 +140,32 @@ export class Asset360 extends Component {
         const tgt = s.target || 480;
         if (s.active >= tgt) return `${e.name.split(" ")[0]} hit the ${tgt / 60}h goal 🎯`;
         return `${e.name.split(" ")[0]} is ${Math.round((s.active / tgt) * 100)}% to today's goal`;
+    }
+    get trend() {
+        const s = this.screen;
+        if (!s.has_data || s.prev_active === null || s.prev_active === undefined) return null;
+        const diff = s.active - s.prev_active;
+        return { diff, up: diff >= 0, txt: (diff >= 0 ? "+" : "−") + fmtMin(Math.abs(diff)) + " vs previous day" };
+    }
+    get hourMax() { return Math.max(30, ...((this.screen.hourly) || [0])); }
+    hourBar(v) { return `height:${Math.max(2, (v / 60) * 100)}%`; }
+    hourCls(v) { return v >= 45 ? "hi" : v >= 20 ? "mid" : v > 0 ? "lo" : "none"; }
+    sevCls(s) {
+        s = (s || "").toLowerCase();
+        return s.startsWith("crit") ? "crit" : s.startsWith("high") ? "high" : s.startsWith("med") ? "med" : "low";
+    }
+    storCls(p) { return p >= 90 ? "bad" : p >= 75 ? "warn" : "ok"; }
+    warrantyPct() {
+        const f = this.state.data.finance;
+        if (!f.purchase_date || !f.warranty_end) return 0;
+        const a = new Date(f.purchase_date), b = new Date(f.warranty_end), n = new Date();
+        return Math.max(0, Math.min(100, ((n - a) / (b - a)) * 100));
+    }
+    initials(n) { return (n || "?").split(" ").map((x) => x[0]).join("").slice(0, 2).toUpperCase(); }
+    get workday() {
+        const s = this.screen;
+        if (!s.first_on || !s.last_on) return 0;
+        return (new Date(s.last_on.replace(" ", "T") + "Z") - new Date(s.first_on.replace(" ", "T") + "Z")) / 60000;
     }
     get hours24() { return Array.from({ length: 24 }, (_, i) => i); }
     pad2(h) { return String(h).padStart(2, "0"); }
