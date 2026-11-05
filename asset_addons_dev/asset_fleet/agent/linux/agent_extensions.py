@@ -1453,7 +1453,11 @@ def _screentime_sample():
         return 'locked', user, '', ''
     idle = _idle_seconds(user, uid)
     home = os.path.expanduser('~' + user)
-    if idle >= IDLE_AFTER:
+    # with an auto-lock policy the screen locks before IDLE_AFTER is ever
+    # reached - count the stretch just before the lock as idle instead
+    lock_min = int((globals().get('_restrictions') or {}).get('screen_lock_minutes') or 0)
+    threshold = min(IDLE_AFTER, max(30, lock_min * 60 - 15)) if lock_min else IDLE_AFTER
+    if idle >= threshold:
         return 'idle', user, '', ''
     app_id, app_name = _focused_app(user, uid, home, stype)
     return 'active', user, app_id, app_name
@@ -1531,6 +1535,54 @@ def _app_icon_b64(app_id, app_name):
     return None
 
 
+def _sleep_intervals(since_ts):
+    """[(start, end)] the machine was suspended (lid closed / sleep), from the
+    journal: logind "Suspending..." up to "System returned from sleep"."""
+    out, start = [], None
+    try:
+        r = subprocess.run(['journalctl', '-o', 'short-unix', '--no-pager', '--since', '@%d' % int(since_ts),
+                            '-t', 'systemd-logind', '-t', 'systemd-sleep'],
+                           capture_output=True, text=True, timeout=30)
+        for line in (r.stdout or '').splitlines():
+            parts = line.split(' ', 1)
+            try:
+                ts = float(parts[0])
+            except ValueError:
+                continue
+            msg = parts[1] if len(parts) > 1 else ''
+            if 'Suspending...' in msg or 'Hibernating...' in msg:
+                start = ts
+            elif start and ('returned from sleep' in msg or "Operation 'suspend' finished" in msg):
+                if ts - start >= 60:
+                    out.append((start, ts))
+                start = None
+    except Exception as exc:
+        logger.debug('[SCREENTIME] journal read failed: %s', exc)
+    return out
+
+
+def _with_sleep(samples, sleeps):
+    """Minutes the laptop slept (GNOME locks on suspend) count as locked."""
+    if not sleeps:
+        return samples
+    have = {s[0] for s in samples}
+    users = [s[2] for s in samples if s[2]]
+    user = max(set(users), key=users.count) if users else ''
+    if not samples:
+        return samples
+    # only a sleep inside the working day (between the first and the last
+    # minute the laptop was on) - not the night or a weekend
+    day_lo, day_hi = min(s[0] for s in samples), max(s[0] for s in samples)
+    extra = []
+    for a, b in sleeps:
+        m = int(a) - int(a) % 60 + 60
+        while m + 60 <= b:
+            if day_lo < m < day_hi and m not in have:
+                extra.append([m, 'locked', user, '', ''])
+            m += 60
+    return samples + extra
+
+
 def _day_summary(day, samples):
     """samples [[ts, state, user, app_id, app_name]] -> segments + per-app seconds."""
     segs, apps = [], {}
@@ -1577,9 +1629,11 @@ def screentime_loop(server_url, serial_number):
                         _ensure_focus_extension(user, _graphical_session()[1])
                 if time.time() - last_upload >= 300:
                     days = sorted(glob.glob(os.path.join(SCREENTIME_DIR, '*.json')))[-2:]   # today + yesterday
+                    sleeps = _sleep_intervals(time.time() - 2 * 86400)
                     payload = {'serial_number': serial_number, 'tz_offset': -(time.altzone if time.localtime().tm_isdst else time.timezone),
                                'days': [
-                                   _day_summary(os.path.basename(f)[:-5], _read_json(f, {}).get('samples', []))
+                                   _day_summary(os.path.basename(f)[:-5],
+                                                _with_sleep(_read_json(f, {}).get('samples', []), sleeps))
                                    for f in days]}
                     resp = requests.post('%s/api/asset/screentime' % server_url, json=payload, timeout=30)
                     if resp.status_code == 200:
