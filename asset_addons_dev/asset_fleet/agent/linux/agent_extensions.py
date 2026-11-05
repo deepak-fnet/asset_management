@@ -1493,7 +1493,7 @@ def _app_icon_b64(app_id, app_name):
                         break
         except OSError:
             pass
-    icon = icon or (app_name or '').lower()
+    icon = icon or {'desktop': 'user-desktop'}.get((app_id or '').lower()) or (app_name or '').lower()
     if not icon:
         return None
     candidates = []
@@ -1501,9 +1501,11 @@ def _app_icon_b64(app_id, app_name):
         candidates.append(icon)
     else:
         for base in ICON_DIRS:
-            for size in ('64x64', '48x48', '128x128', '96x96', '256x256', 'scalable'):
-                for ext in ('png', 'svg'):
-                    candidates.append(os.path.join(base, size, 'apps', '%s.%s' % (icon, ext)))
+            for size in ('64x64', '48x48', '48x48@2x', '32x32@2x', '128x128', '96x96', '256x256',
+                         '32x32', 'scalable', '24x24@2x', '24x24'):
+                for cat in ('apps', 'places', 'categories'):
+                    for ext in ('png', 'svg'):
+                        candidates.append(os.path.join(base, size, cat, '%s.%s' % (icon, ext)))
         candidates += ['/usr/share/pixmaps/%s.png' % icon, '/usr/share/pixmaps/%s.svg' % icon]
     for c in candidates:
         try:

@@ -55,7 +55,7 @@
                 <div><span class="p">$</span><b class="blink">_</b></div>
               </div>
             </div>
-            <div class="dock"><t t-foreach="(s.apps or []).slice(0, 7)" t-as="a" t-key="a_index"><img t-if="a.icon" t-att-src="a.icon" t-att-title="a.name" alt=""/><span t-else="" class="noicon sm" t-esc="initials(a.name)" t-att-title="a.name"/></t></div>
+            <div class="dock"><t t-foreach="(s.apps or []).slice(0, 7)" t-as="a" t-key="a_index"><img t-if="a.icon" t-att-src="a.icon" t-att-title="a.name" alt=""/><span t-elif="a.name.startsWith('Not tracked')" class="noicon sm" t-att-title="a.name"><i class="fa fa-lock"/></span><span t-else="" class="noicon sm" t-esc="initials(a.name)" t-att-title="a.name"/></t></div>
           </div>
         </div>
         <div class="base"><div class="notch"/></div>
@@ -167,7 +167,7 @@
             <t t-foreach="s.apps" t-as="a" t-key="a_index">
               <div t-attf-class="app #{state.app === a.name ? 'sel' : ''}" t-on-click="() => this.pickApp(a.name)">
                 <span class="rank" t-esc="a_index + 1"/>
-                <img t-if="a.icon" t-att-src="a.icon" alt=""/><span t-else="" class="noicon" t-esc="initials(a.name)"/>
+                <img t-if="a.icon" t-att-src="a.icon" alt=""/><span t-elif="a.name.startsWith('Not tracked')" class="noicon"><i class="fa fa-lock"/></span><span t-else="" class="noicon" t-esc="initials(a.name)"/>
                 <div class="nm"><span t-esc="a.name"/><div class="track"><div class="fill" t-att-style="pctFill(a.share)"/></div></div>
                 <div class="tm"><b t-esc="fmtMin(a.minutes)"/><small t-esc="a.share + '%'"/></div>
               </div>

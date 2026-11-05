@@ -245,7 +245,8 @@ class AssetAsset(models.Model):
                 Markup('<div class="stv-app">%s<span class="n">%s</span><div class="t"><i style="width:%.1f%%"></i></div>'
                        '<b>%s</b></div>') % (
                     (Markup('<img src="/web/image/asset.app.icon/%s/icon" alt=""/>') % next(icons[k] for k in e['keys'] if k in icons))
-                    if any(k in icons for k in e['keys']) else Markup('<span class="ni">%s</span>') % (name[:1] or '?'),
+                    if any(k in icons for k in e['keys']) else (Markup('<span class="ni"><i class="fa fa-lock"></i></span>') if name.startswith('Not tracked')
+                          else Markup('<span class="ni">%s</span>') % (name[:1] or '?')),
                     name, e['m'] / tmax * 100, _fmt(e['m'])) for name, e in top)
             week_active = sum(week.mapped('active_minutes'))
             avg = week_active / len(week) if week else 0
