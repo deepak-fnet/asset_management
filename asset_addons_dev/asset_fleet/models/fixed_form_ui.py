@@ -4,6 +4,7 @@ No cards: one thin "pulse" line under the title and a slim strip on top of
 each tab - timelines, a depreciation sparkline, the holders' trail. All
 computed (never stored), so they always reflect the record as it is.
 """
+import json
 from datetime import date
 
 from markupsafe import Markup, escape
@@ -129,9 +130,9 @@ class AssetAssetFormUI(models.Model):
                 book = cost
             pct = max(min((book or 0.0) * 100.0 / cost, 100), 0)
             segs.append(Markup(
-                '<div class="ga-p" data-ga-tab="depreciation"><small>%s</small><b>%s</b>'
+                '<div class="ga-p" data-ga-tab="depreciation"><small>%s</small><b data-count="%s">%s</b>'
                 '<div class="ga-mini" title="%s"><i style="width:%.0f%%"></i></div><em>%s</em></div>') % (
-                _('Book value'), self._ga_money(book), _('%.0f%% of cost left') % pct, pct,
+                _('Book value'), book or 0.0, self._ga_money(book), _('%.0f%% of cost left') % pct, pct,
                 _('of %s') % self._ga_money(cost)))
 
         # warranty
@@ -156,7 +157,36 @@ class AssetAssetFormUI(models.Model):
         segs.append(Markup('<div class="ga-p %s" data-ga-tab="repair_history"><small>%s</small><b>%s</b><em>%s</em></div>') % (
             'warn' if ro else '', _('Repairs'), rc, _('%s open') % ro if ro else _('all clear')))
 
-        return Markup('<div class="ga-pulse">%s</div>') % Markup('').join(segs)
+        # health score: warranty, open repairs, wear
+        score = 100
+        if not wend:
+            score -= 10
+        elif (wend - today).days < 0:
+            score -= 25
+        score -= min(ro * 10, 30)
+        score -= int((self._ga('depreciation_percentage') or 0.0) * 0.3)
+        if self._ga('state') == 'scrapped':
+            score = 0
+        score = max(score, 0)
+        tone = 'ok' if score >= 75 else ('warn' if score >= 50 else 'bad')
+        health = Markup(
+            '<div class="ga-p ga-health %s" title="%s"><div class="ga-ring" style="--p:%s"><b data-count="%s">%s</b></div>'
+            '<div><small>%s</small><em>%s</em></div></div>') % (
+            tone, _('Warranty, open repairs and wear'), score, score, score, _('Health'),
+            {'ok': _('looking good'), 'warn': _('needs a look'), 'bad': _('attention')}[tone])
+
+        acts = [
+            ('action_open_direct_assign', '', 'fa-user-plus', _('Assign')),
+            ('action_open_transfer', '', 'fa-exchange', _('Transfer')),
+            ('action_calculate_depreciation', 'depreciation', 'fa-calculator', _('Recalculate depreciation')),
+            ('action_view_it_asset', '', 'fa-desktop', _('IT asset')),
+            ('action_open_asset_360', '', 'fa-tachometer', _('Asset 360')),
+        ]
+        chips = Markup('').join(
+            Markup('<button type="button" class="ga-act" data-ga-btn="%s" data-ga-tab="%s"><i class="fa %s"></i> %s</button>') % a
+            for a in acts)
+        return Markup('<div class="ga-pulse">%s%s</div><div class="ga-acts">%s</div>') % (
+            health, Markup('').join(segs), chips)
 
     def _ga_dep_html(self):
         lines = self._ga('depreciation_line_ids')
@@ -165,32 +195,42 @@ class AssetAssetFormUI(models.Model):
             return Markup('<div class="ga-strip ga-empty"><i class="fa fa-line-chart"></i> %s</div>') % _(
                 'No schedule yet - set the method below and press Calculate Depreciation.')
         lines = lines.sorted(lambda l: (str(l.year or ''), l.id))
-        pts = [(_('Start'), cost)] + [(str(l.year or ''), l.remaining_value or 0.0) for l in lines]
-        W, H, P = 560.0, 64.0, 6.0
+        pts = [(_('Start'), cost, 0.0)] + [
+            (str(l.year or ''), l.remaining_value or 0.0, l.depreciation_amount or 0.0) for l in lines]
+        W, H, P, BH = 600.0, 110.0, 10.0, 34.0
         n = len(pts) - 1 or 1
-        mx = max(v for _y, v in pts) or 1.0
-        xy = [(P + i * (W - 2 * P) / n, P + (1 - v / mx) * (H - 2 * P)) for i, (_y, v) in enumerate(pts)]
+        mx = max(v for _y, v, _d in pts) or 1.0
+        dmx = max(d for _y, _v, d in pts) or 1.0
+        top = H - BH - 8
+        xy = [(P + i * (W - 2 * P) / n, P + (1 - v / mx) * (top - P)) for i, (_y, v, _d) in enumerate(pts)]
         line = ' '.join('%.1f,%.1f' % p for p in xy)
-        area = 'M%.1f,%.1f L%s L%.1f,%.1f Z' % (xy[0][0], H, line.replace(' ', ' L'), xy[-1][0], H)
+        area = 'M%.1f,%.1f L%s L%.1f,%.1f Z' % (xy[0][0], top, line.replace(' ', ' L'), xy[-1][0], top)
         this_year = str(date.today().year)
-        cur_i = next((i for i, (y, _v) in enumerate(pts) if y.startswith(this_year)), None)
+        cur_i = next((i for i, (y, _v, _d) in enumerate(pts) if y.startswith(this_year)), None)
+        bw = max(min((W - 2 * P) / (n + 1) * 0.5, 26), 4)
+        bars = Markup('').join(
+            Markup('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="2" class="%s"/>') % (
+                x - bw / 2, H - (d / dmx) * BH, bw, (d / dmx) * BH, 'now' if i == cur_i else '')
+            for i, ((x, _y), (_l, _v, d)) in enumerate(zip(xy, pts)) if d)
         dots = Markup('').join(
-            Markup('<circle cx="%.1f" cy="%.1f" r="%s" class="%s"><title>%s · %s</title></circle>') % (
-                x, y, 4.5 if i == cur_i else 2.5, 'now' if i == cur_i else '', pts[i][0], self._ga_money(pts[i][1]))
+            Markup('<i class="ga-dot %s" style="left:%.2f%%;top:%.2f%%"></i>') % ('now' if i == cur_i else '', x / W * 100, y / H * 100)
             for i, (x, y) in enumerate(xy))
-        labels = Markup('').join(
-            Markup('<text x="%.1f" y="%.1f">%s</text>') % (x, H + 12, pts[i][0])
-            for i, (x, _y) in enumerate(xy) if i in (0, len(xy) - 1) or i == cur_i)
+        data = escape(json.dumps([
+            {'x': round(x / W * 100, 2), 'y': round(y / H * 100, 2), 'l': l, 'v': self._ga_money(v),
+             'd': self._ga_money(d) if d else '', 'now': i == cur_i}
+            for i, ((x, y), (l, v, d)) in enumerate(zip(xy, pts))]))
         pct = self._ga('depreciation_percentage') or 0.0
         return Markup(
-            '<div class="ga-strip ga-dep"><div class="ga-dep-k"><small>%s</small><b>%s</b><em>%s</em></div>'
-            '<svg viewBox="0 0 %s %s" preserveAspectRatio="none">'
+            '<div class="ga-strip ga-dep"><div class="ga-dep-k">'
+            '<div class="ga-ring" style="--p:%.1f"><b>%s</b></div><small>%s</small><em>%s</em></div>'
+            '<div class="ga-chart" data-pts="%s"><svg viewBox="0 0 %s %s" preserveAspectRatio="none">'
             '<defs><linearGradient id="gadep" x1="0" y1="0" x2="0" y2="1">'
             '<stop offset="0" stop-color="#6366f1" stop-opacity=".35"/><stop offset="1" stop-color="#6366f1" stop-opacity="0"/>'
-            '</linearGradient></defs><path d="%s" fill="url(#gadep)"/>'
-            '<polyline points="%s" fill="none" stroke="#6366f1" stroke-width="2"/>%s%s</svg></div>') % (
-            _('Depreciated'), '%.0f%%' % pct, _('%s years') % len(lines),
-            int(W), int(H + 16), area, line, dots, labels)
+            '</linearGradient></defs>%s<path d="%s" fill="url(#gadep)"/>'
+            '<polyline points="%s" fill="none" stroke="#6366f1" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>%s'
+            '<div class="ga-x"><span>%s</span><span>%s</span></div><i class="ga-cross"></i><div class="ga-tip"></div></div></div>') % (
+            pct, '%.0f%%' % pct, _('depreciated'), _('%s years · hover the chart') % len(lines),
+            data, int(W), int(H), bars, area, line, dots, pts[0][0], pts[-1][0])
 
     def _ga_holders_html(self):
         hist = self._ga('assignment_history_ids')

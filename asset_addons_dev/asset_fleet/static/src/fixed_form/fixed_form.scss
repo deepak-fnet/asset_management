@@ -34,7 +34,7 @@ $ga-bad: #dc2626;
     display: flex; flex-wrap: wrap; align-items: stretch; clear: both;
     margin: 6px 0 10px; border-top: 1px solid $ga-line; border-bottom: 1px solid $ga-line;
     .ga-p {
-        flex: 1 1 120px; min-width: 110px; padding: 7px 14px 6px; position: relative;
+        flex: 1 1 0; min-width: 84px; padding: 7px 11px 6px; position: relative;
         display: flex; flex-direction: column; gap: 1px; line-height: 1.2;
         transition: background .15s;
         & + .ga-p::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; border-left: 1px solid $ga-line; }
@@ -79,14 +79,71 @@ $ga-bad: #dc2626;
 }
 
 .ga-dep {
-    display: flex; align-items: center; gap: 16px;
-    .ga-dep-k { display: flex; flex-direction: column; min-width: 90px;
-        small { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; font-weight: 600; }
-        b { font-size: 20px; color: $ga-ink; } em { font-style: normal; } }
-    svg { flex: 1; height: 80px; overflow: visible;
-        circle { fill: #fff; stroke: $ga-acc; stroke-width: 2; transition: r .15s; cursor: default; &:hover { r: 5; } }
-        circle.now { fill: $ga-acc; }
-        text { font-size: 10px; fill: $ga-mute; text-anchor: middle; } }
+    display: flex; align-items: center; gap: 18px;
+    .ga-dep-k { display: flex; flex-direction: column; align-items: center; min-width: 96px; text-align: center;
+        small { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; font-weight: 600; margin-top: 4px; }
+        em { font-style: normal; font-size: 11px; } }
+}
+.ga-chart {
+    flex: 1; position: relative; height: 130px; cursor: crosshair;
+    svg { width: 100%; height: 110px; display: block; overflow: visible;
+        rect { fill: #c7d2fe; transition: fill .15s; } rect.now { fill: $ga-acc; } }
+    .ga-dot { position: absolute; width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; border-radius: 50%;
+        background: #fff; border: 2px solid $ga-acc; transition: transform .12s; pointer-events: none;
+        &.now { width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; background: $ga-acc; animation: ga-pulse 1.8s infinite; }
+        &.hot { transform: scale(1.6); } }
+    .ga-x { display: flex; justify-content: space-between; font-size: 10px; color: $ga-mute; padding: 3px 4px 0; }
+    .ga-cross { position: absolute; top: 0; bottom: 18px; border-left: 1px dashed $ga-acc; opacity: 0; transition: opacity .12s; pointer-events: none; }
+    .ga-tip { position: absolute; top: 2px; transform: translate(-50%, 0); background: $ga-ink; color: #fff;
+        border-radius: 8px; padding: 6px 10px; font-size: 11px; white-space: nowrap; opacity: 0; pointer-events: none;
+        transition: opacity .12s; display: flex; flex-direction: column; gap: 1px; z-index: 5;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, .25);
+        b { font-size: 12px; } .dep { color: #fca5a5; } }
+    &.ga-hover { .ga-cross, .ga-tip { opacity: 1; } }
+}
+
+// ring (health + depreciation)
+.ga-ring {
+    --p: 0; width: 46px; height: 46px; border-radius: 50%; flex: none; display: grid; place-items: center;
+    background: conic-gradient($ga-acc calc(var(--p) * 1%), #eef0f6 0);
+    transition: --p .8s;
+    &::before { content: ''; grid-area: 1 / 1; width: 36px; height: 36px; border-radius: 50%; background: #fff; }
+    b { grid-area: 1 / 1; position: relative; font-size: 13px !important; color: $ga-ink; }
+}
+.ga-dep .ga-ring { width: 64px; height: 64px; &::before { width: 50px; height: 50px; } b { font-size: 16px !important; } }
+.ga-pulse .ga-health { flex-direction: row; align-items: center; gap: 10px; flex: 0 0 auto;
+    &.ok .ga-ring { background: conic-gradient($ga-ok calc(var(--p) * 1%), #eef0f6 0); }
+    &.warn .ga-ring { background: conic-gradient($ga-warn calc(var(--p) * 1%), #eef0f6 0); }
+    &.bad .ga-ring { background: conic-gradient($ga-bad calc(var(--p) * 1%), #eef0f6 0); }
+    > div:last-child { display: flex; flex-direction: column; } }
+
+// quick action chips
+.ga-acts {
+    display: flex; flex-wrap: wrap; gap: 6px; margin: -4px 0 12px;
+    .ga-act {
+        border: 1px solid $ga-line; background: #fff; color: #334155; border-radius: 999px; padding: 3px 11px;
+        font-size: 12px; line-height: 1.5; transition: all .15s;
+        i { color: $ga-acc; margin-right: 3px; }
+        &:hover { border-color: $ga-acc; color: $ga-acc; transform: translateY(-1px); box-shadow: 0 3px 8px rgba(99, 102, 241, .18); }
+        &:active { transform: translateY(0); }
+        &.ga-nope { animation: ga-shake .3s; }
+    }
+}
+@keyframes ga-shake { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+
+// depreciation tab toolbar (buttons + stat buttons were piling up)
+.o_form_view.ga-form div[name="depreciation_button_box"] {
+    display: flex !important; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 14px;
+    padding: 8px 10px; border: 1px solid $ga-line; border-radius: 10px; background: #fafbfe;
+    float: none !important; width: auto !important; justify-content: flex-start;
+    > button, > .btn { width: auto !important; flex: 0 0 auto; border-radius: 8px; margin: 0 !important; height: auto; min-height: 32px; }
+    .oe_stat_button { border: 1px solid $ga-line !important; background: #fff; padding: 2px 12px !important; min-width: 0 !important;
+        display: inline-flex; align-items: center; gap: 6px;
+        .o_button_icon { font-size: 14px; color: $ga-acc; margin: 0; }
+        .o_stat_info, .o_field_widget { display: inline-flex; align-items: baseline; gap: 4px; flex-direction: row; }
+        .o_stat_value, .o_stat_value * { font-size: 14px !important; font-weight: 700; line-height: 1.2; }
+        .o_stat_text { font-size: 12px; color: $ga-mute; }
+        &:hover { border-color: $ga-acc !important; } }
 }
 
 .ga-trail {
