@@ -13,6 +13,7 @@
                     <div class="c found"><b t-esc="found"/><span>Found</span></div>
                     <div class="c pending"><b t-esc="pending"/><span>Pending</span></div>
                     <div class="c missing"><b t-esc="missing"/><span>Missing</span></div>
+                    <div class="c extra" t-if="extra"><b t-esc="extra"/><span>Additional</span></div>
                     <div class="pv-bar">
                         <i class="found" t-att-style="'flex:' + found"/>
                         <i class="pending" t-att-style="'flex:' + pending"/>
@@ -34,14 +35,14 @@
                 <div class="pv-scan-row">
                     <span class="pv-hint"><i class="fa fa-info-circle"/>
                         USB / Bluetooth / Android handheld in keyboard mode - just pull the trigger, no click needed.
-                        Asset code, tag or serial all work.</span>
+                        Asset code, tag or serial all work. An asset from somewhere else is added as <b>Additional</b>.</span>
                     <button type="button" class="btn btn-light pv-cam" t-if="cameraSupported" t-on-click="onCameraClick">
                         <i class="fa fa-camera"/> Use camera
                     </button>
                 </div>
                 <ul class="pv-feed" t-if="state.feed.length">
                     <li t-foreach="state.feed" t-as="f" t-key="f.id" t-att-class="f.kind">
-                        <i t-att-class="'fa ' + (f.kind == 'ok' ? 'fa-check-circle' : f.kind == 'again' ? 'fa-repeat' : 'fa-times-circle')"/>
+                        <i t-att-class="'fa ' + (f.kind == 'ok' ? 'fa-check-circle' : f.kind == 'extra' ? 'fa-plus-circle' : f.kind == 'again' ? 'fa-repeat' : 'fa-times-circle')"/>
                         <b t-esc="f.code"/>
                         <span t-esc="f.message"/>
                         <time t-esc="f.time"/>

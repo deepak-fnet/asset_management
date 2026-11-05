@@ -380,6 +380,8 @@ class PhysicalVerification(models.Model):
     total_count = fields.Integer(compute="_compute_counts", store=True)
     found_count = fields.Integer(compute="_compute_counts", store=True)
     missing_count = fields.Integer(compute="_compute_counts", store=True)
+    extra_count = fields.Integer(compute="_compute_counts", store=True)
+    transfer_count = fields.Integer(compute="_compute_transfer_count")
 
     state = fields.Selection(
         [("draft", "Draft"),
@@ -396,6 +398,66 @@ class PhysicalVerification(models.Model):
                 lambda l: l.status == "found"))
             rec.missing_count = len(rec.line_ids.filtered(
                 lambda l: l.status == "missing"))
+            rec.extra_count = len(rec.line_ids.filtered("is_extra"))
+
+    def _compute_transfer_count(self):
+        for rec in self:
+            rec.transfer_count = len(rec.line_ids.transfer_id)
+
+    def _actual_location(self):
+        """Where this verification physically is."""
+        self.ensure_one()
+        return self.location_id or self.department_id.location_id
+
+    def action_view_transfers(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window", "name": _("Transfers"),
+            "res_model": "asset.transfer", "view_mode": "list,form",
+            "domain": [("id", "in", self.line_ids.transfer_id.ids)],
+        }
+
+    def action_create_transfers(self):
+        """One transfer per Additional asset - to where it was found.
+
+        Never a second one: an asset that already has an open transfer
+        (from this or any other verification, or raised by hand) gets that
+        transfer linked instead of a new one.
+        """
+        Transfer = self.env["asset.transfer"]
+        created = linked = 0
+        for rec in self:
+            dest_loc = rec._actual_location()
+            for line in rec.line_ids.filtered(lambda l: l.is_extra and not l.transfer_id):
+                asset = line.asset_id
+                open_tr = Transfer.search([
+                    ("asset_id", "=", asset.id),
+                    ("state", "in", ("draft", "submitted", "approved"))], limit=1)
+                if open_tr:
+                    line.transfer_id = open_tr
+                    linked += 1
+                    continue
+                to_loc = dest_loc if dest_loc and dest_loc != asset.location_id else False
+                to_dep = rec.department_id if rec.department_id and rec.department_id != asset.department_id else False
+                if not (to_loc or to_dep):
+                    continue
+                ttype = "multiple" if (to_loc and to_dep) else ("location" if to_loc else "department")
+                line.transfer_id = Transfer.create({
+                    "asset_id": asset.id,
+                    "transfer_type": ttype,
+                    "to_location_id": to_loc.id if to_loc else False,
+                    "to_department_id": to_dep.id if to_dep else False,
+                    "reason": _("Found at %(where)s during physical verification %(pv)s "
+                                "(register says %(was)s).",
+                                where=(dest_loc or rec.department_id).display_name,
+                                pv=rec.name,
+                                was=asset.location_id.display_name or _("no location")),
+                })
+                created += 1
+            if created or linked:
+                rec.message_post(body=_(
+                    "Transfers: %(c)s created, %(l)s already open and linked.", c=created, l=linked))
+        return True
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -440,7 +502,9 @@ class PhysicalVerification(models.Model):
         return True
 
     def action_done(self):
-        """Complete: anything not scanned by now is Missing."""
+        """Complete: transfers for the Additional assets first (one per asset),
+        then anything not scanned by now is Missing."""
+        self.action_create_transfers()
         for rec in self:
             pending = rec.line_ids.filtered(lambda l: l.status == "pending")
             if pending:
@@ -485,10 +549,25 @@ class PhysicalVerification(models.Model):
             other = self.env["asset.asset"].search(
                 ["|", "|", ("asset_code", "=ilike", key), ("tag_number", "=ilike", key),
                  ("serial_number", "=ilike", key)], limit=1)
-            msg = (_("%(a)s is not on this list (it belongs to %(loc)s).",
-                     a=other.display_name, loc=other.location_id.display_name or _("no location"))
-                   if other else _("%s is not a known asset code, tag or serial.", key))
-            return {"success": False, "code": key, "message": msg}
+            if not other:
+                return {"success": False, "code": key,
+                        "message": _("%s is not a known asset code, tag or serial.", key)}
+            if other.state == "scrapped":
+                return {"success": False, "code": key,
+                        "message": _("%s is scrapped - it should not be here.", other.display_name)}
+            # physically here but registered elsewhere: an Additional line
+            self.env["physical.verification.line"].create({
+                "verification_id": self.id,
+                "asset_id": other.id,
+                "status": "found",
+                "is_extra": True,
+                "actual_location_id": self._actual_location().id or False,
+            })
+            return {"success": True, "already": False, "extra": True, "code": key,
+                    "name": other.display_name,
+                    "message": _("%(a)s added as Additional - register says %(loc)s.",
+                                 a=other.display_name,
+                                 loc=other.location_id.display_name or _("no location"))}
         line = line[0]
         name = line.asset_id.display_name
 
@@ -527,6 +606,40 @@ class PhysicalVerificationLine(models.Model):
         "asset.location", string="Actual Location",
         help="Set when the asset was found somewhere other than expected.")
     remarks = fields.Char()
+    is_extra = fields.Boolean(
+        "Additional", readonly=True,
+        help="Not on this verification's list - scanned here although the register "
+             "puts it somewhere else.")
+    transfer_id = fields.Many2one("asset.transfer", string="Transfer", readonly=True, copy=False)
+    found_elsewhere = fields.Char(
+        "Found Elsewhere", compute="_compute_found_elsewhere",
+        help="For an asset not found here: where another verification found it.")
+
+    @api.depends("status", "asset_id")
+    def _compute_found_elsewhere(self):
+        Line = self.env["physical.verification.line"]
+        Transfer = self.env["asset.transfer"]
+        for line in self:
+            line.found_elsewhere = False
+            if line.status == "found" or not line.asset_id or not line.verification_id:
+                continue
+            hit = Line.search([
+                ("asset_id", "=", line.asset_id.id),
+                ("status", "=", "found"),
+                ("verification_id", "!=", line.verification_id.id),
+                ("verification_id.state", "!=", "cancelled"),
+            ], order="id desc", limit=1)
+            if not hit:
+                continue
+            where = (hit.actual_location_id or hit.verification_id._actual_location()
+                     or hit.verification_id.department_id)
+            tr = hit.transfer_id or Transfer.search([
+                ("asset_id", "=", line.asset_id.id),
+                ("state", "in", ("draft", "submitted", "approved", "done"))], order="id desc", limit=1)
+            line.found_elsewhere = _("Found at %(w)s · %(pv)s%(tr)s",
+                                     w=where.display_name if where else "?",
+                                     pv=hit.verification_id.name,
+                                     tr=(" · %s" % tr.name) if tr else "")
 
     _asset_per_verification_uniq = models.Constraint(
         "unique (verification_id, asset_id)",

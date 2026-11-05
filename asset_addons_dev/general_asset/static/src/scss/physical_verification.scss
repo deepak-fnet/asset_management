@@ -18,6 +18,7 @@ $pv-acc: #6366f1;
     &.idle { grid-template-columns: auto 1fr; }
     &.flash-ok { border-color: $pv-ok; box-shadow: 0 0 0 4px rgba(16, 185, 129, .18); }
     &.flash-again { border-color: $pv-warn; box-shadow: 0 0 0 4px rgba(245, 158, 11, .18); }
+    &.flash-extra { border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14, 165, 233, .18); }
     &.flash-bad { border-color: $pv-bad; box-shadow: 0 0 0 4px rgba(244, 63, 94, .18); }
     @media (max-width: 768px) { grid-template-columns: 1fr; }
 }
@@ -31,9 +32,9 @@ $pv-acc: #6366f1;
     span { grid-area: 1 / 1; position: relative; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: $pv-mute; margin-top: 30px; }
 }
 .pv-counts {
-    display: grid; grid-template-columns: repeat(3, auto); gap: 4px 18px; align-items: end;
+    display: grid; grid-template-columns: repeat(4, auto); gap: 4px 18px; align-items: end;
     .c { display: flex; flex-direction: column; b { font-size: 22px; font-weight: 800; line-height: 1; } span { font-size: 11px; color: $pv-mute; } }
-    .found b { color: $pv-ok; } .pending b { color: $pv-warn; } .missing b { color: $pv-bad; }
+    .found b { color: $pv-ok; } .pending b { color: $pv-warn; } .missing b { color: $pv-bad; } .extra b { color: #0ea5e9; }
     .pv-bar { grid-column: 1 / -1; display: flex; height: 7px; border-radius: 4px; overflow: hidden; background: #eef0f6; gap: 2px; min-width: 210px; margin-top: 6px;
         i { display: block; transform-origin: left; animation: pv-grow .8s ease-out; transition: flex .4s; }
         .found { background: $pv-ok; } .pending { background: #fcd34d; } .missing { background: $pv-bad; } }
@@ -73,8 +74,9 @@ $pv-acc: #6366f1;
         &.ok { background: #ecfdf5; .fa { color: $pv-ok; } }
         &.again { background: #fffbeb; .fa { color: $pv-warn; } }
         &.bad { background: #fff1f2; .fa { color: $pv-bad; } }
+        &.extra { background: #e0f2fe; .fa { color: #0ea5e9; } }
         &:first-child { box-shadow: inset 3px 0 0 currentColor; }
-        &.ok:first-child { color: $pv-ok; } &.again:first-child { color: $pv-warn; } &.bad:first-child { color: $pv-bad; }
+        &.ok:first-child { color: $pv-ok; } &.extra:first-child { color: #0ea5e9; } &.again:first-child { color: $pv-warn; } &.bad:first-child { color: $pv-bad; }
     }
 }
 

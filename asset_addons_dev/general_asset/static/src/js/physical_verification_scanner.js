@@ -56,6 +56,9 @@ class PhysicalVerificationScanner extends Component {
     get missing() {
         return this.data.missing_count || 0;
     }
+    get extra() {
+        return this.data.extra_count || 0;
+    }
     get pending() {
         return Math.max(this.total - this.found - this.missing, 0);
     }
@@ -131,7 +134,7 @@ class PhysicalVerificationScanner extends Component {
             result = { success: false, message: error.message || _t("Scan failed."), code };
         }
         this.state.busy = false;
-        const kind = result.success ? (result.already ? "again" : "ok") : "bad";
+        const kind = result.success ? (result.already ? "again" : result.extra ? "extra" : "ok") : "bad";
         this.state.feed.unshift({
             id: Date.now() + Math.random(),
             code: result.code || code,
@@ -167,7 +170,7 @@ class PhysicalVerificationScanner extends Component {
                 o.start(ctx.currentTime + at);
                 o.stop(ctx.currentTime + at + len);
             };
-            if (kind === "ok") {
+            if (kind === "ok" || kind === "extra") {
                 tone(880, 0, 0.12);
                 tone(1320, 0.1, 0.15);
             } else if (kind === "again") {

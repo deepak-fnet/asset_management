@@ -303,6 +303,9 @@
                     <button name="action_load_assets" type="object"
                             string="Load Assets" class="btn-primary"
                             invisible="state not in ['draft','in_progress']"/>
+                    <button name="action_create_transfers" type="object" string="Create Transfers"
+                            invisible="state != 'in_progress' or not extra_count"
+                            help="One transfer per Additional asset to where it was found. An asset that already has an open transfer gets it linked - never a second one."/>
                     <button name="action_done" type="object" string="Complete"
                             class="btn-primary" invisible="state != 'in_progress'"
                             confirm="Assets not scanned yet will be marked Missing. Complete this verification?"/>
@@ -312,6 +315,12 @@
                            statusbar_visible="draft,in_progress,done"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_transfers" type="object" class="oe_stat_button" icon="fa-exchange"
+                                invisible="not transfer_count">
+                            <field name="transfer_count" widget="statinfo" string="Transfers"/>
+                        </button>
+                    </div>
                     <div class="oe_title">
                         <h1><field name="name" readonly="1"/></h1>
                     </div>
@@ -332,6 +341,7 @@
                             <field name="total_count" invisible="1"/>
                             <field name="found_count" invisible="1"/>
                             <field name="missing_count" invisible="1"/>
+                            <field name="extra_count" invisible="1"/>
                         </group>
                     </group>
                     <notebook>
@@ -340,18 +350,22 @@
                                 <list editable="bottom" create="0" delete="0"
                                       decoration-success="status == 'found'"
                                       decoration-danger="status == 'missing'"
-                                      decoration-muted="status == 'pending'">
+                                      decoration-muted="status == 'pending'"
+                                      decoration-info="is_extra">
                                     <field name="asset_id" readonly="1"/>
                                     <field name="asset_code" readonly="1"/>
                                     <field name="tag_number" readonly="1" optional="show"/>
                                     <field name="serial_number" readonly="1" optional="hide"/>
                                     <field name="employee_id" readonly="1" widget="many2one_avatar_employee"/>
                                     <field name="expected_location_id" readonly="1"/>
+                                    <field name="is_extra" column_invisible="1"/>
                                     <field name="status" readonly="1" widget="badge"
                                            decoration-success="status == 'found'"
                                            decoration-danger="status == 'missing'"
                                            decoration-warning="status == 'pending'"/>
-                                    <field name="actual_location_id" readonly="1" optional="hide"/>
+                                    <field name="actual_location_id" readonly="1" optional="show"/>
+                                    <field name="found_elsewhere" readonly="1" optional="show" class="text-success fw-semibold"/>
+                                    <field name="transfer_id" readonly="1" optional="show"/>
                                     <field name="remarks" placeholder="Add a remark…"/>
                                 </list>
                             </field>
