@@ -1396,7 +1396,10 @@ def _focused_app(user, uid, home, session_type):
     """(app_id, app_name) in front: our GNOME extension's file, else xdotool on X11."""
     data = _read_json(os.path.join(home, '.cache', 'asset-agent', 'focus.json'), {})
     if data and time.time() - int(data.get('ts') or 0) < 120:
-        return (data.get('app') or data.get('name') or ''), (data.get('name') or data.get('app') or '')
+        app_id, name = data.get('app') or '', data.get('name') or ''
+        if app_id.startswith('window:'):          # no .desktop file: older extension gave "window:N"
+            app_id = name
+        return (app_id or name), (name or app_id)
     if session_type == 'x11' and shutil.which('xdotool'):
         try:
             r = _sh_user(user, uid, ['env', 'DISPLAY=:0', 'xdotool', 'getactivewindow', 'getwindowpid'])

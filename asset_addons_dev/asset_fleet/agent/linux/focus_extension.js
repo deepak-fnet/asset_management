@@ -30,9 +30,13 @@ export default class AssetFocusExtension extends Extension {
     _write() {
         const win = global.display.focus_window;
         const app = win ? this._tracker.get_window_app(win) : null;
+        // apps without a .desktop file come back as "window:N" / "gjs":
+        // use the window class (e.g. "org.gnome.Extensions") instead
+        const known = app && !app.get_id().startsWith('window:');
+        const wmClass = win ? (win.get_wm_class() || win.get_wm_class_instance() || '') : '';
         const data = {
-            app: app ? app.get_id() : '',
-            name: app ? app.get_name() : (win ? (win.get_wm_class() || '') : ''),
+            app: known ? app.get_id() : wmClass,
+            name: known ? app.get_name() : (wmClass || (app ? app.get_name() : '')),
             ts: Math.floor(Date.now() / 1000),
         };
         try {
