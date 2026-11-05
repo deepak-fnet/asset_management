@@ -123,6 +123,8 @@
       if (p === 0) { classes = []; }
       else if (p === 1) { if (classes.indexOf("bold") < 0) classes.push("bold"); }
       else if (p === 22) { classes = classes.filter(function (c) { return c !== "bold"; }); }
+      else if (p === 7) { if (classes.indexOf("rev") < 0) classes.push("rev"); }
+      else if (p === 27) { classes = classes.filter(function (c) { return c !== "rev"; }); }
       else if (p === 39) { classes = classes.filter(function (c) { return c.indexOf("fg") !== 0; }); }
       else if (SGR_FG[p]) {
         classes = classes.filter(function (c) { return c.indexOf("fg") !== 0; });
@@ -168,6 +170,28 @@
       case "D": cur.col = Math.max(0, cur.col - (params[0] || 1)); break;
       case "J": eraseInDisplay(params[0] || 0); break;
       case "K": eraseInLine(params[0] || 0); break;
+      case "G": case "`":
+        cur.col = Math.min(COLS - 1, Math.max(0, (params[0] || 1) - 1)); break;
+      case "d": cur.row = Math.min(ROWS - 1, Math.max(0, (params[0] || 1) - 1)); break;
+      case "P": {          // delete characters, shift the rest left
+        var np = Math.min(params[0] || 1, COLS - cur.col);
+        var rowP = grid[cur.row];
+        rowP.splice(cur.col, np);
+        for (var q = 0; q < np; q++) rowP.push({ ch: " ", cls: "" });
+        break;
+      }
+      case "@": {          // insert blank characters
+        var ni = Math.min(params[0] || 1, COLS - cur.col);
+        var rowI = grid[cur.row];
+        for (var w = 0; w < ni; w++) rowI.splice(cur.col, 0, { ch: " ", cls: "" });
+        rowI.length = COLS;
+        break;
+      }
+      case "X": {          // erase characters (no shift)
+        var nx = Math.min(params[0] || 1, COLS - cur.col);
+        for (var x = 0; x < nx; x++) grid[cur.row][cur.col + x] = { ch: " ", cls: "" };
+        break;
+      }
       case "m": applySgr(params); break;
       default: break; // unsupported CSI final byte - consumed, not acted on
     }
@@ -289,7 +313,7 @@
           connected = true;
           overlay.style.display = "none";
           setStatus("connected", "ok");
-          termEl.focus();
+          focusSink();
         }
         feed(obj.data);
       }
@@ -311,23 +335,89 @@
     PageUp: "\x1b[5~", PageDown: "\x1b[6~",
   };
 
+  // A hidden textarea takes the keyboard focus, so the browser delivers
+  // paste (clipboard) events to it - works on plain http too, where
+  // navigator.clipboard is not available.
+  var sink = document.createElement("textarea");
+  sink.setAttribute("aria-label", "terminal input");
+  sink.style.cssText = "position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0";
+  document.body.appendChild(sink);
+  function focusSink() {
+    var sel = window.getSelection();
+    if (!sel || sel.isCollapsed) sink.focus();   // keep a mouse selection for copying
+  }
   termEl.setAttribute("tabindex", "0");
-  termEl.addEventListener("keydown", function (ev) {
+
+  function selectedText() {
+    var sel = window.getSelection();
+    return sel && !sel.isCollapsed ? sel.toString() : "";
+  }
+  function copySelection(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).catch(function () { document.execCommand("copy"); });
+    } else {
+      document.execCommand("copy");   // copies the current selection
+    }
+  }
+
+  document.addEventListener("keydown", function (ev) {
     if (!connected) return;
+    var k = ev.key;
+    var lower = k.length === 1 ? k.toLowerCase() : k;
+    // copy: Ctrl+Shift+C always, Ctrl+C when text is selected
+    if (ev.ctrlKey && lower === "c" && (ev.shiftKey || selectedText())) {
+      var t = selectedText();
+      if (t) copySelection(t);
+      ev.preventDefault();
+      return;
+    }
+    // paste: Ctrl+V, Ctrl+Shift+V, Shift+Insert - let the browser paste into the sink
+    if ((ev.ctrlKey && lower === "v") || (ev.shiftKey && k === "Insert")) {
+      sink.value = "";
+      sink.focus();
+      return;                 // no preventDefault: the paste event follows
+    }
     var data = null;
-    if (ev.ctrlKey && ev.key.length === 1 && /[a-zA-Z]/.test(ev.key)) {
-      data = String.fromCharCode(ev.key.toUpperCase().charCodeAt(0) - 64);
-    } else if (KEYMAP[ev.key] !== undefined) {
-      data = KEYMAP[ev.key];
-    } else if (ev.key.length === 1) {
-      data = ev.key;
+    if (ev.ctrlKey && !ev.altKey && k.length === 1 && /[a-zA-Z]/.test(k)) {
+      data = String.fromCharCode(k.toUpperCase().charCodeAt(0) - 64);   // Ctrl+R, Ctrl+C, Ctrl+D ...
+    } else if (ev.ctrlKey && (k === "[" || k === "\\" || k === "]")) {
+      data = { "[": "\x1b", "\\": "\x1c", "]": "\x1d" }[k];
+    } else if (ev.altKey && !ev.ctrlKey && k.length === 1) {
+      data = "\x1b" + k;                                                // Alt+b, Alt+f, Alt+. ...
+    } else if (KEYMAP[k] !== undefined) {
+      data = KEYMAP[k];
+    } else if (k.length === 1 && !ev.metaKey) {
+      data = k;
     }
     if (data !== null) {
-      ev.preventDefault();
+      ev.preventDefault();    // keeps Ctrl+R / Ctrl+W / Ctrl+L away from the browser where it can
       send({ type: "input", data: data });
+      if (document.activeElement !== sink) focusSink();
+    }
+  }, true);
+
+  sink.addEventListener("paste", function (ev) {
+    var text = (ev.clipboardData || window.clipboardData).getData("text");
+    ev.preventDefault();
+    sink.value = "";
+    if (text && connected) send({ type: "input", data: text.replace(/\r?\n/g, "\r") });
+  });
+  termEl.addEventListener("paste", function (ev) {
+    var text = (ev.clipboardData || window.clipboardData).getData("text");
+    ev.preventDefault();
+    if (text && connected) send({ type: "input", data: text.replace(/\r?\n/g, "\r") });
+  });
+  termEl.addEventListener("mouseup", function () { setTimeout(focusSink, 0); });
+  // right-click pastes too, like most terminals
+  termEl.addEventListener("contextmenu", function (ev) {
+    if (selectedText()) return;   // leave the menu for copying a selection
+    if (navigator.clipboard && window.isSecureContext && navigator.clipboard.readText) {
+      ev.preventDefault();
+      navigator.clipboard.readText().then(function (t) {
+        if (t && connected) send({ type: "input", data: t.replace(/\r?\n/g, "\r") });
+      });
     }
   });
-  termEl.addEventListener("click", function () { termEl.focus(); });
 
   window.addEventListener("resize", function () {
     if (fitToContainer()) { render(); sendResize(); }

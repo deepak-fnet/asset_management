@@ -1,0 +1,12 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_policy_user,policy user,model_asset_fleet_policy,base.group_user,1,0,0,0
+access_policy_admin,policy admin,model_asset_fleet_policy,base.group_system,1,1,1,1
+access_policy_cmd_user,policy cmd user,model_asset_fleet_policy_command,base.group_user,1,0,0,0
+access_policy_cmd_admin,policy cmd admin,model_asset_fleet_policy_command,base.group_system,1,1,1,1
+access_token_admin,install link admin,model_asset_fleet_enrollment_token,base.group_system,1,1,1,1
+access_screen_time_user,screen time user,model_asset_screen_time,base.group_user,1,0,0,0
+access_screen_time_admin,screen time admin,model_asset_screen_time,base.group_system,1,1,1,1
+access_screen_time_seg_user,screen time seg user,model_asset_screen_time_segment,base.group_user,1,0,0,0
+access_screen_time_seg_admin,screen time seg admin,model_asset_screen_time_segment,base.group_system,1,1,1,1
+access_screen_time_app_user,screen time app user,model_asset_screen_time_app,base.group_user,1,0,0,0
+access_screen_time_app_admin,screen time app admin,model_asset_screen_time_app,base.group_system,1,1,1,1

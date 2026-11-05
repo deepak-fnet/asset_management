@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_screen_time_list" model="ir.ui.view">
+        <field name="name">asset.screen.time.list</field>
+        <field name="model">asset.screen.time</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0">
+                <field name="date"/>
+                <field name="asset_id" optional="show"/>
+                <field name="user_name" optional="show"/>
+                <field name="first_on" widget="datetime" options="{'show_date': false}"/>
+                <field name="last_on" widget="datetime" options="{'show_date': false}"/>
+                <field name="active_display" string="Active"/>
+                <field name="on_display" string="On" optional="show"/>
+                <field name="idle_display" string="Idle" optional="show"/>
+                <field name="locked_display" string="Locked" optional="hide"/>
+                <field name="top_app_display" string="Most Used"/>
+                <field name="active_minutes" column_invisible="1" sum="Active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_screen_time_form" model="ir.ui.view">
+        <field name="name">asset.screen.time.form</field>
+        <field name="model">asset.screen.time</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0">
+                <sheet>
+                    <div class="oe_title">
+                        <h2><field name="asset_id" readonly="1"/></h2>
+                        <h3><field name="date" readonly="1"/> <span class="text-muted ms-2"><field name="user_name" readonly="1"/></span></h3>
+                    </div>
+                    <div class="d-flex flex-wrap gap-4 my-3">
+                        <div><div class="text-muted small">Active</div><h2 class="mb-0"><field name="active_display"/></h2></div>
+                        <div><div class="text-muted small">On</div><h2 class="mb-0"><field name="on_display"/></h2></div>
+                        <div><div class="text-muted small">Idle</div><h2 class="mb-0"><field name="idle_display"/></h2></div>
+                        <div><div class="text-muted small">Locked</div><h2 class="mb-0"><field name="locked_display"/></h2></div>
+                        <div><div class="text-muted small">First on - last on</div>
+                            <h2 class="mb-0"><field name="first_on" widget="datetime" options="{'show_date': false}" class="oe_inline"/>
+                                - <field name="last_on" widget="datetime" options="{'show_date': false}" class="oe_inline"/></h2></div>
+                    </div>
+                    <field name="timeline_html" nolabel="1"/>
+                    <notebook>
+                        <page string="Applications" name="apps">
+                            <field name="app_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="duration" string="Time"/>
+                                    <field name="share" widget="progressbar" string="% of Active"/>
+                                    <field name="app_id" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Timeline" name="segments">
+                            <field name="segment_ids">
+                                <list decoration-success="state == 'active'" decoration-warning="state == 'idle'"
+                                      decoration-muted="state == 'locked'">
+                                    <field name="start_local" string="From"/>
+                                    <field name="end_local" string="To"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'active'"
+                                           decoration-warning="state == 'idle'"/>
+                                    <field name="duration" string="Duration"/>
+                                    <field name="user_name" optional="hide"/>
+                                </list>
+                            </field>
+                            <div class="text-muted small">Gaps between periods = machine off / logged out.</div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_screen_time_search" model="ir.ui.view">
+        <field name="name">asset.screen.time.search</field>
+        <field name="model">asset.screen.time</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="asset_id"/>
+                <field name="user_name"/>
+                <field name="top_app"/>
+                <filter name="today" string="Today" domain="[('date', '=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="week" string="Last 7 Days"
+                        domain="[('date', '&gt;=', (context_today() - relativedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter name="g_asset" string="Asset" context="{'group_by': 'asset_id'}"/>
+                <filter name="g_date" string="Day" context="{'group_by': 'date:day'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_screen_time" model="ir.actions.act_window">
+        <field name="name">Screen Time</field>
+        <field name="res_model">asset.screen.time</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_week': 1}</field>
+    </record>
+
+    <!-- per application, day by day -->
+    <record id="view_screen_time_app_list" model="ir.ui.view">
+        <field name="name">asset.screen.time.app.list</field>
+        <field name="model">asset.screen.time.app</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0">
+                <field name="date"/>
+                <field name="asset_id"/>
+                <field name="name"/>
+                <field name="duration" string="Time"/>
+                <field name="minutes" sum="Minutes" optional="hide"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_screen_time_app_graph" model="ir.ui.view">
+        <field name="name">asset.screen.time.app.graph</field>
+        <field name="model">asset.screen.time.app</field>
+        <field name="arch" type="xml">
+            <graph string="App Usage" type="bar" stacked="1">
+                <field name="date" interval="day"/>
+                <field name="name"/>
+                <field name="minutes" type="measure"/>
+            </graph>
+        </field>
+    </record>
+    <record id="view_screen_time_app_pivot" model="ir.ui.view">
+        <field name="name">asset.screen.time.app.pivot</field>
+        <field name="model">asset.screen.time.app</field>
+        <field name="arch" type="xml">
+            <pivot string="App Usage">
+                <field name="name" type="row"/>
+                <field name="date" interval="day" type="col"/>
+                <field name="minutes" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+    <record id="view_screen_time_app_search" model="ir.ui.view">
+        <field name="name">asset.screen.time.app.search</field>
+        <field name="model">asset.screen.time.app</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="asset_id"/>
+                <filter name="week" string="Last 7 Days"
+                        domain="[('date', '&gt;=', (context_today() - relativedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter name="g_app" string="Application" context="{'group_by': 'name'}"/>
+                <filter name="g_asset" string="Asset" context="{'group_by': 'asset_id'}"/>
+            </search>
+        </field>
+    </record>
+    <record id="action_screen_time_app" model="ir.actions.act_window">
+        <field name="name">App Usage</field>
+        <field name="res_model">asset.screen.time.app</field>
+        <field name="view_mode">graph,pivot,list</field>
+        <field name="context">{'search_default_week': 1}</field>
+    </record>
+
+    <!-- Screen Time tab on the asset -->
+    <record id="view_asset_form_screen_time" model="ir.ui.view">
+        <field name="name">asset.asset.form.screen.time</field>
+        <field name="model">asset.asset</field>
+        <field name="inherit_id" ref="asset_management.view_asset_asset_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Screen Time" name="screen_time">
+                    <div class="alert alert-info" role="status" invisible="screen_time_ids">
+                        No screen time yet. It comes from the asset agent (Linux) once the agent is installed /
+                        updated from <b>Agent Telemetry &gt; Agent Install</b>; application times start after the
+                        user's next login.
+                    </div>
+                    <field name="screen_time_ids" readonly="1"
+                           context="{'list_view_ref': 'asset_fleet.view_screen_time_list',
+                                     'form_view_ref': 'asset_fleet.view_screen_time_form'}">
+                        <list>
+                            <field name="date"/>
+                            <field name="user_name"/>
+                            <field name="first_on" widget="datetime" options="{'show_date': false}"/>
+                            <field name="last_on" widget="datetime" options="{'show_date': false}"/>
+                            <field name="active_display" string="Active"/>
+                            <field name="on_display" string="On"/>
+                            <field name="idle_display" string="Idle" optional="show"/>
+                            <field name="top_app_display" string="Most Used"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <menuitem id="menu_screen_time" name="Screen Time" parent="asset_workspace.menu_ws_telemetry"
+              action="action_screen_time" sequence="30" groups="base.group_system"/>
+    <menuitem id="menu_screen_time_app" name="App Usage" parent="asset_workspace.menu_ws_telemetry"
+              action="action_screen_time_app" sequence="31" groups="base.group_system"/>
+</odoo>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="policy_default" model="asset.fleet.policy">
+        <field name="name">Default Policy</field>
+        <field name="is_default" eval="True"/>
+        <field name="description">Everything the agent collects, every 15 minutes.</field>
+    </record>
+    <record id="token_default" model="asset.fleet.enrollment.token">
+        <field name="name">Default</field>
+    </record>
+</odoo>

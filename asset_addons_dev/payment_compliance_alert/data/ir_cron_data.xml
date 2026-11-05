@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_compliance_alert_log" model="ir.sequence">
+        <field name="name">Compliance Alert Log</field>
+        <field name="code">compliance.alert.log</field>
+        <field name="prefix">CAL/%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="number_next">1</field>
+        <field name="number_increment">1</field>
+    </record>
+
+    <record id="ir_cron_180_day_compliance_check" model="ir.cron">
+        <field name="name">Payment Compliance: 180-Day Alert Check</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="state">code</field>
+        <field name="code">model._check_180_day_compliance()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+        <field name="user_id" ref="base.user_root"/>
+    </record>
+</odoo>

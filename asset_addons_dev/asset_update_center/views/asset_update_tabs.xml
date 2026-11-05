@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Updates on the IT asset form in three tabs, the same for every OS:
+         Packages (OS patches: apt / Windows Update / softwareupdate - one page
+         per OS, only the asset's own is visible), Apps (third-party
+         applications) and OS Upgrade (release upgrade). -->
+    <record id="view_asset_form_update_tabs" model="ir.ui.view">
+        <field name="name">asset.asset.form.update.tabs</field>
+        <field name="model">asset.asset</field>
+        <field name="inherit_id" ref="asset_management.view_asset_asset_form"/>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='storage_volumes']" position="after">
+                <xpath expr="//page[@name='linux_updates']" position="move"/>
+                <xpath expr="//page[@name='windows_updates']" position="move"/>
+                <xpath expr="//page[@name='macos_updates']" position="move"/>
+                <xpath expr="//page[@name='update_center']" position="move"/>
+                <xpath expr="//page[@name='os_upgrade']" position="move"/>
+            </xpath>
+            <xpath expr="//page[@name='linux_updates']" position="attributes">
+                <attribute name="string">Packages</attribute>
+            </xpath>
+            <xpath expr="//page[@name='windows_updates']" position="attributes">
+                <attribute name="string">Packages</attribute>
+            </xpath>
+            <xpath expr="//page[@name='macos_updates']" position="attributes">
+                <attribute name="string">Packages</attribute>
+            </xpath>
+            <xpath expr="//page[@name='update_center']" position="attributes">
+                <attribute name="string">Apps</attribute>
+            </xpath>
+            <xpath expr="//page[@name='update_center']/p[hasclass('text-muted')]" position="replace">
+                <p class="text-muted">
+                    Applications (Chrome, Firefox, Antigravity, Zoom…) the agent reports as outdated.
+                    Operating-system patches are on the <b>Packages</b> tab, release upgrades on <b>OS Upgrade</b>.
+                </p>
+            </xpath>
+            <xpath expr="//page[@name='os_upgrade']" position="attributes">
+                <attribute name="invisible">os_platform not in ('linux', 'windows', 'macos')</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

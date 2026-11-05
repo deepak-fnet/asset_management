@@ -1,0 +1,45 @@
+[Unit]
+Description=Asset Agent
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /usr/local/bin/asset-agent/agent.py
+WorkingDirectory=/usr/local/bin/asset-agent
+Restart=always
+RestartSec=10
+
+# Default KillMode=control-group sweeps every process in the agent's
+# cgroup on restart/stop - including detached children started with
+# start_new_session=True (a release upgrade, an SSH terminal's child
+# process...). Those are meant to outlive an agent restart; only kill the
+# agent's own main process.
+KillMode=process
+
+# ── Resource limits ──────────────────────────────────────────────────────
+# Without these the agent competes with the user's applications for RAM,
+# and when the machine runs out the kernel OOM-killer picks the largest
+# process - which on a desktop is Chrome or Firefox, not the agent. That is
+# why browsers were being force-closed: the agent grew, the browser died.
+#
+# MemoryMax makes the agent the thing that fails instead. It gets killed and
+# restarted (Restart=always) rather than taking the user's session down with
+# it, and the kill is recorded in the journal so the leak is visible instead
+# of showing up as "Chrome keeps crashing".
+MemoryMax=512M
+MemoryHigh=384M
+
+# Deprioritise against interactive work. The agent is background telemetry;
+# it should never win CPU against what the user is actually doing.
+CPUWeight=20
+IOWeight=20
+Nice=10
+
+# Restart-loop guard. Without this, a crash-on-startup bug becomes an
+# infinite respawn every 10s, which looks exactly like a memory leak from
+# the outside.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Install]
+WantedBy=multi-user.target

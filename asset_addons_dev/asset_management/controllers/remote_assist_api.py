@@ -154,13 +154,22 @@ def _viewer_html(session):
                                                  "text/html")])
 
 
+def _static_mtime(rel):
+    import os
+    try:
+        return int(os.path.getmtime(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'src', rel)))
+    except OSError:
+        return 0
+
+
 def _terminal_viewer_html(session):
     customer = session.asset_id.display_name or _("Asset")
     vals = {
         "token": session.session_token, "relay": session.relay_url,
         "customer": customer,
-        "js": "/asset_management/static/src/js/ssh_terminal_viewer.js",
-        "css": "/asset_management/static/src/css/ssh_terminal_viewer.css",
+        # ?v=<file time>: a changed viewer is never served from the browser cache
+        "js": "/asset_management/static/src/js/ssh_terminal_viewer.js?v=%d" % _static_mtime("js/ssh_terminal_viewer.js"),
+        "css": "/asset_management/static/src/css/ssh_terminal_viewer.css?v=%d" % _static_mtime("css/ssh_terminal_viewer.css"),
     }
     html = """<!DOCTYPE html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">

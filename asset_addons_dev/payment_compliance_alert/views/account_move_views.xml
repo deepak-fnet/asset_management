@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_move_compliance_form" model="ir.ui.view">
+        <field name="name">account.move.compliance.alert.form</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Banner 1: 45-day MSME alert (amber) -->
+            <xpath expr="//sheet" position="before">
+                <div class="alert o_compliance_msme_banner"
+                     role="alert"
+                     invisible="not is_msme_alert or msme_acknowledged">
+                    <span class="fa fa-exclamation-circle me-2"/>
+                    <strong>45-Day MSME Compliance Alert:</strong>
+                    MSME vendor bill pending for
+                    <strong><field name="compliance_days_overdue" readonly="1"/> days</strong>.
+                    MSME Act Section 15 — payment must be made within 45 days.
+                </div>
+
+                <!-- Banner 2: MSME acknowledged (green) -->
+                <div class="alert alert-success"
+                     role="alert"
+                     invisible="not msme_acknowledged">
+                    <span class="fa fa-check-circle me-2"/>
+                    <strong>MSME Alert Acknowledged</strong> by
+                    <field name="msme_acknowledged_by" readonly="1" nolabel="1"/> on
+                    <field name="msme_acknowledged_date" readonly="1" nolabel="1"/>
+                </div>
+
+                <!-- Banner 3: 180-day general alert (red) -->
+                <div class="alert alert-danger o_compliance_alert_banner"
+                     role="alert"
+                     invisible="not is_compliance_alert or compliance_acknowledged">
+                    <span class="fa fa-exclamation-triangle me-2"/>
+                    <strong>180-Day Compliance Alert:</strong>
+                    This bill has been pending for
+                    <strong><field name="compliance_days_overdue" readonly="1"/> days</strong>.
+                    MSME Act Section 15 and Income Tax Section 43B(h) obligations apply.
+                </div>
+
+                <!-- Banner 4: 180-day acknowledged (green) -->
+                <div class="alert alert-success o_compliance_ack_banner"
+                     role="alert"
+                     invisible="not compliance_acknowledged">
+                    <span class="fa fa-check-circle me-2"/>
+                    <strong>180-Day Alert Acknowledged</strong> by
+                    <field name="compliance_acknowledged_by" readonly="1" nolabel="1"/> on
+                    <field name="compliance_acknowledged_date" readonly="1" nolabel="1"/>
+                </div>
+            </xpath>
+
+            <!-- Days since invoice field -->
+            <xpath expr="//field[@name='invoice_date']" position="after">
+                <field name="compliance_days_overdue"
+                       string="Days Since Invoice"
+                       readonly="1"
+                       invisible="move_type != 'in_invoice'"/>
+                <field name="is_msme_partner"
+                       string="MSME Vendor"
+                       readonly="1"
+                       invisible="move_type != 'in_invoice'"/>
+            </xpath>
+
+            <!-- Hidden fields needed by JS dialog -->
+            <xpath expr="//sheet" position="inside">
+                <field name="is_compliance_alert" invisible="1"/>
+                <field name="compliance_acknowledged" invisible="1"/>
+                <field name="compliance_snooze_until" invisible="1"/>
+                <field name="is_msme_alert" invisible="1"/>
+                <field name="msme_acknowledged" invisible="1"/>
+                <field name="msme_snooze_until" invisible="1"/>
+                <field name="is_msme_partner" invisible="1"/>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- Add "Days Since Bill" column to standard Vendor Bills list view -->
+    <record id="view_in_invoice_bill_tree_compliance_days" model="ir.ui.view">
+        <field name="name">account.move.in.invoice.bill.list.compliance.days</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_in_invoice_bill_tree"/>
+        <field name="arch" type="xml">
+            <!-- Insert "Days Since Bill" column right after the Bill Date column -->
+            <xpath expr="//field[@name='invoice_date'][1]" position="after">
+                <field name="compliance_days_overdue_str"
+                       string="Days Since Bill"
+                       optional="show"/>
+                <field name="compliance_days_overdue" column_invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

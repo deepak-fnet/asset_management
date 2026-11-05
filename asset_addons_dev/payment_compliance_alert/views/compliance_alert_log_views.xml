@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- List View -->
+    <record id="view_compliance_alert_log_list" model="ir.ui.view">
+        <field name="name">compliance.alert.log.list</field>
+        <field name="model">compliance.alert.log</field>
+        <field name="arch" type="xml">
+            <list string="Compliance Audit Log"
+                  decoration-danger="alert_type == '180'"
+                  decoration-warning="alert_type == '45'">
+                <field name="name"/>
+                <field name="alert_type" string="Type"/>
+                <field name="move_id"/>
+                <field name="partner_id"/>
+                <field name="udyog_adhaar" string="Udyog Aadhaar"/>
+                <field name="amount_residual"/>
+                <field name="days_overdue" string="Days Overdue"/>
+                <field name="statutory_law"/>
+                <field name="user_id"/>
+                <field name="acknowledged_date"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_compliance_alert_log_form" model="ir.ui.view">
+        <field name="name">compliance.alert.log.form</field>
+        <field name="model">compliance.alert.log</field>
+        <field name="arch" type="xml">
+            <form string="Compliance Alert Log" create="false" edit="false">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Bill Details">
+                            <field name="alert_type"/>
+                            <field name="move_id"/>
+                            <field name="partner_id"/>
+                            <field name="udyog_adhaar"/>
+                            <field name="amount_residual"/>
+                            <field name="days_overdue"/>
+                        </group>
+                        <group string="Acknowledgement">
+                            <field name="user_id"/>
+                            <field name="acknowledged_date"/>
+                            <field name="statutory_law"/>
+                        </group>
+                    </group>
+                    <group string="Notes">
+                        <field name="notes" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_compliance_alert_log_search" model="ir.ui.view">
+        <field name="name">compliance.alert.log.search</field>
+        <field name="model">compliance.alert.log</field>
+        <field name="arch" type="xml">
+            <search string="Compliance Audit Log">
+                <field name="name"/>
+                <field name="move_id"/>
+                <field name="partner_id"/>
+                <field name="udyog_adhaar"/>
+                <field name="user_id"/>
+                <filter string="45-Day MSME"   name="msme_45"   domain="[('alert_type','=','45')]"/>
+                <filter string="180-Day General" name="gen_180" domain="[('alert_type','=','180')]"/>
+                <separator/>
+                <filter string="MSME Section 15" name="msme" domain="[('statutory_law','in',['msme','both'])]"/>
+                <filter string="Section 43B(h)"  name="s43bh" domain="[('statutory_law','in',['43bh','both'])]"/>
+                <separator/>
+                    <filter string="Alert Type"    name="gb_type"    context="{'group_by':'alert_type'}"/>
+                    <filter string="Vendor"        name="gb_partner" context="{'group_by':'partner_id'}"/>
+                    <filter string="Acknowledged By" name="gb_user"  context="{'group_by':'user_id'}"/>
+                    <filter string="Month"         name="gb_month"   context="{'group_by':'acknowledged_date:month'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_compliance_alert_log" model="ir.actions.act_window">
+        <field name="name">Compliance Audit Log</field>
+        <field name="res_model">compliance.alert.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No compliance acknowledgements yet.</p>
+            <p>Logs are created when accountants acknowledge 45-day MSME or 180-day general alerts.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_compliance_alert_log"
+              name="Compliance Audit Log"
+              action="action_compliance_alert_log"
+              parent="account.menu_finance_reports"
+              sequence="99"/>
+</odoo>

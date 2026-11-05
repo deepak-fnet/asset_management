@@ -110,3 +110,5 @@ body {
   .ra-dot.ra-ok { animation: none; }
   .ra-spinner { animation-duration: 2.4s; }
 }
+
+#ra-term .rev { background: #d8dee9; color: #0b0f16; }

@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+
+    <!-- ═══════════════════════════════════════════════
+         Systray icon + badge
+    ════════════════════════════════════════════════ -->
+    <t t-name="payment_compliance_alert.ComplianceSystray">
+        <div class="o_compliance_systray_item" t-on-click="toggleDropdown">
+            <i class="fa fa-exclamation-circle o_compliance_systray_icon"
+               t-att-class="state.count > 0 ? 'text-danger' : 'text-muted'"/>
+            <span t-if="state.count > 0" class="o_compliance_systray_badge">
+                <t t-esc="state.count > 99 ? '99+' : state.count"/>
+            </span>
+
+            <div t-if="state.open" class="o_compliance_dropdown" t-on-click.stop="">
+
+                <!-- Header -->
+                <div class="o_compliance_dropdown_header">
+                    <span class="fa fa-exclamation-triangle me-2"/>
+                    <t t-if="state.count > 0">
+                        <strong><t t-esc="state.count"/> Compliance Alert(s)</strong>
+                    </t>
+                    <t t-else=""><strong>No Compliance Alerts</strong></t>
+                </div>
+
+                <t t-if="state.count === 0">
+                    <div class="o_compliance_dropdown_empty">
+                        <i class="fa fa-check-circle text-success me-2"/>
+                        All vendor bills are within compliance.
+                    </div>
+                </t>
+
+                <t t-else="">
+                    <!-- ── MSME 45-Day Section ── -->
+                    <t t-if="state.count_45 > 0">
+                        <div class="o_compliance_section_header o_section_msme">
+                            <span class="fa fa-certificate me-1"/>
+                            <strong>MSME 45-Day Alerts</strong>
+                            <span class="o_compliance_section_count"><t t-esc="state.count_45"/></span>
+                            <a class="o_compliance_view_all" t-on-click.stop="viewMsmeAlerts">
+                                View All <span class="fa fa-arrow-right ms-1"/>
+                            </a>
+                        </div>
+                        <div class="o_compliance_dropdown_list">
+                            <t t-foreach="state.bills.filter(b => b.alert_type === '45')" t-as="bill" t-key="bill.id">
+                                <div class="o_compliance_dropdown_item o_compliance_item_msme"
+                                     t-on-click="() => this.openBill(bill.id)">
+                                    <div class="o_compliance_bill_info">
+                                        <span class="o_compliance_bill_name"><t t-esc="bill.name"/></span>
+                                        <span class="o_compliance_bill_vendor"><t t-esc="bill.partner_name"/></span>
+                                    </div>
+                                    <div class="o_compliance_bill_right">
+                                        <span class="o_compliance_days_badge o_days_msme">
+                                            <t t-esc="bill.days_overdue"/>d
+                                        </span>
+                                        <span class="o_compliance_bill_amount">
+                                            <t t-esc="bill.currency_symbol"/>
+                                            <t t-esc="formatAmount(bill.amount_residual)"/>
+                                        </span>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </t>
+
+                    <!-- ── 180-Day General Section ── -->
+                    <t t-if="state.count_180 > 0">
+                        <div class="o_compliance_section_header o_section_180">
+                            <span class="fa fa-clock-o me-1"/>
+                            <strong>180-Day General Alerts</strong>
+                            <span class="o_compliance_section_count"><t t-esc="state.count_180"/></span>
+                            <a class="o_compliance_view_all" t-on-click.stop="view180Alerts">
+                                View All <span class="fa fa-arrow-right ms-1"/>
+                            </a>
+                        </div>
+                        <div class="o_compliance_dropdown_list">
+                            <t t-foreach="state.bills.filter(b => b.alert_type === '180')" t-as="bill" t-key="bill.id">
+                                <div class="o_compliance_dropdown_item o_compliance_item_180"
+                                     t-on-click="() => this.openBill(bill.id)">
+                                    <div class="o_compliance_bill_info">
+                                        <span class="o_compliance_bill_name"><t t-esc="bill.name"/></span>
+                                        <span class="o_compliance_bill_vendor"><t t-esc="bill.partner_name"/></span>
+                                    </div>
+                                    <div class="o_compliance_bill_right">
+                                        <span class="o_compliance_days_badge o_days_180">
+                                            <t t-esc="bill.days_overdue"/>d
+                                        </span>
+                                        <span class="o_compliance_bill_amount">
+                                            <t t-esc="bill.currency_symbol"/>
+                                            <t t-esc="formatAmount(bill.amount_residual)"/>
+                                        </span>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </t>
+
+                    <!-- Footer: View All Combined -->
+                    <div class="o_compliance_dropdown_footer">
+                        <a t-on-click="viewAllAlerts">
+                            <span class="fa fa-list me-1"/>View All Combined
+                        </a>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+
+    <!-- ═══════════════════════════════════════════════
+         Compliance Alert Dialog
+    ════════════════════════════════════════════════ -->
+    <t t-name="payment_compliance_alert.ComplianceDialog">
+        <div class="o_compliance_dialog_body">
+
+            <!-- Bill info strip -->
+            <div t-att-class="'o_compliance_dialog_bill_strip ' + (props.alertType === '45' ? 'o_strip_msme' : 'o_strip_180')">
+                <div class="o_compliance_dialog_bill_left">
+                    <div class="o_compliance_dialog_bill_name"><t t-esc="props.billName"/></div>
+                    <div class="o_compliance_dialog_bill_vendor"><t t-esc="props.vendorName"/></div>
+                </div>
+                <div class="o_compliance_dialog_bill_right">
+                    <span t-att-class="'o_compliance_days_big ' + (props.alertType === '45' ? 'o_days_big_msme' : 'o_days_big_180')">
+                        <t t-esc="props.daysOverdue"/> days overdue
+                    </span>
+                    <span class="o_compliance_dialog_amount">
+                        <t t-esc="props.currencySymbol"/>
+                        <t t-esc="props.amountResidual"/>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Statutory law cards -->
+            <div class="o_compliance_law_cards">
+                <div class="o_compliance_law_card o_compliance_law_msme">
+                    <div class="o_compliance_law_card_title">
+                        <span class="fa fa-gavel me-2"/>
+                        MSME Act — Section 15
+                    </div>
+                    <p>
+                        Payment to MSME suppliers must be made within
+                        <strong>45 days</strong> from acceptance of goods/services.
+                        Delayed payment attracts compound interest at
+                        <strong>3× the RBI bank rate</strong> (Section 16, MSMED Act 2006).
+                    </p>
+                    <t t-if="props.alertType === '45' and props.udyogAdhaar">
+                        <p class="o_compliance_udyog_note">
+                            <span class="fa fa-id-card me-1"/>
+                            Udyog Aadhaar: <strong><t t-esc="props.udyogAdhaar"/></strong>
+                        </p>
+                    </t>
+                </div>
+                <t t-if="props.alertType === '180'">
+                    <div class="o_compliance_law_card o_compliance_law_43bh">
+                        <div class="o_compliance_law_card_title">
+                            <span class="fa fa-balance-scale me-2"/>
+                            Income Tax — Section 43B(h)
+                        </div>
+                        <p>
+                            Any sum payable to a Micro or Small Enterprise is deductible
+                            <strong>only in the year of actual payment</strong>. If unpaid
+                            by the due date, the amount is <strong>disallowed and added
+                            back to taxable income</strong>.
+                        </p>
+                    </div>
+                </t>
+            </div>
+
+            <!-- Required action -->
+            <div class="o_compliance_dialog_action_text">
+                <span class="fa fa-info-circle me-2 text-danger"/>
+                <strong>Required Action:</strong>
+                <t t-if="props.alertType === '45'">
+                    MSME vendor payment is overdue. Arrange immediate payment to avoid
+                    interest liability under MSMED Act Section 16.
+                </t>
+                <t t-else="">
+                    Immediately escalate to Finance Manager. Tax deduction will be
+                    disallowed if payment is not made before financial year end.
+                </t>
+                All acknowledgements are timestamped and saved to the compliance audit log.
+            </div>
+
+        </div>
+
+        <!-- Footer buttons -->
+        <div class="o_compliance_dialog_footer">
+            <button t-att-class="'btn o_compliance_btn_acknowledge ' + (props.alertType === '45' ? 'btn-warning' : 'btn-danger')"
+                    t-on-click="onAcknowledge"
+                    t-att-disabled="state.loading">
+                <t t-if="state.loading">
+                    <span class="fa fa-spinner fa-spin me-2"/>Saving...
+                </t>
+                <t t-else="">
+                    <span class="fa fa-check-circle me-2"/>Acknowledge &amp; Log
+                </t>
+            </button>
+            <button class="btn btn-primary" t-on-click="onGoToBill">
+                <span class="fa fa-file-text me-2"/>Go to Bill
+            </button>
+            <button class="btn btn-secondary" t-on-click="onSnooze" t-att-disabled="state.loading">
+                <span class="fa fa-clock-o me-2"/>Snooze 24h
+            </button>
+        </div>
+    </t>
+
+</templates>

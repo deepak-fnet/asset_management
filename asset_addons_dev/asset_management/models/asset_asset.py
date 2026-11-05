@@ -2560,6 +2560,17 @@ class AssetAsset(models.Model):
                         "location_country": "",
                         "location_area": "",
                     })
+
+                # City / region / country the agent already looked up (ipinfo
+                # for IP location) - shown straight away instead of waiting for
+                # the daily geocoding cron, which still fills the full address.
+                _agent_city = (payload.get("location_city") or "").strip()
+                if _agent_city and (_coords_moved or not asset.location_city):
+                    update_vals.update({
+                        "location_city": _agent_city,
+                        "location_state": (payload.get("location_region") or payload.get("location_state") or "").strip(),
+                        "location_country": (payload.get("location_country") or "").strip(),
+                    })
             else:
                 # No valid coordinates - mark as unavailable
                 update_vals.update({

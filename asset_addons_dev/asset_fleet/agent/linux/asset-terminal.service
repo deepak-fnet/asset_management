@@ -1,0 +1,18 @@
+[Unit]
+Description=Asset Agent - SSH terminal sessions (root)
+After=network-online.target asset-agent.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /usr/local/bin/asset-agent/asset_remote_worker.py --terminal
+WorkingDirectory=/usr/local/bin/asset-agent
+Restart=always
+RestartSec=10
+# Open terminal shells end with the service.
+KillMode=control-group
+MemoryMax=256M
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

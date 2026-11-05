@@ -47,6 +47,7 @@ platform instead.
         "views/asset_cve_diagnostics_views.xml",
         "views/asset_update_center_views.xml",
         "views/menus.xml",
+        "views/asset_update_tabs.xml",
     ],
     "installable": True,
     "application": False,

@@ -1,0 +1,7 @@
+{
+  "uuid": "asset-focus@futurenet.in",
+  "name": "Asset Agent - Screen Time",
+  "description": "Tells the asset agent which application is in front (application name only - no window titles or content) for the Screen Time report.",
+  "shell-version": ["45", "46", "47", "48", "49", "50"],
+  "url": "https://futurenet.in"
+}
