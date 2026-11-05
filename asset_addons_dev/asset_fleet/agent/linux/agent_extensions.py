@@ -1357,7 +1357,8 @@ def apply_restrictions(r):
 # ══════════════════════════════════════════════════════════════════════════
 SCREENTIME_DIR = '/var/lib/asset_agent/screentime'
 FOCUS_EXT_UUID = 'asset-focus@futurenet.in'
-IDLE_AFTER = 300            # no input for 5 min = idle
+IDLE_AFTER = 300            # no input for 5 min = idle (policy "Idle After" overrides)
+_idle_after = None
 
 
 def _sh_user(user, uid, cmd, timeout=10):
@@ -1396,7 +1397,8 @@ def _idle_seconds(user, uid):
         r = _sh_user(user, uid, ['gdbus', 'call', '--session', '--dest', 'org.gnome.Mutter.IdleMonitor',
                                  '--object-path', '/org/gnome/Mutter/IdleMonitor/Core',
                                  '--method', 'org.gnome.Mutter.IdleMonitor.GetIdletime'])
-        m = re.search(r'(\d+)', r.stdout or '')
+        # reply is "(uint64 24494,)" - take the number after uint64, not the 64 in it
+        m = re.search(r'uint64\s+(\d+)', r.stdout or '') or re.search(r'\(\s*(\d+)', r.stdout or '')
         return int(m.group(1)) / 1000.0 if m else 0
     except Exception:
         return 0
@@ -1455,9 +1457,7 @@ def _screentime_sample():
     home = os.path.expanduser('~' + user)
     # with an auto-lock policy the screen locks before IDLE_AFTER is ever
     # reached - count the stretch just before the lock as idle instead
-    lock_min = int((globals().get('_restrictions') or {}).get('screen_lock_minutes') or 0)
-    threshold = min(IDLE_AFTER, max(30, lock_min * 60 - 15)) if lock_min else IDLE_AFTER
-    if idle >= threshold:
+    if idle >= (_idle_after or IDLE_AFTER):
         return 'idle', user, '', ''
     app_id, app_name = _focused_app(user, uid, home, stype)
     return 'active', user, app_id, app_name
@@ -1607,6 +1607,7 @@ def _day_summary(day, samples):
 
 
 def screentime_loop(server_url, serial_number):
+    global _idle_after
     logger.info('[SCREENTIME] Loop started')
     os.makedirs(SCREENTIME_DIR, exist_ok=True)
     last_upload, enabled = 0, True
@@ -1615,6 +1616,8 @@ def screentime_loop(server_url, serial_number):
             if time.time() - last_upload >= 300:
                 policy = fetch_telemetry_policy(server_url, serial_number)
                 enabled = policy is None or policy.get('track_screen_time', True)
+                if policy and policy.get('idle_after_minutes'):
+                    _idle_after = int(policy['idle_after_minutes']) * 60
             if enabled and hasattr(os, 'geteuid') and os.geteuid() == 0:
                 state, user, app_id, app_name = _screentime_sample()
                 now = int(time.time())

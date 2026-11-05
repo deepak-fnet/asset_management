@@ -49,8 +49,16 @@
                         <page string="Telemetry Commands" name="commands">
                             <group>
                                 <field name="track_screen_time" widget="boolean_toggle"/>
+                                <field name="idle_after_minutes" invisible="not track_screen_time"/>
                                 <field name="track_location" widget="boolean_toggle"/>
                             </group>
+                            <div class="alert alert-warning py-2" role="alert"
+                                 invisible="not track_screen_time or not screen_lock_minutes or screen_lock_minutes &gt; idle_after_minutes">
+                                <i class="fa fa-exclamation-triangle me-1"/>
+                                The screen locks after <field name="screen_lock_minutes" readonly="1" class="d-inline fw-bold"/> min - before
+                                Idle After is reached, so idle time will stay at 0 (inactivity shows as Locked).
+                                Keep Idle After below the Auto Screen Lock.
+                            </div>
                             <field name="command_ids">
                                 <list editable="bottom">
                                     <field name="sequence" widget="handle"/>

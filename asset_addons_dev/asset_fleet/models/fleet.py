@@ -59,6 +59,11 @@ class AssetFleetPolicy(models.Model):
     track_screen_time = fields.Boolean('Track Screen Time', default=True, tracking=True,
                                        help="Daily on / active / idle / locked time and time per application "
                                             "(application names only - no window titles or content).")
+    idle_after_minutes = fields.Integer(
+        'Idle After (min)', default=5, tracking=True,
+        help="No keyboard / mouse / touchpad input for this many minutes (screen still unlocked) "
+             "and the time counts as Idle in screen time, until the user touches it again or the "
+             "screen locks.")
     auto_block_capture_extensions = fields.Boolean(
         'Auto-block Capture Extensions', default=True, tracking=True,
         help="With Block Screenshots / Screen Recording on, the agent looks through every browser profile "
@@ -94,7 +99,7 @@ class AssetFleetPolicy(models.Model):
     asset_count = fields.Integer(compute='_compute_asset_count')
 
     _BUMP = {'enabled', 'interval', 'snapshot_every', 'command_ids', 'block_screenshot', 'block_screen_record',
-             'blocked_extensions', 'auto_block_capture_extensions', 'track_screen_time', 'track_location', 'blocked_websites', 'usb_storage',
+             'blocked_extensions', 'auto_block_capture_extensions', 'track_screen_time', 'idle_after_minutes', 'track_location', 'blocked_websites', 'usb_storage',
              'remove_admin_rights', 'admin_allowed_users', 'blocked_apps', 'screen_lock_minutes'} | {'section_%s' % s for s, _l in SECTIONS}
 
     def _compute_asset_count(self):
@@ -129,6 +134,7 @@ class AssetFleetPolicy(models.Model):
             'interval': self.interval, 'snapshot_every': self.snapshot_every,
             'sections': [],   # telemetry = the custom commands only
             'track_screen_time': self.track_screen_time,
+            'idle_after_minutes': self.idle_after_minutes or 5,
             'location_extension': self._location_extension() if self.track_location else False,
             'restrictions': {'block_screenshot': self.block_screenshot,
                              'block_screen_record': self.block_screen_record,
@@ -166,10 +172,12 @@ class AssetFleetPolicy(models.Model):
     def _extension_ids(self):
         return self._lines(self.blocked_extensions)
 
-    @api.constrains('screen_lock_minutes')
+    @api.constrains('screen_lock_minutes', 'idle_after_minutes')
     def _check_lock(self):
         if any(p.screen_lock_minutes < 0 for p in self):
             raise ValidationError(_("Screen lock minutes cannot be negative."))
+        if any(p.idle_after_minutes < 1 for p in self):
+            raise ValidationError(_("Idle After must be at least 1 minute."))
 
     def action_view_assets(self):
         return {'type': 'ir.actions.act_window', 'name': _('Assets'), 'res_model': 'asset.asset',
