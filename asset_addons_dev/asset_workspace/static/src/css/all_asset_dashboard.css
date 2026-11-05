@@ -216,3 +216,52 @@
 .o_all_asset_dashboard .oaad-risk .t small { font-size: 11px; color: var(--mute); }
 .o_all_asset_dashboard .oaad-risk .t small.ok { color: #10b981; }
 .o_all_asset_dashboard .oaad-risk .oaad-bar i { background: #f43f5e; }
+
+/* ── value story ──────────────────────────────────────────────────── */
+.o_all_asset_dashboard .oaad-value {
+    display: flex; align-items: center; gap: 16px; margin-bottom: 14px; padding: 12px 16px;
+    background: #fff; border: 1px solid var(--line); border-radius: 14px; animation: oaad-in .45s ease-out both;
+}
+.o_all_asset_dashboard .oaad-value-t { display: flex; flex-direction: column; min-width: 96px; }
+.o_all_asset_dashboard .oaad-value-t.r { text-align: right; }
+.o_all_asset_dashboard .oaad-value-t span { font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--mute); font-weight: 700; }
+.o_all_asset_dashboard .oaad-value-t b { font-size: 19px; font-weight: 800; }
+.o_all_asset_dashboard .oaad-value-bar { flex: 1; display: flex; height: 30px; border-radius: 9px; overflow: hidden; background: #fee2e2; }
+.o_all_asset_dashboard .oaad-value-bar i { display: flex; align-items: center; font-style: normal; white-space: nowrap; overflow: hidden; }
+.o_all_asset_dashboard .oaad-value-bar i.kept {
+    background: linear-gradient(90deg, #10b981, #34d399); color: #fff; transform-origin: left; animation: oaad-grow 1s ease-out;
+}
+.o_all_asset_dashboard .oaad-value-bar i.lost {
+    flex: 1; color: #be123c; background: repeating-linear-gradient(135deg, #fee2e2 0 8px, #fecdd3 8px 16px);
+}
+.o_all_asset_dashboard .oaad-value-bar em { font-style: normal; font-size: 12px; font-weight: 700; padding: 0 12px; }
+
+/* ── needs attention ──────────────────────────────────────────────── */
+.o_all_asset_dashboard .oaad-attn { margin-bottom: 14px; }
+.o_all_asset_dashboard .oaad-attn h3 i { color: #f43f5e; margin-right: 4px; }
+.o_all_asset_dashboard .oaad-attn .oaad-ph > span b { color: #e11d48; }
+.o_all_asset_dashboard .oaad-ins-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.o_all_asset_dashboard .oaad-ins {
+    --c: #6366f1; --bg: #eef2ff;
+    border: 1px solid var(--line); border-left: 3px solid var(--c); border-radius: 12px; padding: 10px 12px;
+    background: #fff; transition: transform .15s, box-shadow .15s; display: flex; flex-direction: column; gap: 6px;
+}
+.o_all_asset_dashboard .oaad-ins:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(15,23,42,.08); }
+.o_all_asset_dashboard .oaad-ins.t-bad { --c: #f43f5e; --bg: #ffe4e6; }
+.o_all_asset_dashboard .oaad-ins.t-warn { --c: #f59e0b; --bg: #fef3c7; }
+.o_all_asset_dashboard .oaad-ins.t-info { --c: #0ea5e9; --bg: #e0f2fe; }
+.o_all_asset_dashboard .oaad-ins.t-ok { --c: #10b981; --bg: #d1fae5; opacity: .75; }
+.o_all_asset_dashboard .oaad-ins-h { display: grid; grid-template-columns: 30px auto 1fr; align-items: center; gap: 8px; }
+.o_all_asset_dashboard .oaad-ins-h .ico { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: var(--bg); color: var(--c); }
+.o_all_asset_dashboard .oaad-ins-h b { font-size: 22px; font-weight: 800; color: var(--c); line-height: 1; }
+.o_all_asset_dashboard .oaad-ins-h .lbl { font-size: 12.5px; font-weight: 600; color: #334155; line-height: 1.2; }
+.o_all_asset_dashboard .oaad-ins .story { font-size: 11.5px; color: var(--c); font-weight: 600; }
+.o_all_asset_dashboard .oaad-ins ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.o_all_asset_dashboard .oaad-ins li {
+    display: flex; justify-content: space-between; gap: 8px; font-size: 12px; padding: 3px 6px; border-radius: 6px; transition: background .12s;
+}
+.o_all_asset_dashboard .oaad-ins li:hover { background: var(--bg); }
+.o_all_asset_dashboard .oaad-ins li .n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); }
+.o_all_asset_dashboard .oaad-ins li .note { flex: none; color: var(--mute); font-size: 11px; }
+.o_all_asset_dashboard .oaad-ins .clear { font-size: 12px; color: #10b981; }
+.o_all_asset_dashboard .oaad-lost { font-size: 11px; color: #e11d48; font-weight: 600; white-space: nowrap; }

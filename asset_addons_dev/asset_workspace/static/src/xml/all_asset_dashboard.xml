@@ -133,6 +133,47 @@
                 <div class="oaad-k k-gray"><i class="fa fa-trash-o"/><b data-count="0" t-att-data-count="state.kpis.removed" t-esc="state.kpis.removed"/><span>Removed</span></div>
             </div>
 
+            <!-- Value story -->
+            <div class="oaad-value" t-if="state.insights.value and state.insights.value.cost">
+                <div class="oaad-value-t">
+                    <span>Paid</span><b t-esc="state.insights.value.cost_txt"/>
+                </div>
+                <div class="oaad-value-bar">
+                    <i class="kept" t-att-style="'width:' + state.insights.value.kept_pct + '%'"><em>Book value <t t-esc="state.insights.value.book_txt"/></em></i>
+                    <i class="lost" t-att-title="'Depreciated ' + state.insights.value.lost_txt"/>
+                </div>
+                <div class="oaad-value-t r">
+                    <span>Still worth</span><b><t t-esc="state.insights.value.kept_pct"/>%</b><small class="oaad-lost">−<t t-esc="state.insights.value.lost_txt"/> depreciated</small>
+                </div>
+            </div>
+
+            <!-- Needs attention -->
+            <div class="oaad-panel oaad-attn" t-if="state.insights.cards.length">
+                <div class="oaad-ph">
+                    <h3><i class="fa fa-bell-o"/> Needs attention</h3>
+                    <span t-if="state.insights.attention"><b t-esc="state.insights.attention"/> assets to look at · click a card for the list, an asset to open it</span>
+                    <span t-else="">nothing urgent 🎉</span>
+                </div>
+                <div class="oaad-ins-grid">
+                    <t t-foreach="state.insights.cards" t-as="c" t-key="c.key">
+                        <div t-att-class="'oaad-ins oaad-clickable t-' + c.tone" t-on-click="() => this.openInsight(c.key)">
+                            <div class="oaad-ins-h">
+                                <span class="ico"><i t-att-class="'fa ' + c.icon"/></span>
+                                <b data-count="0" t-att-data-count="c.count" t-esc="c.count"/>
+                                <span class="lbl" t-esc="c.label"/>
+                            </div>
+                            <div class="story" t-if="c.story" t-esc="c.story"/>
+                            <ul t-if="c.top.length">
+                                <li t-foreach="c.top" t-as="a" t-key="a.id" t-on-click.stop="() => this.openAsset(a.id)">
+                                    <span class="n" t-esc="a.name"/><span class="note" t-esc="a.note"/>
+                                </li>
+                            </ul>
+                            <div t-else="" class="clear"><i class="fa fa-check-circle"/> all clear</div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+
             <!-- Distribution -->
             <div class="oaad-grid oaad-grid-dist">
                 <div class="oaad-panel">

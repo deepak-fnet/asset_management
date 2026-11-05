@@ -42,6 +42,7 @@ class AllAssetDashboard extends Component {
             age_profile: [],
             risk: [],
             employees: { rows: [], total_employees: 0, common: 0 },
+            insights: { cards: [], value: {}, attention: 0 },
             // What is typed in the searchable Department / Plant / Location boxes.
             filterText: { department_id: "", plant_id: "", location_id: "" },
         });
@@ -104,6 +105,13 @@ class AllAssetDashboard extends Component {
             this.state.age_profile = data.age_profile || [];
             this.state.risk = data.risk || [];
             this.state.employees = data.employees || { rows: [], total_employees: 0, common: 0 };
+            try {
+                this.state.insights = await this.orm.call(
+                    "asset.hub.dashboard", "get_asset_insights", [this.state.filters]
+                );
+            } catch (e) {
+                console.error(e);
+            }
             this.chartsDirty = true;
         } catch (err) {
             this.notification.add("Could not load the All Asset Dashboard.",
@@ -433,6 +441,9 @@ class AllAssetDashboard extends Component {
     openAllEmployees() { return this._open("open_all_employee_assets", [this.state.filters]); }
     openCommonAssets() { return this._open("open_common_assets", [this.state.filters]); }
     openEmployeeAssets() { return this._open("open_employee_assets", [this.state.filters]); }
+
+    openInsight(key) { return this._open("open_insight", [this.state.filters, key]); }
+    openAsset(id) { return this._open("open_asset_form", [id]); }
 
     async openRisk(key) {
         try {
