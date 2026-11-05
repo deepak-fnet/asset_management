@@ -1,19 +1,20 @@
 // Asset 360 - dark "laptop / software" theme (editor-style windows)
-$bg: #0b0f17;
-$bg2: #0f1522;
-$panel: #121a29;
-$panel2: #172133;
-$border: #223049;
-$text: #e6edf3;
-$muted: #8b98ad;
-$violet: #a371f7;
-$cyan: #39d0d8;
-$green: #3fb950;
-$yellow: #e3b341;
-$orange: #f0883e;
-$red: #f85149;
-$pink: #f778ba;
-$blue: #58a6ff;
+$bg: #eef2f8;
+$bg2: #f6f8fc;
+$panel: #ffffff;
+$panel2: #f3f5fa;
+$border: #e1e6f0;
+$text: #1f2937;
+$muted: #6b7489;
+$violet: #7c4dff;
+$cyan: #0ea5b7;
+$green: #16a34a;
+$yellow: #d97706;
+$orange: #ea580c;
+$red: #dc2626;
+$pink: #db2777;
+$blue: #2563eb;
+$ink2: #374151;
 $mono: "JetBrains Mono", "Fira Code", "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
 
 .o_web_client > .o_action_manager > .o_action.a360 { background: $bg; }
@@ -39,21 +40,21 @@ $mono: "JetBrains Mono", "Fira Code", "SFMono-Regular", Menlo, Consolas, "Libera
 
     /* ---------------- shell: explorer + scroll area ---------------- */
     .a360-shell { display: flex; height: 100%; min-height: 0; }
-    .a360-nav { width: 214px; flex: none; background: $bg2; border-right: 1px solid $border; display: flex; flex-direction: column;
+    .a360-nav { width: 214px; flex: none; background: #ffffff; border-right: 1px solid $border; display: flex; flex-direction: column;
         padding: 12px 8px; overflow-y: auto; font-family: $mono;
         .nav-head { color: $muted; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; padding: 4px 10px 10px; .fa { color: $green; } }
         .nav-file { color: $cyan; font-size: 12px; padding: 6px 10px 12px; border-bottom: 1px solid $border; margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .nav-item { display: flex; gap: 10px; align-items: center; color: #b9c4d6 !important; padding: 7px 10px; border-radius: 8px; font-size: 12.5px; text-decoration: none;
-            .fa { width: 16px; color: $muted; } &:hover { background: $panel2; color: #fff !important; }
-            &.on { background: linear-gradient(90deg, rgba(163, 113, 247, .25), rgba(57, 208, 216, .08)); color: #fff !important; box-shadow: inset 2px 0 0 $violet; .fa { color: $violet; } } }
+        .nav-item { display: flex; gap: 10px; align-items: center; color: $ink2 !important; padding: 7px 10px; border-radius: 8px; font-size: 12.5px; text-decoration: none;
+            .fa { width: 16px; color: $muted; } &:hover { background: $panel2; color: $text !important; }
+            &.on { background: linear-gradient(90deg, rgba(124, 77, 255, .14), rgba(14, 165, 183, .05)); color: #4c1d95 !important; font-weight: 700; box-shadow: inset 3px 0 0 $violet; .fa { color: $violet; } } }
         .nav-foot { margin-top: auto; padding: 12px 10px 4px; border-top: 1px solid $border; font-size: 11px; color: $muted;
             .st { display: flex; align-items: center; gap: 6px; color: $muted; .dot { width: 8px; height: 8px; border-radius: 50%; background: #6e7681; }
                 &.on { color: $green; .dot { background: $green; animation: a360-pulse 1.8s infinite; } } } }
     }
     @media (max-width: 1000px) { .a360-nav { display: none; } }
     .a360-scroll { flex: 1; min-width: 0; height: 100%; overflow-y: auto !important; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: $border $bg;
-        background: radial-gradient(900px 500px at 85% -10%, rgba(163, 113, 247, .14), transparent 60%),
-                    radial-gradient(700px 400px at -10% 30%, rgba(57, 208, 216, .08), transparent 60%), $bg; }
+        background: radial-gradient(900px 500px at 85% -10%, rgba(124, 77, 255, .10), transparent 60%),
+                    radial-gradient(700px 400px at -10% 30%, rgba(14, 165, 183, .07), transparent 60%), $bg; }
     .a360-wrap { max-width: 1500px; margin: 0 auto; padding: 22px 24px 50px; }
 
     /* ---------------- hero: laptop mockup ---------------- */
@@ -65,14 +66,14 @@ $mono: "JetBrains Mono", "Fira Code", "SFMono-Regular", Menlo, Consolas, "Libera
             background: radial-gradient(400px 220px at 80% 0%, rgba(163, 113, 247, .55), transparent 60%),
                         radial-gradient(360px 220px at 0% 100%, rgba(57, 208, 216, .45), transparent 60%), linear-gradient(135deg, #1b1340, #0d2236);
             &::after { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, rgba(255,255,255,.08), transparent 40%); pointer-events: none; animation: a360-glow 6s infinite; } }
-        .topbar { display: flex; justify-content: space-between; padding: 4px 10px; font-size: 10px; background: rgba(0,0,0,.45); color: #dfe6ef; font-family: $mono; }
+        .topbar { display: flex; justify-content: space-between; padding: 4px 10px; font-size: 10px; background: rgba(0,0,0,.45); color: $ink2; font-family: $mono; }
         .desk { flex: 1; display: flex; gap: 12px; padding: 12px; align-items: center; min-height: 0; }
         .who { width: 120px; text-align: center; color: #fff; flex: none;
             .av { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255,255,255,.85); cursor: pointer; display: block; margin: 0 auto 6px; }
             .av.empty { display: grid; place-items: center; background: rgba(255,255,255,.12); font-size: 28px; }
             b { display: block; font-size: 13px; line-height: 1.2; } small { opacity: .75; font-size: 10px; font-family: $mono; } }
         .term { flex: 1; min-width: 0; background: rgba(5, 9, 16, .82); border: 1px solid rgba(255,255,255,.08); border-radius: 8px; padding: 8px 10px;
-            font-family: $mono; font-size: 10.5px; line-height: 1.55; color: #c9d1d9; box-shadow: 0 10px 20px rgba(0,0,0,.35);
+            font-family: $mono; font-size: 10.5px; line-height: 1.55; color: $ink2; box-shadow: 0 10px 20px rgba(0,0,0,.35);
             .p { color: $green; margin-right: 6px; } .ok { color: $cyan; } .warn { color: $orange; } div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } }
         .dock { display: flex; gap: 6px; justify-content: center; padding: 6px; margin: 0 auto 8px; background: rgba(255,255,255,.12); border-radius: 12px; backdrop-filter: blur(6px);
             img, .noicon { width: 24px; height: 24px; border-radius: 6px; transition: transform .15s; &:hover { transform: translateY(-4px) scale(1.2); } } }
@@ -82,13 +83,13 @@ $mono: "JetBrains Mono", "Fira Code", "SFMono-Regular", Menlo, Consolas, "Libera
     .hero-info { flex: 1; min-width: 300px;
         .kicker { font-family: $mono; font-size: 11px; color: $cyan; letter-spacing: 1px; text-transform: uppercase; }
         h1 { font-size: 30px; font-weight: 800; letter-spacing: -.4px; margin: 6px 0 6px;
-            background: linear-gradient(90deg, #fff, #c9b6ff 60%, $cyan); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .sub { color: #b9c4d6; margin-top: 3px; .fa { color: $muted; width: 16px; } }
+            background: linear-gradient(90deg, #1e1b4b, #5b21b6 55%, $cyan); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .sub { color: $ink2; margin-top: 3px; .fa { color: $muted; width: 16px; } }
         .contact { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; font-size: 12px; }
         .greet { display: inline-flex; gap: 8px; align-items: center; margin-top: 12px; padding: 7px 14px; border-radius: 999px; font-weight: 700;
-            background: rgba(163, 113, 247, .15); border: 1px solid rgba(163, 113, 247, .4); color: #e2d4ff; .fa { color: $yellow; } }
+            background: rgba(163, 113, 247, .15); border: 1px solid rgba(163, 113, 247, .4); color: #5b21b6; .fa { color: $yellow; } }
         .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px;
-            span { font-family: $mono; font-size: 11px; padding: 4px 9px; border-radius: 6px; background: $panel; border: 1px solid $border; color: #c9d1d9; .fa { color: $violet; } } }
+            span { font-family: $mono; font-size: 11px; padding: 4px 9px; border-radius: 6px; background: $panel; border: 1px solid $border; color: $ink2; .fa { color: $violet; } } }
         .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px;
             .btn { background: $panel2; color: $text; border: 1px solid $border; border-radius: 8px; padding: 5px 12px; font-size: 12px;
                 &:hover { border-color: $violet; color: #fff; box-shadow: 0 0 0 3px rgba(163, 113, 247, .2); } .fa { color: $cyan; } } }
@@ -114,14 +115,14 @@ $mono: "JetBrains Mono", "Fira Code", "SFMono-Regular", Menlo, Consolas, "Libera
     .c4 { grid-column: span 4; } .c5 { grid-column: span 5; } .c6 { grid-column: span 6; } .c7 { grid-column: span 7; } .c8 { grid-column: span 8; } .c12 { grid-column: span 12; }
     @media (max-width: 1150px) { .c4, .c5, .c6, .c7, .c8 { grid-column: span 12; } }
     .win { background: $panel; border: 1px solid $border; border-radius: 12px; overflow: hidden; min-width: 0; animation: a360-rise .5s ease both;
-        box-shadow: 0 14px 30px rgba(0, 0, 0, .35); transition: border-color .2s, box-shadow .2s;
-        &:hover { border-color: #33476b; box-shadow: 0 18px 40px rgba(0, 0, 0, .45), 0 0 0 1px rgba(163, 113, 247, .12); } }
+        box-shadow: 0 4px 16px rgba(30, 41, 80, .06); transition: border-color .2s, box-shadow .2s;
+        &:hover { border-color: #c7cfe0; box-shadow: 0 12px 28px rgba(30, 41, 80, .1); } }
     .win-bar { display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: $panel2; border-bottom: 1px solid $border; font-family: $mono;
         .d { width: 10px; height: 10px; border-radius: 50%; &.r { background: #ff5f57; } &.y { background: #febc2e; } &.g { background: #28c840; } }
-        .t { margin-left: 8px; font-size: 12px; color: #c9d1d9; .fa { color: $violet; } }
+        .t { margin-left: 8px; font-size: 12px; color: $ink2; font-weight: 600; .fa { color: $violet; } }
         small { margin-left: auto; color: $muted; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 50%; } }
     .win-body { padding: 14px 16px; &.empty { color: $muted; } &.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; } }
-    .cap { font-family: $mono; font-size: 11px; color: #6e86a8; margin: 10px 0 6px; }
+    .cap { font-family: $mono; font-size: 11px; color: #64748b; margin: 10px 0 6px; }
 
     .lg { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin: 0 4px 0 10px; vertical-align: 0;
         &.active { background: $green; } &.idle { background: $yellow; } &.locked { background: #6e7681; } &.off { background: $panel2; border: 1px solid $border; } }
@@ -137,7 +138,7 @@ $mono: "JetBrains Mono", "Fira Code", "SFMono-Regular", Menlo, Consolas, "Libera
     .stats { flex: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; min-width: 250px;
         > div { background: $bg2; border: 1px solid $border; border-radius: 10px; padding: 9px 11px; }
         span { display: block; font-family: $mono; font-size: 10.5px; color: $muted; text-transform: uppercase; }
-        b { font-family: $mono; font-size: 17px; } .g { color: $green; } .y { color: $yellow; } .m { color: #8b949e; } }
+        b { font-family: $mono; font-size: 17px; } .g { color: $green; } .y { color: $yellow; } .m { color: #64748b; } }
     .hourly { margin-top: 14px;
         .bars { display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: 3px; height: 92px; align-items: end; }
         .h { display: flex; flex-direction: column; justify-content: flex-end; height: 100%; text-align: center; span { font-size: 9px; color: $muted; height: 12px; font-family: $mono; } }
@@ -154,7 +155,7 @@ $mono: "JetBrains Mono", "Fira Code", "SFMono-Regular", Menlo, Consolas, "Libera
             .dot { width: 8px; height: 8px; border-radius: 50%; } .st { font-size: 10.5px; padding: 1px 7px; border-radius: 4px; } .du { min-width: 56px; text-align: right; font-weight: 700; }
             &.active { .dot { background: $green; } .st { background: rgba(63, 185, 80, .15); color: $green; } }
             &.idle { .dot { background: $yellow; } .st { background: rgba(227, 179, 65, .15); color: $yellow; } }
-            &.locked { .dot { background: #6e7681; } .st { background: rgba(110, 118, 129, .2); color: #a8b1bd; } } } }
+            &.locked { .dot { background: #6e7681; } .st { background: rgba(110, 118, 129, .2); color: #4b5563; } } } }
 
     /* apps & week */
     .applist { display: flex; flex-direction: column; gap: 3px; max-height: 420px; overflow: auto; padding-right: 4px; }
@@ -166,17 +167,17 @@ $mono: "JetBrains Mono", "Fira Code", "SFMono-Regular", Menlo, Consolas, "Libera
         .track { height: 4px; background: $panel2; border-radius: 2px; margin-top: 5px; overflow: hidden; }
         .fill { height: 100%; background: linear-gradient(90deg, $violet, $cyan); transform-origin: left; animation: a360-growx .9s ease both; }
         .tm { text-align: right; font-family: $mono; b { display: block; } small { color: $muted; } } }
-    .noicon { display: inline-grid; place-items: center; background: linear-gradient(135deg, rgba(163, 113, 247, .35), rgba(57, 208, 216, .25)); color: #fff; font-weight: 700; font-size: 11px; font-family: $mono;
+    .noicon { display: inline-grid; place-items: center; background: linear-gradient(135deg, #ede7ff, #dff6fb); color: #5b21b6; font-weight: 700; font-size: 11px; font-family: $mono;
         &.sm { width: 24px; height: 24px; border-radius: 6px; font-size: 9.5px; flex: none; } }
     .appweek { margin-top: 12px; padding: 12px; border-radius: 10px; background: $bg2; border: 1px solid $border;
         .bars { display: flex; gap: 10px; height: 120px; align-items: flex-end; }
         .col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 4px; font-family: $mono;
-            small { font-size: 9.5px; color: #b9c4d6; } .b { width: 100%; max-width: 26px; background: linear-gradient(180deg, $violet, #6e40c9); border-radius: 4px 4px 1px 1px; transform-origin: bottom; animation: a360-grow .5s ease both; box-shadow: 0 0 10px rgba(163, 113, 247, .35); }
+            small { font-size: 9.5px; color: $ink2; } .b { width: 100%; max-width: 26px; background: linear-gradient(180deg, $violet, #6e40c9); border-radius: 4px 4px 1px 1px; transform-origin: bottom; animation: a360-grow .5s ease both; box-shadow: 0 0 10px rgba(163, 113, 247, .35); }
             span { font-size: 10px; color: $muted; } } }
     .weekbars { display: flex; gap: 10px; height: 200px; align-items: flex-end;
         .col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; cursor: pointer; border-radius: 10px; padding: 6px 0; font-family: $mono; border: 1px solid transparent;
             &:hover { background: $panel2; } &.sel { background: rgba(163, 113, 247, .12); border-color: rgba(163, 113, 247, .4); }
-            > b { font-size: 11px; margin-bottom: 4px; color: #c9d1d9; }
+            > b { font-size: 11px; margin-bottom: 4px; color: $ink2; }
             .stack { width: 58%; max-width: 38px; height: 140px; display: flex; flex-direction: column-reverse; border-radius: 6px; overflow: hidden; background: $bg2; border: 1px solid $border; }
             .b { transform-origin: bottom; animation: a360-grow .8s ease both; &.active { background: linear-gradient(180deg, #56d364, #238636); } &.idle { background: $yellow; } &.locked { background: #6e7681; } }
             span { font-size: 11px; margin-top: 4px; } small { font-size: 10px; color: $muted; } } }
@@ -191,10 +192,10 @@ $mono: "JetBrains Mono", "Fira Code", "SFMono-Regular", Menlo, Consolas, "Libera
             svg { width: 92px; height: 92px; } .track { fill: none; stroke: $panel2; stroke-width: 8; stroke-linecap: round; }
             .fill { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dasharray 1.2s ease; filter: drop-shadow(0 0 4px currentColor); }
             b { position: absolute; top: 32px; left: 0; right: 0; font-size: 16px; } span { display: block; margin-top: -10px; font-size: 10.5px; color: $muted; } } }
-    .net { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; font-family: $mono; font-size: 11.5px; color: #b9c4d6; .fa { color: $cyan; } }
+    .net { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; font-family: $mono; font-size: 11.5px; color: $ink2; .fa { color: $cyan; } }
     .kv { width: 100%; border-collapse: collapse; font-size: 12.5px;
         th { color: $muted; font-weight: 500; width: 42%; padding: 6px 8px 6px 0; vertical-align: top; font-family: $mono; font-size: 11.5px; }
-        td { padding: 6px 0; color: #e6edf3; word-break: break-word; }
+        td { padding: 6px 0; color: $ink2; word-break: break-word; }
         tr + tr { border-top: 1px solid rgba(34, 48, 73, .7); } }
     .vols { display: flex; flex-direction: column; gap: 12px;
         .vh { display: flex; justify-content: space-between; font-family: $mono; font-size: 12px; span { color: $muted; } .fa { color: $violet; } }
@@ -212,15 +213,15 @@ $mono: "JetBrains Mono", "Fira Code", "SFMono-Regular", Menlo, Consolas, "Libera
     .feed { list-style: none; padding: 0; margin: 0; max-height: 330px; overflow: auto;
         li { display: flex; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(34, 48, 73, .7);
             .dot { width: 8px; height: 8px; margin-top: 5px; border-radius: 50%; background: $violet; flex: none; box-shadow: 0 0 6px $violet; &.sec { background: $red; box-shadow: 0 0 6px $red; } }
-            small { color: $muted; font-family: $mono; font-size: 11px; } p { font-size: 12.5px; margin-top: 2px; color: #c9d1d9; } } }
-    .grid { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 12px;
+            small { color: $muted; font-family: $mono; font-size: 11px; } p { font-size: 12.5px; margin-top: 2px; color: $ink2; } } }
+    .a360-tbl { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 12px;
         th { text-align: left; font-family: $mono; font-weight: 500; font-size: 11px; color: $muted; padding: 6px 8px; border-bottom: 1px solid $border; text-transform: uppercase; }
         td { padding: 7px 8px; border-bottom: 1px solid rgba(34, 48, 73, .7); font-family: $mono; }
-        tbody tr:hover td { background: rgba(88, 166, 255, .05); }
-        tr.err td { padding-top: 0; } pre { margin: 0; white-space: pre-wrap; font-size: 11px; color: #ffa198; background: rgba(248, 81, 73, .08); border: 1px solid rgba(248, 81, 73, .3); border-radius: 6px; padding: 8px; max-height: 150px; overflow: auto; } }
+        tbody tr:hover td { background: rgba(37, 99, 235, .04); }
+        tr.err td { padding-top: 0; } pre { margin: 0; white-space: pre-wrap; font-size: 11px; color: $red; background: rgba(248, 81, 73, .08); border: 1px solid rgba(248, 81, 73, .3); border-radius: 6px; padding: 8px; max-height: 150px; overflow: auto; } }
     .pill { font-family: $mono; font-size: 11px; padding: 2px 8px; border-radius: 4px;
         &.ok { background: rgba(63, 185, 80, .15); color: $green; } &.bad { background: rgba(248, 81, 73, .15); color: $red; }
-        &.run { background: rgba(88, 166, 255, .15); color: $blue; } &.muted { background: rgba(139, 148, 158, .15); color: #8b949e; } }
+        &.run { background: rgba(88, 166, 255, .15); color: $blue; } &.muted { background: rgba(139, 148, 158, .15); color: #64748b; } }
 
     /* os upgrade */
     .osu-path { display: flex; align-items: stretch; gap: 14px; flex-wrap: wrap;
@@ -233,21 +234,21 @@ $mono: "JetBrains Mono", "Fira Code", "SFMono-Regular", Menlo, Consolas, "Libera
     /* security */
     .av-state { padding: 10px 12px; border-radius: 10px; font-weight: 600;
         &.ok { background: rgba(63, 185, 80, .12); color: $green; border: 1px solid rgba(63, 185, 80, .35); }
-        &.bad { background: rgba(248, 81, 73, .1); color: #ffa198; border: 1px solid rgba(248, 81, 73, .35); } }
+        &.bad { background: rgba(248, 81, 73, .1); color: $red; border: 1px solid rgba(248, 81, 73, .35); } }
     .vuln { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin: 10px 0;
         .v { border-radius: 10px; padding: 8px 4px; text-align: center; font-family: $mono; border: 1px solid; b { display: block; font-size: 18px; } span { font-size: 10px; text-transform: uppercase; }
             &.crit { color: $red; border-color: rgba(248, 81, 73, .4); background: rgba(248, 81, 73, .08); }
             &.high { color: $orange; border-color: rgba(240, 136, 62, .4); background: rgba(240, 136, 62, .08); }
             &.med { color: $yellow; border-color: rgba(227, 179, 65, .4); background: rgba(227, 179, 65, .08); }
-            &.low { color: #8b949e; border-color: $border; background: $bg2; } } }
+            &.low { color: #64748b; border-color: $border; background: $bg2; } } }
     .locks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px;
         .lock { font-family: $mono; font-size: 11px; padding: 4px 9px; border-radius: 6px; background: $bg2; border: 1px solid $border; color: $muted;
-            &.on { background: rgba(248, 81, 73, .12); border-color: rgba(248, 81, 73, .45); color: #ffa198; } } }
+            &.on { background: rgba(248, 81, 73, .12); border-color: rgba(248, 81, 73, .45); color: $red; } } }
 
     /* location */
-    iframe { width: 100%; height: 300px; border: 1px solid $border; border-radius: 10px; filter: invert(.92) hue-rotate(180deg) saturate(.8) brightness(.95); }
+    iframe { width: 100%; height: 300px; border: 1px solid $border; border-radius: 10px;  }
     .nomap { height: 300px; display: grid; place-items: center; background: $bg2; border-radius: 10px; color: $muted; font-family: $mono; }
-    .addr { margin-top: 10px; font-size: 12px; color: #b9c4d6; .fa { color: $red; } }
+    .addr { margin-top: 10px; font-size: 12px; color: $ink2; .fa { color: $red; } }
     .places { list-style: none; padding: 0; margin: 0; max-height: 340px; overflow: auto; font-size: 12px;
         li { display: flex; gap: 10px; align-items: baseline; padding: 7px 0; border-bottom: 1px solid rgba(34, 48, 73, .7); }
         .when { color: $muted; font-family: $mono; font-size: 11px; min-width: 120px; } small { color: $muted; margin-left: auto; font-family: $mono; font-size: 10.5px; } }
@@ -262,12 +263,31 @@ $mono: "JetBrains Mono", "Fira Code", "SFMono-Regular", Menlo, Consolas, "Libera
         .fill { height: 100%; background: linear-gradient(90deg, $cyan, $blue); transform-origin: left; animation: a360-growx 1s ease both; &.warn { background: $yellow; } &.dep { background: linear-gradient(90deg, $yellow, $red); } } }
     .assign { list-style: none; padding: 0; margin: 0; max-height: 280px; overflow: auto;
         li { display: flex; gap: 10px; align-items: center; padding: 7px 0; border-bottom: 1px solid rgba(34, 48, 73, .7);
-            .av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, $violet, $cyan); color: #0b0f17; font-size: 11px; font-weight: 800; flex: none; }
+            .av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, $violet, $cyan); color: #fff; font-size: 11px; font-weight: 800; flex: none; }
             b { display: block; } small { color: $muted; font-family: $mono; font-size: 11px; } } }
+
+    /* depreciation chart */
+    .depchart { margin: 6px 0 4px;
+        svg { width: 100%; height: 210px; overflow: visible; }
+        .gl { stroke: $border; stroke-dasharray: 3 4; }
+        .ax { font-family: $mono; font-size: 10px; fill: $muted; }
+        .bar { transition: opacity .15s; &:hover { opacity: .8; } }
+        .line { fill: none; stroke: $cyan; stroke-width: 2.5; }
+        .area { fill: rgba(14, 165, 183, .10); }
+        .pt { fill: #fff; stroke: $cyan; stroke-width: 2; }
+        .val { font-family: $mono; font-size: 10px; fill: $ink2; font-weight: 600; }
+        .legend { display: flex; gap: 14px; font-family: $mono; font-size: 11px; color: $muted;
+            i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; } } }
+    .board { list-style: none; padding: 0; margin: 10px 0 0; position: relative;
+        &::before { content: ""; position: absolute; left: 9px; top: 6px; bottom: 6px; width: 2px; background: $border; }
+        li { position: relative; display: grid; grid-template-columns: 22px 1fr auto auto; gap: 10px; align-items: center; padding: 7px 0; font-family: $mono; font-size: 12px;
+            .nd { width: 12px; height: 12px; border-radius: 50%; border: 2px solid $muted; background: #fff; margin-left: 4px; z-index: 1; }
+            &.posted .nd { background: $green; border-color: $green; }
+            b { font-weight: 600; } small { color: $muted; } } }
 
     /* all details */
     .fold { border: 1px solid $border; border-radius: 10px; margin-bottom: 8px; overflow: hidden; background: $bg2;
-        .fold-h { display: flex; align-items: center; gap: 8px; padding: 9px 12px; color: #c9d1d9 !important; font-family: $mono; font-size: 12.5px; text-decoration: none;
+        .fold-h { display: flex; align-items: center; gap: 8px; padding: 9px 12px; color: $ink2 !important; font-family: $mono; font-size: 12.5px; text-decoration: none;
             .fa { color: $violet; width: 12px; } small { margin-left: auto; color: $muted; } &:hover { background: $panel2; } }
         &.open .fold-h { background: $panel2; border-bottom: 1px solid $border; }
         .fold-b { padding: 12px; } }

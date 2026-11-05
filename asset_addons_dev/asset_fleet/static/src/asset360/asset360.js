@@ -205,6 +205,26 @@ export class Asset360 extends Component {
         if (!s.first_on || !s.last_on) return 0;
         return (new Date(s.last_on.replace(" ", "T") + "Z") - new Date(s.first_on.replace(" ", "T") + "Z")) / 60000;
     }
+    get depChart() {
+        const sc = this.state.data.fixed.schedule || [];
+        const w = 560, h = 210, left = 54, top = 16, bottom = 22;
+        const cost = (this.state.data.finance.cost || 0) || ((sc[0] && (sc[0].rem + sc[0].amount)) || 0);
+        const maxV = Math.max(cost, ...sc.map((l) => l.rem + l.amount), 1);
+        const ih = h - top - bottom, n = Math.max(sc.length, 1);
+        const slot = (w - left) / n, bw = Math.min(46, slot * 0.5);
+        const y = (v) => top + ih - (v / maxV) * ih;
+        const short = (v) => (v >= 100000 ? (v / 100000).toFixed(1) + "L" : v >= 1000 ? (v / 1000).toFixed(1) + "k" : String(Math.round(v)));
+        const bars = sc.map((l, i) => {
+            const x = left + slot * i + (slot - bw) / 2;
+            return { x, bw, y: y(l.amount), h: Math.max(1, (l.amount / maxV) * ih), label: l.year,
+                     short: short(l.amount), title: `${l.year}: depreciation ${this.money(l.amount)}` };
+        });
+        const pts = sc.map((l, i) => ({ x: left + slot * i + slot / 2, y: y(l.rem), title: `${l.year}: book value ${this.money(l.rem)}` }));
+        const line = pts.map((p, i) => `${i ? "L" : "M"}${p.x},${p.y}`).join(" ");
+        const area = pts.length ? `${line} L${pts[pts.length - 1].x},${top + ih} L${pts[0].x},${top + ih} Z` : "";
+        const grid = [0, 0.25, 0.5, 0.75, 1].map((f) => ({ y: y(maxV * f), label: short(maxV * f) }));
+        return { w, h, left, bars, pts, line, area, grid };
+    }
     get hours24() { return Array.from({ length: 24 }, (_, i) => i); }
     pad2(h) { return String(h).padStart(2, "0"); }
     round(v) { return Math.round(v || 0); }

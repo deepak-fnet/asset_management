@@ -261,7 +261,7 @@
             <div t-attf-class="node next #{d.osu.available ? '' : 'dim'}"><small>available</small><b t-esc="d.osu.available_version or '—'"/><span t-esc="d.osu.available_codename"/></div>
             <div class="node" t-if="d.osu.win11"><small>windows 11</small><b t-esc="d.osu.win11"/></div>
           </div>
-          <table class="grid" t-if="d.osu.requests.length">
+          <table class="a360-tbl" t-if="d.osu.requests.length">
             <thead><tr><th>Request</th><th>From → To</th><th>Scheduled</th><th>Started</th><th>Completed</th><th>Status</th></tr></thead>
             <tbody>
               <t t-foreach="d.osu.requests" t-as="r" t-key="r.id">
@@ -343,7 +343,23 @@
         <div class="win-body">
           <div class="a360-prog"><div class="track"><div class="fill dep" t-att-style="pctFill(d.finance.dep_pct)"/></div></div>
           <table class="kv"><t t-foreach="fx.depreciation" t-as="i" t-key="i_index"><tr><th t-esc="i.label"/><td t-esc="i.value"/></tr></t></table>
-          <table class="grid" t-if="fx.schedule.length">
+          <div class="depchart" t-if="fx.schedule.length">
+            <t t-set="ch" t-value="depChart"/>
+            <svg t-att-viewBox="'0 0 ' + ch.w + ' ' + ch.h" preserveAspectRatio="none">
+              <defs><linearGradient id="a360dep" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#7c4dff"/></linearGradient></defs>
+              <t t-foreach="ch.grid" t-as="g" t-key="g_index"><line class="gl" t-att-x1="ch.left" t-att-x2="ch.w" t-att-y1="g.y" t-att-y2="g.y"/><text class="ax" x="0" t-att-y="g.y + 3" t-esc="g.label"/></t>
+              <path class="area" t-att-d="ch.area"/>
+              <t t-foreach="ch.bars" t-as="b" t-key="b_index">
+                <rect class="bar" fill="url(#a360dep)" rx="4" t-att-x="b.x" t-att-y="b.y" t-att-width="b.bw" t-att-height="b.h"><title t-esc="b.title"/></rect>
+                <text class="val" t-att-x="b.x + b.bw / 2" t-att-y="b.y - 4" text-anchor="middle" t-esc="b.short"/>
+                <text class="ax" t-att-x="b.x + b.bw / 2" t-att-y="ch.h - 2" text-anchor="middle" t-esc="b.label"/>
+              </t>
+              <path class="line" t-att-d="ch.line"/>
+              <t t-foreach="ch.pts" t-as="pt" t-key="pt_index"><circle class="pt" t-att-cx="pt.x" t-att-cy="pt.y" r="4"><title t-esc="pt.title"/></circle></t>
+            </svg>
+            <div class="legend"><span><i style="background:#7c4dff"/>depreciation / year</span><span><i style="background:#0ea5b7"/>book value</span></div>
+          </div>
+          <table class="a360-tbl" t-if="fx.schedule.length">
             <thead><tr><th>FY</th><th>Days</th><th>Depreciation</th><th>Accumulated</th><th>Remaining</th></tr></thead>
             <tbody><t t-foreach="fx.schedule" t-as="l" t-key="l_index"><tr><td t-esc="l.year"/><td t-esc="l.days"/><td t-esc="money(l.amount)"/><td t-esc="money(l.acc)"/><td t-esc="money(l.rem)"/></tr></t></tbody>
           </table>
@@ -353,10 +369,11 @@
         <t t-call="asset_fleet.Asset360.bar"><t t-set="icon" t-value="'fa-book'"/><t t-set="title" t-value="'accounting.board'"/><t t-set="meta" t-value="''"/></t>
         <div class="win-body">
           <table class="kv"><t t-foreach="fx.accounting" t-as="i" t-key="i_index"><tr><th t-esc="i.label"/><td t-esc="i.value"/></tr></t></table>
-          <table class="grid" t-if="fx.board.length">
-            <thead><tr><th>Date</th><th>Depreciation</th><th>Cumulative</th><th>Entry</th><th/></tr></thead>
-            <tbody><t t-foreach="fx.board" t-as="l" t-key="l_index"><tr><td t-esc="localDate(l.date)"/><td t-esc="money(l.amount)"/><td t-esc="money(l.cum)"/><td t-esc="l.entry"/><td><span t-attf-class="pill #{l.posted ? 'ok' : 'muted'}" t-esc="l.posted ? 'posted' : 'draft'"/></td></tr></t></tbody>
-          </table>
+          <ul class="board" t-if="fx.board.length">
+            <t t-foreach="fx.board" t-as="l" t-key="l_index">
+              <li t-attf-class="#{l.posted ? 'posted' : ''}"><span class="nd"/><div><b t-esc="localDate(l.date)"/><small t-if="l.entry"> · <t t-esc="l.entry"/></small></div><b t-esc="money(l.amount)"/><span t-attf-class="pill #{l.posted ? 'ok' : 'muted'}" t-esc="l.posted ? 'posted' : 'draft'"/></li>
+            </t>
+          </ul>
           <div t-if="!fx.accounting.length and !fx.board.length" class="muted">no accounting asset</div>
         </div>
       </section>
