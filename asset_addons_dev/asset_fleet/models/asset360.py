@@ -56,9 +56,10 @@ class AssetAsset360(models.Model):
                 'site': asset.location_id.display_name if 'location_id' in asset._fields and asset.location_id else '',
                 'it_id': it.id, 'it_name': it.display_name,
                 'it_view_id': self.env.ref('asset_management.view_asset_asset_form').id,
+                # a record linked to an IT asset is the fixed asset: its own (general) form
                 'fa_view_id': (self.env.ref('general_asset.view_asset_general_form', raise_if_not_found=False)
                                or self.env.ref('asset_management.view_asset_asset_form')).id
-                if not (asset.is_it_asset if 'is_it_asset' in asset._fields else False)
+                if (it != asset or not (asset.is_it_asset if 'is_it_asset' in asset._fields else False))
                 else self.env.ref('asset_management.view_asset_asset_form').id,
             },
             'employee': emp and {
