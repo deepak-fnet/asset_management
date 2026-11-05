@@ -391,8 +391,21 @@ if [ "$1" != "resume" ] && [ -f /var/run/reboot-required ]; then
     exit 0
 fi
 OUT=/tmp/asset_dru_output.txt
-do-release-upgrade -f DistUpgradeViewNonInteractive 2>&1 | tee $OUT
-echo "=== do-release-upgrade returned at $(date)"
+# The upgrader talks to the archive and the Snap Store while it prepares;
+# a dropped connection aborts it ("RemoteDisconnected" / "Connection reset").
+# Network failures are retried - up to 3 attempts, 2 minutes apart.
+for ATTEMPT in 1 2 3; do
+    do-release-upgrade -f DistUpgradeViewNonInteractive 2>&1 | tee $OUT
+    echo "=== do-release-upgrade attempt $ATTEMPT returned at $(date)"
+    [ "$(. /etc/os-release; echo "$VERSION_CODENAME")" != "$BEFORE" ] && break
+    if tail -60 /var/log/dist-upgrade/main.log 2>/dev/null | grep -qiE \
+         "RemoteDisconnected|Connection reset|ConnectionError|URLError|timed out|Temporary failure|Failed to fetch|Network is unreachable"; then
+        echo "=== network error during the upgrade - retrying in 2 minutes"
+        sleep 120
+        continue
+    fi
+    break
+done
 # The non-interactive upgrader never reboots by itself (RealReboot=False).
 AFTER=$(. /etc/os-release; echo "$VERSION_CODENAME")
 if [ "$AFTER" != "$BEFORE" ]; then
@@ -410,7 +423,9 @@ if [ "$AFTER" != "$BEFORE" ]; then
     shutdown -r +1 "Asset agent: OS upgrade finished ($BEFORE -> $AFTER), restarting"
 else
     echo "=== release unchanged ($BEFORE) - the upgrade did not run"
-    {{ echo "do-release-upgrade did not upgrade (still $BEFORE). Its output:"; tail -15 $OUT; }} > {failed}
+    {{ echo "do-release-upgrade did not upgrade (still $BEFORE)."; echo "--- upgrader log (last errors):";
+       grep -E "ERROR|Error|error" /var/log/dist-upgrade/main.log 2>/dev/null | tail -8;
+       echo "--- output:"; tail -15 $OUT; }} > {failed}
 fi
 """.format(log=UPGRADE_LOG, target=target_codename, resume=RESUME_FLAG, failed=FAILED_FLAG)
 
