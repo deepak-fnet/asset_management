@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Asset Assign Process: custom header instead of the plain sheet.
+         In Draft the original fields stay editable below the header. -->
+    <record id="view_asset_joining_process_form_ui" model="ir.ui.view">
+        <field name="name">asset.joining.process.form.ui</field>
+        <field name="model">asset.joining.process</field>
+        <field name="inherit_id" ref="asset_management.view_asset_joining_process_form"/>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="class" add="jp-form" separator=" "/>
+            </xpath>
+            <xpath expr="//header/field[@name='state']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_title')]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_title')]" position="after">
+                <field name="jp_hero" nolabel="1" readonly="1" class="d-block w-100"/>
+            </xpath>
+            <xpath expr="//group[group/field[@name='requested_by_id']]" position="attributes">
+                <attribute name="invisible">state != 'draft'</attribute>
+                <attribute name="class">jp-edit</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
