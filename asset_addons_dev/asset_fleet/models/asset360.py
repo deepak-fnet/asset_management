@@ -55,6 +55,11 @@ class AssetAsset360(models.Model):
                 'department': asset.department_id.name if 'department_id' in asset._fields and asset.department_id else '',
                 'site': asset.location_id.display_name if 'location_id' in asset._fields and asset.location_id else '',
                 'it_id': it.id, 'it_name': it.display_name,
+                'it_view_id': self.env.ref('asset_management.view_asset_asset_form').id,
+                'fa_view_id': (self.env.ref('general_asset.view_asset_general_form', raise_if_not_found=False)
+                               or self.env.ref('asset_management.view_asset_asset_form')).id
+                if not (asset.is_it_asset if 'is_it_asset' in asset._fields else False)
+                else self.env.ref('asset_management.view_asset_asset_form').id,
             },
             'employee': emp and {
                 'id': emp.id, 'name': emp.name, 'job': emp.job_title or (emp.job_id.name if emp.job_id else ''),

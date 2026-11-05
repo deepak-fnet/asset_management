@@ -110,11 +110,12 @@ export class Asset360 extends Component {
     get canNext() { const d = this.screen.days || []; return d.indexOf(this.screen.day) > 0; }
     pickApp(name) { this.state.app = this.state.app === name ? null : name; }
 
-    openForm(model, id) {
-        this.action.doAction({ type: "ir.actions.act_window", res_model: model, res_id: id, views: [[false, "form"]] });
+    openForm(model, id, viewId = false) {
+        this.action.doAction({ type: "ir.actions.act_window", res_model: model, res_id: id, views: [[viewId, "form"]] });
     }
-    openAsset() { this.openForm("asset.asset", this.state.data.asset.id); }
-    openIt() { this.openForm("asset.asset", this.state.data.asset.it_id); }
+    openAsset() { this.openForm("asset.asset", this.state.data.asset.id, this.state.data.asset.fa_view_id); }
+    // the IT asset always opens in the IT asset form (not the fixed-asset form)
+    openIt() { this.openForm("asset.asset", this.state.data.asset.it_id, this.state.data.asset.it_view_id); }
     openEmployee() { this.openForm("hr.employee", this.state.data.employee.id); }
 
     // ---------------------------------------------------------------- visuals
