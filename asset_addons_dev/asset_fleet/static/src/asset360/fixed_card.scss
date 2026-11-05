@@ -1,0 +1,22 @@
+.fa-card {
+    margin: 0 0 12px; border: 1px solid #dbe3ee; border-radius: 12px; background: #fff;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .06); overflow: hidden;
+    .fa-head {
+        padding: 10px 14px; background: linear-gradient(90deg, #eef2ff, #f8fafc); color: #334155;
+        display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap;
+        > i { color: #4f46e5; } b { color: #1e293b; }
+        small { color: #64748b; margin-left: auto; font-size: 11px; }
+    }
+    .fa-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+    .fa-b {
+        padding: 10px 14px; border-top: 1px solid #eef2f7; border-right: 1px solid #eef2f7;
+        h6 { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: #64748b; margin: 0 0 6px; font-weight: 700; }
+        h6 i { color: #6366f1; width: 14px; }
+    }
+    .fa-i {
+        display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; font-size: 13px;
+        span { color: #64748b; } b { color: #0f172a; font-weight: 600; text-align: right; }
+        &.ok b { color: #15803d; } &.bad b { color: #b91c1c; }
+    }
+    &.fa-empty { padding: 12px 14px; color: #92400e; background: #fffbeb; border-color: #fde68a; }
+}

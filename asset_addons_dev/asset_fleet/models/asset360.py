@@ -33,6 +33,9 @@ class AssetAsset360(models.Model):
         asset = self.browse(int(asset_id)).exists()
         if not asset:
             return {'error': _('Asset not found')}
+        # opened from the IT asset: business data is on its fixed asset
+        if 'fixed_asset_id' in asset._fields and asset.fixed_asset_id:
+            asset = asset.fixed_asset_id
         it = asset.it_asset_id if 'it_asset_id' in asset._fields and asset.it_asset_id else asset
         emp = (asset.assigned_employee_id or it.assigned_employee_id) if 'assigned_employee_id' in asset._fields \
             else self.env['hr.employee']
