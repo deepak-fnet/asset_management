@@ -106,7 +106,7 @@
     <section class="a360-card a360-apps" t-if="s.has_data">
       <header><h3><i class="fa fa-th-large"/> Apps <small>tap one for its week</small></h3></header>
       <div class="a360-applist">
-        <t t-foreach="s.apps.slice(0, 8)" t-as="a" t-key="a.name">
+        <t t-foreach="s.apps.slice(0, 8)" t-as="a" t-key="a_index">
           <div t-attf-class="a360-app #{state.app === a.name ? 'sel' : ''}" t-on-click="() => this.pickApp(a.name)">
             <img t-if="a.icon" t-att-src="a.icon" alt=""/>
             <span t-else="" class="noicon" t-esc="(a.name || '?')[0]"/>

@@ -111,8 +111,12 @@ class AssetScreenTime(models.Model):
                     a['name'] = _('Not tracked (before login)')
                 if (a.get('name') or '').lower() == 'gjs' or (a.get('app_id') or '').startswith('window:'):
                     a['name'], a['app_id'] = _('Desktop'), 'desktop'
-            app_cmds = [(5, 0, 0)] + [(0, 0, {'app_id': a.get('app_id'), 'name': a.get('name') or a.get('app_id'),
-                                              'minutes': int(a.get('seconds') or 0) / 60.0}) for a in apps]
+            merged = {}
+            for a in apps:
+                nm = a.get('name') or a.get('app_id') or _('Unknown')
+                m = merged.setdefault(nm, {'app_id': a.get('app_id'), 'name': nm, 'minutes': 0.0})
+                m['minutes'] += int(a.get('seconds') or 0) / 60.0
+            app_cmds = [(5, 0, 0)] + [(0, 0, m) for m in sorted(merged.values(), key=lambda x: -x['minutes'])]
             users = [s.get('user') for s in segs if s.get('user')]
             rec.write({
                 'segment_ids': seg_cmds, 'app_ids': app_cmds,

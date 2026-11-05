@@ -4,6 +4,11 @@ from odoo import _, api, fields, models
 from odoo.tools import html2plaintext
 
 
+def _fmt_min(m):
+    m = int(round(m or 0))
+    return '%dh %02dm' % (m // 60, m % 60) if m >= 60 else '%dm' % m
+
+
 def _r(v, n=1):
     try:
         return round(float(v or 0), n)
@@ -154,8 +159,15 @@ class AssetAsset360(models.Model):
                     app_week[k]['days'][6 - i] += _r(a.minutes, 0)
                     app_week[k]['total'] += _r(a.minutes, 0)
         week_active = [w['active'] for w in week if w['active']]
-        apps = [{'name': a.name, 'minutes': _r(a.minutes, 0), 'dur': a.duration, 'share': _r(a.share, 0),
-                 'icon': icon(a)} for a in sel.app_ids.sorted('minutes', reverse=True)]
+        merged = {}
+        for a in sel.app_ids:
+            m = merged.setdefault(a.name, {'name': a.name, 'minutes': 0, 'icon': icon(a)})
+            m['minutes'] += a.minutes
+            m['icon'] = m['icon'] or icon(a)
+        tot = sel.active_minutes or 1
+        apps = [{'name': m['name'], 'minutes': _r(m['minutes'], 0), 'dur': _fmt_min(m['minutes']),
+                 'share': _r(m['minutes'] / tot * 100, 0), 'icon': m['icon']}
+                for m in sorted(merged.values(), key=lambda x: -x['minutes'])]
         return {
             'has_data': True, 'days': days_available, 'day': fields.Date.to_string(sel.date),
             'user': sel.user_name, 'active': _r(sel.active_minutes, 0), 'idle': _r(sel.idle_minutes, 0),
