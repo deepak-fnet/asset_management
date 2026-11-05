@@ -73,14 +73,14 @@ class AssetScreenTime(models.Model):
                                 'top:0;bottom:0;background:%s"></div>' % (
                                     dict(STATES)[s.state], s.start_local, s.end_local, st, en - st,
                                     colors.get(s.state, '#ccc')))
-            ticks = ''.join('<div style="position:absolute;left:%.3f%%;top:30px;font-size:10px;'
+            ticks = ''.join('<div style="position:absolute;left:%.3f%%;top:2px;font-size:10px;'
                             'transform:translateX(-50%%)">%02d</div>' % (h * 100 / 24, h) for h in range(0, 25, 3))
             legend = ' &nbsp; '.join('<span style="display:inline-block;width:10px;height:10px;background:%s"></span> %s'
                                      % (c, n) for c, n in (('#2e9d5b', 'Active'), ('#e0a526', 'Idle'),
                                                            ('#9aa0a6', 'Locked'), ('#f1f3f4', 'Off')))
             r.timeline_html = ('<div style="position:relative;height:26px;background:#f1f3f4;border-radius:4px;'
-                               'overflow:hidden">%s</div><div style="position:relative;height:16px">%s</div>'
-                               '<div class="small mt-3">%s</div>' % (''.join(bars), ticks, legend))
+                               'overflow:hidden">%s</div><div style="position:relative;height:18px;margin:0 6px">%s</div>'
+                               '<div class="small mt-2">%s</div>' % (''.join(bars), ticks, legend))
 
     @api.model
     def _ingest(self, asset, payload):
@@ -104,6 +104,11 @@ class AssetScreenTime(models.Model):
                 seg_cmds.append((0, 0, {'start': start, 'end': end, 'state': s.get('state') or 'active',
                                         'minutes': minutes, 'user_name': s.get('user'), 'tz_offset_min': tz_min}))
             apps = sorted(day.get('apps') or [], key=lambda a: -int(a.get('seconds') or 0))
+            for a in apps:
+                if a.get('icon'):
+                    self.env['asset.app.icon']._store(a.get('app_id') or a.get('name'), a.get('name'), a['icon'])
+                if not a.get('app_id') and a.get('name') == 'Unknown':
+                    a['name'] = _('Not tracked (before login)')
             app_cmds = [(5, 0, 0)] + [(0, 0, {'app_id': a.get('app_id'), 'name': a.get('name') or a.get('app_id'),
                                               'minutes': int(a.get('seconds') or 0) / 60.0}) for a in apps]
             users = [s.get('user') for s in segs if s.get('user')]
@@ -143,6 +148,27 @@ class AssetScreenTimeSegment(models.Model):
             s.duration = _fmt(s.minutes)
 
 
+class AssetAppIcon(models.Model):
+    """Application icons sent by the agents - one per application, shared by
+    every machine."""
+    _name = 'asset.app.icon'
+    _description = 'Application Icon'
+
+    key = fields.Char(required=True, index=True, help="Application id (desktop file) or name.")
+    name = fields.Char()
+    icon = fields.Binary(attachment=True)
+
+    _key_uniq = models.Constraint('UNIQUE(key)', 'One icon per application.')
+
+    @api.model
+    def _store(self, key, name, icon_b64):
+        rec = self.sudo().search([('key', '=', key)], limit=1)
+        if rec:
+            rec.write({'icon': icon_b64, 'name': name})
+        else:
+            self.sudo().create({'key': key, 'name': name, 'icon': icon_b64})
+
+
 class AssetScreenTimeApp(models.Model):
     _name = 'asset.screen.time.app'
     _description = 'Screen Time per Application'
@@ -156,6 +182,13 @@ class AssetScreenTimeApp(models.Model):
     minutes = fields.Float('Minutes')
     duration = fields.Char('Time', compute='_compute_duration')
     share = fields.Float('% of Active', compute='_compute_duration')
+    icon = fields.Binary('Icon', compute='_compute_icon')
+
+    def _compute_icon(self):
+        keys = {k for r in self for k in (r.app_id, r.name) if k}
+        icons = {i.key: i.icon for i in self.env['asset.app.icon'].sudo().search([('key', 'in', list(keys))])}
+        for r in self:
+            r.icon = icons.get(r.app_id) or icons.get(r.name) or False
 
     def _compute_duration(self):
         for a in self:

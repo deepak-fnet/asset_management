@@ -44,6 +44,7 @@
                         <page string="Applications" name="apps">
                             <field name="app_ids">
                                 <list>
+                                    <field name="icon" widget="image" options="{'size': [24, 24]}" string=" " width="40px"/>
                                     <field name="name"/>
                                     <field name="duration" string="Time"/>
                                     <field name="share" widget="progressbar" string="% of Active"/>
@@ -104,6 +105,7 @@
             <list create="0" edit="0">
                 <field name="date"/>
                 <field name="asset_id"/>
+                <field name="icon" widget="image" options="{'size': [24, 24]}" string=" " width="40px"/>
                 <field name="name"/>
                 <field name="duration" string="Time"/>
                 <field name="minutes" sum="Minutes" optional="hide"/>

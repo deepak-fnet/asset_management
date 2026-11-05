@@ -10,3 +10,5 @@ access_screen_time_seg_user,screen time seg user,model_asset_screen_time_segment
 access_screen_time_seg_admin,screen time seg admin,model_asset_screen_time_segment,base.group_system,1,1,1,1
 access_screen_time_app_user,screen time app user,model_asset_screen_time_app,base.group_user,1,0,0,0
 access_screen_time_app_admin,screen time app admin,model_asset_screen_time_app,base.group_system,1,1,1,1
+access_app_icon_user,app icon user,model_asset_app_icon,base.group_user,1,0,0,0
+access_app_icon_admin,app icon admin,model_asset_app_icon,base.group_system,1,1,1,1

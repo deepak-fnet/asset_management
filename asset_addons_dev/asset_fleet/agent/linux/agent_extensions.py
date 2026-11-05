@@ -1447,6 +1447,62 @@ def _screentime_sample():
     return 'active', user, app_id, app_name
 
 
+DESKTOP_DIRS = ('/usr/share/applications', '/usr/local/share/applications', '/var/lib/snapd/desktop/applications',
+                '/var/lib/flatpak/exports/share/applications')
+ICON_DIRS = ('/usr/share/icons/hicolor', '/usr/share/icons/Yaru', '/usr/share/icons/Adwaita',
+             '/var/lib/flatpak/exports/share/icons/hicolor')
+_icons_sent = set()
+
+
+def _desktop_file(app_id):
+    if not app_id:
+        return None
+    names = [app_id if app_id.endswith('.desktop') else app_id + '.desktop']
+    for home in _homes():
+        for d in (os.path.join(home, '.local/share/applications'),) + DESKTOP_DIRS:
+            for n in names:
+                p = os.path.join(d, n)
+                if os.path.isfile(p):
+                    return p
+    return None
+
+
+def _app_icon_b64(app_id, app_name):
+    """PNG / SVG of the application's icon (from its .desktop Icon=), base64."""
+    import base64
+    icon = None
+    desk = _desktop_file(app_id)
+    if desk:
+        try:
+            with open(desk, errors='ignore') as fh:
+                for line in fh:
+                    if line.startswith('Icon='):
+                        icon = line.split('=', 1)[1].strip()
+                        break
+        except OSError:
+            pass
+    icon = icon or (app_name or '').lower()
+    if not icon:
+        return None
+    candidates = []
+    if os.path.isabs(icon):
+        candidates.append(icon)
+    else:
+        for base in ICON_DIRS:
+            for size in ('64x64', '48x48', '128x128', '96x96', '256x256', 'scalable'):
+                for ext in ('png', 'svg'):
+                    candidates.append(os.path.join(base, size, 'apps', '%s.%s' % (icon, ext)))
+        candidates += ['/usr/share/pixmaps/%s.png' % icon, '/usr/share/pixmaps/%s.svg' % icon]
+    for c in candidates:
+        try:
+            if os.path.isfile(c) and os.path.getsize(c) < 200000 and c.endswith(('.png', '.svg')):
+                with open(c, 'rb') as fh:
+                    return base64.b64encode(fh.read()).decode()
+        except OSError:
+            continue
+    return None
+
+
 def _day_summary(day, samples):
     """samples [[ts, state, user, app_id, app_name]] -> segments + per-app seconds."""
     segs, apps = [], {}
@@ -1457,8 +1513,16 @@ def _day_summary(day, samples):
             segs.append({'start': ts, 'end': ts + 60, 'state': state, 'user': user})
         if state == 'active':
             key = app_id or app_name or 'Unknown'
-            a = apps.setdefault(key, {'app_id': app_id, 'name': app_name or app_id or 'Unknown', 'seconds': 0})
+            a = apps.setdefault(key, {'app_id': app_id,
+                                      'name': app_name or app_id or 'Not tracked (before login)', 'seconds': 0})
             a['seconds'] += 60
+    for a in apps.values():
+        key = a['app_id'] or a['name']
+        if key not in _icons_sent and a['app_id']:
+            icon = _safe(lambda: _app_icon_b64(a['app_id'], a['name']))
+            if icon:
+                a['icon'] = icon
+            _icons_sent.add(key)
     return {'date': day, 'segments': segs, 'apps': list(apps.values())}
 
 
