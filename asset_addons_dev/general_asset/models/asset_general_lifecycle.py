@@ -440,12 +440,11 @@ class PhysicalVerification(models.Model):
         return True
 
     def action_done(self):
+        """Complete: anything not scanned by now is Missing."""
         for rec in self:
             pending = rec.line_ids.filtered(lambda l: l.status == "pending")
             if pending:
-                raise UserError(_(
-                    "%s line(s) are still pending. Mark every asset as found "
-                    "or missing before completing.") % len(pending))
+                pending.write({"status": "missing"})
             rec.state = "done"
             rec.message_post(body=_(
                 "Verification complete: %(found)s found, %(missing)s missing "
@@ -467,25 +466,39 @@ class PhysicalVerification(models.Model):
         blocking error dialog for the common case of a mis-scan.
         """
         self.ensure_one()
-        match = re.search(r"Asset:\s*(\S+)", code or "")
-        asset_code = match.group(1) if match else (code or "").strip()
-        if not asset_code:
-            return {"success": False,
+        raw = (code or "").strip()
+        match = re.search(r"Asset:\s*(\S+)", raw)
+        key = match.group(1) if match else raw.splitlines()[0].strip() if raw else ""
+        if not key:
+            return {"success": False, "code": raw,
                     "message": _("Could not read an asset code from that scan.")}
+        if self.state != "in_progress":
+            return {"success": False, "code": key,
+                    "message": _("Scanning works while the verification is In Progress.")}
 
-        line = self.line_ids.filtered(lambda l: l.asset_code == asset_code)
+        # QR label (asset code), barcode / RFID label (tag) or the serial
+        low = key.lower()
+        line = self.line_ids.filtered(lambda l: (l.asset_code or "").lower() == low) \
+            or self.line_ids.filtered(lambda l: (l.tag_number or "").lower() == low) \
+            or self.line_ids.filtered(lambda l: (l.serial_number or "").lower() == low)
         if not line:
-            return {"success": False,
-                    "message": _("%s is not on this verification's asset list.", asset_code)}
+            other = self.env["asset.asset"].search(
+                ["|", "|", ("asset_code", "=ilike", key), ("tag_number", "=ilike", key),
+                 ("serial_number", "=ilike", key)], limit=1)
+            msg = (_("%(a)s is not on this list (it belongs to %(loc)s).",
+                     a=other.display_name, loc=other.location_id.display_name or _("no location"))
+                   if other else _("%s is not a known asset code, tag or serial.", key))
+            return {"success": False, "code": key, "message": msg}
         line = line[0]
+        name = line.asset_id.display_name
 
         if line.status == "found":
-            return {"success": True, "already": True,
-                    "message": _("%s was already marked Found.", asset_code)}
+            return {"success": True, "already": True, "code": key, "name": name,
+                    "message": _("%s was already marked Found.", name)}
 
         line.action_mark_found()
-        return {"success": True, "already": False,
-                "message": _("%s marked Found.", asset_code)}
+        return {"success": True, "already": False, "code": key, "name": name,
+                "message": _("%s marked Found.", name)}
 
 
 class PhysicalVerificationLine(models.Model):

@@ -50,6 +50,7 @@ asset.asset records created through it remain, since they are ordinary assets.
             "general_asset/static/src/xml/asset_dynamic_category_fields.xml",
             "general_asset/static/src/js/physical_verification_scanner.js",
             "general_asset/static/src/xml/physical_verification_scanner.xml",
+            "general_asset/static/src/scss/physical_verification.scss",
         ],
     },
     "installable": True,

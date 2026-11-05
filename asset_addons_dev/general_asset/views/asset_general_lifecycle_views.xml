@@ -304,7 +304,8 @@
                             string="Load Assets" class="btn-primary"
                             invisible="state not in ['draft','in_progress']"/>
                     <button name="action_done" type="object" string="Complete"
-                            class="btn-primary" invisible="state != 'in_progress'"/>
+                            class="btn-primary" invisible="state != 'in_progress'"
+                            confirm="Assets not scanned yet will be marked Missing. Complete this verification?"/>
                     <button name="action_cancel" type="object" string="Cancel"
                             invisible="state in ['done','cancelled']"/>
                     <field name="state" widget="statusbar"
@@ -314,41 +315,44 @@
                     <div class="oe_title">
                         <h1><field name="name" readonly="1"/></h1>
                     </div>
-                    <div class="mb-3" invisible="state != 'in_progress'">
-                        <widget name="physical_verification_scanner"/>
-                    </div>
+                    <widget name="physical_verification_scanner"/>
                     <group>
                         <group string="Scope">
-                            <field name="verification_date"/>
                             <field name="location_id" readonly="state not in ('draft',)"/>
                             <field name="department_id" readonly="state not in ('draft',)"/>
-                            <div colspan="2" class="text-muted">
+                            <div colspan="2" class="text-muted small" invisible="state != 'draft'">
                                 Select a Location or a Department to load its assets.
                                 Select both to load only the assets in that
                                 location that also belong to that department.
                             </div>
                         </group>
-                        <group string="Result">
-                            <field name="verified_by"/>
-                            <field name="total_count" readonly="1"/>
-                            <field name="found_count" readonly="1"/>
-                            <field name="missing_count" readonly="1"/>
+                        <group string="Details">
+                            <field name="verification_date" readonly="state in ('done','cancelled')"/>
+                            <field name="verified_by" readonly="state in ('done','cancelled')"/>
+                            <field name="total_count" invisible="1"/>
+                            <field name="found_count" invisible="1"/>
+                            <field name="missing_count" invisible="1"/>
                         </group>
                     </group>
                     <notebook>
                         <page string="Assets" name="assets">
-                            <field name="line_ids">
-                                <list editable="bottom"
+                            <field name="line_ids" class="pv-lines" readonly="state in ('done','cancelled')">
+                                <list editable="bottom" create="0" delete="0"
                                       decoration-success="status == 'found'"
-                                      decoration-danger="status == 'missing'">
+                                      decoration-danger="status == 'missing'"
+                                      decoration-muted="status == 'pending'">
                                     <field name="asset_id" readonly="1"/>
                                     <field name="asset_code" readonly="1"/>
-                                    <field name="tag_number" readonly="1"/>
-                                    <field name="employee_id" readonly="1"/>
+                                    <field name="tag_number" readonly="1" optional="show"/>
+                                    <field name="serial_number" readonly="1" optional="hide"/>
+                                    <field name="employee_id" readonly="1" widget="many2one_avatar_employee"/>
                                     <field name="expected_location_id" readonly="1"/>
-                                    <field name="status"/>
-                                    <field name="actual_location_id"/>
-                                    <field name="remarks"/>
+                                    <field name="status" readonly="1" widget="badge"
+                                           decoration-success="status == 'found'"
+                                           decoration-danger="status == 'missing'"
+                                           decoration-warning="status == 'pending'"/>
+                                    <field name="actual_location_id" readonly="1" optional="hide"/>
+                                    <field name="remarks" placeholder="Add a remark…"/>
                                 </list>
                             </field>
                         </page>

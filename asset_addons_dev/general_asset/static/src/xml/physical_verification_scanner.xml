@@ -2,10 +2,56 @@
 <templates xml:space="preserve">
 
     <t t-name="general_asset.PhysicalVerificationScanner">
-        <button type="button" class="btn btn-secondary" t-if="isSupported"
-                t-on-click="onScanClick">
-            <i class="fa fa-qrcode me-1"/>Scan Asset
-        </button>
+        <div t-att-class="'pv-station' + (state.flash ? ' flash-' + state.flash : '') + (active ? '' : ' idle')">
+            <!-- progress -->
+            <div class="pv-progress">
+                <div class="pv-ring" t-att-style="'--p:' + pct">
+                    <b><t t-esc="pct"/><small>%</small></b>
+                    <span>verified</span>
+                </div>
+                <div class="pv-counts">
+                    <div class="c found"><b t-esc="found"/><span>Found</span></div>
+                    <div class="c pending"><b t-esc="pending"/><span>Pending</span></div>
+                    <div class="c missing"><b t-esc="missing"/><span>Missing</span></div>
+                    <div class="pv-bar">
+                        <i class="found" t-att-style="'flex:' + found"/>
+                        <i class="pending" t-att-style="'flex:' + pending"/>
+                        <i class="missing" t-att-style="'flex:' + missing"/>
+                    </div>
+                    <small class="pv-total"><t t-esc="found"/> of <t t-esc="total"/> assets scanned</small>
+                </div>
+            </div>
+
+            <!-- scan -->
+            <div class="pv-scan" t-if="active">
+                <label class="pv-scan-box" t-on-click="focus">
+                    <i t-att-class="'fa ' + (state.busy ? 'fa-spinner fa-spin' : 'fa-barcode')"/>
+                    <input t-ref="scanInput" type="text" autocomplete="off" spellcheck="false"
+                           placeholder="Scan with the handheld scanner (or type a code and press Enter)"
+                           t-on-keydown="onInputKeydown"/>
+                    <span class="pv-live"><em/>ready</span>
+                </label>
+                <div class="pv-scan-row">
+                    <span class="pv-hint"><i class="fa fa-info-circle"/>
+                        USB / Bluetooth / Android handheld in keyboard mode - just pull the trigger, no click needed.
+                        Asset code, tag or serial all work.</span>
+                    <button type="button" class="btn btn-light pv-cam" t-if="cameraSupported" t-on-click="onCameraClick">
+                        <i class="fa fa-camera"/> Use camera
+                    </button>
+                </div>
+                <ul class="pv-feed" t-if="state.feed.length">
+                    <li t-foreach="state.feed" t-as="f" t-key="f.id" t-att-class="f.kind">
+                        <i t-att-class="'fa ' + (f.kind == 'ok' ? 'fa-check-circle' : f.kind == 'again' ? 'fa-repeat' : 'fa-times-circle')"/>
+                        <b t-esc="f.code"/>
+                        <span t-esc="f.message"/>
+                        <time t-esc="f.time"/>
+                    </li>
+                </ul>
+            </div>
+            <div class="pv-scan pv-scan-off" t-elif="data.state == 'draft'">
+                <i class="fa fa-hand-o-up"/> Pick a Location / Department and press <b>Load Assets</b> to start scanning.
+            </div>
+        </div>
     </t>
 
 </templates>
