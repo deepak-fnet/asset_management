@@ -164,6 +164,10 @@
         <field name="arch" type="xml">
             <xpath expr="//notebook" position="inside">
                 <page string="Screen Time" name="screen_time">
+                    <div class="d-flex justify-content-end mb-2" invisible="not screen_time_ids">
+                        <button name="action_open_asset_360" type="object" class="btn btn-primary btn-sm" icon="fa-dashboard" string=" Open Asset 360"/>
+                    </div>
+                    <field name="screen_time_visual" nolabel="1" readonly="1" invisible="not screen_time_ids"/>
                     <div class="alert alert-info" role="status" invisible="screen_time_ids">
                         No screen time yet. It comes from the asset agent (Linux) once the agent is installed /
                         updated from <b>Agent Telemetry &gt; Agent Install</b>; application times start after the

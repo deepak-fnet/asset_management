@@ -1,0 +1,29 @@
+.stv { margin-bottom: 14px;
+    .stv-cards { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 12px; }
+    .stv-card { background: #fff; border: 1px solid #e3e8f2; border-radius: 14px; padding: 12px 14px; box-shadow: 0 2px 10px rgba(30, 41, 80, .05);
+        span { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: #6b7489; }
+        b { display: block; font-size: 18px; font-weight: 800; color: #1f2937; }
+        small { color: #6b7489; }
+        &.ring { display: flex; gap: 14px; align-items: center;
+            .r { --deg: calc(var(--p) * 3.6deg); width: 84px; height: 84px; border-radius: 50%; flex: none; display: grid; place-content: center; text-align: center;
+                background: radial-gradient(closest-side, #fff 76%, transparent 77% 100%), conic-gradient(#7c4dff 0deg, #0ea5b7 var(--deg), #edf0f7 var(--deg));
+                b { font-size: 15px; } small { font-size: 10px; } } } }
+    .stv-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; margin-top: 12px; }
+    .stv-panel { background: #fff; border: 1px solid #e3e8f2; border-radius: 14px; padding: 12px 14px;
+        h4 { font-size: 13px; font-weight: 800; margin: 0 0 10px; color: #1f2937; } }
+    .stv-bars { display: flex; gap: 6px; height: 170px; align-items: flex-end; }
+    .stv-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 0;
+        b { font-size: 10px; margin-top: 3px; white-space: nowrap; } span { font-size: 9.5px; color: #6b7489; white-space: nowrap; } }
+    .stv-stack { width: 70%; max-width: 30px; height: 120px; display: flex; flex-direction: column-reverse; border-radius: 6px; overflow: hidden; background: #f1f3f9;
+        i { display: block; } .ac { background: linear-gradient(180deg, #34d399, #16a34a); } .id { background: #f59e0b; } .lk { background: #9ca3af; } }
+    .stv-legend { font-size: 11px; color: #6b7489; margin-top: 6px;
+        i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin: 0 4px 0 10px; vertical-align: -1px; }
+        .ac { background: #16a34a; } .id { background: #f59e0b; } .lk { background: #9ca3af; } }
+    .stv-app { display: grid; grid-template-columns: 28px 1fr 90px auto; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px dashed #edf0f7;
+        img, .ni { width: 26px; height: 26px; border-radius: 7px; object-fit: contain; }
+        .ni { display: grid; place-items: center; background: #ede7ff; color: #5b21b6; font-weight: 800; font-size: 11px; }
+        .n { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .t { height: 6px; background: #eef0f7; border-radius: 3px; overflow: hidden; i { display: block; height: 100%; background: linear-gradient(90deg, #7c4dff, #0ea5b7); } }
+        b { font-size: 12px; white-space: nowrap; } }
+    @media (max-width: 1100px) { .stv-cards, .stv-grid { grid-template-columns: 1fr 1fr; } }
+}

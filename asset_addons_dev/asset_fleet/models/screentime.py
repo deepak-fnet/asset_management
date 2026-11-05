@@ -207,3 +207,64 @@ class AssetAsset(models.Model):
     _inherit = 'asset.asset'
 
     screen_time_ids = fields.One2many('asset.screen.time', 'asset_id', string='Screen Time')
+    screen_time_visual = fields.Html(compute='_compute_screen_time_visual', sanitize=False)
+
+    def _compute_screen_time_visual(self):
+        from markupsafe import Markup, escape
+        Icon = self.env['asset.app.icon'].sudo()
+        for asset in self:
+            recs = asset.screen_time_ids.sorted('date', reverse=True)
+            if not recs:
+                asset.screen_time_visual = False
+                continue
+            last = recs[0]
+            by_date = {r.date: r for r in recs}
+            span = [last.date - timedelta(days=i) for i in range(13, -1, -1)]   # every day, gaps as 0
+            mx = max([by_date[d].on_minutes for d in span if d in by_date] + [60])
+
+            def col(d):
+                r = by_date.get(d)
+                a_, i_, l_ = (r.active_minutes, r.idle_minutes, r.locked_minutes) if r else (0, 0, 0)
+                return Markup('<div class="stv-col" title="%s · %s active"><div class="stv-stack">'
+                              '<i class="lk" style="height:%.1f%%"></i><i class="id" style="height:%.1f%%"></i>'
+                              '<i class="ac" style="height:%.1f%%"></i></div><b>%s</b><span>%s</span></div>') % (
+                    d.strftime('%a %d %b'), _fmt(a_), l_ / mx * 100, i_ / mx * 100, a_ / mx * 100,
+                    _fmt(a_) if r else '-', d.strftime('%a %d'))
+            bars = Markup('').join(col(d) for d in span)
+            week = recs.filtered(lambda r: r.date >= last.date - timedelta(days=6))
+            apps = {}
+            for a in week.app_ids:
+                e = apps.setdefault(a.name, {'m': 0, 'keys': {a.app_id, a.name}})
+                e['m'] += a.minutes
+                e['keys'].add(a.app_id)
+            keys = {k for e in apps.values() for k in e['keys'] if k}
+            icons = {i.key: i.id for i in Icon.search([('key', 'in', list(keys))])}
+            top = sorted(apps.items(), key=lambda kv: -kv[1]['m'])[:6]
+            tmax = top[0][1]['m'] if top else 1
+            app_rows = Markup('').join(
+                Markup('<div class="stv-app">%s<span class="n">%s</span><div class="t"><i style="width:%.1f%%"></i></div>'
+                       '<b>%s</b></div>') % (
+                    (Markup('<img src="/web/image/asset.app.icon/%s/icon" alt=""/>') % next(icons[k] for k in e['keys'] if k in icons))
+                    if any(k in icons for k in e['keys']) else Markup('<span class="ni">%s</span>') % (name[:1] or '?'),
+                    name, e['m'] / tmax * 100, _fmt(e['m'])) for name, e in top)
+            week_active = sum(week.mapped('active_minutes'))
+            avg = week_active / len(week) if week else 0
+            pct = min(100, last.active_minutes / 480 * 100)
+            asset.screen_time_visual = Markup(
+                '<div class="stv">'
+                '<div class="stv-cards">'
+                '<div class="stv-card ring" style="--p:%.1f"><div class="r"><b>%s</b><small>active</small></div>'
+                '<div><span>%s</span><b>%s of 8h goal</b><small>%s on · %s idle · %s locked</small></div></div>'
+                '<div class="stv-card"><span>First on → last on</span><b>%s → %s</b><small>%s</small></div>'
+                '<div class="stv-card"><span>Last 7 days</span><b>%s</b><small>avg %s / day</small></div>'
+                '<div class="stv-card"><span>Most used</span><b>%s</b><small>%s</small></div>'
+                '</div>'
+                '<div class="stv-grid"><div class="stv-panel"><h4>Last 14 days</h4><div class="stv-bars">%s</div>'
+                '<div class="stv-legend"><i class="ac"></i>active <i class="id"></i>idle <i class="lk"></i>locked</div></div>'
+                '<div class="stv-panel"><h4>Top apps · 7 days</h4>%s</div></div></div>') % (
+                pct, _fmt(last.active_minutes), last.date.strftime('%A, %d %b'), '%d%%' % pct,
+                _fmt(last.on_minutes), _fmt(last.idle_minutes), _fmt(last.locked_minutes),
+                last.segment_ids.sorted('start')[:1].start_local or '-', last.segment_ids.sorted('start')[-1:].end_local or '-',
+                last.user_name or '', _fmt(week_active), _fmt(avg),
+                escape(top[0][0]) if top else '-', _fmt(top[0][1]['m']) if top else '',
+                bars, app_rows or Markup('<p class="text-muted">No app time yet.</p>'))

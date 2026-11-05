@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- every install / upgrade: fixed asset values onto the linked IT assets -->
+    <function model="asset.asset" name="_fa_sync_all"/>
+</odoo>
