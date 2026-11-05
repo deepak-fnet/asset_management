@@ -118,10 +118,11 @@
     border-radius: 12px; transition: transform .15s, box-shadow .15s, border-color .15s; animation: oaad-in .45s ease-out both;
 }
 .o_all_asset_dashboard .oaad-k:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(15,23,42,.07); border-color: var(--c); }
-.o_all_asset_dashboard .oaad-k > i:first-child {
-    grid-row: span 2; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center;
-    color: var(--c); background: color-mix(in srgb, var(--c) 12%, #fff); font-size: 15px;
+.o_all_asset_dashboard .oaad-k > .ico {
+    grid-row: span 2; width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    color: var(--c); background: color-mix(in srgb, var(--c) 12%, #fff); font-size: 15px; line-height: 1;
 }
+.o_all_asset_dashboard .oaad-k > .ico .fa { line-height: 1; }
 .o_all_asset_dashboard .oaad-k b { font-size: 21px; font-weight: 800; line-height: 1.1; }
 .o_all_asset_dashboard .oaad-k span { font-size: 11.5px; color: var(--mute); }
 .o_all_asset_dashboard .oaad-k .go { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--c); opacity: 0; transition: opacity .15s, right .15s; }

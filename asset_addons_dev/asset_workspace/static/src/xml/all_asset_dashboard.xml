@@ -120,17 +120,17 @@
 
             <!-- KPI chips -->
             <div class="oaad-kpis">
-                <div class="oaad-k k-green"><i class="fa fa-bolt"/><b data-count="0" t-att-data-count="state.kpis.active" t-esc="state.kpis.active"/><span>Active</span></div>
-                <div class="oaad-k k-amber"><i class="fa fa-hourglass-half"/><b data-count="0" t-att-data-count="state.kpis.pending_approval" t-esc="state.kpis.pending_approval"/><span>Pending approval</span></div>
+                <div class="oaad-k k-green"><span class="ico"><i class="fa fa-bolt"/></span><b data-count="0" t-att-data-count="state.kpis.active" t-esc="state.kpis.active"/><span>Active</span></div>
+                <div class="oaad-k k-amber"><span class="ico"><i class="fa fa-hourglass-half"/></span><b data-count="0" t-att-data-count="state.kpis.pending_approval" t-esc="state.kpis.pending_approval"/><span>Pending approval</span></div>
                 <div class="oaad-k k-indigo oaad-clickable" t-on-click="openEmployeeAssets" title="Assigned to an employee">
-                    <i class="fa fa-user"/><b data-count="0" t-att-data-count="state.kpis.employee_assets" t-esc="state.kpis.employee_assets"/><span>Employee assets</span><i class="fa fa-angle-right go"/></div>
+                    <span class="ico"><i class="fa fa-user"/></span><b data-count="0" t-att-data-count="state.kpis.employee_assets" t-esc="state.kpis.employee_assets"/><span>Employee assets</span><i class="fa fa-angle-right go"/></div>
                 <div class="oaad-k k-sky oaad-clickable" t-on-click="openCommonAssets" title="Assigned to a location / department, no employee">
-                    <i class="fa fa-building-o"/><b data-count="0" t-att-data-count="state.kpis.common_assets" t-esc="state.kpis.common_assets"/><span>Common assets</span><i class="fa fa-angle-right go"/></div>
-                <div class="oaad-k k-slate"><i class="fa fa-archive"/><b data-count="0" t-att-data-count="state.kpis.unassigned" t-esc="state.kpis.unassigned"/><span>Unassigned</span></div>
-                <div class="oaad-k k-violet"><i class="fa fa-exchange"/><b data-count="0" t-att-data-count="state.kpis.under_transfer" t-esc="state.kpis.under_transfer"/><span>Under transfer</span></div>
-                <div class="oaad-k k-teal"><i class="fa fa-check-square-o"/><b data-count="0" t-att-data-count="state.kpis.verification_due" t-esc="state.kpis.verification_due"/><span>Verification due</span></div>
-                <div class="oaad-k k-rose"><i class="fa fa-sign-out"/><b data-count="0" t-att-data-count="state.kpis.removals_open" t-esc="state.kpis.removals_open"/><span>Removals open</span></div>
-                <div class="oaad-k k-gray"><i class="fa fa-trash-o"/><b data-count="0" t-att-data-count="state.kpis.removed" t-esc="state.kpis.removed"/><span>Removed</span></div>
+                    <span class="ico"><i class="fa fa-building-o"/></span><b data-count="0" t-att-data-count="state.kpis.common_assets" t-esc="state.kpis.common_assets"/><span>Common assets</span><i class="fa fa-angle-right go"/></div>
+                <div class="oaad-k k-slate"><span class="ico"><i class="fa fa-archive"/></span><b data-count="0" t-att-data-count="state.kpis.unassigned" t-esc="state.kpis.unassigned"/><span>Unassigned</span></div>
+                <div class="oaad-k k-violet"><span class="ico"><i class="fa fa-exchange"/></span><b data-count="0" t-att-data-count="state.kpis.under_transfer" t-esc="state.kpis.under_transfer"/><span>Under transfer</span></div>
+                <div class="oaad-k k-teal"><span class="ico"><i class="fa fa-check-square-o"/></span><b data-count="0" t-att-data-count="state.kpis.verification_due" t-esc="state.kpis.verification_due"/><span>Verification due</span></div>
+                <div class="oaad-k k-rose"><span class="ico"><i class="fa fa-sign-out"/></span><b data-count="0" t-att-data-count="state.kpis.removals_open" t-esc="state.kpis.removals_open"/><span>Removals open</span></div>
+                <div class="oaad-k k-gray"><span class="ico"><i class="fa fa-trash-o"/></span><b data-count="0" t-att-data-count="state.kpis.removed" t-esc="state.kpis.removed"/><span>Removed</span></div>
             </div>
 
             <!-- Value story -->
