@@ -188,6 +188,31 @@
         </field>
     </record>
 
+    <record id="view_asset_general_form_360" model="ir.ui.view">
+        <field name="name">asset.asset.general.form.360</field>
+        <field name="model">asset.asset</field>
+        <field name="inherit_id" ref="general_asset.view_asset_general_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_asset_360" type="object" class="oe_stat_button" icon="fa-dashboard">
+                    <div class="o_stat_info"><span class="o_stat_text">Asset 360</span><span class="o_stat_text text-muted">Dashboard</span></div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_asset_it_form_360" model="ir.ui.view">
+        <field name="name">asset.asset.it.form.360</field>
+        <field name="model">asset.asset</field>
+        <field name="inherit_id" ref="asset_management.view_asset_asset_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_asset_360" type="object" class="oe_stat_button" icon="fa-dashboard">
+                    <div class="o_stat_info"><span class="o_stat_text">Asset 360</span><span class="o_stat_text text-muted">Dashboard</span></div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
     <menuitem id="menu_screen_time" name="Screen Time" parent="asset_workspace.menu_ws_telemetry"
               action="action_screen_time" sequence="30" groups="base.group_system"/>
     <menuitem id="menu_screen_time_app" name="App Usage" parent="asset_workspace.menu_ws_telemetry"

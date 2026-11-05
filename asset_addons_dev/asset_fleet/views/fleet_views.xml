@@ -47,7 +47,10 @@
                     </group>
                     <notebook>
                         <page string="Telemetry Commands" name="commands">
-                            <group><field name="track_screen_time" widget="boolean_toggle"/></group>
+                            <group>
+                                <field name="track_screen_time" widget="boolean_toggle"/>
+                                <field name="track_location" widget="boolean_toggle"/>
+                            </group>
                             <field name="command_ids">
                                 <list editable="bottom">
                                     <field name="sequence" widget="handle"/>

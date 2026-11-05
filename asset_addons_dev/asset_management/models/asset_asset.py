@@ -690,6 +690,7 @@ class AssetAsset(models.Model):
     location_source = fields.Selection(
         [
             ("gps", "GPS"),
+            ("browser", "Browser (Wi-Fi)"),
             ("ip", "IP-based"),
             ("unavailable", "Unavailable"),
         ],
@@ -2507,7 +2508,15 @@ class AssetAsset(models.Model):
                 f"📍 [Location] Raw: lat={payload.get('location_latitude') or payload.get('latitude')}, lon={payload.get('location_longitude') or payload.get('longitude')}, source={payload.get('location_source')} | Normalized: lat={location_latitude}, lon={location_longitude}, source={location_source}")
 
             # Store coordinates AS-IS if valid (regardless of source)
-            if has_valid_coordinates(location_latitude, location_longitude):
+            # A precise fix (Chrome Wi-Fi location / GPS) from the last 2 hours
+            # wins over the agent's IP lookup - IP is only the fallback.
+            _precise_fresh = (
+                location_source == "ip" and asset.location_source in ("gps", "browser")
+                and asset.last_location_update
+                and (fields.Datetime.now() - asset.last_location_update).total_seconds() < 7200)
+            if _precise_fresh:
+                pass        # keep the precise position
+            elif has_valid_coordinates(location_latitude, location_longitude):
                 # Has the device actually moved? IP-derived coordinates are
                 # identical on every sync for a stationary machine, so writing
                 # them again just dirties the row and invites a concurrent

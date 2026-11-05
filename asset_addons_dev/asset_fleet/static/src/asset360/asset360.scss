@@ -1,0 +1,202 @@
+$a360-green: #2fb67c;
+$a360-amber: #f5a524;
+$a360-grey: #9aa3ae;
+$a360-red: #e5484d;
+$a360-ink: #1b2330;
+
+.a360 {
+    background: #f4f6fb;
+    min-height: 100%;
+    overflow: auto;
+    padding: 18px 22px 40px;
+    color: $a360-ink;
+    font-size: 13px;
+
+    h1, h3 { margin: 0; }
+    @keyframes a360-pulse { 0% { box-shadow: 0 0 0 0 rgba(47, 182, 124, .6); } 70% { box-shadow: 0 0 0 10px rgba(47, 182, 124, 0); } 100% { box-shadow: 0 0 0 0 rgba(47, 182, 124, 0); } }
+    @keyframes a360-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    @keyframes a360-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+    @keyframes a360-spin { to { transform: rotate(360deg); } }
+
+    .a360-loading { display: flex; gap: 12px; align-items: center; justify-content: center; height: 60vh; font-size: 15px; color: #667; }
+    .a360-spin { width: 22px; height: 22px; border: 3px solid #dde; border-top-color: #6c5ce7; border-radius: 50%; animation: a360-spin .8s linear infinite; }
+
+    /* ---------------- hero ---------------- */
+    .a360-hero {
+        position: relative; border-radius: 22px; overflow: hidden; color: #fff; padding: 26px 28px 18px;
+        box-shadow: 0 18px 40px rgba(53, 46, 120, .25); animation: a360-rise .5s ease both;
+    }
+    .a360-hero-bg {
+        position: absolute; inset: 0;
+        background: radial-gradient(1200px 300px at 10% -40%, rgba(255,255,255,.25), transparent 60%),
+                    linear-gradient(120deg, #5b3fd6 0%, #7a4fe0 35%, #2f80ed 75%, #1fb5a9 100%);
+    }
+    .a360-hero-main { position: relative; display: flex; gap: 22px; align-items: center; flex-wrap: wrap; }
+    .a360-avatar-wrap { position: relative; }
+    .a360-avatar {
+        width: 92px; height: 92px; border-radius: 50%; object-fit: cover; border: 4px solid rgba(255,255,255,.85);
+        cursor: pointer; background: rgba(255,255,255,.15); transition: transform .2s;
+        &:hover { transform: scale(1.05); }
+    }
+    .a360-avatar-empty { display: grid; place-items: center; font-size: 36px; }
+    .a360-presence {
+        position: absolute; right: 4px; bottom: 6px; width: 20px; height: 20px; border-radius: 50%; border: 3px solid #fff;
+        &.on { background: $a360-green; animation: a360-pulse 2s infinite; }
+        &.off { background: $a360-grey; }
+    }
+    .a360-who { flex: 1 1 320px; min-width: 0;
+        h1 { font-size: 30px; font-weight: 700; letter-spacing: -.3px; }
+    }
+    .a360-kicker { opacity: .8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+    .a360-sub { opacity: .9; margin-top: 2px; }
+    .a360-greet { margin-top: 10px; display: inline-block; background: rgba(255,255,255,.18); padding: 6px 12px; border-radius: 999px; font-weight: 600; backdrop-filter: blur(4px); }
+    .a360-hero-side { display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
+    .a360-live {
+        display: flex; align-items: center; gap: 8px; font-weight: 700; background: rgba(0,0,0,.18); padding: 7px 14px; border-radius: 999px;
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: $a360-grey; }
+        &.on .dot { background: #4cf0a8; animation: a360-pulse 1.6s infinite; }
+        small { font-weight: 400; opacity: .8; margin-left: 4px; }
+    }
+    .a360-where { display: flex; gap: 10px; align-items: center; background: rgba(255,255,255,.14); padding: 8px 14px; border-radius: 14px;
+        .fa { font-size: 22px; }
+        b { display: block; } small { opacity: .85; }
+    }
+    .a360-hero-btns .btn { margin-left: 6px; border-radius: 999px; background: rgba(255,255,255,.9); border: 0; }
+    .a360-chips { position: relative; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px;
+        .chip { background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.25); padding: 4px 10px; border-radius: 999px; font-size: 12px; white-space: nowrap; }
+    }
+
+    /* ---------------- grid & cards ---------------- */
+    .a360-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; margin-top: 18px; }
+    .a360-card {
+        background: #fff; border-radius: 18px; padding: 16px 18px; box-shadow: 0 6px 22px rgba(30, 40, 80, .07);
+        animation: a360-rise .5s ease both; transition: box-shadow .2s, transform .2s; min-width: 0;
+        &:hover { box-shadow: 0 12px 30px rgba(30, 40, 80, .12); transform: translateY(-2px); }
+        > header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; flex-wrap: wrap;
+            h3 { font-size: 15px; font-weight: 700; .fa { color: #6c5ce7; margin-right: 6px; } small { font-weight: 400; color: #8a94a6; margin-left: 6px; } }
+            > small { color: #8a94a6; }
+        }
+    }
+    .a360-today { grid-column: span 7; }
+    .a360-apps { grid-column: span 5; }
+    .a360-week { grid-column: span 7; }
+    .a360-health { grid-column: span 5; }
+    .a360-map { grid-column: span 5; }
+    .a360-life { grid-column: span 4; }
+    .a360-feed { grid-column: span 3; }
+    @media (max-width: 1200px) { .a360-card { grid-column: span 12 !important; } }
+
+    .a360-daynav { display: flex; align-items: center; gap: 6px; font-weight: 600;
+        .btn { border-radius: 50%; width: 30px; height: 30px; padding: 0; background: #f1f0fb; color: #6c5ce7; }
+    }
+    .a360-today-body { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; }
+    .a360-ring { position: relative; width: 150px; height: 150px;
+        svg { width: 150px; height: 150px; }
+        .track { fill: none; stroke: #eef0f6; stroke-width: 12; }
+        .fill { fill: none; stroke: url(#a360grad); stroke: #6c5ce7; stroke-width: 12; stroke-linecap: round; transition: stroke-dasharray 1s ease; }
+    }
+    .a360-ring-label { position: absolute; inset: 0; display: grid; place-content: center; text-align: center;
+        b { font-size: 24px; } small { color: #8a94a6; font-size: 11px; }
+    }
+    .a360-stats { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+        > div { background: #f7f8fc; border-radius: 12px; padding: 10px 12px; }
+        .k { display: block; color: #8a94a6; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+        b { font-size: 18px; } .idle { color: $a360-amber; } .locked { color: $a360-grey; }
+    }
+    .a360-timeline { margin-top: 16px;
+        .bar { position: relative; height: 26px; background: #eef0f6; border-radius: 8px; overflow: hidden; }
+        .seg { position: absolute; top: 0; bottom: 0; transform-origin: bottom; animation: a360-grow .6s ease both;
+            &.active { background: linear-gradient(180deg, #43d29a, $a360-green); }
+            &.idle { background: $a360-amber; } &.locked { background: $a360-grey; }
+            &:hover { filter: brightness(1.15); }
+        }
+        .hours { position: relative; height: 16px; margin: 3px 6px 0; span { position: absolute; transform: translateX(-50%); font-size: 10px; color: #8a94a6; } }
+        .legend { margin-top: 6px; font-size: 11px; color: #667;
+            .lg { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin: 0 4px 0 10px; vertical-align: -1px;
+                &.active { background: $a360-green; } &.idle { background: $a360-amber; } &.locked { background: $a360-grey; } &.off { background: #eef0f6; } }
+        }
+    }
+
+    /* ---------------- apps ---------------- */
+    .a360-applist { display: flex; flex-direction: column; gap: 6px; }
+    .a360-app { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 12px; cursor: pointer; transition: background .15s;
+        &:hover { background: #f5f4fe; } &.sel { background: #ece9ff; }
+        img, .noicon { width: 30px; height: 30px; border-radius: 8px; flex: none; }
+        .noicon { display: grid; place-items: center; background: #e9ecf5; color: #6c5ce7; font-weight: 700; }
+        .nm { flex: 1; min-width: 0; span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; } }
+        .track { height: 6px; background: #eef0f6; border-radius: 3px; margin-top: 4px; overflow: hidden; }
+        .fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #6c5ce7, #2f80ed); transition: width 1s ease; }
+        b { font-variant-numeric: tabular-nums; }
+    }
+    .a360-appweek { margin-top: 12px; padding: 12px; border-radius: 12px; background: #f7f6ff;
+        .ttl { margin-bottom: 8px; font-size: 12px; color: #556; }
+        .bars { display: flex; gap: 8px; height: 90px; align-items: flex-end; }
+        .col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; gap: 4px;
+            .b { width: 100%; max-width: 26px; background: linear-gradient(180deg, #8f7cf0, #6c5ce7); border-radius: 6px 6px 2px 2px; transform-origin: bottom; animation: a360-grow .5s ease both; }
+            span { font-size: 10px; color: #8a94a6; }
+        }
+    }
+
+    /* ---------------- week ---------------- */
+    .a360-badges { display: flex; gap: 6px; .bdg { background: #f1f0fb; color: #6c5ce7; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; &.fire { background: #fff1e6; color: #e8590c; } } }
+    .a360-weekbars { display: flex; gap: 10px; height: 170px; align-items: flex-end;
+        .col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; cursor: pointer; border-radius: 10px; padding: 4px 0;
+            &:hover, &.sel { background: #f5f4fe; }
+            .stack { width: 60%; max-width: 38px; height: 120px; display: flex; flex-direction: column-reverse; border-radius: 8px; overflow: hidden; background: #f1f2f7; }
+            .b { transform-origin: bottom; animation: a360-grow .7s ease both; &.active { background: linear-gradient(180deg, #43d29a, $a360-green); } &.idle { background: $a360-amber; } &.locked { background: $a360-grey; } }
+            b { font-size: 11px; margin-top: 4px; } span { font-size: 10px; color: #8a94a6; }
+        }
+    }
+    .a360-heat { margin-top: 14px;
+        .hd, .rw { display: grid; grid-template-columns: 34px repeat(24, 1fr); gap: 3px; align-items: center; }
+        .hd span { font-size: 9px; color: #8a94a6; }
+        .rw { margin-top: 3px; > span { font-size: 10px; color: #8a94a6; } }
+        i { display: block; height: 14px; border-radius: 3px; transition: transform .15s; &:hover { transform: scale(1.35); outline: 2px solid #fff; } }
+    }
+
+    /* ---------------- health ---------------- */
+    .a360-gauges { display: flex; justify-content: space-around; flex-wrap: wrap;
+        .gauge { position: relative; width: 84px; text-align: center;
+            svg { width: 84px; height: 84px; }
+            .track { fill: none; stroke: #eef0f6; stroke-width: 8; stroke-linecap: round; }
+            .fill { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dasharray 1s ease; }
+            b { position: absolute; top: 28px; left: 0; right: 0; font-size: 16px; }
+            span { display: block; margin-top: -10px; font-size: 11px; color: #8a94a6; }
+        }
+    }
+    .a360-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px;
+        &.small { grid-template-columns: repeat(2, 1fr); }
+        .tile { border-radius: 12px; padding: 10px; background: #f7f8fc; border-left: 4px solid #d9dce6;
+            b { display: block; font-size: 18px; } span { font-size: 11px; color: #667; }
+            &.ok { border-left-color: $a360-green; } &.warn { border-left-color: $a360-amber; background: #fffaf0; } &.bad { border-left-color: $a360-red; background: #fff5f5; }
+        }
+    }
+    .a360-locks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px;
+        .lock { font-size: 11px; padding: 4px 10px; border-radius: 999px; background: #f1f2f7; color: #8a94a6;
+            &.on { background: #ffe9ea; color: #c4262c; font-weight: 600; } }
+    }
+
+    /* ---------------- map ---------------- */
+    .a360-map iframe { width: 100%; height: 230px; border: 0; border-radius: 14px; }
+    .a360-nomap { height: 230px; display: grid; place-items: center; background: #f7f8fc; border-radius: 14px; color: #8a94a6; }
+    .a360-addr { margin-top: 8px; font-size: 12px; color: #556; }
+    .a360-places { list-style: none; padding: 0; margin: 8px 0 0; max-height: 150px; overflow: auto;
+        li { display: flex; gap: 8px; align-items: baseline; padding: 5px 0; border-bottom: 1px dashed #eef0f6; }
+        .when { color: #8a94a6; font-size: 11px; min-width: 110px; } small { color: #8a94a6; margin-left: auto; }
+    }
+
+    /* ---------------- life ---------------- */
+    .a360-money { display: flex; gap: 12px;
+        > div { flex: 1; background: #f7f8fc; border-radius: 12px; padding: 10px 12px; }
+        span { display: block; font-size: 11px; color: #8a94a6; text-transform: uppercase; } b { font-size: 18px; } small { display: block; color: #8a94a6; }
+    }
+    .a360-dep { height: 8px; border-radius: 4px; background: #e6f6ee; margin: 10px 0 4px; overflow: hidden;
+        .fill { height: 100%; background: linear-gradient(90deg, $a360-amber, $a360-red); transition: width 1s ease; } }
+
+    /* ---------------- feed ---------------- */
+    .a360-feed ul { list-style: none; padding: 0; margin: 0; max-height: 330px; overflow: auto;
+        li { display: flex; gap: 10px; padding: 6px 0; .dot { width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: #6c5ce7; flex: none; }
+            small { color: #8a94a6; } p { margin: 0; font-size: 12px; } }
+    }
+    .a360-empty p { color: #8a94a6; margin-top: 10px; }
+}

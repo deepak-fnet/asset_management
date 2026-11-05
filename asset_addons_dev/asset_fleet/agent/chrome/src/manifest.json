@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Asset Location (IT)",
+  "version": "1.0.0",
+  "description": "Reports this laptop's location (Chrome location service) to the company asset system every 10 minutes. Installed by your IT administrator.",
+  "permissions": ["alarms", "offscreen", "geolocation", "storage"],
+  "host_permissions": ["<all_urls>"],
+  "background": {"service_worker": "background.js"},
+  "storage": {"managed_schema": "schema.json"}
+}

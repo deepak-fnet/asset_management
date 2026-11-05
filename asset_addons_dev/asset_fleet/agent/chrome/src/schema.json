@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "properties": {
+    "server": {"type": "string", "description": "Odoo URL"},
+    "db": {"type": "string"},
+    "serial": {"type": "string", "description": "Asset serial number"},
+    "token": {"type": "string"},
+    "interval": {"type": "integer"}
+  }
+}

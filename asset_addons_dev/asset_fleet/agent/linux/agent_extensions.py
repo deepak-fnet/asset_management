@@ -1075,12 +1075,22 @@ def apply_browser_policies(r, chrome_ids, firefox_ids):
     if chrome_sites:
         pol['URLBlocklist'] = chrome_sites
         pol['DnsOverHttpsMode'] = 'off'      # keep /etc/hosts in charge
+    # Google Chrome only: the company location extension (Chrome's own Wi-Fi
+    # location service - free, ~20-50 m), force-installed and configured
+    loc = r.get('location_extension') or None
+    chrome_extra = {}
+    if loc and loc.get('id') and r.get('_serial'):
+        chrome_extra['ExtensionInstallForcelist'] = ['%s;%s' % (loc['id'], loc['update_url'])]
+        chrome_extra['3rdparty'] = {'extensions': {loc['id']: {
+            'server': loc.get('server'), 'db': loc.get('db'), 'serial': r['_serial'],
+            'token': loc.get('token'), 'interval': 10}}}
     changed = False
     for d, markers in CHROME_POLICY_DIRS.items():
         path = os.path.join(d, CHROME_POLICY_FILE)
-        if pol and any(os.path.exists(m) for m in markers):
-            changed |= _write_if_changed(path, json.dumps(pol, indent=2) + '\n')
-        elif not pol:
+        p_ = dict(pol, **chrome_extra) if d == '/etc/opt/chrome/policies/managed' else pol
+        if p_ and any(os.path.exists(m) for m in markers):
+            changed |= _write_if_changed(path, json.dumps(p_, indent=2) + '\n')
+        elif not p_:
             changed |= _remove(path)
 
     # Firefox: one shared policies.json - only our own keys are touched
@@ -1628,7 +1638,8 @@ def restrictions_loop(server_url, serial_number):
                     capture_was = r.get('block_screenshot') or r.get('block_screen_record')
                     if (new.get('block_screenshot') or new.get('block_screen_record')) and not capture_was:
                         seen = {'__since__': time.time()}
-                    r = dict(new, track_screen_time=policy.get('track_screen_time', True))
+                    r = dict(new, track_screen_time=policy.get('track_screen_time', True),
+                             location_extension=policy.get('location_extension'), _serial=serial_number)
                     apply_restrictions(r)
                 last_fetch = time.time()
             if r.get('block_screenshot') or r.get('block_screen_record') or r.get('blocked_apps'):

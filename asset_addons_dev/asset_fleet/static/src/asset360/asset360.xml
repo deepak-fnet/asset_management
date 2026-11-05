@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+<t t-name="asset_fleet.Asset360">
+<div class="a360 o_action">
+  <t t-if="state.loading and !state.data"><div class="a360-loading"><div class="a360-spin"/>Loading Asset 360…</div></t>
+  <t t-elif="state.data and state.data.error"><div class="a360-loading" t-esc="state.data.error"/></t>
+  <t t-elif="state.data">
+  <t t-set="d" t-value="state.data"/>
+  <t t-set="s" t-value="screen"/>
+
+  <!-- ============================== HERO ============================== -->
+  <section class="a360-hero">
+    <div class="a360-hero-bg"/>
+    <div class="a360-hero-main">
+      <div class="a360-avatar-wrap">
+        <img t-if="d.employee" class="a360-avatar" t-att-src="d.employee.image" t-on-click="openEmployee" alt=""/>
+        <div t-else="" class="a360-avatar a360-avatar-empty"><i class="fa fa-laptop"/></div>
+        <span t-attf-class="a360-presence #{d.device.online ? 'on' : 'off'}" t-att-title="d.device.online ? 'Online' : 'Offline'"/>
+      </div>
+      <div class="a360-who">
+        <div class="a360-kicker"><t t-esc="d.asset.code"/> · <t t-esc="d.asset.category"/></div>
+        <h1 t-esc="d.employee ? d.employee.name : d.asset.name"/>
+        <div class="a360-sub">
+          <t t-if="d.employee and d.employee.job"><span t-esc="d.employee.job"/> · </t>
+          <span t-esc="d.asset.department or '—'"/>
+          <t t-if="d.employee and d.employee.since"> · with this device since <t t-esc="localDate(d.employee.since)"/></t>
+        </div>
+        <div class="a360-greet" t-esc="greeting"/>
+      </div>
+      <div class="a360-hero-side">
+        <div t-attf-class="a360-live #{d.device.online ? 'on' : 'off'}">
+          <span class="dot"/><t t-esc="d.device.online ? 'LIVE · Online' : 'Offline'"/>
+          <small>last seen <t t-esc="ago(d.device.last_seen)"/></small>
+        </div>
+        <div class="a360-where" t-if="d.location.lat">
+          <i class="fa fa-map-marker"/>
+          <div>
+            <b t-esc="d.location.city or 'Unknown place'"/>
+            <small><t t-esc="d.location.source"/><t t-if="d.location.accuracy"> · ±<t t-esc="d.location.accuracy"/> m</t> · <t t-esc="ago(d.location.updated)"/></small>
+          </div>
+        </div>
+        <div class="a360-hero-btns">
+          <button class="btn btn-light btn-sm" t-on-click="openAsset"><i class="fa fa-cube"/> Asset</button>
+          <button class="btn btn-light btn-sm" t-if="d.asset.it_id != d.asset.id" t-on-click="openIt"><i class="fa fa-laptop"/> IT Asset</button>
+          <button class="btn btn-light btn-sm" t-on-click="() => this.load()"><i t-attf-class="fa fa-refresh #{state.loading ? 'fa-spin' : ''}"/></button>
+        </div>
+      </div>
+    </div>
+    <div class="a360-chips">
+      <span class="chip"><i class="fa fa-desktop"/> <t t-esc="d.device.hostname or '—'"/></span>
+      <span class="chip"><i class="fa fa-linux"/> <t t-esc="d.device.os or '—'"/></span>
+      <span class="chip"><i class="fa fa-microchip"/> <t t-esc="d.device.processor or '—'"/></span>
+      <span class="chip" t-if="d.device.ram"><i class="fa fa-server"/> <t t-esc="d.device.ram"/> GB RAM</span>
+      <span class="chip" t-if="d.device.ip"><i class="fa fa-wifi"/> <t t-esc="d.device.ip"/></span>
+      <span class="chip"><i class="fa fa-barcode"/> <t t-esc="d.asset.serial"/></span>
+      <span class="chip" t-if="d.device.uptime"><i class="fa fa-clock-o"/> up <t t-esc="d.device.uptime"/></span>
+    </div>
+  </section>
+
+  <div class="a360-grid">
+    <!-- ============================ TODAY ============================ -->
+    <section class="a360-card a360-today" t-if="s.has_data">
+      <header>
+        <h3><i class="fa fa-bolt"/> Screen time</h3>
+        <div class="a360-daynav">
+          <button class="btn btn-sm" t-att-disabled="!canPrev" t-on-click="() => this.shiftDay(-1)"><i class="fa fa-chevron-left"/></button>
+          <span t-esc="localDate(s.day)"/>
+          <button class="btn btn-sm" t-att-disabled="!canNext" t-on-click="() => this.shiftDay(1)"><i class="fa fa-chevron-right"/></button>
+        </div>
+      </header>
+      <div class="a360-today-body">
+        <t t-set="rg" t-value="ring(s.active, s.target)"/>
+        <div class="a360-ring">
+          <svg viewBox="0 0 128 128">
+            <circle cx="64" cy="64" r="54" class="track"/>
+            <circle cx="64" cy="64" r="54" class="fill" t-att-stroke-dasharray="rg.dash" transform="rotate(-90 64 64)"/>
+          </svg>
+          <div class="a360-ring-label"><b t-esc="fmtMin(s.active)"/><small>active · <t t-esc="rg.pct"/>% of <t t-esc="s.target / 60"/>h</small></div>
+        </div>
+        <div class="a360-stats">
+          <div><span class="k">On</span><b t-esc="fmtMin(s.on)"/></div>
+          <div><span class="k">Idle</span><b class="idle" t-esc="fmtMin(s.idle)"/></div>
+          <div><span class="k">Locked</span><b class="locked" t-esc="fmtMin(s.locked)"/></div>
+          <div><span class="k">Focus</span><b t-esc="productivity + '%'"/></div>
+          <div><span class="k">First on</span><b t-esc="localTime(s.first_on)"/></div>
+          <div><span class="k">Last on</span><b t-esc="localTime(s.last_on)"/></div>
+        </div>
+      </div>
+      <div class="a360-timeline">
+        <div class="bar">
+          <t t-foreach="s.segments" t-as="seg" t-key="seg_index">
+            <div t-attf-class="seg #{seg.state}" t-att-style="segStyle(seg)"
+                 t-att-title="seg.state + ' ' + seg.from + '–' + seg.to + ' (' + seg.dur + ')'"/>
+          </t>
+        </div>
+        <div class="hours"><t t-foreach="[0,3,6,9,12,15,18,21,24]" t-as="h" t-key="h"><span t-attf-style="left:#{h / 24 * 100}%" t-esc="pad2(h)"/></t></div>
+        <div class="legend"><i class="lg active"/>Active <i class="lg idle"/>Idle <i class="lg locked"/>Locked <i class="lg off"/>Off</div>
+      </div>
+    </section>
+    <section class="a360-card a360-today a360-empty" t-else="">
+      <h3><i class="fa fa-bolt"/> Screen time</h3>
+      <p>No screen time yet - it starts once the agent is updated (Agent Telemetry › Agent Install).</p>
+    </section>
+
+    <!-- ============================ APPS ============================ -->
+    <section class="a360-card a360-apps" t-if="s.has_data">
+      <header><h3><i class="fa fa-th-large"/> Apps <small>tap one for its week</small></h3></header>
+      <div class="a360-applist">
+        <t t-foreach="s.apps.slice(0, 8)" t-as="a" t-key="a.name">
+          <div t-attf-class="a360-app #{state.app === a.name ? 'sel' : ''}" t-on-click="() => this.pickApp(a.name)">
+            <img t-if="a.icon" t-att-src="a.icon" alt=""/>
+            <span t-else="" class="noicon" t-esc="(a.name || '?')[0]"/>
+            <div class="nm"><span t-esc="a.name"/><div class="track"><div class="fill" t-att-style="pctFill(a.share)"/></div></div>
+            <b t-esc="fmtMin(a.minutes)"/>
+          </div>
+        </t>
+        <p t-if="!s.apps.length" class="text-muted">No app time this day.</p>
+      </div>
+      <div class="a360-appweek" t-if="appDays">
+        <div class="ttl"><b t-esc="state.app"/> · last 7 days</div>
+        <div class="bars">
+          <t t-foreach="appDays" t-as="m" t-key="m_index">
+            <div class="col"><div class="b" t-att-style="appBar(m)" t-att-title="fmtMin(m)"/><span t-esc="s.week[m_index].label"/></div>
+          </t>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ WEEK ============================ -->
+    <section class="a360-card a360-week" t-if="s.has_data">
+      <header>
+        <h3><i class="fa fa-calendar"/> This week</h3>
+        <div class="a360-badges">
+          <span class="bdg"><i class="fa fa-line-chart"/> avg <t t-esc="fmtMin(s.week_avg)"/>/day</span>
+          <span class="bdg fire" t-if="streak"><i class="fa fa-fire"/> <t t-esc="streak"/>-day streak</span>
+        </div>
+      </header>
+      <div class="a360-weekbars">
+        <t t-foreach="s.week" t-as="w" t-key="w.date">
+          <div t-attf-class="col #{w.date === s.day ? 'sel' : ''}" t-on-click="() => this.pickDay(w.date)" t-att-title="fmtMin(w.active) + ' active'">
+            <div class="stack">
+              <div class="b locked" t-att-style="barStyle(w, 'locked')"/>
+              <div class="b idle" t-att-style="barStyle(w, 'idle')"/>
+              <div class="b active" t-att-style="barStyle(w, 'active')"/>
+            </div>
+            <b t-esc="fmtMin(w.active)"/>
+            <span t-esc="w.label + ' ' + w.day"/>
+          </div>
+        </t>
+      </div>
+      <div class="a360-heat">
+        <div class="hd"><span/><t t-foreach="hours24" t-as="h" t-key="h"><span t-esc="hourLabel(h)"/></t></div>
+        <t t-foreach="s.heat" t-as="row" t-key="row_index">
+          <div class="rw">
+            <span t-esc="heatDays[row_index]"/>
+            <t t-foreach="row" t-as="v" t-key="v_index"><i t-att-style="heatStyle(v)" t-att-title="heatDays[row_index] + ' ' + v_index + ':00 · ' + v + ' min active'"/></t>
+          </div>
+        </t>
+      </div>
+    </section>
+
+    <!-- ============================ DEVICE HEALTH ============================ -->
+    <section class="a360-card a360-health">
+      <header><h3><i class="fa fa-heartbeat"/> Device health</h3><small t-esc="d.health.policy"/></header>
+      <div class="a360-gauges">
+        <t t-foreach="[['CPU', d.live.cpu], ['RAM', d.live.ram], ['Disk', d.live.disk], ['Battery', d.live.battery]]" t-as="gg" t-key="gg[0]">
+          <t t-set="gv" t-value="gauge(gg[0] === 'Battery' ? 100 - gg[1] : gg[1])"/>
+          <div class="gauge">
+            <svg viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="34" class="track" t-att-stroke-dasharray="gv.base" transform="rotate(135 40 40)"/>
+              <circle cx="40" cy="40" r="34" class="fill" t-att-stroke="gg[0] === 'Battery' ? '#2fb67c' : gv.color"
+                      t-att-stroke-dasharray="gauge(gg[1]).dash" transform="rotate(135 40 40)"/>
+            </svg>
+            <b><t t-esc="round(gg[1])"/>%</b><span t-esc="gg[0]"/>
+          </div>
+        </t>
+      </div>
+      <div class="a360-tiles">
+        <div t-attf-class="tile #{d.health.os_pending ? 'warn' : 'ok'}"><b t-esc="d.health.os_pending"/><span>OS patches</span></div>
+        <div t-attf-class="tile #{d.health.app_pending ? 'warn' : 'ok'}"><b t-esc="d.health.app_pending"/><span>App updates</span></div>
+        <div t-attf-class="tile #{(d.health.vuln.critical + d.health.vuln.high) ? 'bad' : 'ok'}"><b t-esc="d.health.vuln.critical + d.health.vuln.high"/><span>Critical/high CVEs</span></div>
+        <div class="tile"><b t-esc="d.health.apps_installed"/><span>Apps installed</span></div>
+        <div t-attf-class="tile #{d.health.antivirus.running ? 'ok' : 'bad'}"><b><i t-attf-class="fa #{d.health.antivirus.running ? 'fa-shield' : 'fa-exclamation-triangle'}"/></b><span t-esc="d.health.antivirus.running ? 'Antivirus on' : 'No antivirus'"/></div>
+        <div class="tile" t-if="d.health.os_upgrade"><b><i class="fa fa-level-up"/></b><span><t t-esc="d.health.os_upgrade.target"/> · <t t-esc="d.health.os_upgrade.state"/></span></div>
+      </div>
+      <div class="a360-locks" t-if="d.health.restrictions.screenshot !== undefined">
+        <span t-attf-class="lock #{d.health.restrictions.screenshot ? 'on' : ''}"><i class="fa fa-camera"/> Screenshots</span>
+        <span t-attf-class="lock #{d.health.restrictions.record ? 'on' : ''}"><i class="fa fa-video-camera"/> Recording</span>
+        <span t-attf-class="lock #{d.health.restrictions.usb and d.health.restrictions.usb !== 'allow' ? 'on' : ''}"><i class="fa fa-usb"/> USB <t t-esc="d.health.restrictions.usb"/></span>
+        <span t-attf-class="lock #{d.health.restrictions.websites ? 'on' : ''}"><i class="fa fa-globe"/> <t t-esc="d.health.restrictions.websites or 0"/> sites</span>
+        <span t-attf-class="lock #{d.health.restrictions.extensions ? 'on' : ''}"><i class="fa fa-puzzle-piece"/> <t t-esc="d.health.restrictions.extensions"/> ext. blocked</span>
+      </div>
+    </section>
+
+    <!-- ============================ LOCATION ============================ -->
+    <section class="a360-card a360-map">
+      <header><h3><i class="fa fa-map"/> Where it is</h3><small t-if="d.location.updated" t-esc="ago(d.location.updated)"/></header>
+      <iframe t-if="mapUrl" t-att-src="mapUrl" loading="lazy" title="map"/>
+      <div t-else="" class="a360-nomap">No location yet</div>
+      <div class="a360-addr" t-if="d.location.address"><i class="fa fa-map-pin"/> <t t-esc="d.location.address"/></div>
+      <ul class="a360-places">
+        <t t-foreach="d.location.history" t-as="h" t-key="h_index">
+          <li><span class="when" t-esc="localDate(h.date) + ' ' + localTime(h.date)"/><b t-esc="h.city or '—'"/><small t-esc="h.source"/></li>
+        </t>
+      </ul>
+    </section>
+
+    <!-- ============================ ASSET LIFE ============================ -->
+    <section class="a360-card a360-life">
+      <header><h3><i class="fa fa-cube"/> Asset life</h3></header>
+      <div class="a360-money">
+        <div><span>Bought for</span><b><t t-esc="d.finance.symbol"/> <t t-esc="d.finance.cost.toLocaleString()"/></b><small t-esc="localDate(d.finance.purchase_date)"/></div>
+        <div><span>Worth today</span><b><t t-esc="d.finance.symbol"/> <t t-esc="d.finance.value.toLocaleString()"/></b><small><t t-esc="d.finance.dep_pct"/>% depreciated</small></div>
+      </div>
+      <div class="a360-dep"><div class="fill" t-att-style="pctFill(d.finance.dep_pct)"/></div>
+      <div class="a360-tiles small">
+        <div t-attf-class="tile #{d.finance.warranty_days !== false and d.finance.warranty_days &lt; 60 ? 'warn' : 'ok'}">
+          <b t-esc="d.finance.warranty_days === false ? '—' : d.finance.warranty_days"/><span>days warranty left</span></div>
+        <div class="tile"><b t-esc="d.finance.repairs_done"/><span>repairs done</span></div>
+        <div t-attf-class="tile #{d.finance.repairs_open ? 'warn' : 'ok'}"><b t-esc="d.finance.repairs_open"/><span>open repairs</span></div>
+        <div class="tile"><b t-esc="d.finance.amc or '—'"/><span>AMC</span></div>
+      </div>
+    </section>
+
+    <!-- ============================ FEED ============================ -->
+    <section class="a360-card a360-feed">
+      <header><h3><i class="fa fa-history"/> Recent activity</h3></header>
+      <ul>
+        <t t-foreach="d.feed" t-as="f" t-key="f_index">
+          <li><span class="dot"/><div><small><t t-esc="ago(f.date)"/> · <t t-esc="f.author"/></small><p t-esc="f.text"/></div></li>
+        </t>
+        <li t-if="!d.feed.length" class="text-muted">Nothing yet.</li>
+      </ul>
+    </section>
+  </div>
+  </t>
+</div>
+</t>
+</templates>

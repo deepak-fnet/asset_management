@@ -4,6 +4,9 @@ import secrets
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
+LOCATION_EXTENSION_ID = 'hhofbcampdemdhpnhpfaepconmaipnjb'   # signing key kept outside git (~/.config/asset-agent-keys/)
+LOCATION_EXTENSION_VERSION = '1.0.0'
+
 SECTIONS = [
     ('system', 'System'), ('cpu', 'CPU'), ('memory', 'Memory'), ('disks', 'Disks'),
     ('processes', 'Top Processes'), ('network', 'Network'), ('services', 'Services'),
@@ -49,6 +52,10 @@ class AssetFleetPolicy(models.Model):
                                          help="GNOME screen recorder disabled and locked, recorders (OBS, "
                                               "SimpleScreenRecorder, Kazam, Peek...) stopped, new files in "
                                               "~/Videos/Screencasts removed. Linux (GNOME) agents.")
+    track_location = fields.Boolean('Precise Location (Chrome)', default=True, tracking=True,
+                                    help="A small company extension is installed in Google Chrome and reports the "
+                                         "laptop's position from Chrome's location service (nearby Wi-Fi, ~20-50 m) "
+                                         "every 10 minutes. Without Chrome running, the agent's IP location is used.")
     track_screen_time = fields.Boolean('Track Screen Time', default=True, tracking=True,
                                        help="Daily on / active / idle / locked time and time per application "
                                             "(application names only - no window titles or content).")
@@ -87,7 +94,7 @@ class AssetFleetPolicy(models.Model):
     asset_count = fields.Integer(compute='_compute_asset_count')
 
     _BUMP = {'enabled', 'interval', 'snapshot_every', 'command_ids', 'block_screenshot', 'block_screen_record',
-             'blocked_extensions', 'auto_block_capture_extensions', 'track_screen_time', 'blocked_websites', 'usb_storage',
+             'blocked_extensions', 'auto_block_capture_extensions', 'track_screen_time', 'track_location', 'blocked_websites', 'usb_storage',
              'remove_admin_rights', 'admin_allowed_users', 'blocked_apps', 'screen_lock_minutes'} | {'section_%s' % s for s, _l in SECTIONS}
 
     def _compute_asset_count(self):
@@ -122,6 +129,7 @@ class AssetFleetPolicy(models.Model):
             'interval': self.interval, 'snapshot_every': self.snapshot_every,
             'sections': [],   # telemetry = the custom commands only
             'track_screen_time': self.track_screen_time,
+            'location_extension': self._location_extension() if self.track_location else False,
             'restrictions': {'block_screenshot': self.block_screenshot,
                              'block_screen_record': self.block_screen_record,
                              'blocked_extensions': self._extension_ids(),
@@ -136,6 +144,14 @@ class AssetFleetPolicy(models.Model):
             'commands': [{'name': c.name, 'key': c.key, 'command': c.command, 'platform': c.platform,
                           'interval': c.interval, 'timeout': c.timeout} for c in self.command_ids if c.active],
         }
+
+    def _location_extension(self):
+        base = self.env['ir.config_parameter'].sudo().get_param('web.base.url', '').rstrip('/')
+        tok = self.env['asset.fleet.enrollment.token'].sudo().search([('active', '=', True)], limit=1)
+        base = (tok.server_url or base).rstrip('/')
+        return {'id': LOCATION_EXTENSION_ID,
+                'update_url': '%s/asset/agent/chrome/update.xml?db=%s' % (base, self.env.cr.dbname),
+                'server': base, 'db': self.env.cr.dbname, 'token': tok.token or ''}
 
     @staticmethod
     def _lines(text):
@@ -258,6 +274,8 @@ class AssetFleetEnrollmentToken(models.Model):
 class AssetAsset(models.Model):
     _inherit = 'asset.asset'
 
+    location_accuracy = fields.Float('Location Accuracy (m)', readonly=True,
+                                     help="Radius the Chrome location service is sure of.")
     telemetry_policy_id = fields.Many2one('asset.fleet.policy', string='Telemetry Policy',
                                           help="Empty = the default telemetry policy.")
     policy_enforcement = fields.Html('Policy on this Machine', compute='_compute_policy_enforcement',

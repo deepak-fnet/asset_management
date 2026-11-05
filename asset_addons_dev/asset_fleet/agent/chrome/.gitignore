@@ -1,0 +1,2 @@
+# Chrome extension signing key - kept outside the repository
+*.pem
