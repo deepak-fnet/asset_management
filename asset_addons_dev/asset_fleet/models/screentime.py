@@ -109,6 +109,8 @@ class AssetScreenTime(models.Model):
                     self.env['asset.app.icon']._store(a.get('app_id') or a.get('name'), a.get('name'), a['icon'])
                 if not a.get('app_id') and a.get('name') == 'Unknown':
                     a['name'] = _('Not tracked (before login)')
+                if (a.get('name') or '').lower() == 'gjs' or (a.get('app_id') or '').startswith('window:'):
+                    a['name'], a['app_id'] = _('Desktop'), 'desktop'
             app_cmds = [(5, 0, 0)] + [(0, 0, {'app_id': a.get('app_id'), 'name': a.get('name') or a.get('app_id'),
                                               'minutes': int(a.get('seconds') or 0) / 60.0}) for a in apps]
             users = [s.get('user') for s in segs if s.get('user')]

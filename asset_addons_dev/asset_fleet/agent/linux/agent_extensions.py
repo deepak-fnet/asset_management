@@ -1399,6 +1399,8 @@ def _focused_app(user, uid, home, session_type):
         app_id, name = data.get('app') or '', data.get('name') or ''
         if app_id.startswith('window:'):          # no .desktop file: older extension gave "window:N"
             app_id = name
+        if name.lower() in ('gjs', 'ding', 'com.rastersoft.ding') or app_id.lower() in ('gjs', 'com.rastersoft.ding'):
+            app_id, name = 'desktop', 'Desktop'   # the desktop itself (Desktop Icons NG runs in gjs)
         return (app_id or name), (name or app_id)
     if session_type == 'x11' and shutil.which('xdotool'):
         try:
@@ -1495,7 +1497,21 @@ def _app_icon_b64(app_id, app_name):
         candidates += ['/usr/share/pixmaps/%s.png' % icon, '/usr/share/pixmaps/%s.svg' % icon]
     for c in candidates:
         try:
-            if os.path.isfile(c) and os.path.getsize(c) < 200000 and c.endswith(('.png', '.svg')):
+            if not (os.path.isfile(c) and c.endswith(('.png', '.svg'))):
+                continue
+            if c.endswith('.png') and os.path.getsize(c) > 40000:
+                # big PNG (snaps ship 512-1024 px icons): shrink to 64 px
+                try:
+                    import io
+                    from PIL import Image
+                    im = Image.open(c)
+                    im.thumbnail((64, 64))
+                    buf = io.BytesIO()
+                    im.save(buf, 'PNG', optimize=True)
+                    return base64.b64encode(buf.getvalue()).decode()
+                except Exception:
+                    continue
+            if os.path.getsize(c) < 200000:
                 with open(c, 'rb') as fh:
                     return base64.b64encode(fh.read()).decode()
         except OSError:
