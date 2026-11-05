@@ -1,5 +1,5 @@
 /** @odoo-module **/
-import { Component, useState, onWillStart, onMounted, onWillUnmount } from "@odoo/owl";
+import { Component, useState, useRef, onWillStart, onMounted, onWillUnmount } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 
@@ -40,13 +40,26 @@ export class Asset360 extends Component {
         this.action = useService("action");
         const p = this.props.action.params || {};
         this.assetId = p.asset_id || (this.props.action.context || {}).active_id;
-        this.state = useState({ data: null, day: null, app: null, loading: true, tick: 0, hover: null });
+        this.state = useState({ data: null, day: null, app: null, loading: true, tick: 0, hover: null,
+                                section: "overview", open: {} });
+        this.scrollRef = useRef("scroll");
+        this.sections = [
+            ["overview", "Overview", "fa-home"], ["screen", "Screen time", "fa-clock-o"],
+            ["apps", "Apps & week", "fa-th-large"], ["device", "Device", "fa-laptop"],
+            ["software", "Software & updates", "fa-cubes"], ["osupgrade", "OS upgrade", "fa-level-up"],
+            ["security", "Security", "fa-shield"], ["location", "Location", "fa-map-marker"],
+            ["procurement", "Procurement", "fa-shopping-cart"], ["warranty", "Warranty & AMC", "fa-certificate"],
+            ["depreciation", "Depreciation", "fa-line-chart"], ["service", "Service & history", "fa-wrench"],
+            ["all", "All details", "fa-list-alt"],
+        ];
         this.fmtMin = fmtMin;
         this.ago = ago;
         this.localTime = localTime;
         this.localDate = localDate;
         onWillStart(() => this.load());
         onMounted(() => {
+            const el = this.scrollRef.el;
+            if (el) el.addEventListener("scroll", () => this.onScroll());
             this.timer = setInterval(() => this.load(true), 60000);
             this.clock = setInterval(() => (this.state.tick += 1), 1000);
         });
@@ -58,6 +71,31 @@ export class Asset360 extends Component {
         this.state.data = await this.orm.call("asset.asset", "get_asset_360", [this.assetId, this.state.day]);
         this.state.loading = false;
     }
+
+    // ---------------------------------------------------------------- sections
+    jump(id) {
+        const el = this.scrollRef.el && this.scrollRef.el.querySelector(`[data-sec="${id}"]`);
+        if (el) this.scrollRef.el.scrollTo({ top: el.offsetTop - 12, behavior: "smooth" });
+        this.state.section = id;
+    }
+    onScroll() {
+        const root = this.scrollRef.el;
+        if (!root) return;
+        let cur = "overview";
+        for (const el of root.querySelectorAll("[data-sec]")) {
+            if (el.offsetTop - 60 <= root.scrollTop) cur = el.dataset.sec;
+        }
+        if (cur !== this.state.section) this.state.section = cur;
+    }
+    toggle(key) { this.state.open[key] = !this.state.open[key]; }
+    isOpen(key, i) { return this.state.open[key] === undefined ? i === 0 : this.state.open[key]; }
+    money(v) {
+        const f = this.state.data.finance;
+        return `${f.symbol} ${Number(v || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+    }
+    osuCls(k) { return { done: "ok", failed: "bad", in_progress: "run", approved: "run", cancelled: "muted" }[k] || "muted"; }
+    openPo() { this.openForm("purchase.order", this.state.data.fixed.po_id); }
+    openBill() { this.openForm("account.move", this.state.data.fixed.bill_id); }
 
     // ---------------------------------------------------------------- navigation
     get screen() { return (this.state.data && this.state.data.screen) || {}; }

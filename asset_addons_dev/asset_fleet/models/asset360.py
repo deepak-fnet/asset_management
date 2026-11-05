@@ -84,7 +84,167 @@ class AssetAsset360(models.Model):
         data['finance'] = self._360_finance(asset, cur)
         data['feed'] = self._360_feed(asset, it)
         data['details'] = self._360_details(asset, it)
+        data['fixed'] = self._360_fixed(asset, cur)
+        data['osu'] = self._360_os_upgrade(it)
+        data['all'] = self._360_all_fields(asset, it)
         return data
+
+    # ------------------------------------------------------------------ helpers
+    @staticmethod
+    def _fmt_val(rec, name, cur=None):
+        f = rec._fields.get(name)
+        if not f:
+            return False
+        v = rec[name]
+        if f.type in ('one2many', 'many2many', 'binary', 'html', 'json', 'properties', 'reference'):
+            return False
+        if f.type == 'boolean':
+            return 'Yes' if v else False
+        if v is False or v is None or v == '':
+            return False
+        if f.type in ('integer', 'float', 'monetary') and not v:
+            return False
+        if f.type == 'many2one':
+            return v.display_name
+        if f.type == 'selection':
+            sel = f.selection(rec) if callable(f.selection) else f.selection
+            return dict(sel or []).get(v, v)
+        if f.type == 'date':
+            return v.strftime('%d %b %Y')
+        if f.type == 'datetime':
+            return fields.Datetime.context_timestamp(rec, v).strftime('%d %b %Y %H:%M')
+        if f.type == 'monetary':
+            c = rec[f.currency_field] if f.currency_field and f.currency_field in rec._fields else cur
+            return '%s %s' % ((c.symbol if c else ''), '{:,.2f}'.format(v))
+        if f.type == 'float':
+            return '{:,.2f}'.format(v).rstrip('0').rstrip('.')
+        return str(v)
+
+    def _360_fields(self, rec, names, cur=None):
+        out = []
+        for n, label in names:
+            v = self._fmt_val(rec, n, cur)
+            if v:
+                out.append({'label': label or rec._fields[n].string, 'value': v})
+        return out
+
+    def _360_fixed(self, asset, cur):
+        P = [('acquisition_type', 'Acquisition'), ('procurement_vendor_id', 'Vendor'), ('purchase_order_id', 'Purchase order'),
+             ('invoice_move_id', 'Vendor bill'), ('invoice_ref', 'Invoice ref'), ('purchase_date', 'Purchase date'),
+             ('receipt_date', 'Received'), ('acquisition_date', 'Acquired'), ('procurement_department_id', 'Procured for'),
+             ('purchase_cost', 'Purchase cost'), ('asset_value', 'Asset value')]
+        W = [('warranty_status', 'Status'), ('warranty_type', 'Type'), ('warranty_template_id', 'Plan'),
+             ('warranty_provider_id', 'Provider'), ('warranty_contract_no', 'Contract no'),
+             ('warranty_start_date', 'Start'), ('warranty_end_date', 'End'), ('warranty_period_months', 'Months'),
+             ('warranty_support_contact', 'Support'), ('warranty_coverage_notes', 'Coverage')]
+        A = [('amc_status', 'AMC'), ('amc_vendor_id', 'AMC vendor'), ('amc_start_date', 'AMC start'),
+             ('amc_end_date', 'AMC end'), ('amc_nature', 'Nature')]
+        D = [('depreciation_method', 'Method'), ('useful_life_years', 'Useful life (years)'),
+             ('depreciation_rate', 'Declining rate %'), ('salvage_value_percent', 'Salvage %'),
+             ('salvage_value', 'Salvage value'), ('accumulated_depreciation', 'Accumulated'),
+             ('current_value', 'Current value'), ('depreciation_percentage', 'Depreciated %')]
+        AC = [('accounting_asset_id', 'Accounting asset'), ('accounting_asset_state', 'Status'),
+              ('accounting_journal_id', 'Journal'), ('accounting_account_asset_id', 'Asset account'),
+              ('accounting_account_depreciation_id', 'Accumulated dep. account'),
+              ('accounting_account_expense_id', 'Expense account'), ('accounting_entry_count', 'Journal entries')]
+        sched = []
+        if 'depreciation_line_ids' in asset._fields:
+            for l in asset.depreciation_line_ids.sorted('id'):
+                sched.append({'year': l.year, 'days': l.days, 'amount': _r(l.depreciation_amount, 2),
+                              'acc': _r(l.accumulated_value, 2), 'rem': _r(l.remaining_value, 2)})
+        board = []
+        if 'accounting_line_ids' in asset._fields:
+            for l in asset.accounting_line_ids.sorted('sequence'):
+                board.append({'date': fields.Date.to_string(l.depreciation_date) if l.depreciation_date else '',
+                              'amount': _r(l.amount, 2), 'cum': _r(l.depreciated_value, 2),
+                              'entry': l.move_id.name or '', 'posted': bool(l.move_id and l.move_id.state == 'posted')})
+        repairs = []
+        if 'repair_management_ids' in asset._fields:
+            for r in asset.repair_management_ids.sorted('id', reverse=True)[:8]:
+                st = dict(r._fields['state'].selection).get(r.state) if 'state' in r._fields else ''
+                repairs.append({'name': r.display_name, 'state': st,
+                                'date': fields.Datetime.to_string(r.create_date)})
+        licenses = []
+        if 'license_assignment_ids' in asset._fields:
+            for l in asset.license_assignment_ids[:10]:
+                licenses.append({'name': l.display_name})
+        claims = []
+        if 'warranty_claim_ids' in asset._fields:
+            for c in asset.warranty_claim_ids[:6]:
+                claims.append({'name': c.display_name,
+                               'state': dict(c._fields['state'].selection).get(c.state) if 'state' in c._fields else ''})
+        return {'procurement': self._360_fields(asset, P, cur), 'warranty': self._360_fields(asset, W, cur),
+                'amc': self._360_fields(asset, A, cur), 'depreciation': self._360_fields(asset, D, cur),
+                'accounting': self._360_fields(asset, AC, cur), 'schedule': sched, 'board': board,
+                'repairs': repairs, 'licenses': licenses, 'claims': claims,
+                'po_id': asset.purchase_order_id.id if 'purchase_order_id' in asset._fields and asset.purchase_order_id else False,
+                'bill_id': asset.invoice_move_id.id if 'invoice_move_id' in asset._fields and asset.invoice_move_id else False}
+
+    def _360_os_upgrade(self, it):
+        reqs = []
+        if 'asset.os.upgrade.request' in self.env:
+            for r in self.env['asset.os.upgrade.request'].sudo().search([('asset_id', '=', it.id)], order='id desc', limit=10):
+                reqs.append({'id': r.id, 'name': r.name, 'state': dict(r._fields['state'].selection).get(r.state),
+                             'state_key': r.state, 'from': r.current_os_version or '', 'to': r.target_version or '',
+                             'scheduled': self._fmt_val(r, 'scheduled_date') or '',
+                             'started': self._fmt_val(r, 'started_date') or '',
+                             'completed': self._fmt_val(r, 'completed_date') or '',
+                             'result': r.result_os_version or '',
+                             'error': (r.error_message or '').strip()[-400:]})
+        return {'current': self._fmt_val(it, 'os_name') or '', 'codename': self._fmt_val(it, 'os_codename') or '',
+                'available': bool(it.os_upgrade_available) if 'os_upgrade_available' in it._fields else False,
+                'available_version': self._fmt_val(it, 'os_upgrade_available_version') or '',
+                'available_codename': self._fmt_val(it, 'os_upgrade_available_codename') or '',
+                'checked': self._fmt_val(it, 'os_upgrade_checked_date') or '',
+                'win11': self._fmt_val(it, 'win11_status') or '', 'requests': reqs}
+
+    def _360_all_fields(self, asset, it):
+        """Every filled-in field of the fixed-asset and IT-asset forms, tab by tab -
+        new fields on those forms show up here without changing the dashboard."""
+        from lxml import etree
+        out = []
+        if it != asset:
+            views = [('Fixed asset', asset, 'general_asset.view_asset_general_form'),
+                     ('IT asset', it, 'asset_management.view_asset_asset_form')]
+        elif 'is_it_asset' in asset._fields and asset.is_it_asset:
+            views = [('IT asset', asset, 'asset_management.view_asset_asset_form')]
+        else:
+            views = [('Fixed asset', asset, 'general_asset.view_asset_general_form')]
+        for title, rec, xmlid in views:
+            view = self.env.ref(xmlid, raise_if_not_found=False)
+            if not view:
+                continue
+            try:
+                arch = etree.fromstring(rec.get_view(view.id, 'form')['arch'])
+            except Exception:  # noqa: BLE001
+                continue
+            seen = set()
+
+            def collect(node):
+                items = []
+                for fnode in node.iter('field'):
+                    if any(p.tag == 'field' for p in fnode.iterancestors()):
+                        continue      # inside a one2many sub-view
+                    n = fnode.get('name')
+                    if not n or n in seen or fnode.get('invisible') in ('1', 'True', 'true'):
+                        continue
+                    seen.add(n)
+                    v = self._fmt_val(rec, n)
+                    if v:
+                        items.append({'label': fnode.get('string') or rec._fields[n].string, 'value': v[:200]})
+                return items
+            sections = []
+            for page in arch.iter('page'):
+                items = collect(page)
+                if items:
+                    sections.append({'title': page.get('string') or '', 'items': items})
+            sheet = arch.find('.//sheet')
+            if sheet is not None:
+                general = collect(sheet)       # whatever is outside the notebook
+                if general:
+                    sections.insert(0, {'title': 'General', 'items': general})
+            out.append({'title': '%s · %s' % (title, rec.display_name), 'sections': sections})
+        return out
 
     def _360_details(self, asset, it):
         def dt(v):
