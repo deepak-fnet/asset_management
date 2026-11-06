@@ -41,8 +41,8 @@ asset.asset records created through it remain, since they are ordinary assets.
         "views/asset_general_views.xml",
         "views/asset_general_lifecycle_views.xml",
         "views/asset_general_menus.xml",
-        "views/asset_joining_domain_inherit.xml",
         "views/joining_process_ui_views.xml",
+        "views/asset_joining_domain_inherit.xml",
         "views/asset_direct_assign_views.xml",
     ],
     "assets": {

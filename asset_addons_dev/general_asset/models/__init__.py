@@ -4,4 +4,3 @@ from . import asset_depreciation
 from . import asset_general_lifecycle
 from . import joining_availability_wizard
 from . import asset_direct_assign_wizard
-from . import joining_process_ui
