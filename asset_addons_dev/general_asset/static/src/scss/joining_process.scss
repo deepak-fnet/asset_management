@@ -67,3 +67,45 @@ $jx-amber: #fbbf24;
 }
 .o_form_view.jp-form .o_statusbar_status .o_arrow_button::before, .o_form_view.jp-form .o_statusbar_status .o_arrow_button::after { clip-path: none !important; }
 .o_form_view.jp-form .o_form_statusbar { background: #fff; padding: 8px 16px; border-bottom: 1px solid $jx-line; }
+
+// ---- title: photo + name + progress
+.o_form_view.jp-form {
+    .jp-title { display: grid !important; grid-template-columns: 76px 1fr; grid-template-rows: auto auto auto; column-gap: 18px;
+        align-items: center; padding: 18px 20px; margin-bottom: 16px; background: #fff; border: 1px solid $jx-line; border-radius: 16px;
+        box-shadow: 0 4px 18px rgba(15, 23, 42, .04); max-width: none !important; width: 100%; animation: jx-in2 .35s ease-out;
+        h1 { grid-column: 2; margin: 0; font-size: 13px !important; font-family: SFMono-Regular, Menlo, monospace; color: $jx-mute; font-weight: 600; letter-spacing: .02em; }
+    }
+    .jp-photo { grid-row: 1 / span 3; width: 76px; height: 76px;
+        img { width: 76px !important; height: 76px !important; object-fit: cover; border-radius: 22px; box-shadow: 0 6px 16px rgba(99, 102, 241, .25); }
+    }
+    .jp-photo-empty { display: grid; place-items: center; border-radius: 22px; background: linear-gradient(135deg, #eef2ff, #f5f3ff); color: #6366f1; font-size: 28px; }
+    .jp-sub { grid-column: 2; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px;
+        .jp-who .o_field_widget, .jp-who span { font-size: 24px; font-weight: 800; color: $jx-ink; letter-spacing: -.01em; }
+        .jp-dep { color: $jx-mute; font-size: 13px; i { color: #6366f1; } .o_field_widget, span { color: $jx-mute; font-weight: 600; } } }
+    .jp-prog { grid-column: 2; display: flex; align-items: center; gap: 12px; margin-top: 8px; max-width: 520px;
+        .o_progressbar { flex: 1; }
+        .o_progress { height: 8px !important; border-radius: 99px !important; background: #eef1f6 !important; overflow: hidden; }
+        .o_progressbar .bg-primary, .progress-bar { background: linear-gradient(90deg, #6366f1, #10b981) !important; border-radius: 99px;
+            animation: jx-grow2 .9s ease-out; transform-origin: left; }
+        .o_progressbar_value { display: none; }
+        .jp-prog-t { font-size: 12px; font-weight: 700; color: $jx-mute; white-space: nowrap; } }
+
+    // ---- two groups as cards with icon headers
+    .jp-cards { gap: 14px; flex-wrap: nowrap;
+        > .o_inner_group, > div > .o_inner_group { background: #fff; border: 1px solid $jx-line; border-radius: 16px; padding: 14px 18px !important;
+            transition: box-shadow .2s, transform .2s;
+            &:hover { box-shadow: 0 8px 22px rgba(15, 23, 42, .06); transform: translateY(-1px); } }
+        .o_horizontal_separator { border: 0 !important; font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: $jx-ink; margin-bottom: 6px;
+            &::before { font-family: FontAwesome; margin-right: 8px; display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 8px;
+                background: #eef2ff; color: #6366f1; font-size: 13px; content: '\f007'; } }
+        > :nth-child(2) .o_horizontal_separator::before { content: '\f10d'; background: #fef3c7; color: #d97706; }
+        .o_field_many2one a, .o_field_many2one .o_input { color: $jx-ink; }
+    }
+    // status pills inside the table
+    .o_list_renderer .badge { &.text-bg-success { background: #dcfce7 !important; color: #15803d !important; }
+        &.text-bg-warning { background: #fef3c7 !important; color: #b45309 !important; } }
+}
+@keyframes jx-in2 { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes jx-grow2 { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (max-width: 768px) { .o_form_view.jp-form .jp-cards { flex-wrap: wrap; } }
+.o_form_view.jp-form .jp-prog { > .o_field_progressbar { flex: 1; } .o_progressbar { width: 100%; > div:first-child { flex: 1; } } }

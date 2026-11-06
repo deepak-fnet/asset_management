@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Asset Assign Process: Odoo's own form, with an animated status bar. -->
+    <!-- Asset Assign Process: Odoo's form with a photo + progress title,
+         card groups and an animated status bar. -->
     <record id="view_asset_joining_process_form_ui" model="ir.ui.view">
         <field name="name">asset.joining.process.form.ui</field>
         <field name="model">asset.joining.process</field>
@@ -9,6 +10,26 @@
         <field name="arch" type="xml">
             <xpath expr="//form" position="attributes">
                 <attribute name="class" add="jp-form" separator=" "/>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_title')]" position="attributes">
+                <attribute name="class">oe_title jp-title</attribute>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_title')]/h1" position="before">
+                <field name="jp_avatar" widget="image" class="jp-photo" readonly="1" invisible="not employee_id"/>
+                <span class="jp-photo jp-photo-empty" invisible="employee_id"><i class="fa fa-user"/></span>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_title')]/h1" position="after">
+                <div class="jp-sub">
+                    <span class="jp-who"><field name="employee_id" readonly="1" nolabel="1" options="{'no_open': True}"/></span>
+                    <span class="jp-dep" invisible="not department_id"><i class="fa fa-building-o"/> <field name="department_id" readonly="1" nolabel="1" options="{'no_open': True}"/></span>
+                </div>
+                <div class="jp-prog">
+                    <field name="jp_progress" widget="progressbar" nolabel="1"/>
+                    <field name="jp_progress_text" nolabel="1" class="jp-prog-t"/>
+                </div>
+            </xpath>
+            <xpath expr="//group[group/field[@name='requested_by_id']]" position="attributes">
+                <attribute name="class">jp-cards</attribute>
             </xpath>
         </field>
     </record>
