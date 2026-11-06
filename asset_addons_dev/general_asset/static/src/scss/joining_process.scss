@@ -80,3 +80,17 @@ $jx-amber: #fbbf24;
     .jx-stats { width: 100%; > * { flex: 1; min-width: 0; } }
     .jx-seg span { font-size: 9.5px; }
 }
+
+// page-width sheet, journey bar in the form header
+.o_form_view.jp-form {
+    .o_form_sheet_bg > .o_form_sheet, .o_form_sheet { max-width: none !important; width: auto !important; margin: 0 16px !important; }
+    .o_form_statusbar { align-items: center; padding: 6px 16px; background: #fff; border-bottom: 1px solid $jx-line; }
+    .jx-track-w { flex: 1 1 520px; order: 99; margin-left: auto; max-width: 640px; }
+}
+.jx-track.jx-head { margin: 0; gap: 4px;
+    .jx-seg { gap: 4px; i { height: 6px; background: #e8ebf1; }
+        span { font-size: 10.5px; color: #94a3b8; }
+        &.done i { background: #84cc16; } &.done span { color: $jx-ink; }
+        &.now i { background: linear-gradient(90deg, #84cc16, #d9f99d, #84cc16); background-size: 200% 100%; animation: jx-flow 1.4s linear infinite; }
+        &.now span { color: #4d7c0f; font-weight: 800; } } }
+@keyframes jx-flow { from { background-position: 200% 0; } to { background-position: 0 0; } }

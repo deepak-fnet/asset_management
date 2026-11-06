@@ -32,11 +32,13 @@ class AssetJoiningProcessUI(models.Model):
     _inherit = 'asset.joining.process'
 
     jp_hero = fields.Html(compute='_compute_jp_hero', sanitize=False)
+    jp_track = fields.Html(compute='_compute_jp_hero', sanitize=False)
 
     @api.depends_context('uid')
     def _compute_jp_hero(self):
         for rec in self:
             rec.jp_hero = rec._jp_hero_html()
+            rec.jp_track = rec._jp_track_html()
 
     def _jp_hero_html(self):
         env = self.env
@@ -65,16 +67,6 @@ class AssetJoiningProcessUI(models.Model):
         stats = stat(_('Requested'), req) + stat(_('Assigned'), got, 'ok') + \
             stat(_('Pending'), max(req - got, 0), 'warn' if req - got else '')
 
-        keys = [k for k, _l in JOURNEY]
-        cur = keys.index('approved') if st == 'validate' else (keys.index(st) if st in keys else -1)
-        if st == 'cancelled':
-            track = Markup('<div class="jx-cancel"><i class="fa fa-ban"></i> %s</div>') % sel.get(st, st)
-        else:
-            track = Markup('<div class="jx-track">%s</div>') % Markup('').join(
-                Markup('<div class="jx-seg %s"><i></i><span>%s</span></div>') % (
-                    'done' if (i < cur or st == 'done') else ('now' if i == cur else ''), lbl)
-                for i, (_k, lbl) in enumerate(JOURNEY))
-
         meta = []
         if self.requested_by_id:
             meta.append(Markup('<span><i class="fa fa-user-o"></i> %s</span>') % self.requested_by_id.name)
@@ -99,6 +91,21 @@ class AssetJoiningProcessUI(models.Model):
             '<div class="jx-stats">%s<div class="jx-pct"><b>%s%%</b><span>%s</span></div></div>'
             '</div>'
             '<div class="jx-meta">%s<em class="jx-state">%s</em></div>'
-            '%s%s%s</div>') % (
+            '%s%s</div>') % (
             st, pct, av, name, sub or _('Employee'), stats, pct, _('complete'),
-            Markup('').join(meta), sel.get(st, st), track, desc, handed)
+            Markup('').join(meta), sel.get(st, st), desc, handed)
+
+    def _jp_track_html(self):
+        st = self.state
+        sel = dict(self._fields['state']._description_selection(self.env))
+        keys = [k for k, _l in JOURNEY]
+        cur = keys.index('approved') if st == 'validate' else (keys.index(st) if st in keys else -1)
+        if st == 'cancelled':
+            track = Markup('<div class="jx-cancel"><i class="fa fa-ban"></i> %s</div>') % sel.get(st, st)
+        else:
+            track = Markup('<div class="jx-track jx-head">%s</div>') % Markup('').join(
+                Markup('<div class="jx-seg %s"><i></i><span>%s</span></div>') % (
+                    'done' if (i < cur or st == 'done') else ('now' if i == cur else ''), lbl)
+                for i, (_k, lbl) in enumerate(JOURNEY))
+
+        return track

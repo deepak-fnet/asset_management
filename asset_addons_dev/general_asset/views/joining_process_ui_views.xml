@@ -14,6 +14,9 @@
             <xpath expr="//header/field[@name='state']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
+            <xpath expr="//header/field[@name='state']" position="after">
+                <field name="jp_track" nolabel="1" readonly="1" class="jx-track-w"/>
+            </xpath>
             <xpath expr="//div[hasclass('oe_title')]" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
