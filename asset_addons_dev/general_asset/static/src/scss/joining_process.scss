@@ -31,42 +31,47 @@ $jx-amber: #fbbf24;
 }
 
 
-// animated status bar
-@keyframes jx-shine { from { background-position: 200% 0; } to { background-position: -200% 0; } }
-@keyframes jx-pop { 0% { transform: scale(.85); } 60% { transform: scale(1.06); } 100% { transform: scale(1); } }
-@keyframes jx-ping { 0% { transform: scale(1); opacity: .7; } 100% { transform: scale(2.6); opacity: 0; } }
+// 3D animated status bar
+@keyframes jx3-float { 0%, 100% { transform: translateY(-3px); } 50% { transform: translateY(-6px); } }
+@keyframes jx3-in { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(-3px); opacity: 1; } }
+@keyframes jx3-sheen { 0% { left: -60%; } 60%, 100% { left: 130%; } }
+@keyframes jx3-ring { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, .9); } 100% { box-shadow: 0 0 0 7px rgba(255, 255, 255, 0); } }
 
 .o_form_view.jp-form .o_statusbar_status {
-    gap: 6px; align-items: center;
+    gap: 10px; align-items: center;
     .o_arrow_button {
-        position: relative; border: 0 !important; border-radius: 999px !important; margin: 0 !important;
-        padding: 6px 14px 6px 12px !important; font-size: 12.5px; font-weight: 600;
-        background: #eef1f6 !important; color: #94a3b8 !important; box-shadow: none !important;
-        transition: background .25s, color .25s, transform .2s;
+        position: relative; overflow: hidden; border: 0 !important; border-radius: 12px !important; margin: 0 !important;
         clip-path: none !important; -webkit-clip-path: none !important;
-        &::before, &::after { display: none !important; }   // Odoo's arrow tips
-        &:not(:disabled):hover { transform: translateY(-1px); color: $jx-ink !important; }
+        padding: 7px 15px !important; font-size: 12.5px; font-weight: 700; letter-spacing: .01em;
+        color: #94a3b8 !important; background: linear-gradient(180deg, #ffffff, #eef1f6) !important;
+        box-shadow: 0 3px 0 #d5dae3, 0 6px 10px rgba(15, 23, 42, .08), inset 0 1px 0 #fff !important;
+        transform: translateY(-2px); transition: transform .15s, box-shadow .15s;
+        &::before, &::after { display: none !important; clip-path: none !important; }
+        &:not(:disabled):hover { transform: translateY(-4px); box-shadow: 0 5px 0 #d5dae3, 0 10px 16px rgba(15, 23, 42, .1) !important; color: #475569 !important; }
+        &:not(:disabled):active { transform: translateY(1px); box-shadow: 0 0 0 #d5dae3, 0 2px 4px rgba(15, 23, 42, .1) !important; }
     }
-    // steps already passed
+    // passed: pressed-in green keys
     .o_arrow_button_current ~ .o_arrow_button {
-        background: #dcfce7 !important; color: #15803d !important;
-        &::before { content: '\f00c'; font-family: FontAwesome; display: inline-block !important; position: static;
-            border: 0; margin-right: 6px; font-size: 10px; width: auto; height: auto; background: none; }
+        color: #166534 !important; background: linear-gradient(180deg, #dcfce7, #bbf7d0) !important;
+        box-shadow: 0 1px 0 #86efac, inset 0 2px 4px rgba(22, 101, 52, .15) !important; transform: translateY(1px);
+        &::before { content: '\f00c' !important; display: inline-block !important; position: static !important; font-family: FontAwesome;
+            margin-right: 6px; font-size: 10px; width: auto !important; height: auto !important; background: none !important; }
     }
-    // current step
+    // current: raised, tilted, floating block with sheen
     .o_arrow_button_current {
-        color: #fff !important; animation: jx-pop .45s ease-out;
-        background: linear-gradient(110deg, #6366f1 0%, #8b5cf6 40%, #c4b5fd 50%, #8b5cf6 60%, #6366f1 100%) !important;
-        background-size: 250% 100% !important; animation: jx-pop .45s ease-out, jx-shine 2.8s linear infinite;
-        box-shadow: 0 4px 14px rgba(99, 102, 241, .35) !important; padding-left: 26px !important;
-        &::before { content: ''; display: block !important; position: absolute; left: 11px; top: 50%; width: 8px; height: 8px;
-            margin-top: -4px; border-radius: 50%; background: #fff !important; border: 0; }
-        &::after { content: ''; display: block !important; position: absolute; left: 11px; top: 50%; width: 8px; height: 8px;
-            margin-top: -4px; border-radius: 50%; background: #fff !important; border: 0; animation: jx-ping 1.6s ease-out infinite; }
+        color: #fff !important; padding-left: 28px !important; transform-style: preserve-3d;
+        background: linear-gradient(180deg, #818cf8 0%, #6366f1 55%, #4f46e5 100%) !important;
+        box-shadow: 0 5px 0 #3730a3, 0 14px 22px rgba(79, 70, 229, .45), inset 0 1px 0 rgba(255, 255, 255, .45) !important;
+        animation: jx3-in .55s cubic-bezier(.2, 1.4, .4, 1), jx3-float 2.6s ease-in-out .55s infinite;
+        text-shadow: 0 1px 0 rgba(0, 0, 0, .2);
+        &::before { content: '' !important; display: block !important; position: absolute; left: 12px; top: 50%; width: 8px; height: 8px;
+            margin-top: -4px; border-radius: 50%; background: #fff !important; animation: jx3-ring 1.4s ease-out infinite; inset: auto; left: 12px; top: 50%; }
+        &::after { content: '' !important; display: block !important; position: absolute; top: 0; bottom: 0; width: 40%; left: -60%;
+            background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .45), transparent) !important; transform: skewX(-20deg);
+            animation: jx3-sheen 2.8s ease-in-out infinite; }
     }
 }
-.o_form_view.jp-form .o_statusbar_status .o_arrow_button::before, .o_form_view.jp-form .o_statusbar_status .o_arrow_button::after { clip-path: none !important; }
-.o_form_view.jp-form .o_form_statusbar { background: #fff; padding: 8px 16px; border-bottom: 1px solid $jx-line; }
+.o_form_view.jp-form .o_form_statusbar { background: #fff; padding: 12px 16px 14px; border-bottom: 1px solid $jx-line; }
 
 // ---- title: photo + name + progress
 .o_form_view.jp-form {
