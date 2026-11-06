@@ -44,66 +44,61 @@ class AssetJoiningProcessUI(models.Model):
         st = self.state
         sel = dict(self._fields['state']._description_selection(env))
 
-        # who
         if emp:
             sub = ' · '.join(x for x in [emp.job_title or (emp.job_id.name if emp.job_id else ''),
                                          self.department_id.name or emp.department_id.name or ''] if x)
-            who = Markup(
-                '<img class="jp-av" src="/web/image/hr.employee/%s/avatar_128" alt=""/>'
-                '<div class="jp-who"><small>%s</small><h2>%s</h2><span>%s</span></div>') % (
-                emp.id, _('Assets for'), emp.name, sub or _('Employee'))
+            av = Markup('<img class="jx-av" src="/web/image/hr.employee/%s/avatar_128" alt=""/>') % emp.id
+            name = emp.name
         else:
-            who = Markup('<span class="jp-av jp-av-empty"><i class="fa fa-user-plus"></i></span>'
-                         '<div class="jp-who"><small>%s</small><h2>%s</h2><span>%s</span></div>') % (
-                _('Assets for'), _('Pick an employee'), _('Fill the request below'))
+            sub = _('Fill the request below')
+            av = Markup('<span class="jx-av jx-av-empty"><i class="fa fa-user-plus"></i></span>')
+            name = _('Pick an employee')
 
-        meta = []
-        if self.requested_by_id:
-            meta.append(Markup('<span><i class="fa fa-user-circle-o"></i> %s <b>%s</b></span>') % (
-                _('Requested by'), self.requested_by_id.name))
-        when = self.joining_date or (self.create_date and self.create_date.date())
-        if when:
-            meta.append(Markup('<span><i class="fa fa-calendar"></i> %s</span>') % format_date(env, when))
-        meta.append(Markup('<span class="jp-ref"><i class="fa fa-hashtag"></i> %s</span>') % (self.name or ''))
-
-        # progress
         lines = self.request_line_ids
-        req = sum(lines.mapped('quantity')) or 0
-        got = sum(lines.mapped('assigned_qty')) or 0
+        req = int(sum(lines.mapped('quantity')) or 0)
+        got = int(sum(lines.mapped('assigned_qty')) or 0)
         pct = int(got * 100 / req) if req else 0
-        ring = Markup(
-            '<div class="jp-ring" style="--p:%s"><b>%s<small>/%s</small></b><span>%s</span></div>') % (
-            pct, int(got), int(req), _('assigned'))
+        when = self.joining_date or (self.create_date and self.create_date.date())
 
-        # journey
+        def stat(label, val, cls=''):
+            return Markup('<div class="jx-stat %s"><b>%s</b><span>%s</span></div>') % (cls, val, label)
+        stats = stat(_('Requested'), req) + stat(_('Assigned'), got, 'ok') + \
+            stat(_('Pending'), max(req - got, 0), 'warn' if req - got else '')
+
         keys = [k for k, _l in JOURNEY]
         cur = keys.index('approved') if st == 'validate' else (keys.index(st) if st in keys else -1)
         if st == 'cancelled':
-            steps = Markup('<div class="jp-cancel"><i class="fa fa-ban"></i> %s</div>') % sel.get(st, st)
+            track = Markup('<div class="jx-cancel"><i class="fa fa-ban"></i> %s</div>') % sel.get(st, st)
         else:
-            steps = Markup('').join(
-                Markup('<li class="%s"><i>%s</i><span>%s</span></li>') % (
-                    'done' if i < cur or st == 'done' else ('now' if i == cur else ''),
-                    Markup('<span class="fa fa-check"></span>') if (i < cur or st == 'done') else str(i + 1),
-                    lbl)
+            track = Markup('<div class="jx-track">%s</div>') % Markup('').join(
+                Markup('<div class="jx-seg %s"><i></i><span>%s</span></div>') % (
+                    'done' if (i < cur or st == 'done') else ('now' if i == cur else ''), lbl)
                 for i, (_k, lbl) in enumerate(JOURNEY))
-            steps = Markup('<ol class="jp-steps">%s</ol>') % steps
 
-        # handed over
+        meta = []
+        if self.requested_by_id:
+            meta.append(Markup('<span><i class="fa fa-user-o"></i> %s</span>') % self.requested_by_id.name)
+        if when:
+            meta.append(Markup('<span><i class="fa fa-calendar-o"></i> %s</span>') % format_date(env, when))
+        meta.append(Markup('<span class="jx-ref">%s</span>') % (self.name or ''))
+
         assets = self.allocation_ids.mapped('asset_ids')
         chips = Markup('').join(
-            Markup('<a class="jp-chip" href="/odoo/asset.asset/%s" title="%s"><i class="fa %s"></i> %s</a>') % (
+            Markup('<a class="jx-chip" href="/odoo/asset.asset/%s" title="%s"><i class="fa %s"></i> %s</a>') % (
                 a.id, escape(a.display_name), _icon(a.display_name, a.category_id.display_name or ''),
                 a.asset_code or a.display_name)
             for a in assets)
-        handed = Markup('<div class="jp-handed"><small>%s</small>%s</div>') % (
+        handed = Markup('<div class="jx-handed"><small>%s</small>%s</div>') % (
             _('Handed over'), chips) if assets else Markup('')
-
-        desc = Markup('<p class="jp-desc"><i class="fa fa-quote-left"></i> %s</p>') % self.description \
-            if self.description else Markup('')
+        desc = Markup('<p class="jx-desc">%s</p>') % self.description if self.description else Markup('')
 
         return Markup(
-            '<div class="jp-hero s-%s">'
-            '<div class="jp-top"><div class="jp-id">%s<div class="jp-meta">%s</div></div>%s</div>'
+            '<div class="jx-hero s-%s" style="--p:%s">'
+            '<div class="jx-row">'
+            '<div class="jx-id">%s<div><h2>%s</h2><p>%s</p></div></div>'
+            '<div class="jx-stats">%s<div class="jx-pct"><b>%s%%</b><span>%s</span></div></div>'
+            '</div>'
+            '<div class="jx-meta">%s<em class="jx-state">%s</em></div>'
             '%s%s%s</div>') % (
-            st, who, Markup('').join(meta), ring, steps, desc, handed)
+            st, pct, av, name, sub or _('Employee'), stats, pct, _('complete'),
+            Markup('').join(meta), sel.get(st, st), track, desc, handed)
