@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="cron_asset_smart_alerts" model="ir.cron">
+        <field name="name">Asset: smart alerts (warranty, AMC, licence, stuck repairs)</field>
+        <field name="model_id" ref="asset_management.model_asset_asset"/>
+        <field name="state">code</field>
+        <field name="code">model._sn_cron_daily()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+    </record>
+</odoo>
