@@ -119,3 +119,29 @@ $jp-warn: #f59e0b;
     .jp-top { flex-direction: column; align-items: flex-start; }
     .jp-steps li > span { font-size: 10px; }
 }
+
+// compact header (v2)
+.jp-hero { padding: 14px 18px 10px; margin-bottom: 12px; border-radius: 14px;
+    &::before { height: 100%; opacity: .55; } }
+.jp-id { gap: 12px; flex-wrap: wrap; }
+.jp-av { width: 46px; height: 46px; border-radius: 14px; border-width: 2px; }
+.jp-av-empty { font-size: 18px; }
+.jp-who { small { font-size: 9.5px; } h2 { font-size: 19px; } span { font-size: 12.5px; } }
+.jp-hero .jp-meta { margin: 0 0 0 10px; padding-left: 14px; border-left: 1px solid $jp-line; gap: 4px 14px; font-size: 12px; }
+.jp-ring { width: 56px; height: 56px;
+    &::before { width: 44px; height: 44px; }
+    b { font-size: 15px; margin-top: -6px; small { font-size: 10px; } }
+    span { font-size: 7.5px; margin-top: 20px; } }
+.jp-steps { margin: 10px 0 0;
+    li { flex-direction: row; justify-content: center; gap: 6px;
+        > i { width: 20px; height: 20px; font-size: 10px; }
+        > span { font-size: 11.5px; }
+        &::before { top: 10px; right: calc(50% + 50px); width: calc(100% - 100px); } } }
+.jp-desc { margin-top: 8px; padding: 6px 10px; }
+.jp-handed { margin-top: 8px; }
+@media (max-width: 768px) { .jp-hero .jp-meta { margin: 6px 0 0; padding: 0; border: 0; }
+    .jp-steps li > span { display: none; } .jp-steps li::before { right: 50%; width: 100%; } }
+.jp-steps { gap: 8px;
+    li { padding: 5px 8px; border-radius: 999px; background: rgba(255,255,255,.6);
+        &::before { display: none; }
+        &.now { background: #eef2ff; } &.done { background: #ecfdf5; } } }

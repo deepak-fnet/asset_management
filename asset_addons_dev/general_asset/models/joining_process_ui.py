@@ -89,28 +89,6 @@ class AssetJoiningProcessUI(models.Model):
                 for i, (_k, lbl) in enumerate(JOURNEY))
             steps = Markup('<ol class="jp-steps">%s</ol>') % steps
 
-        # items
-        status_sel = dict(lines._fields['assign_status']._description_selection(env)) if lines else {}
-        items = []
-        for l in lines:
-            q = l.quantity or 0
-            a = l.assigned_qty or 0
-            p = int(a * 100 / q) if q else 0
-            what = l.product_id.display_name or ''
-            cat = l.category_id.display_name or ''
-            items.append(Markup(
-                '<div class="jp-item s-%s"><span class="jp-ico"><i class="fa %s"></i></span>'
-                '<div class="jp-item-m"><b>%s</b><span>%s</span>'
-                '<div class="jp-bar"><i style="width:%s%%"></i></div></div>'
-                '<div class="jp-item-q"><b>%s<small>/%s</small></b><em>%s</em></div></div>') % (
-                l.assign_status or 'pending', _icon(l.description, what, cat),
-                l.description or what or _('Item'),
-                ' · '.join(x for x in [what, cat] if x) or _('product not chosen yet'),
-                p, int(a), int(q), status_sel.get(l.assign_status, '')))
-        items_html = Markup('').join(items) if items else Markup(
-            '<div class="jp-empty"><i class="fa fa-hand-o-down"></i> %s</div>') % _(
-            'Add what is needed in Request Details below.')
-
         # handed over
         assets = self.allocation_ids.mapped('asset_ids')
         chips = Markup('').join(
@@ -126,8 +104,6 @@ class AssetJoiningProcessUI(models.Model):
 
         return Markup(
             '<div class="jp-hero s-%s">'
-            '<div class="jp-top"><div class="jp-id">%s</div>%s</div>'
-            '<div class="jp-meta">%s</div>%s%s'
-            '<div class="jp-items"><div class="jp-items-h">%s <b>%s</b></div>%s</div>%s</div>') % (
-            st, who, ring, Markup('').join(meta), desc, steps,
-            _('Requested items'), len(lines), items_html, handed)
+            '<div class="jp-top"><div class="jp-id">%s<div class="jp-meta">%s</div></div>%s</div>'
+            '%s%s%s</div>') % (
+            st, who, Markup('').join(meta), ring, steps, desc, handed)
