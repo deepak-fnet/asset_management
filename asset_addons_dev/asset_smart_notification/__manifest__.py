@@ -5,7 +5,7 @@
     'summary': 'Asset workflows talk through Smart Notifications: approvals that close themselves, '
                'hand-over notices, repair, spare, warranty / AMC / licence and verification alerts',
     'depends': ['smart_notification', 'asset_management', 'general_asset', 'asset_purchase',
-                'asset_warranty_license'],
+                'asset_warranty_license', 'purchase_approval', 'vendor_management', 'asset_helpdesk'],
     'data': ['data/cron.xml'],
     'license': 'LGPL-3',
     'installable': True,

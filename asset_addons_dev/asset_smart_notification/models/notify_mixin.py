@@ -52,7 +52,8 @@ class AssetSmartNotify(models.AbstractModel):
 
     # ---------------------------------------------------------------- send
     def _sn(self, users, title, rows=(), *, note=None, kind='info', policy='info', action=None, label=None,
-            close=None, done=None, reject=None, priority='normal', icon=None, tell_sender=False, keep_actor=False):
+            close=None, done=None, reject=None, priority='normal', icon=None, tell_sender=False, keep_actor=False,
+            html=None):
         """Notify ``users`` about this record (one notification per record)."""
         Notif = self.env['smart.notification'].sudo()
         for rec in self:
@@ -63,8 +64,8 @@ class AssetSmartNotify(models.AbstractModel):
                 continue
             try:
                 Notif.notify(rec, to, title if not callable(title) else title(rec),
-                             body=rec._sn_body(rows(rec) if callable(rows) else rows,
-                                               note(rec) if callable(note) else note),
+                             body=(Markup(html) if html else Markup('')) + rec._sn_body(
+                                 rows(rec) if callable(rows) else rows, note(rec) if callable(note) else note),
                              kind=kind, policy=policy, action_method=action, action_label=label,
                              close_methods=close, done_methods=done, reject_method=reject,
                              priority=priority, icon=icon, notify_sender=tell_sender,
